@@ -352,6 +352,9 @@ text-shadow: 0 0 24px #00ff88, 0 0 8px #00ff88;
 
 
 /* STYLES BOUTONS ARCADE - INTÉGRÉS */
+
+
+  
 .arcade-button {
 position: relative;
 background: linear-gradient(to bottom, #2a2a2a, #0d0d0d);
@@ -429,6 +432,10 @@ animation: glowPulse 1s ease-in-out infinite; /* Animation continue jusqu'au ret
 @media screen and (max-width: 768px), 
        screen and (-webkit-min-device-pixel-ratio: 2), 
        screen and (min-resolution: 192dpi) {
+         
+button, a, input, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
 
   .arcade-button {
   font-size: 4em;
