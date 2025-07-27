@@ -1508,6 +1508,7 @@ newValidation = Math.max(0, currentValidation - 2);
 
 const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
 
+// ✅ MISE À JOUR IMMÉDIATE DE L'INTERFACE
 updateStarsForHiragana(parseInt(current.ID), newValidation);
 
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
@@ -1515,10 +1516,7 @@ if (hiraganaIndex !== -1) {
 HiraganaList[hiraganaIndex].Validation = newValidation.toString();
 }
 
-
-// Envoi vers Google Sheets
-await callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score });
-
+// ✅ AFFICHAGE IMMÉDIAT DU RÉSULTAT
 let emoji = "", resultText = "";
 if (score === 1) {
 const emojisOK = ["🍣", "🍜", "🍬", "🍥", "🍵", "🍙", "🌸", "🕹️", "🎮", "🍘", "🍚", "🍤", "🍱"];  
@@ -1551,8 +1549,25 @@ setTimeout(nextQuestion, 1500);
 } else {
 document.getElementById("continueBtn").style.visibility = "visible";
 }
+
+// 🚀 APPEL API EN ARRIÈRE-PLAN (NON-BLOQUANT)
+// L'interface est déjà mise à jour, on peut faire l'appel tranquillement
+callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
+  .then(response => {
+    if (response.error) {
+      console.warn('Erreur sauvegarde:', response.error);
+      // Optionnel : afficher une petite notification d'erreur discrète
+    } else {
+      console.log('✅ Score sauvegardé en arrière-plan');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur lors de la sauvegarde:', error);
+    // Optionnel : implémenter une file d'attente pour réessayer plus tard
+  });
 }
 }
+  
 
 function triggerLightFirework(card) {
 // HALO LUMINEUX
