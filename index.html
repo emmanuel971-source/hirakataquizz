@@ -1456,7 +1456,7 @@ container.appendChild(btn);
 });
 }
 
-function checkAnswer() {
+async function checkAnswer() {
 if (selections.first && selections.second && !isAnswered) {
 isAnswered = true;
 const correct1 = current[targetFields[0]];
@@ -1512,8 +1512,9 @@ if (hiraganaIndex !== -1) {
 HiraganaList[hiraganaIndex].Validation = newValidation.toString();
 }
 
+
 // Envoi vers Google Sheets
-callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score });
+await callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score });
 
 let emoji = "", resultText = "";
 if (score === 1) {
