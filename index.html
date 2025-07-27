@@ -1333,14 +1333,44 @@ renderHiraganaCards(list, niveau);
 }
 
 // Initialisation avec Google Apps Script
-google.script.run.withSuccessHandler(data => {
-HiraganaList = data;
-niveauActif = determineNiveauActif(HiraganaList);
-document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-updateLevelProgress(HiraganaList, niveauActif);
-renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-nextQuestion();
-}).getHiraganas();
+// *** NOUVELLE URL DE VOTRE WEB APP GOOGLE ***
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzB6oFhJQIZt4xPYyeJrD0t1jzFWGbFOAF1IW3K76io92QQPWZGmqlRhqgWty-gMX2MdQ/exec';
+
+// Fonction pour appeler l'API
+async function callAPI(action, data = null) {
+  try {
+    if (action === 'updateStats') {
+      const response = await fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...data })
+      });
+      return await response.json();
+    } else {
+      const response = await fetch(`${WEB_APP_URL}?action=${action}`);
+      return await response.json();
+    }
+  } catch (error) {
+    logError('Erreur API: ' + error.message);
+    return { error: error.message };
+  }
+}
+
+// Initialisation avec l'API
+async function initGame() {
+  const data = await callAPI('getHiraganas');
+  if (data.error) {
+    logError('Erreur lors du chargement: ' + data.error);
+    return;
+  }
+  
+  HiraganaList = data;
+  niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  nextQuestion();
+}
 
 function nextQuestion() {
 document.getElementById("result").innerText = "";
@@ -1483,7 +1513,7 @@ HiraganaList[hiraganaIndex].Validation = newValidation.toString();
 }
 
 // Envoi vers Google Sheets
-google.script.run.updateStats(parseInt(current.ID), score);
+callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score });
 
 let emoji = "", resultText = "";
 if (score === 1) {
@@ -1774,7 +1804,9 @@ easing: "ease-in-out"
 }
 
 // Démarrage du jeu
-window.onload = initGame;
+window.onload = () => {
+  initGame();
+};
 </script>
 </body>
 </html>
