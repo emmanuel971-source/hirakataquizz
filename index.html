@@ -1334,18 +1334,30 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec Google Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP GOOGLE ***
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby6dA8msXxCqfflbicieUzBqg2e1ORbjGSRwu2yoEGRLxhi9czweBD3FjS9KbBeUnFN7A/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbweLQo2Pa4u_IM1h4pxql7rqxBi8jGpjUEjuMA1xh0Eu0KUCU4mWUTSStsQsL-B8lvO/exec';
 
 // Fonction pour appeler l'API
 async function callAPI(action, data = null) {
   try {
     if (action === 'updateStats') {
-      const response = await fetch(WEB_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, ...data })
-      });
-      return await response.json();
+      // Essayer d'abord POST, puis GET en fallback
+      try {
+        const response = await fetch(WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, ...data })
+        });
+        return await response.json();
+      } catch (postError) {
+        // Fallback en GET si POST échoue
+        const params = new URLSearchParams({ 
+          action, 
+          id: data.id, 
+          scorePoints: data.scorePoints 
+        });
+        const response = await fetch(`${WEB_APP_URL}?${params}`);
+        return await response.json();
+      }
     } else {
       const response = await fetch(`${WEB_APP_URL}?action=${action}`);
       return await response.json();
