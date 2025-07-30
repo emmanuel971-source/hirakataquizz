@@ -27,7 +27,7 @@
       content: '';
       position: absolute;
       top: 0;
-      left: 0;
+      left: 0; /* Correction : suppression de "威力" */
       width: 100%;
       height: 100%;
       background: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
@@ -73,7 +73,7 @@
     .progress-bar-track {
       position: relative;
       height: 16px;
-      background: linear-gradient(to right, #6B8E23, #FDC1C5); /* Vert bambou à rose sakura */
+      background: linear-gradient(to right, #E0F7FA, #2F4F4F); /* Vert d'eau à vert forêt */
       border-radius: 6px;
       flex: 1;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -211,6 +211,7 @@
     .hiragana-card.completed .hiragana-char {
       color: #A8D5BA; /* Vert matcha */
       text-shadow: 0 0 5px rgba(168, 213, 186, 0.5);
+      animation: starGlow 2s ease-in-out infinite; /* Scintillement appliqué */
     }
 
     .stars-container {
@@ -385,20 +386,21 @@
       }
     }
 
-    /* Styles boutons arcade */
+    /* Styles boutons bois/domino */
     .arcade-button {
       position: relative;
-      background: linear-gradient(to bottom, #6B8E23, #FDC1C5); /* Vert bambou à rose sakura */
-      border: 1px solid #2F4F4F;
-      border-radius: 16px;
+      background: #F5E8C7; /* Ivoire/bois clair */
+      background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
+      border: 2px solid #8B6F47; /* Marron clair */
+      border-radius: 10px;
       padding: 0.8em 1.5em;
-      color: #2F4F4F;
+      color: #2F4F4F; /* Vert forêt */
       font-size: 1.4em;
       line-height: 0.6;
       white-space: normal;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 6px #2F4F4F, 0 10px 15px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
       transition: all 0.15s ease;
       text-shadow: 0 0 8px rgba(47, 79, 79, 0.5);
       overflow: hidden;
@@ -413,36 +415,37 @@
       left: 0;
       right: 0;
       height: 50%;
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
-      border-top-left-radius: 16px;
-      border-top-right-radius: 16px;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
       pointer-events: none;
     }
 
     .arcade-button:hover {
       transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 8px #2F4F4F, 0 14px 20px rgba(0, 0, 0, 0.4);
-      border-color: #636E72;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+      border-color: #7A5C3A; /* Marron clair légèrement plus foncé */
     }
 
     .arcade-button:active {
-      transform: translateY(3px) scale(0.98);
-      box-shadow: 0 3px #2F4F4F, 0 5px 8px rgba(0, 0, 0, 0.3);
+      transform: translateY(2px) scale(0.98);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
     }
 
     .arcade-button:disabled {
       cursor: not-allowed;
+      opacity: 0.6;
     }
 
     .arcade-button:disabled:hover {
       transform: none;
-      box-shadow: 0 6px #2F4F4F, 0 10px 15px rgba(0, 0, 0, 0.3);
-      border-color: #2F4F4F;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+      border-color: #8B6F47;
     }
 
     .arcade-button:disabled:active {
       transform: none;
-      box-shadow: 0 6px #2F4F4F, 0 10px 15px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
     }
 
     .arcade-button.clicked-glow {
@@ -450,9 +453,45 @@
       animation: glowPulse 1s ease-in-out infinite;
     }
 
+    .arcade-button.correct {
+      background: linear-gradient(135deg, #A8D5BA 0%, #DDE6D5 100%); /* Vert matcha */
+      color: #2F4F4F;
+      border-color: #A8D5BA;
+      background-image: none; /* Supprime la texture bois pour la réponse correcte */
+      animation: correctGlow 0.6s ease-in-out;
+    }
+
+    .arcade-button.incorrect {
+      background: linear-gradient(135deg, #FDC1C5 0%, #FFB6C1 100%); /* Rose sakura */
+      color: #2F4F4F;
+      border-color: #FDC1C5;
+      background-image: none; /* Supprime la texture bois pour la réponse incorrecte */
+      animation: incorrectShake 0.6s ease-in-out;
+    }
+
     @keyframes glowPulse {
       0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
       50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
+    }
+
+    @keyframes correctGlow {
+      0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+      50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
+      100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+    }
+
+    @keyframes incorrectShake {
+      0% { transform: translateX(0); }
+      10% { transform: translateX(-8px); }
+      20% { transform: translateX(8px); }
+      30% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      50% { transform: translateX(-4px); }
+      60% { transform: translateX(4px); }
+      70% { transform: translateX(-2px); }
+      80% { transform: translateX(2px); }
+      90% { transform: translateX(-1px); }
+      100% { transform: translateX(0); }
     }
 
     @media screen and (max-width: 768px),
@@ -494,45 +533,14 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    #continueBtn {
-      margin: 1em auto;
+    #continueBtn, #boutonPleinEcran, #boutonInstaller {
+      margin: 0.5em auto;
       height: 3em;
-      visibility: hidden;
       display: block;
     }
 
-    .correct {
-      background: linear-gradient(135deg, #A8D5BA 0%, #DDE6D5 100%); /* Vert matcha */
-      color: #2F4F4F;
-      border-color: #A8D5BA;
-      animation: correctGlow 0.6s ease-in-out;
-    }
-
-    .incorrect {
-      background: linear-gradient(135deg, #FDC1C5 0%, #FFB6C1 100%); /* Rose sakura */
-      color: #2F4F4F;
-      border-color: #FDC1C5;
-      animation: incorrectShake 0.6s ease-in-out;
-    }
-
-    @keyframes correctGlow {
-      0% { box-shadow: 0 6px #2F4F4F, 0 10px 15px rgba(0, 0, 0, 0.3); }
-      50% { box-shadow: 0 8px #2F4F4F, 0 0 20px rgba(168, 213, 186, 0.6); }
-      100% { box-shadow: 0 6px #2F4F4F, 0 10px 15px rgba(0, 0, 0, 0.3); }
-    }
-
-    @keyframes incorrectShake {
-      0% { transform: translateX(0); }
-      10% { transform: translateX(-8px); }
-      20% { transform: translateX(8px); }
-      30% { transform: translateX(-6px); }
-      40% { transform: translateX(6px); }
-      50% { transform: translateX(-4px); }
-      60% { transform: translateX(4px); }
-      70% { transform: translateX(-2px); }
-      80% { transform: translateX(2px); }
-      90% { transform: translateX(-1px); }
-      100% { transform: translateX(0); }
+    #boutonInstaller {
+      display: none;
     }
 
     @media screen and (max-width: 768px),
@@ -562,11 +570,10 @@
         font-size: 3em;
       }
 
-      #continueBtn {
-        margin-top: 2em;
-        margin-bottom: 2em;
+      #continueBtn, #boutonPleinEcran, #boutonInstaller {
+        margin-top: 1em;
+        margin-bottom: 1em;
         height: 3em;
-        visibility: hidden;
       }
     }
 
@@ -654,6 +661,8 @@
     <div>
       <div class="result" id="result"></div>
       <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j'ai capté 🌱</button>
+      <button class="arcade-button" id="boutonPleinEcran">Plein écran</button>
+      <button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
     </div>
   </div>
 
@@ -667,42 +676,23 @@
     let previousValidationStates = new Map();
     let activeSparks = [];
     let globalParticleCount = 0;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 
     function logError(msg) {
       console.warn(msg);
     }
 
-    function testFeu() {
-      const container = document.querySelector('.quiz-container');
-      if (isMobile) {
-        triggerLightFirework(container);
-      } else {
-        triggerAdvancedFirework(container);
+    function triggerSakuraFall(container) {
+      for (let i = 0; i < 20; i++) {
+        const sakura = document.createElement("div");
+        sakura.className = "sakura";
+        sakura.style.left = Math.random() * 100 + "vw";
+        sakura.style.top = "-10px";
+        sakura.style.animationDelay = Math.random() + "s";
+        document.body.appendChild(sakura);
+        setTimeout(() => sakura.remove(), 4000);
       }
     }
-
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-    const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30;
-
-    function cleanupOldParticles() {
-      while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
-        const oldSpark = activeSparks.shift();
-        if (oldSpark && oldSpark.canvas && oldSpark.canvas.parentNode) {
-          oldSpark.canvas.remove();
-          globalParticleCount--;
-        }
-      }
-      activeSparks = activeSparks.filter(spark => {
-        if (!spark.canvas || !spark.canvas.parentNode) {
-          globalParticleCount--;
-          return false;
-        }
-        return true;
-      });
-      console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
-    }
-
-    setInterval(cleanupOldParticles, 3000);
 
     let audioContext;
     let audioInitialized = false;
@@ -722,114 +712,219 @@
       return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Validation) >= 5).length;
     }
 
-    function playZenChime() {
+    function playMarioCoin() {
       initAudio();
-      try {
-        const osc = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        osc.connect(gain);
-        gain.connect(audioContext.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(440, audioContext.currentTime);
-        gain.gain.setValueAtTime(0.2, audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
-        osc.start();
-        osc.stop(audioContext.currentTime + 1.5);
-      } catch (error) {
-        logError('Erreur Zen Chime: ' + error.message);
-      }
-    }
-
-    function playWaterDrop() {
-      initAudio();
-      try {
-        const osc = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        osc.connect(gain);
-        gain.connect(audioContext.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, audioContext.currentTime);
-        gain.gain.setValueAtTime(0.15, audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        osc.start();
-        osc.stop(audioContext.currentTime + 0.3);
-      } catch (error) {
-        logError('Erreur Water Drop: ' + error.message);
-      }
-    }
-
-    function playWindBreeze() {
-      initAudio();
-      try {
-        const noise = audioContext.createBufferSource();
-        const buffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.5, audioContext.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < data.length; i++) {
-          data[i] = Math.random() * 0.05 - 0.025;
-        }
-        noise.buffer = buffer;
-        const gain = audioContext.createGain();
-        noise.connect(gain);
-        gain.connect(audioContext.destination);
-        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        noise.start();
-        noise.stop(audioContext.currentTime + 0.5);
-      } catch (error) {
-        logError('Erreur Wind Breeze: ' + error.message);
-      }
-    }
-
-    function playZenBell() {
-      initAudio();
-      try {
-        const osc1 = audioContext.createOscillator();
-        const gain1 = audioContext.createGain();
-        osc1.connect(gain1);
-        gain1.connect(audioContext.destination);
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(523.25, audioContext.currentTime);
-        gain1.gain.setValueAtTime(0.2, audioContext.currentTime);
-        gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.2);
-        osc1.start();
-        osc1.stop(audioContext.currentTime + 1.2);
+      const notes = [659.25, 1046.50];
+      const durations = [0.1, 0.2];
+      notes.forEach((freq, i) => {
         setTimeout(() => {
-          const osc2 = audioContext.createOscillator();
-          const gain2 = audioContext.createGain();
-          osc2.connect(gain2);
-          gain2.connect(audioContext.destination);
-          osc2.type = 'sine';
-          osc2.frequency.setValueAtTime(659.25, audioContext.currentTime);
-          gain2.gain.setValueAtTime(0.15, audioContext.currentTime);
-          gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.0);
-          osc2.start();
-          osc2.stop(audioContext.currentTime + 1.0);
-        }, 200);
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.05, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + durations[i]);
+          osc.start();
+          osc.stop(audioContext.currentTime + durations[i]);
+        }, i * 100);
+      });
+    }
+
+    function playSuccess90s() {
+      initAudio();
+      const baseFreq = 587.33;
+      const osc1 = audioContext.createOscillator();
+      const gain1 = audioContext.createGain();
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      osc1.connect(gain1);
+      osc2.connect(gain2);
+      gain1.connect(audioContext.destination);
+      gain2.connect(audioContext.destination);
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+      osc1.frequency.value = baseFreq;
+      osc2.frequency.setValueAtTime(baseFreq * 1.5, audioContext.currentTime);
+      osc2.frequency.exponentialRampToValueAtTime(baseFreq * 3, audioContext.currentTime + 0.3);
+      gain1.gain.setValueAtTime(0.03, audioContext.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+      gain2.gain.setValueAtTime(0.01, audioContext.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      osc1.start();
+      osc2.start();
+      osc1.stop(audioContext.currentTime + 0.4);
+      osc2.stop(audioContext.currentTime + 0.3);
+    }
+
+    function playFail() {
+      initAudio();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.04, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+      oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(110, audioContext.currentTime + 0.4);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.4);
+    }
+
+    function playFireworkSound() {
+      initAudio();
+      try {
+        const frequencies = [329.63, 415.30, 523.25, 659.25];
+        frequencies.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const filter = audioContext.createBiquadFilter();
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            filter.type = 'lowpass';
+            filter.frequency.value = freq * 2;
+            gain.gain.setValueAtTime(0.03, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.4);
+          }, i * 150);
+        });
       } catch (error) {
-        logError('Erreur Zen Bell: ' + error.message);
+        logError('Erreur Firework: ' + error.message);
       }
     }
 
-    function playLevelUpChime() {
+    function playfireworksound2() {
       initAudio();
       try {
-        const notes = [523.25, 659.25, 783.99];
-        notes.forEach((freq, i) => {
+        const sequence = [554.37, 659.25, 830.61, 987.77];
+        sequence.forEach((freq, i) => {
           setTimeout(() => {
             const osc = audioContext.createOscillator();
             const gain = audioContext.createGain();
             osc.connect(gain);
             gain.connect(audioContext.destination);
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.035, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
             osc.start();
-            osc.stop(audioContext.currentTime + 0.8);
-          }, i * 300);
+            osc.stop(audioContext.currentTime + 0.2);
+          }, i * 100);
         });
       } catch (error) {
-        logError('Erreur Level Up Chime: ' + error.message);
+        logError('Erreur fireworksound 2: ' + error.message);
+      }
+    }
+
+    function playfireworksound3() {
+      initAudio();
+      try {
+        const sequence = [659.25, 783.99, 987.77, 1174.66];
+        sequence.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.035, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.2);
+          }, i * 100);
+        });
+      } catch (error) {
+        logError('Erreur fireworksound 3: ' + error.message);
+      }
+    }
+
+    function playfireworksound4() {
+      initAudio();
+      try {
+        const sequence = [783.99, 987.77, 1174.66, 1396.91];
+        sequence.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.035, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.2);
+          }, i * 100);
+        });
+      } catch (error) {
+        logError('Erreur fireworksound 4: ' + error.message);
+      }
+    }
+
+    function playLevelUp() {
+      initAudio();
+      try {
+        const sequence = [523.25, 659.25, 783.99, 1046.50];
+        const flourish = [783.99, 1046.50, 1318.51];
+        sequence.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.12);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.12);
+          }, i * 120);
+        });
+        flourish.forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.1);
+          }, 480 + i * 100);
+        });
+        setTimeout(() => {
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          const mod = audioContext.createOscillator();
+          const modGain = audioContext.createGain();
+          mod.connect(modGain);
+          modGain.connect(osc.frequency);
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          osc.type = 'sine';
+          mod.type = 'sine';
+          osc.frequency.value = 1318.51;
+          mod.frequency.value = 5;
+          modGain.gain.value = 10;
+          gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2.0);
+          osc.start();
+          mod.start();
+          osc.stop(audioContext.currentTime + 2.0);
+          mod.stop(audioContext.currentTime + 2.0);
+        }, 780);
+      } catch (error) {
+        logError('Erreur Level Up: ' + error.message);
       }
     }
 
@@ -904,15 +999,15 @@
       }).onfinish = () => halo.remove();
 
       if (validatedCount === 0) {
-        playZenBell();
+        playFireworkSound();
       } else if (validatedCount === 1) {
-        playZenBell();
+        playfireworksound2();
       } else if (validatedCount === 2) {
-        playZenBell();
+        playfireworksound3();
       } else if (validatedCount === 3) {
-        playZenBell();
+        playfireworksound4();
       } else if (validatedCount === 4) {
-        playLevelUpChime();
+        playLevelUp();
         triggerLevelUpAnimation(container);
       }
 
@@ -1024,6 +1119,28 @@
       }
       requestAnimationFrame(animate);
     }
+
+    function cleanupOldParticles() {
+      while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
+        const oldSpark = activeSparks.shift();
+        if (oldSpark && oldSpark.canvas && oldSpark.canvas.parentNode) {
+          oldSpark.canvas.remove();
+          globalParticleCount--;
+        }
+      }
+      activeSparks = activeSparks.filter(spark => {
+        if (!spark.canvas || !spark.canvas.parentNode) {
+          globalParticleCount--;
+          return false;
+        }
+        return true;
+      });
+      console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
+    }
+
+    setInterval(cleanupOldParticles, 3000);
+
+    const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30;
 
     function getMaxLevel(list) {
       if (!list || list.length === 0) return 1;
@@ -1148,7 +1265,7 @@
           const params = new URLSearchParams({
             action,
             id: data.id,
-            scorePoints: data.scorePoints
+            scorePoints: data.score
           });
           const response = await fetch(`${WEB_APP_URL}?${params}`);
           return await response.json();
@@ -1316,22 +1433,23 @@
 
         let emoji = "", resultText = "";
         if (score === 1) {
-          const emojisOK = ["🌸", "🌿", "🍃", "🌱", "🌳", "🍀"];
+          const emojisOK = ["🌸", "🎍", "🍵", "🪴"];
           emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
           resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
           if (!isFinalValidation) {
-            playZenChime();
+            playMarioCoin();
+            triggerSakuraFall(document.body);
           }
         } else if (score === 0.5) {
-          const emojisMid = ["🌾", "🍂", "🌧️"];
+          const emojisMid = ["🪨", "🌿", "🪵"];
           emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
           resultText = "Presque...";
-          playWaterDrop();
+          playSuccess90s();
         } else {
-          const emojisBad = ["🍂", "🌧️", "💧"];
+          const emojisBad = ["🍂", "🌫️", "🪨"];
           emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
-          resultText = "Oups... tout faux.";
-          playWindBreeze();
+          resultText = "Pas tout à fait...";
+          playFail();
         }
 
         document.getElementById("result").innerHTML = `
@@ -1351,7 +1469,6 @@
               setTimeout(() => sakura.remove(), 3000);
             }, i * 100);
           }
-          playZenBell();
         }
 
         if (score === 1) {
@@ -1361,7 +1478,7 @@
           document.getElementById("continueBtn").style.visibility = "visible";
         }
 
-        callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
+        callAPI('updateStats', { id: parseInt(current.ID), score })
           .then(response => {
             if (response.error) {
               console.warn('Erreur sauvegarde:', response.error);
@@ -1381,7 +1498,7 @@
       halo.style.width = "30px";
       halo.style.height = "30px";
       halo.style.borderRadius = "50%";
-      halo.style.background = "radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.1))";
+      halo.style.background = "radial-gradient(circle, rgba(253,193,197,0.9), rgba(253,193,197,0.1))";
       halo.style.transform = "translate(-50%, -50%) scale(1)";
       halo.style.opacity = "1";
       halo.style.pointerEvents = "none";
@@ -1403,64 +1520,31 @@
         easing: "ease-out"
       }).onfinish = () => halo.remove();
 
-      const lightFireworkPalettes = [
-        ['#6B8E23', '#9ACD32', '#32CD32', '#228B22', '#008000', '#006400'], // Palette verte
-        ['#A8D5BA', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
-        ['#FDC1C5', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
-      ];
-      const palette = lightFireworkPalettes[Math.floor(Math.random() * lightFireworkPalettes.length)];
-
       for (let i = 0; i < 5; i++) {
         setTimeout(() => {
-          const fw = document.createElement("div");
-          fw.className = "sakura";
+          const sakura = document.createElement("div");
+          sakura.className = "sakura";
           const offsetX = (Math.random() - 0.5) * 80;
           const offsetY = (Math.random() - 0.5) * 80;
-          const scale = 0.8 + Math.random() * 0.6;
-          fw.style.left = `${cx + offsetX}px`;
-          fw.style.top = `${cy + offsetY}px`;
-          fw.style.animationDuration = "1.2s";
-          fw.style.transform = `scale(${scale})`;
-          const baseColor = palette[Math.floor(Math.random() * palette.length)];
-          fw.style.background = baseColor;
-          document.body.appendChild(fw);
-          setTimeout(() => fw.remove(), 1200);
-
-          const smoke = document.createElement("div");
-          smoke.style.position = "absolute";
-          smoke.style.width = "50px";
-          noise.style.height = "50px";
-          smoke.style.borderRadius = "50%";
-          smoke.style.background = "radial-gradient(rgba(255,255,255,0.2), transparent)";
-          smoke.style.left = `${cx + offsetX}px`;
-          smoke.style.top = `${cy + offsetY}px`;
-          smoke.style.opacity = "0.5";
-          smoke.style.pointerEvents = "none";
-          smoke.style.zIndex = "1";
-
-          smoke.animate([
-            { transform: "translateY(0px)", opacity: 0.4 },
-            { transform: "translateY(-40px)", opacity: 0 }
-          ], {
-            duration: 1000,
-            easing: "ease-out"
-          }).onfinish = () => smoke.remove();
-
-          document.body.appendChild(smoke);
+          sakura.style.left = `${cx + offsetX}px`;
+          sakura.style.top = `${cy + offsetY}px`;
+          sakura.style.animationDuration = "1.5s";
+          document.body.appendChild(sakura);
+          setTimeout(() => sakura.remove(), 1500);
         }, i * 250);
       }
 
       const validatedCount = getValidatedCountForLevel(niveauActif);
       if (validatedCount === 0) {
-        playZenBell();
+        playFireworkSound();
       } else if (validatedCount === 1) {
-        playZenBell();
+        playfireworksound2();
       } else if (validatedCount === 2) {
-        playZenBell();
+        playfireworksound3();
       } else if (validatedCount === 3) {
-        playZenBell();
+        playfireworksound4();
       } else if (validatedCount === 4) {
-        playLevelUpChime();
+        playLevelUp();
         triggerLevelUpAnimation(card);
       }
     }
@@ -1475,14 +1559,14 @@
       for (let group = 0; group < 3; group++) {
         setTimeout(() => {
           for (let i = 0; i < 3; i++) {
-            const fire = document.createElement('div');
-            fire.className = 'sakura';
-            fire.style.top = `${15 + Math.random() * 50}%`;
-            fire.style.left = `${20 + Math.random() * 60}%`;
-            fire.style.animationDuration = "1.5s";
-            fire.style.background = '#FDC1C5';
-            container.appendChild(fire);
-            setTimeout(() => fire.remove(), 1500);
+            const sakura = document.createElement('div');
+            sakura.className = 'sakura';
+            sakura.style.top = `${15 + Math.random() * 50}%`;
+            sakura.style.left = `${20 + Math.random() * 60}%`;
+            sakura.style.animationDuration = "2s";
+            sakura.style.background = '#FDC1C5';
+            container.appendChild(sakura);
+            setTimeout(() => sakura.remove(), 2000);
           }
         }, group * 300);
       }
@@ -1533,19 +1617,6 @@
         easing: "ease-out"
       }).onfinish = () => msgWrapper.remove();
 
-      for (let i = 0; i < 3; i++) {
-        setTimeout(() => {
-          const fire = document.createElement('div');
-          fire.className = 'sakura';
-          fire.style.top = `${20 + Math.random() * 30}%`;
-          fire.style.left = `${20 + Math.random() * 60}%`;
-          fire.style.animationDuration = "1.8s";
-          fire.style.background = '#FDC1C5';
-          container.appendChild(fire);
-          setTimeout(() => fire.remove(), 1800);
-        }, i * 400);
-      }
-
       for (let i = 0; i < 50; i++) {
         const confetti = document.createElement("div");
         confetti.className = "sakura";
@@ -1570,6 +1641,52 @@
           easing: "ease-in-out"
         });
       }
+    }
+
+    // Fullscreen API
+    document.getElementById('boutonPleinEcran').addEventListener('click', () => {
+      const element = document.documentElement;
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if (element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+      } else if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+      }
+    });
+
+    // PWA installation
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('boutonInstaller').style.display = 'block';
+    });
+
+    document.getElementById('boutonInstaller').addEventListener('click', () => {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('PWA installée');
+        }
+        deferredPrompt = null;
+      });
+    });
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(
+          (registration) => {
+            console.log('Service Worker enregistré:', registration);
+          },
+          (error) => {
+            console.log('Échec Service Worker:', error);
+          }
+        );
+      });
     }
 
     window.onload = () => {
