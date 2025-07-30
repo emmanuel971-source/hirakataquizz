@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" href="data:,">
 <base target="_top">
 <title>Hira-Kata-Quizzz Zen</title>
@@ -20,10 +20,7 @@ font-family: 'Noto Sans JP', sans-serif;
 color: #8B6F47; /* Marron clair */
 display: flex;
 flex-direction: column;
-align-items: center;
-justify-content: start;
-padding: 10px;
-box-sizing: border-box;
+position: relative;
 }
 
 body::before {
@@ -84,14 +81,12 @@ box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
 .progress-marker {
 position: absolute;
-top: 25%;
+top: 45%;
 left: 0;
-transform: translate(-50%, -75%);
+transform: translate(-50%, -50%);
 font-size: 2em;
-animation: pulse 1.5s infinite alternate;
 transition: left 1.5s ease;
 color: #636E72; /* Gris pierre */
-pointer-events: none;
 }
 
 .side-emoji {
@@ -105,6 +100,52 @@ color: #636E72;
 100% { transform: translate(-50%, -50%) scale(1.2); }
 }
 
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+#progressBarContainer {
+max-width: 80%;
+margin: 1.5em auto 0.5em auto;
+gap: 1em;
+}
+
+.progress-bar-track {
+height: 32px;
+border-radius: 12px;
+}
+
+.progress-marker {
+font-size: 4.5em;
+top: 45%;
+transform: translate(-50%, -50%);
+}
+
+.side-emoji {
+font-size: 2.5em;
+}
+}
+
+@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+#progressBarContainer {
+max-width: 80%;
+margin: 1.5em auto 0.5em auto;
+gap: 1em;
+}
+
+.progress-bar-track {
+height: 32px;
+border-radius: 12px;
+}
+
+.progress-marker {
+font-size: 4.5em;
+top: 45%;
+transform: translate(-50%, -50%);
+}
+
+.side-emoji {
+font-size: 2.5em;
+}
+}
+
 .level {
 font-size: 1.1em;
 margin: 0.5em 0;
@@ -113,10 +154,23 @@ text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
 text-align: center;
 }
 
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+.level {
+font-size: 2.5em;
+margin: 0.4em 0;
+}
+}
+
+@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+.level {
+font-size: 1.5em;
+margin: 0.1em 0;
+}
+}
+
 /* Système d'étoiles pour les hiraganas */
 .level-hiraganas {
 margin: 1em auto;
-width: 100%;
 max-width: 800px;
 flex-shrink: 0;
 }
@@ -127,14 +181,13 @@ justify-content: center;
 gap: 20px;
 flex-wrap: wrap;
 margin-bottom: 0.5em;
-width: 100%;
 }
 
 .hiragana-card {
 text-align: center;
 transition: all 0.3s ease;
 position: relative;
-padding: 8px;
+padding: 10px;
 background: #FFFFFF;
 border-radius: 8px;
 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -161,6 +214,7 @@ text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
 .hiragana-card.completed .hiragana-char {
 color: #A8D5BA; /* Vert matcha */
 text-shadow: 0 0 5px rgba(168, 213, 186, 0.5);
+animation: starGlow 2s ease-in-out infinite;
 }
 
 .stars-container {
@@ -200,6 +254,67 @@ animation: starGlow 2s ease-in-out infinite;
 50% { filter: brightness(1.3); }
 }
 
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+.level-hiraganas {
+max-width: none;
+width: 100%;
+padding: 0 2em;
+box-sizing: border-box;
+}
+
+.hiraganas-grid {
+gap: 60px;
+}
+
+.hiragana-card {
+transform: scale(1.1);
+}
+
+.hiragana-char {
+font-size: 4em;
+margin-bottom: 10px;
+}
+
+.stars-container {
+gap: 2px;
+}
+
+.star {
+width: 24px;
+height: 24px;
+}
+}
+
+@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+.level-hiraganas {
+max-width: none;
+width: 100%;
+padding: 0 2em;
+box-sizing: border-box;
+}
+
+.hiraganas-grid {
+width: 100%;
+box-sizing: border-box;
+justify-content: space-evenly;
+gap: 40px;
+}
+
+.hiragana-char {
+font-size: 6em;
+margin-bottom: 10px;
+}
+
+.stars-container {
+gap: 2px;
+}
+
+.star {
+width: 14px;
+height: 14px;
+}
+}
+
 /* Animation pétales de cerisier */
 .sakura {
 position: absolute;
@@ -222,12 +337,10 @@ z-index: 10;
 flex: 1;
 display: flex;
 flex-direction: column;
-justify-content: flex-start;
-width: 100%;
-height: auto;
-min-height: 100vh;
-padding: 10px;
-box-sizing: border-box;
+justify-content: space-between;
+min-height: 0;
+padding-bottom: 2em;
+align-items: center; /* Centrer horizontalement le contenu */
 }
 
 .question {
@@ -248,9 +361,34 @@ flex-wrap: wrap;
 justify-content: center;
 gap: 0.8em;
 margin-bottom: 1em;
+}
+
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+.quiz-container {
+flex: 1;
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+min-height: 0;
+padding-bottom: 2em;
+}
+
+.question {
+font-size: 10em;
+margin: 0.5em 0;
+height: 1.2em;
+text-shadow: 0 0 24px #A8D5BA, 0 0 8px #A8D5BA;
+}
+
+.answers {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 0.8em;
+margin-bottom: 1em;
 width: 100%;
 box-sizing: border-box;
 padding: 0 1em;
+}
 }
 
 /* Styles boutons bois/domino */
@@ -271,6 +409,7 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.
 transition: all 0.15s ease;
 text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
 overflow: hidden;
+min-width: 120px;
 text-align: center;
 }
 
@@ -290,7 +429,7 @@ pointer-events: none;
 .arcade-button:hover {
 transform: translateY(-2px) scale(1.02);
 box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-border-color: #7A5C3A;
+border-color: #7A5C3A; /* Marron clair légèrement plus foncé */
 }
 
 .arcade-button:active {
@@ -360,6 +499,26 @@ animation: incorrectShake 0.6s ease-in-out;
 100% { transform: translateX(0); }
 }
 
+@media screen and (max-width: 768px),
+screen and (-webkit-min-device-pixel-ratio: 2),
+screen and (min-resolution: 192dpi) {
+button, a, input, textarea {
+-webkit-tap-highlight-color: transparent;
+}
+
+.arcade-button {
+font-size: 4em;
+aspect-ratio: 1 / 0.6;
+width: 100%;
+box-sizing: border-box;
+padding: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+}
+}
+
 /* Zone de résultats */
 .result {
 animation: fadeIn 0.4s ease-in;
@@ -369,7 +528,8 @@ margin: 0.5em 0 0.2em 0;
 min-height: 4.5em;
 display: flex;
 flex-direction: column;
-justify-content: flex-start;
+justify-content: center;
+align-items: center;
 text-align: center;
 color: #8B6F47;
 }
@@ -386,8 +546,8 @@ to { opacity: 1; transform: translateY(0); }
 #continueBtn {
 visibility: hidden;
 margin: 0.5em auto;
-display: block;
-width: fit-content;
+display: block; /* Assurer que le bouton est un block pour le centrage */
+width: fit-content; /* Ajuster la largeur au contenu */
 }
 
 #boutonInstaller {
@@ -396,119 +556,11 @@ height: 3em;
 display: none;
 }
 
-/* Media queries pour petits écrans */
-@media (max-width: 600px) {
-.quiz-container {
-padding: 5px;
-}
-
-.question, .answers {
-font-size: 0.9em;
-}
-
-.answers {
-flex-direction: column;
-gap: 0.5em;
-}
-
-.progress-marker {
-top: 20%;
-font-size: 1.5em;
-}
-
-.hiragana-char {
-font-size: 2em;
-}
-
-.star {
-width: 10px;
-height: 10px;
-}
-
-.arcade-button {
-font-size: 1.2em;
-padding: 0.5em 1em;
-}
-}
-
 @media screen and (max-width: 768px),
 screen and (-webkit-min-device-pixel-ratio: 2),
 screen and (min-resolution: 192dpi) {
-button, a, input, textarea {
--webkit-tap-highlight-color: transparent;
-}
-
-.quiz-container {
-flex: 1;
-display: flex;
-flex-direction: column;
-justify-content: flex-start;
-min-height: 0;
-padding-bottom: 2em;
-}
-
-.question {
-font-size: 6em; /* Réduit pour éviter débordements */
-margin: 0.5em 0;
-height: auto;
-text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
-}
-
-.answers {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-gap: 0.8em;
-margin-bottom: 1em;
-width: 100%;
-box-sizing: border-box;
-padding: 0 1em;
-}
-
-.arcade-button {
-font-size: 2em; /* Réduit pour mieux s'adapter */
-aspect-ratio: 1 / 0.6;
-width: 100%;
-box-sizing: border-box;
-padding: 0;
-display: flex;
-align-items: center;
-justify-content: center;
-text-align: center;
-min-width: unset;
-}
-
-.level-hiraganas {
-max-width: none;
-width: 100vw;
-padding: 0 2em;
-box-sizing: border-box;
-}
-
-.hiraganas-grid {
-gap: 20px; /* Réduit pour éviter débordements */
-justify-content: space-evenly;
-}
-
-.hiragana-card {
-padding: 5px;
-}
-
-.hiragana-char {
-font-size: 3em; /* Réduit pour mobile */
-margin-bottom: 5px;
-}
-
-.stars-container {
-gap: 2px;
-}
-
-.star {
-width: 18px;
-height: 18px;
-}
-
 .result {
-margin-top: 3em; /* Réduit pour éviter débordements */
+margin-top: 5em;
 text-align: center;
 word-break: break-word;
 white-space: normal;
@@ -516,107 +568,50 @@ display: block;
 min-height: auto;
 }
 
+.result > * {
+width: 100%;
+}
+
 .result-line {
-font-size: 2.5em; /* Réduit pour lisibilité */
+font-size: 4em;
 width: 100%;
 text-align: center;
 }
 
 .result-line.highlight {
-margin-top: 1em;
-font-size: 2em;
-}
-
-#progressBarContainer {
-max-width: 80%;
-margin: 1em auto 0.5em auto;
-gap: 0.5em;
-}
-
-.progress-bar-track {
-height: 20px;
-border-radius: 6px;
-}
-
-.progress-marker {
+margin-top: 1.2em;
 font-size: 3em;
-top: 25%;
-}
-
-.side-emoji {
-font-size: 2em;
-}
-
-.level {
-font-size: 2em;
-margin: 0.3em 0;
 }
 
 #continueBtn {
-margin-top: 1.5em;
-margin-bottom: 1.5em;
-height: 2.5em;
+margin-top: 1em;
+margin-bottom: 1em;
+height: 3em;
 }
 
 #boutonInstaller {
-margin-top: 1.5em;
-margin-bottom: 1.5em;
-height: 2.5em;
+margin-top: 1em;
+margin-bottom: 1em;
+height: 3em;
 }
 }
 
-@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-.level-hiraganas {
-max-width: none;
-width: 100vw;
-padding: 0 2em;
-box-sizing: border-box;
-}
-
+@media (max-width: 768px) {
 .hiraganas-grid {
-width: 100%;
-box-sizing: border-box;
-justify-content: space-evenly;
 gap: 15px;
 }
 
 .hiragana-char {
-font-size: 4em;
-margin-bottom: 5px;
+font-size: 1.8em;
 }
 
-.stars-container {
-gap: 2px;
+.question {
+font-size: 2.8em;
 }
 
-.star {
-width: 14px;
-height: 14px;
-}
-
-.level {
-font-size: 1.5em;
-margin: 0.1em 0;
-}
-
-#progressBarContainer {
-max-width: 80%;
-margin: 1em auto 0.5em auto;
-gap: 0.5em;
-}
-
-.progress-bar-track {
-height: 20px;
-border-radius: 6px;
-}
-
-.progress-marker {
-font-size: 3em;
-top: 25%;
-}
-
-.side-emoji {
-font-size: 2em;
+.arcade-button {
+padding: 0.6em 1.2em;
+font-size: 1em;
 }
 }
 
@@ -627,7 +622,7 @@ margin-bottom: 4px;
 }
 
 .question {
-font-size: 4em;
+font-size: 2.5em;
 margin: 0.3em 0;
 }
 
@@ -637,8 +632,7 @@ margin-bottom: 0.8em;
 }
 
 .arcade-button {
-padding: 0.4em 0.8em;
-font-size: 1em;
+padding: 0.6em 1.2em;
 }
 }
 
@@ -657,7 +651,7 @@ height: 10px;
 }
 
 .question {
-font-size: 3em;
+font-size: 2.2em;
 }
 
 .progress-marker {
@@ -701,15 +695,13 @@ let previousValidationStates = new Map();
 let activeSparks = [];
 let globalParticleCount = 0;
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30;
 
 function logError(msg) {
 console.warn(msg);
 }
 
 function triggerSakuraFall(container) {
-const particleCount = isMobile ? 10 : 30; // Réduit pour mobile
-for (let i = 0; i < particleCount; i++) {
+for (let i = 0; i < 30; i++) {
 const sakura = document.createElement("div");
 sakura.className = "sakura";
 sakura.style.left = Math.random() * 100 + "vw";
@@ -1087,66 +1079,65 @@ console.log(`Particule ajoutée: ${particles.length} particules, ${activeSparks.
 }
 
 function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (!isMobile) {
-        particles.forEach(p => {
-            if (Math.random() < 0.2) {
-                trails.push({
-                    x: p.x,
-                    y: p.y,
-                    color: p.color,
-                    life: 10
-                });
-            }
-        });
-    }
+if (!isMobile) {
+particles.forEach(p => {
+if (Math.random() < 0.2) {
+trails.push({
+x: p.x,
+y: p.y,
+color: p.color,
+life: 10
+});
+}
+});
+}
 
-    trails.forEach((t, i) => {
-        t.life--;
-        if (t.life <= 0) {
-            trails.splice(i, 1);
-            return;
-        }
-        ctx.fillStyle = t.color;
-        ctx.globalAlpha = t.life / 10 * 0.3;
-        ctx.beginPath();
-        ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
-        ctx.fill();
-    });
+trails.forEach((t, i) => {
+t.life--;
+if (t.life <= 0) {
+trails.splice(i, 1);
+return;
+}
+ctx.fillStyle = t.color;
+ctx.globalAlpha = t.life / 10 * 0.3;
+ctx.beginPath();
+ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
+ctx.fill();
+});
 
-    particles.forEach((p, i) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += gravity;
-        p.life--;
-        p.rotation += 0.05;
-        if (p.life <= 0) {
-            particles.splice(i, 1);
-            activeSparks.splice(i, 1);
-            globalParticleCount--;
-            return;
-        }
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
-        ctx.restore();
-    });
+particles.forEach((p, i) => {
+p.x += p.vx;
+p.y += p.vy;
+p.vy += gravity;
+p.life--;
+p.rotation += 0.05;
+if (p.life <= 0) {
+particles.splice(i, 1);
+activeSparks.splice(i, 1);
+globalParticleCount--;
+return;
+}
+ctx.fillStyle = p.color;
+ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+ctx.save();
+ctx.translate(p.x, p.y);
+drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
+ctx.restore();
+});
 
-    // Correction : Calcul du timestamp de fin une seule fois
-    const endTime = Date.now() + numSalvos * salvoDelay;
-    if (particles.length > 0 || Date.now() < endTime) {
-        requestAnimationFrame(animate);
-    } else {
-        canvas.remove();
-        activeSparks = activeSparks.filter(spark => spark.canvas !== canvas);
-        globalParticleCount = Math.max(0, globalParticleCount - particles.length);
-        console.log('Animation terminée');
-    }
+if (particles.length > 0 || Date.now() < Date.now() + numSalvos * salvoDelay) {
+requestAnimationFrame(animate);
+} else {
+canvas.remove();
+activeSparks = activeSparks.filter(spark => spark.canvas !== canvas);
+globalParticleCount = Math.max(0, globalParticleCount - particles.length);
+console.log('Animation terminée');
+}
 }
 requestAnimationFrame(animate);
+}
 
 function cleanupOldParticles() {
 while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
@@ -1167,6 +1158,8 @@ console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${global
 }
 
 setInterval(cleanupOldParticles, 3000);
+
+const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30;
 
 function getMaxLevel(list) {
 if (!list || list.length === 0) return 1;
@@ -1284,11 +1277,14 @@ renderHiraganaCards(list, niveau);
 }
 
 // Initialisation avec Google Apps Script
+// *** NOUVELLE URL DE VOTRE WEB APP GOOGLE ***
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyunFkM7h0FV_xu1GRa4uOiuxeggNSVY1HRCzNungo8QonzHznN0TRNLDOEEOtfQu_8FQ/exec';
 
+// Fonction pour appeler l'API
 async function callAPI(action, data = null) {
 try {
 if (action === 'updateStats') {
+// Utiliser GET pour éviter CORS
 const params = new URLSearchParams({
 action,
 id: data.id,
@@ -1306,6 +1302,7 @@ return { error: error.message };
 }
 }
 
+// Initialisation avec l'API
 async function initGame() {
 const data = await callAPI('getHiraganas');
 if (data.error) {
@@ -1390,7 +1387,11 @@ btn.className = "arcade-button";
 btn.onclick = () => {
 if (selections[slot] !== null || isAnswered) return;
 selections[slot] = text;
+
+// Ajouter l'effet de halo sans le retirer immédiatement
 btn.classList.add("clicked-glow");
+
+// Garder l'effet d'opacité pour les autres boutons
 container.querySelectorAll("button").forEach(b => {
 b.disabled = true;
 if (b !== btn) b.style.opacity = 0.5;
@@ -1411,6 +1412,7 @@ const containers = [document.getElementById("choices1"), document.getElementById
 const correctAnswers = [correct1, correct2];
 const userSelections = [selections.first, selections.second];
 
+// Retirer l'effet de halo
 containers.forEach(container => {
 container.querySelectorAll("button").forEach(btn => {
 btn.classList.remove("clicked-glow");
@@ -1449,6 +1451,7 @@ newValidation = Math.max(0, currentValidation - 2);
 
 const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
 
+// ✅ MISE À JOUR IMMÉDIATE DE L'INTERFACE
 updateStarsForHiragana(parseInt(current.ID), newValidation);
 
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
@@ -1456,6 +1459,7 @@ if (hiraganaIndex !== -1) {
 HiraganaList[hiraganaIndex].Validation = newValidation.toString();
 }
 
+// ✅ AFFICHAGE IMMÉDIAT DU RÉSULTAT
 let emoji = "", resultText = "";
 if (score === 1) {
 const emojisOK = ["🌸", "🎍", "🍵", "🪴"];
@@ -1489,19 +1493,25 @@ setTimeout(nextQuestion, 1500);
 document.getElementById("continueBtn").style.visibility = "visible";
 }
 
+// 🚀 APPEL API EN ARRIÈRE-PLAN (NON-BLOQUANT)
+// L'interface est déjà mise à jour, on peut faire l'appel tranquillement
 callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
 .then(response => {
 if (response.error) {
 console.warn('Erreur sauvegarde:', response.error);
+// Optionnel : afficher une petite notification d'erreur discrète
 } else {
 console.log('✅ Score sauvegardé en arrière-plan');
 }
 })
 .catch(error => {
 console.error('Erreur lors de la sauvegarde:', error);
+// Optionnel : implémenter une file d'attente pour réessayer plus tard
 });
 }
 }
+
+
 
 function triggerLightFirework(card) {
 const halo = document.createElement("div");
@@ -1512,7 +1522,7 @@ halo.style.borderRadius = "50%";
 halo.style.background = "radial-gradient(circle, rgba(253,193,197,0.9), rgba(253,193,197,0.1))";
 halo.style.transform = "translate(-50%, -50%) scale(1)";
 halo.style.opacity = "1";
-halo.style.pointer-events = "none";
+halo.style.pointerEvents = "none";
 halo.style.zIndex = "10";
 
 const rect = card.getBoundingClientRect();
@@ -1591,9 +1601,9 @@ msgWrapper.style.position = "fixed";
 msgWrapper.style.top = "30%";
 msgWrapper.style.left = "0";
 msgWrapper.style.width = "100vw";
-msgWrapper.style.text-align = "center";
+msgWrapper.style.textAlign = "center";
 msgWrapper.style.zIndex = 9999;
-msgWrapper.style.pointer-events = "none";
+msgWrapper.style.pointerEvents = "none";
 document.body.appendChild(msgWrapper);
 
 const msg = document.createElement("div");
@@ -1628,6 +1638,7 @@ easing: "ease-in-out"
 }
 }
 
+// PWA installation
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
 e.preventDefault();
@@ -1645,6 +1656,7 @@ deferredPrompt = null;
 });
 });
 
+// Service Worker
 if ('serviceWorker' in navigator) {
 window.addEventListener('load', () => {
 navigator.serviceWorker.register('/sw.js').then(
