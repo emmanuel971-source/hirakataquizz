@@ -1,1697 +1,1838 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <link rel="icon" href="data:,">
-  <base target="_top">
-  <title>Hira-Kata-Quizzz Zen</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="manifest" href="/manifest.json">
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      background: #F8F1E9; /* Blanc cassé, papier washi */
-      font-family: 'Noto Sans JP', sans-serif;
-      color: #2F4F4F; /* Vert forêt */
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0; /* Correction : suppression de "威力" */
-      width: 100%;
-      height: 100%;
-      background: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
-      opacity: 0.1;
-      z-index: -1;
-    }
-
-    h1 {
-      margin: 0.5em 0;
-      font-size: 1.8em;
-      text-align: center;
-      color: #2F4F4F;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
-
-    @media screen and (max-width: 400px),
-           screen and (-webkit-min-device-pixel-ratio: 2),
-           screen and (min-resolution: 192dpi) {
-      h1 {
-        font-size: 3em;
-        margin: 0.3em 0;
-      }
-    }
-
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-      h1 {
-        font-size: 2.2em;
-        margin: 0.15em 0;
-      }
-    }
-
-    /* Barre de progression */
-    #progressBarContainer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5em;
-      margin: 1em auto 0.3em auto;
-      max-width: 40ch;
-      width: 100%;
-    }
-
-    .progress-bar-track {
-      position: relative;
-      height: 16px;
-      background: linear-gradient(to right, #E0F7FA, #2F4F4F); /* Vert d'eau à vert forêt */
-      border-radius: 6px;
-      flex: 1;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .progress-marker {
-      position: absolute;
-      top: 25%;
-      left: 0;
-      transform: translate(-50%, -75%);
-      font-size: 2em;
-      transition: left 1.5s ease;
-      color: #636E72; /* Gris pierre */
-    }
-
-    .side-emoji {
-      font-size: 1.6em;
-      line-height: 1;
-      color: #636E72;
-    }
-
-    @keyframes pulse {
-      0% { transform: translate(-50%, -50%) scale(1); }
-      100% { transform: translate(-50%, -50%) scale(1.2); }
-    }
-
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-      #progressBarContainer {
-        max-width: 80%;
-        margin: 1.5em auto 0.5em auto;
-        gap: 1em;
-      }
-
-      .progress-bar-track {
-        height: 32px;
-        border-radius: 12px;
-      }
-
-      .progress-marker {
-        font-size: 4.5em;
-        top: 30%;
-      }
-
-      .side-emoji {
-        font-size: 2.5em;
-      }
-    }
-
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-      #progressBarContainer {
-        max-width: 80%;
-        margin: 1.5em auto 0.5em auto;
-        gap: 1em;
-      }
-
-      .progress-bar-track {
-        height: 32px;
-        border-radius: 12px;
-      }
-
-      .progress-marker {
-        font-size: 4.5em;
-        top: 30%;
-      }
-
-      .side-emoji {
-        font-size: 2.5em;
-      }
-    }
-
-    .level {
-      font-size: 1.1em;
-      margin: 0.5em 0;
-      color: #2F4F4F;
-      text-align: center;
-    }
-
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-      .level {
-        font-size: 2.5em;
-        margin: 0.4em 0;
-      }
-    }
-
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-      .level {
-        font-size: 1.5em;
-        margin: 0.1em 0;
-      }
-    }
-
-    /* Système d'étoiles pour les hiraganas */
-    .level-hiraganas {
-      margin: 1em auto;
-      max-width: 800px;
-      flex-shrink: 0;
-    }
-
-    .hiraganas-grid {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-bottom: 0.5em;
-    }
-
-    .hiragana-card {
-      text-align: center;
-      transition: all 0.3s ease;
-      position: relative;
-      padding: 10px;
-      background: #FFFFFF;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .hiragana-card.completed {
-      background: #DDE6D5; /* Vert matcha clair */
-      animation: completedPulse 2s ease-in-out infinite;
-    }
-
-    @keyframes completedPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    .hiragana-char {
-      font-size: 2.2em;
-      font-weight: bold;
-      margin-bottom: 6px;
-      color: #2F4F4F;
-      text-shadow: 0 0 3px rgba(47, 79, 79, 0.3);
-    }
-
-    .hiragana-card.completed .hiragana-char {
-      color: #A8D5BA; /* Vert matcha */
-      text-shadow: 0 0 5px rgba(168, 213, 186, 0.5);
-      animation: starGlow 2s ease-in-out infinite; /* Scintillement appliqué */
-    }
-
-    .stars-container {
-      display: flex;
-      justify-content: center;
-      gap: 2px;
-    }
-
-    .star {
-      width: 12px;
-      height: 12px;
-      background: #E8ECEF; /* Gris clair */
-      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-      transition: all 0.3s ease;
-    }
-
-    .star.filled {
-      background: #FDC1C5; /* Rose sakura */
-    }
-
-    .star.new-star {
-      animation: starFill 0.5s ease-in-out;
-    }
-
-    .hiragana-card.completed .star.filled {
-      background: #A8D5BA; /* Vert matcha */
-      animation: starGlow 2s ease-in-out infinite;
-    }
-
-    @keyframes starFill {
-      0% { transform: scale(0) rotate(180deg); }
-      100% { transform: scale(1) rotate(0deg); }
-    }
-
-    @keyframes starGlow {
-      0%, 100% { filter: brightness(1); }
-      50% { filter: brightness(1.3); }
-    }
-
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-      .level-hiraganas {
-        max-width: none;
-        width: 100%;
-        padding: 0 2em;
-        box-sizing: border-box;
-      }
-
-      .hiraganas-grid {
-        gap: 60px;
-      }
-
-      .hiragana-card {
-        transform: scale(1.1);
-      }
-
-      .hiragana-char {
-        font-size: 4em;
-        margin-bottom: 10px;
-      }
-
-      .stars-container {
-        gap: 2px;
-      }
-
-      .star {
-        width: 24px;
-        height: 24px;
-      }
-    }
-
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-      .level-hiraganas {
-        max-width: none;
-        width: 100%;
-        padding: 0 2em;
-        box-sizing: border-box;
-      }
-
-      .hiraganas-grid {
-        width: 100%;
-        box-sizing: border-box;
-        justify-content: space-evenly;
-        gap: 40px;
-      }
-
-      .hiragana-char {
-        font-size: 6em;
-        margin-bottom: 10px;
-      }
-
-      .stars-container {
-        gap: 2px;
-      }
-
-      .star {
-        width: 14px;
-        height: 14px;
-      }
-    }
-
-    /* Animation pétales de cerisier */
-    .sakura {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      background: #FDC1C5; /* Rose sakura */
-      border-radius: 50%;
-      pointer-events: none;
-      animation: sakuraFall 3s linear forwards;
-      z-index: 10;
-    }
-
-    @keyframes sakuraFall {
-      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-    }
-
-    /* Zone de quiz */
-    .quiz-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 0;
-      padding-bottom: 2em;
-    }
-
-    .question {
-      font-size: 3.5em;
-      font-weight: bold;
-      margin: 0.5em 0;
-      height: 1.2em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; /* Vert matcha */
-    }
-
-    .answers {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.8em;
-      margin-bottom: 1em;
-    }
-
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-      .quiz-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        min-height: 0;
-        padding-bottom: 2em;
-      }
-
-      .question {
-        font-size: 10em;
-        margin: 0.5em 0;
-        height: 1.2em;
-        text-shadow: 0 0 24px #A8D5BA, 0 0 8px #A8D5BA;
-      }
-
-      .answers {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.8em;
-        margin-bottom: 1em;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 0 1em;
-      }
-    }
-
-    /* Styles boutons bois/domino */
-    .arcade-button {
-      position: relative;
-      background: #F5E8C7; /* Ivoire/bois clair */
-      background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
-      border: 2px solid #8B6F47; /* Marron clair */
-      border-radius: 10px;
-      padding: 0.8em 1.5em;
-      color: #2F4F4F; /* Vert forêt */
-      font-size: 1.4em;
-      line-height: 0.6;
-      white-space: normal;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-      transition: all 0.15s ease;
-      text-shadow: 0 0 8px rgba(47, 79, 79, 0.5);
-      overflow: hidden;
-      min-width: 120px;
-      text-align: center;
-    }
-
-    .arcade-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 50%;
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-      pointer-events: none;
-    }
-
-    .arcade-button:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-      border-color: #7A5C3A; /* Marron clair légèrement plus foncé */
-    }
-
-    .arcade-button:active {
-      transform: translateY(2px) scale(0.98);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
-    }
-
-    .arcade-button:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-
-    .arcade-button:disabled:hover {
-      transform: none;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-      border-color: #8B6F47;
-    }
-
-    .arcade-button:disabled:active {
-      transform: none;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-    }
-
-    .arcade-button.clicked-glow {
-      text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
-      animation: glowPulse 1s ease-in-out infinite;
-    }
-
-    .arcade-button.correct {
-      background: linear-gradient(135deg, #A8D5BA 0%, #DDE6D5 100%); /* Vert matcha */
-      color: #2F4F4F;
-      border-color: #A8D5BA;
-      background-image: none; /* Supprime la texture bois pour la réponse correcte */
-      animation: correctGlow 0.6s ease-in-out;
-    }
-
-    .arcade-button.incorrect {
-      background: linear-gradient(135deg, #FDC1C5 0%, #FFB6C1 100%); /* Rose sakura */
-      color: #2F4F4F;
-      border-color: #FDC1C5;
-      background-image: none; /* Supprime la texture bois pour la réponse incorrecte */
-      animation: incorrectShake 0.6s ease-in-out;
-    }
-
-    @keyframes glowPulse {
-      0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
-      50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
-    }
-
-    @keyframes correctGlow {
-      0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
-      50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
-      100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
-    }
-
-    @keyframes incorrectShake {
-      0% { transform: translateX(0); }
-      10% { transform: translateX(-8px); }
-      20% { transform: translateX(8px); }
-      30% { transform: translateX(-6px); }
-      40% { transform: translateX(6px); }
-      50% { transform: translateX(-4px); }
-      60% { transform: translateX(4px); }
-      70% { transform: translateX(-2px); }
-      80% { transform: translateX(2px); }
-      90% { transform: translateX(-1px); }
-      100% { transform: translateX(0); }
-    }
-
-    @media screen and (max-width: 768px),
-           screen and (-webkit-min-device-pixel-ratio: 2),
-           screen and (min-resolution: 192dpi) {
-      button, a, input, textarea {
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      .arcade-button {
-        font-size: 4em;
-        aspect-ratio: 1 / 0.6;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-      }
-    }
-
-    /* Zone de résultats */
-    .result {
-      animation: fadeIn 0.4s ease-in;
-      font-size: 1.3em;
-      line-height: 1.4em;
-      margin: 0.5em 0 0.2em 0;
-      min-height: 4.5em;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    #continueBtn, #boutonPleinEcran, #boutonInstaller {
-      margin: 0.5em auto;
-      height: 3em;
-      display: block;
-    }
-
-    #boutonInstaller {
-      display: none;
-    }
-
-    @media screen and (max-width: 768px),
-           screen and (-webkit-min-device-pixel-ratio: 2),
-           screen and (min-resolution: 192dpi) {
-      .result {
-        margin-top: 5em;
-        text-align: center;
-        word-break: break-word;
-        white-space: normal;
-        display: block;
-        min-height: auto;
-      }
-
-      .result > * {
-        width: 100%;
-      }
-
-      .result-line {
-        font-size: 4em;
-        width: 100%;
-        text-align: center;
-      }
-
-      .result-line.highlight {
-        margin-top: 1.2em;
-        font-size: 3em;
-      }
-
-      #continueBtn, #boutonPleinEcran, #boutonInstaller {
-        margin-top: 1em;
-        margin-bottom: 1em;
-        height: 3em;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .hiraganas-grid {
-        gap: 15px;
-      }
-
-      .hiragana-char {
-        font-size: 1.8em;
-      }
-
-      .question {
-        font-size: 2.8em;
-      }
-
-      .arcade-button {
-        padding: 0.6em 1.2em;
-        font-size: 1em;
-      }
-    }
-
-    @media (max-height: 700px) {
-      .hiragana-char {
-        font-size: 1.6em;
-        margin-bottom: 4px;
-      }
-
-      .question {
-        font-size: 2.5em;
-        margin: 0.3em 0;
-      }
-
-      .answers {
-        gap: 0.6em;
-        margin-bottom: 0.8em;
-      }
-
-      .arcade-button {
-        padding: 0.6em 1.2em;
-      }
-    }
-
-    @media (max-height: 600px) {
-      .hiragana-char {
-        font-size: 1.4em;
-      }
-
-      .stars-container {
-        gap: 1px;
-      }
-
-      .star {
-        width: 10px;
-        height: 10px;
-      }
-
-      .question {
-        font-size: 2.2em;
-      }
-
-      .progress-marker {
-        font-size: 1.6em;
-      }
-
-      .side-emoji {
-        font-size: 1.4em;
-      }
-    }
-  </style>
+<link rel="icon" href="data:,">
+<base target="_top">
+<style>
+body {
+background: #121212;
+color: white;
+font-family: sans-serif;
+text-align: center;
+padding: 0.5em 1em 1em 1em;
+margin: 0;
+height: 100vh;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+}
+
+h1 {
+margin: 0.5em 0;
+font-size: 1.8em;
+}
+
+
+
+@media screen and (max-width: 400px),
+screen and (-webkit-min-device-pixel-ratio: 2),
+screen and (min-resolution: 192dpi) {
+h1 {
+font-size: 3em;
+margin: 0.3em 0;
+}
+}
+
+
+@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+h1 {
+font-size: 2.2em;
+margin: 0.15em 0;
+}
+}
+
+/* BARRE DE PROGRESSION GRADIENT - REPOSITIONNÉE */
+#progressBarContainer {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 0.5em;
+margin: 1em auto 0.3em auto;
+max-width: 40ch;
+width: 100%;
+}
+
+.progress-bar-track {
+position: relative;
+height: 16px;
+background: linear-gradient(to right, #F8E400, #E00000);
+border-radius: 6px;
+flex: 1;
+}
+
+.progress-marker {
+position: absolute;
+top: 25%;
+left: 0;
+transform: translate(-50%, -75%);
+font-size: 2em;
+animation: pulse 1.5s infinite alternate;
+transition: left 1.5s ease;
+pointer-events: none;
+}
+
+.side-emoji {
+font-size: 1.6em;
+line-height: 1;
+}
+
+@keyframes pulse {
+0% { transform: translate(-50%, -50%) scale(1); }
+100% { transform: translate(-50%, -50%) scale(1.2); }
+}
+
+.level {
+font-size: 1.1em;
+margin: 0.5em 0;
+color: #bbb;
+}
+
+/* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION CLEAN */
+.level-hiraganas {
+margin: 1em auto;
+max-width: 800px;
+flex-shrink: 0;
+}
+
+.hiraganas-grid {
+display: flex;
+justify-content: center;
+gap: 20px;
+flex-wrap: wrap;
+margin-bottom: 0.5em;
+}
+
+.hiragana-card {
+text-align: center;
+transition: all 0.3s ease;
+position: relative;
+}
+
+.hiragana-card.completed {
+animation: completedPulse 2s ease-in-out infinite;
+}
+
+@keyframes completedPulse {
+0%, 100% { transform: scale(1); }
+50% { transform: scale(1.05); }
+}
+
+.hiragana-char {
+font-size: 2.2em;
+font-weight: bold;
+margin-bottom: 6px;
+color: #fff;
+}
+
+.hiragana-card.completed .hiragana-char {
+color: #ffd700;
+text-shadow: 0 0 15px #ffd700;
+}
+
+.stars-container {
+display: flex;
+justify-content: center;
+gap: 2px;
+}
+
+.star {
+width: 12px;
+height: 12px;
+background: #333;
+clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+transition: all 0.3s ease;
+}
+
+.star.filled {
+background: #F8E400;
+}
+
+.star.new-star {
+animation: starFill 0.5s ease-in-out;
+}
+
+.hiragana-card.completed .star.filled {
+background: #ffd700;
+animation: starGlow 2s ease-in-out infinite;
+}
+
+@keyframes starFill {
+0% { transform: scale(0) rotate(180deg); }
+100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes starGlow {
+0%, 100% { filter: brightness(1); }
+50% { filter: brightness(1.5) drop-shadow(0 0 5px #ffd700); }
+}
+
+.firework {
+position: absolute;
+top: 0;
+left: 50%;
+transform: translateX(-50%);
+width: 0.5em;
+height: 0.5em;
+background: transparent;
+pointer-events: none;
+animation: fireworkExplosion 700ms ease-out forwards;
+z-index: 10;
+}
+
+@keyframes fireworkExplosion {
+0% {
+box-shadow:
+0 0 #ff0,
+0 0 #f00,
+0 0 #0ff;
+opacity: 1;
+transform: translateX(-50%) scale(1);
+}
+100% {
+box-shadow:
+0 -40px #ff0,
+30px -30px #f00,
+40px 0 #0ff,
+30px 30px #0f0,
+0 40px #00f,
+-30px 30px #f0f,
+-40px 0 #fff,
+-30px -30px #ff0;
+opacity: 0;
+transform: translateX(-50%) scale(0.5);
+}
+}
+
+/* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION tél */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+
+.level-hiraganas {
+max-width: none;
+width: 100vw; /* pleine largeur de l’écran */
+width: 100%;
+padding: 0 2em;
+box-sizing: border-box;
+}
+
+
+.hiraganas-grid {
+gap: 60px; /* 60 px max d’espace horizontal ET vertical entre les cards sinon ca déborde sur 2 lignes*/
+}
+
+.hiragana-card {
+transform: scale(1.1);
+}
+
+.hiragana-char {
+font-size: 4em;
+margin-bottom: 10px;
+}
+
+.stars-container {
+gap: 2px;
+}
+
+.star {
+width: 24px; /* 24 px trop gros pour Ipad ca déborde sur 2 lignes*/
+height: 24px;
+}
+}
+
+/* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION Ipad */
+
+@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+
+.level-hiraganas {
+max-width: none;
+width: 100vw; /* pleine largeur de l’écran */
+width: 100%;
+padding: 0 2em;
+box-sizing: border-box;
+}
+
+.hiraganas-grid {
+width: 100%;
+box-sizing: border-box;
+justify-content: space-evenly; /* pour équilibrer l'espacement */
+gap: 40px;
+}
+
+.hiragana-card {
+/* transform: scale(1.05); ← facultatif */
+}
+
+.hiragana-char {
+font-size: 6em;
+margin-bottom: 10px;
+}
+
+.stars-container {
+gap: 2px;
+}
+
+.star {
+width: 14px;
+height: 14px;
+}
+
+}
+
+
+
+/* ZONE DE QUIZ - OPTIMISÉE POUR L'ESPACE */
+.quiz-container {
+flex: 1;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+min-height: 0;
+padding-bottom: 2em;
+}
+
+.question {
+font-size: 3.5em;
+font-weight: bold;
+margin: 0.5em 0;
+height: 1.2em;
+display: flex;
+align-items: center;
+justify-content: center;
+text-shadow: 0 0 12px #00ff88, 0 0 4px #00ff88;
+}
+
+.answers {
+display: flex;
+flex-wrap: wrap;
+justify-content: center;
+gap: 0.8em;
+margin-bottom: 1em;
+}
+
+
+/* ZONE DE QUIZ - OPTIMISÉE POUR L'ESPACE ---- version téléphone */
+
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+.quiz-container {
+flex: 1;
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+min-height: 0;
+padding-bottom: 2em;
+}
+
+.question {
+font-size: 10em;
+font-weight: bold;
+margin: 0.5em 0;
+height: 1.2em;
+display: flex;
+align-items: center;
+justify-content: center;
+text-shadow: 0 0 24px #00ff88, 0 0 8px #00ff88;
+}
+
+.answers {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 0.8em;
+margin-bottom: 1em;
+width: 100%;
+box-sizing: border-box;
+padding: 0 1em;
+}
+
+
+}
+
+
+
+
+
+
+
+/* STYLES BOUTONS ARCADE - INTÉGRÉS */
+
+
+
+.arcade-button {
+position: relative;
+background: linear-gradient(to bottom, #2a2a2a, #0d0d0d);
+border: 1px solid #333;
+border-radius: 16px;
+padding: 0.8em 1.5em;
+color: #fff;
+font-size: 1.4em;
+line-height: 0.6;
+white-space: normal;
+font-weight: bold;
+cursor: pointer;
+box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8);
+transition: all 0.15s ease;
+text-shadow: 0 0 8px rgba(255,255,255,0.5);
+overflow: hidden;
+min-width: 120px;
+text-align: center;
+}
+
+.arcade-button::before {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+height: 50%;
+background: linear-gradient(to bottom, rgba(255,255,255,0.15), rgba(255,255,255,0));
+border-top-left-radius: 16px;
+border-top-right-radius: 16px;
+pointer-events: none;
+}
+
+.arcade-button:hover {
+transform: translateY(-2px) scale(1.02);
+box-shadow: 0 8px #000000, 0 14px 20px rgba(0,0,0,0.9);
+border-color: #444;
+}
+
+.arcade-button:active {
+transform: translateY(3px) scale(0.98);
+box-shadow: 0 3px #000000, 0 5px 8px rgba(0,0,0,0.7);
+}
+
+.arcade-button:disabled {
+cursor: not-allowed;
+}
+
+/* Empêcher les interactions hover/active sur les boutons désactivés mais permettre les animations */
+.arcade-button:disabled:hover {
+transform: none !important;
+box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8) !important;
+border-color: #333 !important;
+}
+
+.arcade-button:disabled:active {
+transform: none !important;
+box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8) !important;
+}
+
+.arcade-button.clicked-glow {
+text-shadow: 0 0 12px #00ff88, 0 0 4px #00ff88;
+animation: glowPulse 1s ease-in-out infinite; /* Animation continue jusqu'au retrait */
+}
+
+@keyframes glowPulse {
+0%, 100% { text-shadow: 0 0 12px #00ff88, 0 0 4px #00ff88; }
+50% { text-shadow: 0 0 18px #00ff88, 0 0 6px #00ff88; }
+}
+
+
+/* ----mettre ici les conditions boutons pour tél et ipad------------*/
+
+
+@media screen and (max-width: 768px),
+screen and (-webkit-min-device-pixel-ratio: 2),
+screen and (min-resolution: 192dpi) {
+
+button, a, input, textarea {
+-webkit-tap-highlight-color: transparent;
+}
+
+.arcade-button {
+font-size: 4em;
+aspect-ratio: 1 / 0.6;  /* hauteur 2.5× plus grande que la largeur */
+width: 100%;
+box-sizing: border-box;
+padding: 0;  /* le ratio suffit, pas besoin de padding vertical ici */
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+}
+}
+
+
+/* zone de résultats */
+
+.result {
+animation: fadeIn 0.4s ease-in;
+font-size: 1.3em;
+line-height: 1.4em;
+margin: 0.5em 0 0.2em 0;
+min-height: 4.5em;
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+}
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+#continueBtn {
+margin-top: 1em;
+margin-bottom: 1em;
+height: 3em;
+visibility: hidden;
+}
+
+.correct {
+background: linear-gradient(135deg, #90EE90 0%, #32CD32 100%) !important;
+color: #006400 !important;
+border-color: #228B22 !important;
+animation: correctGlow 0.6s ease-in-out;
+}
+
+.incorrect {
+background: linear-gradient(135deg, #FFB6C1 0%, #FF6B6B 100%) !important;
+color: #8B0000 !important;
+border-color: #DC143C !important;
+animation: incorrectShake 0.6s ease-in-out;
+}
+
+@keyframes correctGlow {
+0% { box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8); }
+50% { box-shadow: 0 8px #000000, 0 0 20px rgba(50, 205, 50, 0.6); }
+100% { box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8); }
+}
+
+
+/* zone de résultats -------- mobiles */
+
+@media screen and (max-width: 768px),
+screen and (-webkit-min-device-pixel-ratio: 2),
+screen and (min-resolution: 192dpi) {
+
+.result {
+margin-top: 5em;
+}
+
+.result > * {
+width: 100%;
+}
+
+.result {
+text-align: center;
+word-break: break-word;
+white-space: normal;
+display: block;       /* <<< ça remplace le display:flex */
+min-height: auto;     /* <<< on relâche la contrainte de hauteur */
+
+}
+
+.result-line {
+font-size: 4em;
+width: 100%;
+text-align: center;
+}
+
+.result-line.highlight {
+margin-top: 1.2em;
+font-size: 3em;
+}
+
+#continueBtn {
+margin-top: 2em;
+margin-bottom: 2em;
+height: 3em;
+visibility: hidden;
+}
+
+
+}
+
+
+
+
+
+
+
+
+/* Ajuster l'animation incorrectShake pour un démarrage immédiat */
+@keyframes incorrectShake {
+0% { transform: translateX(0); }
+10% { transform: translateX(-8px); }
+20% { transform: translateX(8px); }
+30% { transform: translateX(-6px); }
+40% { transform: translateX(6px); }
+50% { transform: translateX(-4px); }
+60% { transform: translateX(4px); }
+70% { transform: translateX(-2px); }
+80% { transform: translateX(2px); }
+90% { transform: translateX(-1px); }
+100% { transform: translateX(0); }
+}
+
+/* RESPONSIVE - OPTIMISATION POUR PETITS ÉCRANS */
+@media (max-width: 768px) {
+
+.hiraganas-grid {
+gap: 15px;
+}
+.hiragana-char {
+font-size: 1.8em;
+}
+.question {
+font-size: 2.8em;
+}
+.arcade-button {
+padding: 0.6em 1.2em;
+font-size: 1em;
+}
+
+}
+
+@media (max-height: 700px) {
+
+.hiragana-char {
+font-size: 1.6em;
+margin-bottom: 4px;
+}
+.question {
+font-size: 2.5em;
+margin: 0.3em 0;
+}
+.answers {
+gap: 0.6em;
+margin-bottom: 0.8em;
+}
+.arcade-button {
+padding: 0.6em 1.2em;
+}
+
+}
+
+@media (max-height: 600px) {
+.hiragana-char {
+font-size: 1.4em;
+}
+.stars-container {
+gap: 1px;
+}
+.star {
+width: 10px;
+height: 10px;
+}
+.question {
+font-size: 2.2em;
+}
+.progress-marker {
+font-size: 1.6em;
+}
+.side-emoji {
+font-size: 1.4em;
+}
+}
+
+@keyframes confettiFall {
+0% { transform: translateY(0); }
+100% { transform: translateY(110vh) rotate(720deg); }
+}
+
+body.shake {
+animation: screenShake 0.4s ease-in-out;
+}
+
+@keyframes screenShake {
+0% { transform: translate(0px, 0px); }
+25% { transform: translate(4px, -4px); }
+50% { transform: translate(-4px, 4px); }
+75% { transform: translate(4px, 4px); }
+100% { transform: translate(0px, 0px); }
+}
+
+
+/* BARRE DE PROGRESSION GRADIENT - REDIMMENSIONNEE POUR TEL */
+
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+#progressBarContainer {
+max-width: 80%;
+margin: 1.5em auto 0.5em auto;
+gap: 1em;
+}
+
+.progress-bar-track {
+height: 32px; /* au lieu de 16px */
+border-radius: 12px;
+}
+
+.progress-marker {
+font-size: 4.5em; /* au lieu de 2em */
+top: 30%; /* pour recentrer verticalement */
+}
+
+.side-emoji {
+font-size: 2.5em; /* au lieu de 1.6em */
+}
+
+.level {
+font-size: 2.5em; /* au lieu de 1.1em */
+margin: 0.4em 0;
+}
+}
+
+@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+#progressBarContainer {
+max-width: 80%;
+margin: 1.5em auto 0.5em auto;
+gap: 1em;
+}
+
+.progress-bar-track {
+height: 32px; /* au lieu de 16px */
+border-radius: 12px;
+}
+
+.progress-marker {
+font-size: 4.5em; /* au lieu de 2em */
+top: 30%; /* pour recentrer verticalement */
+}
+
+.side-emoji {
+font-size: 2.5em; /* au lieu de 1.6em */
+}
+
+.level {
+font-size: 1.5em; /* au lieu de 1.1em */
+margin: 0.1em 0;
+}
+}
+
+
+</style>
 </head>
 <body>
-  <h1>🌿⛩️ Hira-Kata-Quizzz Zen ⛩️🌸</h1>
-  <div id="progressBarContainer"></div>
-  <div class="level" id="levelDisplay">Niveau actuel : 1</div>
-  <div class="level-hiraganas">
-    <div class="hiraganas-grid" id="hiraganaCards"></div>
-  </div>
-  <div class="quiz-container">
-    <div class="question" id="question">load...</div>
-    <div>
-      <div class="answers" id="choices1"></div>
-      <div class="answers" id="choices2"></div>
-    </div>
-    <div>
-      <div class="result" id="result"></div>
-      <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j'ai capté 🌱</button>
-      <button class="arcade-button" id="boutonPleinEcran">Plein écran</button>
-      <button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
-    </div>
-  </div>
-
-  <script>
-    let HiraganaList = [];
-    let current = {};
-    let selections = { first: null, second: null };
-    let targetFields = [];
-    let isAnswered = false;
-    let niveauActif = 1;
-    let previousValidationStates = new Map();
-    let activeSparks = [];
-    let globalParticleCount = 0;
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-
-    function logError(msg) {
-      console.warn(msg);
-    }
-
-    function triggerSakuraFall(container) {
-      for (let i = 0; i < 20; i++) {
-        const sakura = document.createElement("div");
-        sakura.className = "sakura";
-        sakura.style.left = Math.random() * 100 + "vw";
-        sakura.style.top = "-10px";
-        sakura.style.animationDelay = Math.random() + "s";
-        document.body.appendChild(sakura);
-        setTimeout(() => sakura.remove(), 4000);
-      }
-    }
-
-    let audioContext;
-    let audioInitialized = false;
-
-    function initAudio() {
-      try {
-        if (!audioInitialized) {
-          audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          audioInitialized = true;
-        }
-      } catch (error) {
-        console.error("Erreur lors de l'initialisation audio:", error.message);
-      }
-    }
-
-    function getValidatedCountForLevel(level) {
-      return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Validation) >= 5).length;
-    }
-
-    function playMarioCoin() {
-      initAudio();
-      const notes = [659.25, 1046.50];
-      const durations = [0.1, 0.2];
-      notes.forEach((freq, i) => {
-        setTimeout(() => {
-          const osc = audioContext.createOscillator();
-          const gain = audioContext.createGain();
-          osc.connect(gain);
-          gain.connect(audioContext.destination);
-          osc.type = 'sine';
-          osc.frequency.value = freq;
-          gain.gain.setValueAtTime(0.05, audioContext.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + durations[i]);
-          osc.start();
-          osc.stop(audioContext.currentTime + durations[i]);
-        }, i * 100);
-      });
-    }
-
-    function playSuccess90s() {
-      initAudio();
-      const baseFreq = 587.33;
-      const osc1 = audioContext.createOscillator();
-      const gain1 = audioContext.createGain();
-      const osc2 = audioContext.createOscillator();
-      const gain2 = audioContext.createGain();
-      osc1.connect(gain1);
-      osc2.connect(gain2);
-      gain1.connect(audioContext.destination);
-      gain2.connect(audioContext.destination);
-      osc1.type = 'sine';
-      osc2.type = 'sine';
-      osc1.frequency.value = baseFreq;
-      osc2.frequency.setValueAtTime(baseFreq * 1.5, audioContext.currentTime);
-      osc2.frequency.exponentialRampToValueAtTime(baseFreq * 3, audioContext.currentTime + 0.3);
-      gain1.gain.setValueAtTime(0.03, audioContext.currentTime);
-      gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-      gain2.gain.setValueAtTime(0.01, audioContext.currentTime);
-      gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-      osc1.start();
-      osc2.start();
-      osc1.stop(audioContext.currentTime + 0.4);
-      osc2.stop(audioContext.currentTime + 0.3);
-    }
-
-    function playFail() {
-      initAudio();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      oscillator.type = 'sine';
-      gainNode.gain.setValueAtTime(0.04, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-      oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(110, audioContext.currentTime + 0.4);
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.4);
-    }
-
-    function playFireworkSound() {
-      initAudio();
-      try {
-        const frequencies = [329.63, 415.30, 523.25, 659.25];
-        frequencies.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            const filter = audioContext.createBiquadFilter();
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'triangle';
-            osc.frequency.value = freq;
-            filter.type = 'lowpass';
-            filter.frequency.value = freq * 2;
-            gain.gain.setValueAtTime(0.03, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.4);
-          }, i * 150);
-        });
-      } catch (error) {
-        logError('Erreur Firework: ' + error.message);
-      }
-    }
-
-    function playfireworksound2() {
-      initAudio();
-      try {
-        const sequence = [554.37, 659.25, 830.61, 987.77];
-        sequence.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.035, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.2);
-          }, i * 100);
-        });
-      } catch (error) {
-        logError('Erreur fireworksound 2: ' + error.message);
-      }
-    }
-
-    function playfireworksound3() {
-      initAudio();
-      try {
-        const sequence = [659.25, 783.99, 987.77, 1174.66];
-        sequence.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.035, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.2);
-          }, i * 100);
-        });
-      } catch (error) {
-        logError('Erreur fireworksound 3: ' + error.message);
-      }
-    }
-
-    function playfireworksound4() {
-      initAudio();
-      try {
-        const sequence = [783.99, 987.77, 1174.66, 1396.91];
-        sequence.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.035, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.2);
-          }, i * 100);
-        });
-      } catch (error) {
-        logError('Erreur fireworksound 4: ' + error.message);
-      }
-    }
-
-    function playLevelUp() {
-      initAudio();
-      try {
-        const sequence = [523.25, 659.25, 783.99, 1046.50];
-        const flourish = [783.99, 1046.50, 1318.51];
-        sequence.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.04, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.12);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.12);
-          }, i * 120);
-        });
-        flourish.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.04, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.1);
-          }, 480 + i * 100);
-        });
-        setTimeout(() => {
-          const osc = audioContext.createOscillator();
-          const gain = audioContext.createGain();
-          const mod = audioContext.createOscillator();
-          const modGain = audioContext.createGain();
-          mod.connect(modGain);
-          modGain.connect(osc.frequency);
-          osc.connect(gain);
-          gain.connect(audioContext.destination);
-          osc.type = 'sine';
-          mod.type = 'sine';
-          osc.frequency.value = 1318.51;
-          mod.frequency.value = 5;
-          modGain.gain.value = 10;
-          gain.gain.setValueAtTime(0.04, audioContext.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2.0);
-          osc.start();
-          mod.start();
-          osc.stop(audioContext.currentTime + 2.0);
-          mod.stop(audioContext.currentTime + 2.0);
-        }, 780);
-      } catch (error) {
-        logError('Erreur Level Up: ' + error.message);
-      }
-    }
-
-    function drawStar(ctx, x, y, radius, rotation = 0) {
-      const points = 5;
-      const outerRadius = radius;
-      const innerRadius = radius / 2;
-      ctx.beginPath();
-      for (let i = 0; i < points * 2; i++) {
-        const r = i % 2 === 0 ? outerRadius : innerRadius;
-        const angle = (i * Math.PI / points) + rotation - Math.PI / 2;
-        ctx.lineTo(
-          x + r * Math.cos(angle),
-          y + r * Math.sin(angle)
-        );
-      }
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    function triggerAdvancedFirework(container) {
-      initAudio();
-      const validatedCount = getValidatedCountForLevel(niveauActif);
-      const canvas = document.createElement('canvas');
-      canvas.style.position = 'absolute';
-      canvas.style.left = '50%';
-      canvas.style.top = '50%';
-      canvas.style.transform = 'translate(-50%, -50%)';
-      canvas.style.pointerEvents = 'none';
-      canvas.style.zIndex = '20';
-      canvas.width = 400;
-      canvas.height = 400;
-      container.appendChild(canvas);
-      const ctx = canvas.getContext('2d');
-
-      const colorPalettes = [
-        ['#6B8E23', '#9ACD32', '#32CD32', '#228B22', '#008000', '#006400'], // Palette verte
-        ['#A8D5BA', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
-        ['#FDC1C5', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
-      ];
-      const colors = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
-
-      const maxLifeBase = isMobile ? 30 : 50;
-      const numParticles = isMobile ? 9 : 12;
-      const numSalvos = isMobile ? 3 : 3;
-      const gravity = 0.1;
-      const salvoDelay = 150;
-      const dispersionBase = 3;
-
-      const particles = [];
-      const trails = [];
-
-      const halo = document.createElement('div');
-      halo.style.position = 'absolute';
-      halo.style.left = '50%';
-      halo.style.top = '50%';
-      halo.style.width = '20px';
-      halo.style.height = '20px';
-      halo.style.borderRadius = '50%';
-      halo.style.background = 'radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.05))';
-      halo.style.transform = 'translate(-50%, -50%) scale(1)';
-      halo.style.opacity = '1';
-      halo.style.zIndex = '0';
-      halo.style.pointerEvents = 'none';
-      container.appendChild(halo);
-      halo.animate([
-        { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
-        { transform: 'translate(-50%, -50%) scale(6)', opacity: 0 }
-      ], {
-        duration: 700,
-        easing: 'ease-out'
-      }).onfinish = () => halo.remove();
-
-      if (validatedCount === 0) {
-        playFireworkSound();
-      } else if (validatedCount === 1) {
-        playfireworksound2();
-      } else if (validatedCount === 2) {
-        playfireworksound3();
-      } else if (validatedCount === 3) {
-        playfireworksound4();
-      } else if (validatedCount === 4) {
-        playLevelUp();
-        triggerLevelUpAnimation(container);
-      }
-
-      for (let salvo = 0; salvo < numSalvos; salvo++) {
-        setTimeout(() => {
-          if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-            console.warn(`⚠️ Salvo ${salvo} annulée - limite atteinte`);
-            return;
-          }
-
-          const biasDirection = Math.random() < 0.5 ? -1 : 1;
-          const biasMagnitude = (Math.random() * 0.2 - 0.1) * biasDirection;
-
-          for (let i = 0; i < numParticles; i++) {
-            if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-              console.warn(`🛑 Particule ${i} du salvo ${salvo} ignorée - limite atteinte`);
-              break;
-            }
-
-            const angleOffset = (Math.random() * 10 - 5) * (Math.PI / 180);
-            const angle = angleOffset + (i * (360 / numParticles)) * (Math.PI / 180);
-            const isUpward = (angle >= 3 * Math.PI / 2 || angle <= Math.PI / 2);
-            let speed = dispersionBase + Math.random() * 3;
-            if (isUpward) {
-              speed = Math.max(7, speed);
-              if ((angle >= 3 * Math.PI / 2 && biasDirection === -1) || (angle <= Math.PI / 2 && biasDirection === 1)) {
-                speed *= (1 + biasMagnitude);
-              }
-            }
-
-            const v0x = speed * Math.cos(angle);
-            const v0y = speed * Math.sin(angle) * -1;
-            const color = colors[Math.floor(Math.random() * colors.length)];
-
-            particles.push({
-              x: canvas.width / 2,
-              y: canvas.height / 2,
-              vx: v0x,
-              vy: v0y,
-              life: maxLifeBase + Math.random() * 20,
-              maxLife: maxLifeBase + Math.random() * 20,
-              color: color,
-              rotation: Math.random() * Math.PI * 2
-            });
-            activeSparks.push({ canvas });
-            globalParticleCount++;
-            console.log(`Particule ajoutée: ${particles.length} particules, ${activeSparks.length} sparks`);
-          }
-        }, salvo * salvoDelay);
-      }
-
-      function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        if (!isMobile) {
-          particles.forEach(p => {
-            if (Math.random() < 0.2) {
-              trails.push({
-                x: p.x,
-                y: p.y,
-                color: p.color,
-                life: 10
-              });
-            }
-          });
-        }
-
-        trails.forEach((t, i) => {
-          t.life--;
-          if (t.life <= 0) {
-            trails.splice(i, 1);
-            return;
-          }
-          ctx.fillStyle = t.color;
-          ctx.globalAlpha = t.life / 10 * 0.3;
-          ctx.beginPath();
-          ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
-          ctx.fill();
-        });
-
-        particles.forEach((p, i) => {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vy += gravity;
-          p.life--;
-          p.rotation += 0.05;
-          if (p.life <= 0) {
-            particles.splice(i, 1);
-            activeSparks.splice(i, 1);
-            globalParticleCount--;
-            return;
-          }
-          ctx.fillStyle = p.color;
-          ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
-          ctx.restore();
-        });
-
-        if (particles.length > 0 || Date.now() < Date.now() + numSalvos * salvoDelay) {
-          requestAnimationFrame(animate);
-        } else {
-          canvas.remove();
-          activeSparks = activeSparks.filter(spark => spark.canvas !== canvas);
-          globalParticleCount = Math.max(0, globalParticleCount - particles.length);
-          console.log('Animation terminée');
-        }
-      }
-      requestAnimationFrame(animate);
-    }
-
-    function cleanupOldParticles() {
-      while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
-        const oldSpark = activeSparks.shift();
-        if (oldSpark && oldSpark.canvas && oldSpark.canvas.parentNode) {
-          oldSpark.canvas.remove();
-          globalParticleCount--;
-        }
-      }
-      activeSparks = activeSparks.filter(spark => {
-        if (!spark.canvas || !spark.canvas.parentNode) {
-          globalParticleCount--;
-          return false;
-        }
-        return true;
-      });
-      console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
-    }
-
-    setInterval(cleanupOldParticles, 3000);
-
-    const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30;
-
-    function getMaxLevel(list) {
-      if (!list || list.length === 0) return 1;
-      return Math.max(...list.map(k => parseInt(k.Niveau) || 1));
-    }
-
-    function updateStarsForHiragana(hiraganaId, newValidation) {
-      const cards = document.querySelectorAll('.hiragana-card');
-      cards.forEach(card => {
-        const hiraganaChar = card.querySelector('.hiragana-char').textContent;
-        const hiragana = HiraganaList.find(h => h.Hiragana === hiraganaChar && h.ID == hiraganaId);
-        if (hiragana) {
-          const stars = card.querySelectorAll('.star');
-          const previousValidation = previousValidationStates.get(hiraganaId) || 0;
-
-          stars.forEach((star, index) => {
-            if (index < newValidation && !star.classList.contains('filled')) {
-              star.classList.add('filled', 'new-star');
-              setTimeout(() => star.classList.remove('new-star'), 500);
-            } else if (index < newValidation) {
-              star.classList.add('filled');
-            } else {
-              star.classList.remove('filled', 'new-star');
-            }
-          });
-
-          if (newValidation >= 5 && previousValidation < 5) {
-            if (isMobile) {
-              triggerLightFirework(card);
-            } else {
-              triggerAdvancedFirework(card);
-            }
-          }
-
-          if (newValidation >= 5) {
-            card.classList.add('completed');
-          } else {
-            card.classList.remove('completed');
-          }
-
-          previousValidationStates.set(hiraganaId, newValidation);
-        }
-      });
-    }
-
-    function renderHiraganaCards(list, niveau) {
-      const container = document.getElementById("hiraganaCards");
-      if (!container) return;
-      const hiraganas = list.filter(h => parseInt(h.Niveau) === niveau);
-      container.innerHTML = "";
-      hiraganas.forEach(hiragana => {
-        const validation = parseInt(hiragana.Validation || 0);
-        const isCompleted = validation >= 5;
-        const card = document.createElement("div");
-        card.className = `hiragana-card ${isCompleted ? 'completed' : ''}`;
-        card.innerHTML = `
-          <div class="hiragana-char">${hiragana.Hiragana}</div>
-          <div class="stars-container">
-            ${Array.from({length: 5}, (_, i) =>
-              `<div class="star ${i < validation ? 'filled' : ''}"></div>`
-            ).join('')}
-          </div>
-        `;
-        container.appendChild(card);
-        previousValidationStates.set(parseInt(hiragana.ID), validation);
-      });
-    }
-
-    function renderProgressBar(currentLevel, maxLevel) {
-      const container = document.getElementById("progressBarContainer");
-      if (!container) return;
-
-      container.innerHTML = "";
-
-      const leftEmoji = document.createElement("span");
-      leftEmoji.textContent = "🌱";
-      leftEmoji.className = "side-emoji";
-
-      const rightEmoji = document.createElement("span");
-      rightEmoji.textContent = "🌳";
-      rightEmoji.className = "side-emoji";
-
-      const barTrack = document.createElement("div");
-      barTrack.className = "progress-bar-track";
-
-      const marker = document.createElement("div");
-      marker.className = "progress-marker";
-      marker.innerText = "🐼";
-
-      const pct = maxLevel > 1 ? ((currentLevel - 1) / (maxLevel - 1)) * 100 : 0;
-      marker.style.left = `${Math.min(100, Math.max(0, pct))}%`;
-
-      barTrack.appendChild(marker);
-      container.appendChild(leftEmoji);
-      container.appendChild(barTrack);
-      container.appendChild(rightEmoji);
-    }
-
-    function determineNiveauActif(list) {
-      if (!list || list.length === 0) return 1;
-      let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
-
-      for (let n = 1; n <= maxNiveau; n++) {
-        const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
-        const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5);
-        if (kanjisValides.length < kanjisNiveau.length) {
-          return n;
-        }
-      }
-      return maxNiveau;
-    }
-
-    function updateLevelProgress(list, niveau) {
-      renderHiraganaCards(list, niveau);
-    }
-
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyunFkM7h0FV_xu1GRa4uOiuxeggNSVY1HRCzNungo8QonzHznN0TRNLDOEEOtfQu_8FQ/exec';
-
-    async function callAPI(action, data = null) {
-      try {
-        if (action === 'updateStats') {
-          const params = new URLSearchParams({
-            action,
-            id: data.id,
-            scorePoints: data.score
-          });
-          const response = await fetch(`${WEB_APP_URL}?${params}`);
-          return await response.json();
-        } else {
-          const response = await fetch(`${WEB_APP_URL}?action=${action}`);
-          return await response.json();
-        }
-      } catch (error) {
-        logError('Erreur API: ' + error.message);
-        return { error: error.message };
-      }
-    }
-
-    async function initGame() {
-      const data = await callAPI('getHiraganas');
-      if (data.error) {
-        logError('Erreur lors du chargement: ' + data.error);
-        return;
-      }
-
-      HiraganaList = data;
-      niveauActif = determineNiveauActif(HiraganaList);
-      document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-      updateLevelProgress(HiraganaList, niveauActif);
-      renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-      nextQuestion();
-    }
-
-    function nextQuestion() {
-      document.getElementById("result").innerHTML = "";
-      document.getElementById("continueBtn").style.visibility = "hidden";
-      selections = { first: null, second: null };
-      isAnswered = false;
-
-      const kanas = HiraganaList.filter(k =>
-        parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
-      );
-
-      if (kanas.length === 0) {
-        const nouveauNiveau = determineNiveauActif(HiraganaList);
-        if (nouveauNiveau !== niveauActif) {
-          niveauActif = nouveauNiveau;
-          document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-          renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-          updateLevelProgress(HiraganaList, niveauActif);
-          nextQuestion();
-          return;
-        }
-      }
-
-      const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
-
-      const currentWeights = finalKanas.map(k => {
-        const validation = parseInt(k.Validation || 0);
-        return Math.max(0.1, 5 - validation + 0.5);
-      });
-
-      const sum = currentWeights.reduce((a, b) => a + b, 0);
-      const rand = Math.random() * sum;
-      let acc = 0;
-      for (let i = 0; i < finalKanas.length; i++) {
-        acc += currentWeights[i];
-        if (rand < acc) {
-          current = finalKanas[i];
-          break;
-        }
-      }
-
-      const modes = [
-        { question: "Hiragana", options1: "Katakana", options2: "Romaji" },
-        { question: "Katakana", options1: "Hiragana", options2: "Romaji" },
-        { question: "Romaji", options1: "Hiragana", options2: "Katakana" }
-      ];
-      const mode = modes[Math.floor(Math.random() * modes.length)];
-      targetFields = [mode.options1, mode.options2];
-
-      document.getElementById("question").innerText = current[mode.question];
-      renderChoices("choices1", generateChoices(mode.options1), "first");
-      renderChoices("choices2", generateChoices(mode.options2), "second");
-    }
-
-    function generateChoices(field) {
-      const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau) === niveauActif);
-      const values = [current[field], ...others.sort(() => 0.5 - Math.random()).slice(0, 3).map(k => k[field])];
-      return values.sort(() => 0.5 - Math.random());
-    }
-
-    function renderChoices(id, options, slot) {
-      const container = document.getElementById(id);
-      container.innerHTML = "";
-      options.forEach(text => {
-        const btn = document.createElement("button");
-        btn.innerText = text;
-        btn.className = "arcade-button";
-        btn.onclick = () => {
-          if (selections[slot] !== null || isAnswered) return;
-          selections[slot] = text;
-
-          btn.classList.add("clicked-glow");
-
-          container.querySelectorAll("button").forEach(b => {
-            b.disabled = true;
-            if (b !== btn) b.style.opacity = 0.5;
-          });
-          checkAnswer();
-        };
-        container.appendChild(btn);
-      });
-    }
-
-    async function checkAnswer() {
-      if (selections.first && selections.second && !isAnswered) {
-        isAnswered = true;
-        const correct1 = current[targetFields[0]];
-        const correct2 = current[targetFields[1]];
-        let score = 0;
-        const containers = [document.getElementById("choices1"), document.getElementById("choices2")];
-        const correctAnswers = [correct1, correct2];
-        const userSelections = [selections.first, selections.second];
-
-        containers.forEach(container => {
-          container.querySelectorAll("button").forEach(btn => {
-            btn.classList.remove("clicked-glow");
-          });
-        });
-
-        containers.forEach((container, index) => {
-          const buttons = container.querySelectorAll("button");
-          buttons.forEach(btn => {
-            btn.classList.remove("correct", "incorrect");
-            if (btn.innerText === correctAnswers[index]) {
-              btn.disabled = false;
-              btn.style.opacity = '1';
-              btn.classList.add("correct");
-              if (btn.innerText === userSelections[index]) {
-                score += 0.5;
-              }
-            } else if (btn.innerText === userSelections[index]) {
-              btn.disabled = false;
-              btn.style.opacity = '1';
-              btn.classList.add("incorrect");
-            }
-          });
-        });
-
-        const currentValidation = parseInt(current.Validation || 0);
-        let newValidation = currentValidation;
-
-        if (score === 1) {
-          newValidation = Math.min(5, currentValidation + 1);
-        } else if (score === 0.5) {
-          newValidation = Math.max(0, currentValidation - 1);
-        } else {
-          newValidation = Math.max(0, currentValidation - 2);
-        }
-
-        const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
-
-        updateStarsForHiragana(parseInt(current.ID), newValidation);
-
-        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
-        if (hiraganaIndex !== -1) {
-          HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-        }
-
-        let emoji = "", resultText = "";
-        if (score === 1) {
-          const emojisOK = ["🌸", "🎍", "🍵", "🪴"];
-          emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-          resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
-          if (!isFinalValidation) {
-            playMarioCoin();
-            triggerSakuraFall(document.body);
-          }
-        } else if (score === 0.5) {
-          const emojisMid = ["🪨", "🌿", "🪵"];
-          emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
-          resultText = "Presque...";
-          playSuccess90s();
-        } else {
-          const emojisBad = ["🍂", "🌫️", "🪨"];
-          emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
-          resultText = "Pas tout à fait...";
-          playFail();
-        }
-
-        document.getElementById("result").innerHTML = `
-          <div class="result-line">${emoji} ${resultText} ${emoji}</div>
-          <div class="result-line highlight">
-            👉 Bonnes réponses : <strong>${correct1}</strong> – <strong>${correct2}</strong>
-          </div>`;
-
-        if (isFinalValidation) {
-          for (let i = 0; i < 10; i++) {
-            setTimeout(() => {
-              const sakura = document.createElement("div");
-              sakura.className = "sakura";
-              sakura.style.left = `${Math.random() * 100}vw`;
-              sakura.style.top = "-10px";
-              document.body.appendChild(sakura);
-              setTimeout(() => sakura.remove(), 3000);
-            }, i * 100);
-          }
-        }
-
-        if (score === 1) {
-          document.getElementById("result").innerHTML += "<br><small style='color: #A8D5BA;'></small>";
-          setTimeout(nextQuestion, 1500);
-        } else {
-          document.getElementById("continueBtn").style.visibility = "visible";
-        }
-
-        callAPI('updateStats', { id: parseInt(current.ID), score })
-          .then(response => {
-            if (response.error) {
-              console.warn('Erreur sauvegarde:', response.error);
-            } else {
-              console.log('✅ Score sauvegardé en arrière-plan');
-            }
-          })
-          .catch(error => {
-            console.error('Erreur lors de la sauvegarde:', error);
-          });
-      }
-    }
-
-    function triggerLightFirework(card) {
-      const halo = document.createElement("div");
-      halo.style.position = "absolute";
-      halo.style.width = "30px";
-      halo.style.height = "30px";
-      halo.style.borderRadius = "50%";
-      halo.style.background = "radial-gradient(circle, rgba(253,193,197,0.9), rgba(253,193,197,0.1))";
-      halo.style.transform = "translate(-50%, -50%) scale(1)";
-      halo.style.opacity = "1";
-      halo.style.pointerEvents = "none";
-      halo.style.zIndex = "10";
-
-      const rect = card.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-
-      halo.style.left = `${cx}px`;
-      halo.style.top = `${cy}px`;
-      document.body.appendChild(halo);
-
-      halo.animate([
-        { transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
-        { transform: "translate(-50%, -50%) scale(4)", opacity: 0 }
-      ], {
-        duration: 800,
-        easing: "ease-out"
-      }).onfinish = () => halo.remove();
-
-      for (let i = 0; i < 5; i++) {
-        setTimeout(() => {
-          const sakura = document.createElement("div");
-          sakura.className = "sakura";
-          const offsetX = (Math.random() - 0.5) * 80;
-          const offsetY = (Math.random() - 0.5) * 80;
-          sakura.style.left = `${cx + offsetX}px`;
-          sakura.style.top = `${cy + offsetY}px`;
-          sakura.style.animationDuration = "1.5s";
-          document.body.appendChild(sakura);
-          setTimeout(() => sakura.remove(), 1500);
-        }, i * 250);
-      }
-
-      const validatedCount = getValidatedCountForLevel(niveauActif);
-      if (validatedCount === 0) {
-        playFireworkSound();
-      } else if (validatedCount === 1) {
-        playfireworksound2();
-      } else if (validatedCount === 2) {
-        playfireworksound3();
-      } else if (validatedCount === 3) {
-        playfireworksound4();
-      } else if (validatedCount === 4) {
-        playLevelUp();
-        triggerLevelUpAnimation(card);
-      }
-    }
-
-    function triggerLevelUpAnimation(container) {
-      const toHide = ['#question', '#choices1', '#choices2'];
-      toHide.forEach(id => {
-        const el = document.querySelector(id);
-        if (el) el.style.visibility = 'hidden';
-      });
-
-      for (let group = 0; group < 3; group++) {
-        setTimeout(() => {
-          for (let i = 0; i < 3; i++) {
-            const sakura = document.createElement('div');
-            sakura.className = 'sakura';
-            sakura.style.top = `${15 + Math.random() * 50}%`;
-            sakura.style.left = `${20 + Math.random() * 60}%`;
-            sakura.style.animationDuration = "2s";
-            sakura.style.background = '#FDC1C5';
-            container.appendChild(sakura);
-            setTimeout(() => sakura.remove(), 2000);
-          }
-        }, group * 300);
-      }
-
-      setTimeout(() => {
-        toHide.forEach(id => {
-          const el = document.querySelector(id);
-          if (el) {
-            el.style.visibility = 'visible';
-            el.style.opacity = 0;
-            el.animate([
-              { opacity: 0 },
-              { opacity: 1 }
-            ], {
-              duration: 600,
-              fill: 'forwards'
-            });
-          }
-        });
-      }, 3000);
-
-      const msgWrapper = document.createElement("div");
-      msgWrapper.style.position = "fixed";
-      msgWrapper.style.top = "30%";
-      msgWrapper.style.left = "0";
-      msgWrapper.style.width = "100vw";
-      msgWrapper.style.textAlign = "center";
-      msgWrapper.style.zIndex = 9999;
-      msgWrapper.style.pointerEvents = "none";
-      document.body.appendChild(msgWrapper);
-
-      const msg = document.createElement("div");
-      msg.innerText = "レベルアップ！";
-      msg.style.display = "inline-block";
-      msg.style.fontSize = "5em";
-      msg.style.fontWeight = "bold";
-      msg.style.color = "#2F4F4F";
-      msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #FDC1C5";
-      msg.style.writingMode = "horizontal-tb";
-      msg.style.whiteSpace = "nowrap";
-      msgWrapper.appendChild(msg);
-
-      msg.animate([
-        { transform: "translateY(0)", opacity: 1 },
-        { transform: "translateY(-40px)", opacity: 0 }
-      ], {
-        duration: 5000,
-        easing: "ease-out"
-      }).onfinish = () => msgWrapper.remove();
-
-      for (let i = 0; i < 50; i++) {
-        const confetti = document.createElement("div");
-        confetti.className = "sakura";
-        confetti.style.left = Math.random() * 100 + "vw";
-        confetti.style.top = "-10px";
-        confetti.style.background = ["#6B8E23", "#A8D5BA", "#FDC1C5"][Math.floor(Math.random() * 3)];
-        confetti.style.opacity = Math.random() * 0.9 + 0.1;
-        confetti.style.zIndex = 5000;
-        confetti.style.pointerEvents = "none";
-        document.body.appendChild(confetti);
-        setTimeout(() => confetti.remove(), 5000);
-      }
-
-      const marker = document.querySelector(".progress-marker");
-      if (marker) {
-        marker.animate([
-          { transform: "translate(-50%, -50%) rotate(0deg) scale(1)" },
-          { transform: "translate(-50%, -50%) rotate(180deg) scale(4)" },
-          { transform: "translate(-50%, -50%) rotate(360deg) scale(1)" }
-        ], {
-          duration: 1000,
-          easing: "ease-in-out"
-        });
-      }
-    }
-
-    // Fullscreen API
-    document.getElementById('boutonPleinEcran').addEventListener('click', () => {
-      const element = document.documentElement;
-      if (element.requestFullscreen) {
-        element.requestFullscreen();
-      } else if (element.mozRequestFullScreen) {
-        element.mozRequestFullScreen();
-      } else if (element.webkitRequestFullscreen) {
-        element.webkitRequestFullscreen();
-      } else if (element.msRequestFullscreen) {
-        element.msRequestFullscreen();
-      }
-    });
-
-    // PWA installation
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('boutonInstaller').style.display = 'block';
-    });
-
-    document.getElementById('boutonInstaller').addEventListener('click', () => {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('PWA installée');
-        }
-        deferredPrompt = null;
-      });
-    });
-
-    // Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(
-          (registration) => {
-            console.log('Service Worker enregistré:', registration);
-          },
-          (error) => {
-            console.log('Échec Service Worker:', error);
-          }
-        );
-      });
-    }
-
-    window.onload = () => {
-      initGame();
-    };
-  </script>
+<h1>🎌⛩️ Welcome to Hira-Kata-Quizzz ⛩️🎌</h1>
+
+<div id="progressBarContainer"></div>
+
+<div class="level" id="levelDisplay">Niveau actuel : 1</div>
+
+<div class="level-hiraganas">
+<div class="hiraganas-grid" id="hiraganaCards"></div>
+</div>
+
+<div class="quiz-container">
+<div class="question" id="question">load...</div>
+<div>
+<div class="answers" id="choices1"></div>
+<div class="answers" id="choices2"></div>
+
+
+</div>
+<div>
+<div class="result" id="result"></div>
+<button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🙄 OK... j'ai capté 🙄</button>
+</div>
+</div>
+
+<script>
+let HiraganaList = [];
+let current = {};
+let selections = { first: null, second: null };
+let targetFields = [];
+let isAnswered = false;
+let niveauActif = 1;
+let previousValidationStates = new Map();
+let activeSparks = []; // Variable globale pour les particules
+let globalParticleCount = 0; // Compteur global
+
+function logError(msg) {
+console.warn(msg);
+}
+
+
+function testFeu() {
+const container = document.querySelector('.quiz-container');
+if (isMobile) {
+triggerLightFirework(container);
+} else {
+triggerAdvancedFirework(container);
+}
+}
+
+// 🎯 GESTIONNAIRE DE PARTICULES OPTIMISÉ
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30; // Limite stricte
+
+// Fonction de nettoyage des particules
+function cleanupOldParticles() {
+// Supprimer les particules les plus anciennes si on dépasse la limite
+while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
+const oldSpark = activeSparks.shift();
+if (oldSpark && oldSpark.canvas && oldSpark.canvas.parentNode) {
+oldSpark.canvas.remove();
+globalParticleCount--;
+}
+}
+// Nettoyer les particules orphelines
+activeSparks = activeSparks.filter(spark => {
+if (!spark.canvas || !spark.canvas.parentNode) {
+globalParticleCount--;
+return false;
+}
+return true;
+});
+console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
+}
+
+// Nettoyage automatique toutes les 3 secondes
+setInterval(cleanupOldParticles, 3000);
+
+// Audio
+let audioContext;
+let audioInitialized = false;
+
+function initAudio() {
+try {
+if (!audioInitialized) {
+audioContext = new (window.AudioContext || window.webkitAudioContext)();
+audioInitialized = true;
+}
+} catch (error) {
+console.error("Erreur lors de l'initialisation audio:", error.message);
+}
+}
+
+function getValidatedCountForLevel(level) {
+return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Validation) >= 5).length;
+}
+
+function playMarioCoin() {
+initAudio();
+const notes = [659.25, 1046.50];
+const durations = [0.1, 0.2];
+notes.forEach((freq, i) => {
+setTimeout(() => {
+const osc = audioContext.createOscillator();
+const gain = audioContext.createGain();
+osc.connect(gain);
+gain.connect(audioContext.destination);
+osc.type = 'square';
+osc.frequency.value = freq;
+gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + durations[i]);
+osc.start();
+osc.stop(audioContext.currentTime + durations[i]);
+}, i * 100);
+});
+}
+
+function playSuccess90s() {
+initAudio();
+const baseFreq = 587.33;
+const osc1 = audioContext.createOscillator();
+const gain1 = audioContext.createGain();
+const osc2 = audioContext.createOscillator();
+const gain2 = audioContext.createGain();
+osc1.connect(gain1);
+osc2.connect(gain2);
+gain1.connect(audioContext.destination);
+gain2.connect(audioContext.destination);
+osc1.type = 'square';
+osc2.type = 'sawtooth';
+osc1.frequency.value = baseFreq;
+osc2.frequency.setValueAtTime(baseFreq * 1.5, audioContext.currentTime);
+osc2.frequency.exponentialRampToValueAtTime(baseFreq * 3, audioContext.currentTime + 0.3);
+gain1.gain.setValueAtTime(0.06, audioContext.currentTime);
+gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+gain2.gain.setValueAtTime(0.02, audioContext.currentTime);
+gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+osc1.start();
+osc2.start();
+osc1.stop(audioContext.currentTime + 0.4);
+osc2.stop(audioContext.currentTime + 0.3);
+}
+
+function playFail() {
+initAudio();
+const oscillator = audioContext.createOscillator();
+const gainNode = audioContext.createGain();
+oscillator.connect(gainNode);
+gainNode.connect(audioContext.destination);
+oscillator.type = 'square';
+gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+oscillator.frequency.exponentialRampToValueAtTime(110, audioContext.currentTime + 0.4);
+oscillator.start(audioContext.currentTime);
+oscillator.stop(audioContext.currentTime + 0.4);
+}
+
+function playFireworkSound() {
+if (!audioInitialized) initAudio();
+try {
+const frequencies = [329.63, 415.30, 523.25, 659.25]; // Mi, Sol#, Do, Mi
+frequencies.forEach((freq, i) => {
+setTimeout(() => {
+const osc = audioContext.createOscillator();
+const gain = audioContext.createGain();
+const filter = audioContext.createBiquadFilter();
+osc.connect(filter);
+filter.connect(gain);
+gain.connect(audioContext.destination);
+osc.type = 'triangle';
+osc.frequency.value = freq;
+filter.type = 'lowpass';
+filter.frequency.value = freq * 2;
+gain.gain.setValueAtTime(0.06, audioContext.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+osc.start();
+osc.stop(audioContext.currentTime + 0.4);
+}, i * 150);
+});
+console.log('Treasure Found joué');
+} catch (error) {
+logError('Erreur Treasure: ' + error.message);
+}
+}
+
+function playfireworksound2() {
+if (!audioInitialized) initAudio();
+try {
+const sequence = [554.37, 659.25, 830.61, 987.77]; // Do#5, Mi5, Sol#5, Si5
+sequence.forEach((freq, i) => {
+setTimeout(() => {
+const osc = audioContext.createOscillator();
+const gain = audioContext.createGain();
+osc.connect(gain);
+gain.connect(audioContext.destination);
+osc.type = 'square';
+osc.frequency.value = freq;
+gain.gain.setValueAtTime(0.07, audioContext.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+osc.start();
+osc.stop(audioContext.currentTime + 0.2);
+}, i * 100);
+});
+console.log('fireworksound 2 joué');
+} catch (error) {
+logError('Erreur fireworksound 2: ' + error.message);
+}
+}
+
+function playfireworksound3() {
+if (!audioInitialized) initAudio();
+try {
+const sequence = [659.25, 783.99, 987.77, 1174.66]; // Mi5, Sol5, Si5, Ré6
+sequence.forEach((freq, i) => {
+setTimeout(() => {
+const osc = audioContext.createOscillator();
+const gain = audioContext.createGain();
+osc.connect(gain);
+gain.connect(audioContext.destination);
+osc.type = 'square';
+osc.frequency.value = freq;
+gain.gain.setValueAtTime(0.07, audioContext.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+osc.start();
+osc.stop(audioContext.currentTime + 0.2);
+}, i * 100);
+});
+console.log('fireworksound 3 joué');
+} catch (error) {
+logError('Erreur fireworksound 3: ' + error.message);
+}
+}
+
+function playfireworksound4() {
+if (!audioInitialized) initAudio();
+try {
+const sequence = [783.99, 987.77, 1174.66, 1396.91]; // Sol5, Si5, Ré6, Fa6
+sequence.forEach((freq, i) => {
+setTimeout(() => {
+const osc = audioContext.createOscillator();
+const gain = audioContext.createGain();
+osc.connect(gain);
+gain.connect(audioContext.destination);
+osc.type = 'square';
+osc.frequency.value = freq;
+gain.gain.setValueAtTime(0.07, audioContext.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+osc.start();
+osc.stop(audioContext.currentTime + 0.2);
+}, i * 100);
+});
+console.log('fireworksound 4 joué');
+} catch (error) {
+logError('Erreur fireworksound 4: ' + error.message);
+}
+}
+
+function playLevelUp() {
+if (!audioInitialized) initAudio();
+try {
+const sequence = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+const flourish = [783.99, 1046.50, 1318.51]; // G5, C6, E6
+sequence.forEach((freq, i) => {
+setTimeout(() => {
+const osc = audioContext.createOscillator();
+const gain = audioContext.createGain();
+osc.connect(gain);
+gain.connect(audioContext.destination);
+osc.type = 'square';
+osc.frequency.value = freq;
+gain.gain.setValueAtTime(0.08, audioContext.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.12);
+osc.start();
+osc.stop(audioContext.currentTime + 0.12);
+}, i * 120);
+});
+flourish.forEach((freq, i) => {
+setTimeout(() => {
+const osc = audioContext.createOscillator();
+const gain = audioContext.createGain();
+osc.connect(gain);
+gain.connect(audioContext.destination);
+osc.type = 'square';
+osc.frequency.value = freq;
+gain.gain.setValueAtTime(0.08, audioContext.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+osc.start();
+osc.stop(audioContext.currentTime + 0.1);
+}, 480 + i * 100);
+});
+setTimeout(() => {
+const osc = audioContext.createOscillator();
+const gain = audioContext.createGain();
+const mod = audioContext.createOscillator();
+const modGain = audioContext.createGain();
+mod.connect(modGain);
+modGain.connect(osc.frequency);
+osc.connect(gain);
+gain.connect(audioContext.destination);
+osc.type = 'square';
+mod.type = 'sine';
+osc.frequency.value = 1318.51; // E6
+mod.frequency.value = 5;
+modGain.gain.value = 10;
+gain.gain.setValueAtTime(0.08, audioContext.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2.0);
+osc.start();
+mod.start();
+osc.stop(audioContext.currentTime + 2.0);
+mod.stop(audioContext.currentTime + 2.0);
+}, 780);
+console.log('Level Up joué');
+} catch (error) {
+logError('Erreur Level Up: ' + error.message);
+}
+}
+
+function drawStar(ctx, x, y, radius, rotation = 0) {
+const points = 5; // Nombre de pointes de l'étoile
+const outerRadius = radius;
+const innerRadius = radius / 2;
+ctx.beginPath();
+for (let i = 0; i < points * 2; i++) {
+const r = i % 2 === 0 ? outerRadius : innerRadius;
+const angle = (i * Math.PI / points) + rotation - Math.PI / 2;
+ctx.lineTo(
+x + r * Math.cos(angle),
+y + r * Math.sin(angle)
+);
+}
+ctx.closePath();
+ctx.fill();
+}
+
+function triggerAdvancedFirework(container) {
+initAudio();
+const validatedCount = getValidatedCountForLevel(niveauActif);
+
+// Création du canvas
+const canvas = document.createElement('canvas');
+canvas.style.position = 'absolute';
+canvas.style.left = '50%';
+canvas.style.top = '50%';
+canvas.style.transform = 'translate(-50%, -50%)';
+canvas.style.pointerEvents = 'none';
+canvas.style.zIndex = '20';
+canvas.width = 400;
+canvas.height = 400;
+container.appendChild(canvas);
+const ctx = canvas.getContext('2d');
+
+// Palette de couleurs
+const colorPalettes = [
+['#FFD700', '#FF8C00', '#FF4500', '#FF3D00', '#FF5722', '#FFA500'],
+['#B3E5FC', '#81D4FA', '#4FC3F7', '#29B6F6', '#039BE5', '#0277BD'],
+['#B2FF59', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
+['#F8BBD0', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
+['#E1BEE7', '#CE93D8', '#BA68C8', '#AB47BC', '#9C27B0', '#7B1FA2']
+];
+const colors = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
+
+// Paramètres adaptés pour mobile
+const maxLifeBase = isMobile ? 30 : 50;
+const numParticles = isMobile ? 9 : 12;
+const numSalvos = isMobile ? 3 : 3;
+const gravity = 0.1;
+const salvoDelay = 150;
+const dispersionBase = 3;
+
+// Gestion des particules et traînées
+const particles = [];
+const trails = [];
+
+// Flash central
+const halo = document.createElement('div');
+halo.style.position = 'absolute';
+halo.style.left = '50%';
+halo.style.top = '50%';
+halo.style.width = '20px';
+halo.style.height = '20px';
+halo.style.borderRadius = '50%';
+halo.style.background = 'radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.05))';
+halo.style.transform = 'translate(-50%, -50%) scale(1)';
+halo.style.opacity = '1';
+halo.style.zIndex = '0';
+halo.style.pointerEvents = 'none';
+container.appendChild(halo);
+halo.animate([
+{ transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+{ transform: 'translate(-50%, -50%) scale(6)', opacity: 0 }
+], {
+duration: 700,
+easing: 'ease-out'
+}).onfinish = () => halo.remove();
+
+// Sons
+if (validatedCount === 0) {
+playFireworkSound();
+} else if (validatedCount === 1) {
+playfireworksound2();
+} else if (validatedCount === 2) {
+playfireworksound3();
+} else if (validatedCount === 3) {
+playfireworksound4();
+} else if (validatedCount === 4) {
+playLevelUp();
+triggerLevelUpAnimation(container);
+}
+
+// Création des salves
+for (let salvo = 0; salvo < numSalvos; salvo++) {
+setTimeout(() => {
+if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
+console.warn(`⚠️ Salvo ${salvo} annulée - limite atteinte`);
+return;
+}
+
+const biasDirection = Math.random() < 0.5 ? -1 : 1;
+const biasMagnitude = (Math.random() * 0.2 - 0.1) * biasDirection;
+
+for (let i = 0; i < numParticles; i++) {
+if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
+console.warn(`🛑 Particule ${i} du salvo ${salvo} ignorée - limite atteinte`);
+break;
+}
+
+const angleOffset = (Math.random() * 10 - 5) * (Math.PI / 180);
+const angle = angleOffset + (i * (360 / numParticles)) * (Math.PI / 180);
+const isUpward = (angle >= 3 * Math.PI / 2 || angle <= Math.PI / 2);
+let speed = dispersionBase + Math.random() * 3;
+if (isUpward) {
+speed = Math.max(7, speed);
+if ((angle >= 3 * Math.PI / 2 && biasDirection === -1) || (angle <= Math.PI / 2 && biasDirection === 1)) {
+speed *= (1 + biasMagnitude);
+}
+}
+
+const v0x = speed * Math.cos(angle);
+const v0y = speed * Math.sin(angle) * -1;
+const color = colors[Math.floor(Math.random() * colors.length)];
+
+particles.push({
+x: canvas.width / 2,
+y: canvas.height / 2,
+vx: v0x,
+vy: v0y,
+life: maxLifeBase + Math.random() * 20,
+maxLife: maxLifeBase + Math.random() * 20,
+color: color,
+rotation: Math.random() * Math.PI * 2 // Rotation aléatoire pour l'étoile
+});
+activeSparks.push({ canvas });
+globalParticleCount++;
+console.log(`Particule ajoutée: ${particles.length} particules, ${activeSparks.length} sparks`);
+}
+}, salvo * salvoDelay);
+}
+
+// Animation des particules et traînées
+function animate() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+// Dessiner les traînées
+if (!isMobile) {
+particles.forEach(p => {
+if (Math.random() < 0.2) {
+trails.push({
+x: p.x,
+y: p.y,
+color: p.color,
+life: 10
+});
+}
+});
+}
+
+trails.forEach((t, i) => {
+t.life--;
+if (t.life <= 0) {
+trails.splice(i, 1);
+return;
+}
+ctx.fillStyle = t.color;
+ctx.globalAlpha = t.life / 10 * 0.3;
+ctx.beginPath();
+ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
+ctx.fill();
+});
+
+// Dessiner les particules en forme d'étoiles
+particles.forEach((p, i) => {
+p.x += p.vx;
+p.y += p.vy;
+p.vy += gravity;
+p.life--;
+p.rotation += 0.05; // Rotation dynamique pour effet scintillant
+if (p.life <= 0) {
+particles.splice(i, 1);
+activeSparks.splice(i, 1);
+globalParticleCount--;
+return;
+}
+ctx.fillStyle = p.color;
+ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+ctx.save();
+ctx.translate(p.x, p.y);
+drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
+ctx.restore();
+});
+
+// Continuer l'animation si des particules ou salves sont en attente
+if (particles.length > 0 || Date.now() < Date.now() + numSalvos * salvoDelay) {
+requestAnimationFrame(animate);
+} else {
+canvas.remove();
+activeSparks = activeSparks.filter(spark => spark.canvas !== canvas);
+globalParticleCount = Math.max(0, globalParticleCount - particles.length);
+console.log('Animation terminée');
+}
+}
+requestAnimationFrame(animate);
+}
+
+function getMaxLevel(list) {
+if (!list || list.length === 0) return 1;
+return Math.max(...list.map(k => parseInt(k.Niveau) || 1));
+}
+
+function updateStarsForHiragana(hiraganaId, newValidation) {
+const cards = document.querySelectorAll('.hiragana-card');
+cards.forEach(card => {
+const hiraganaChar = card.querySelector('.hiragana-char').textContent;
+const hiragana = HiraganaList.find(h => h.Hiragana === hiraganaChar && h.ID == hiraganaId);
+if (hiragana) {
+const stars = card.querySelectorAll('.star');
+const previousValidation = previousValidationStates.get(hiraganaId) || 0;
+
+stars.forEach((star, index) => {
+if (index < newValidation && !star.classList.contains('filled')) {
+star.classList.add('filled', 'new-star');
+setTimeout(() => star.classList.remove('new-star'), 500);
+} else if (index < newValidation) {
+star.classList.add('filled');
+} else {
+star.classList.remove('filled', 'new-star');
+}
+});
+
+if (newValidation >= 5 && previousValidation < 5) {
+if (isMobile) {
+triggerLightFirework(card);
+} else {
+triggerAdvancedFirework(card);
+}
+}
+
+if (newValidation >= 5) {
+card.classList.add('completed');
+} else {
+card.classList.remove('completed');
+}
+
+previousValidationStates.set(hiraganaId, newValidation);
+}
+});
+}
+
+function renderHiraganaCards(list, niveau) {
+const container = document.getElementById("hiraganaCards");
+if (!container) return;
+const hiraganas = list.filter(h => parseInt(h.Niveau) === niveau);
+container.innerHTML = "";
+hiraganas.forEach(hiragana => {
+const validation = parseInt(hiragana.Validation || 0);
+const isCompleted = validation >= 5;
+const card = document.createElement("div");
+card.className = `hiragana-card ${isCompleted ? 'completed' : ''}`;
+card.innerHTML = `
+<div class="hiragana-char">${hiragana.Hiragana}</div>
+<div class="stars-container">
+${Array.from({length: 5}, (_, i) =>
+`<div class="star ${i < validation ? 'filled' : ''}"></div>`
+).join('')}
+</div>
+`;
+container.appendChild(card);
+previousValidationStates.set(parseInt(hiragana.ID), validation);
+});
+}
+
+function renderProgressBar(currentLevel, maxLevel) {
+const container = document.getElementById("progressBarContainer");
+if (!container) return;
+
+container.innerHTML = "";
+
+const leftEmoji = document.createElement("span");
+leftEmoji.textContent = "👎";
+leftEmoji.className = "side-emoji";
+
+const rightEmoji = document.createElement("span");
+rightEmoji.textContent = "💪";
+rightEmoji.className = "side-emoji";
+
+const barTrack = document.createElement("div");
+barTrack.className = "progress-bar-track";
+
+const marker = document.createElement("div");
+marker.className = "progress-marker";
+marker.innerText = "🐼";  /*  🐼 🐱💩🤡🐶🐯🐱 */
+
+const pct = maxLevel > 1 ? ((currentLevel - 1) / (maxLevel - 1)) * 100 : 0;
+marker.style.left = `${Math.min(100, Math.max(0, pct))}%`;
+
+barTrack.appendChild(marker);
+container.appendChild(leftEmoji);
+container.appendChild(barTrack);
+container.appendChild(rightEmoji);
+}
+
+function determineNiveauActif(list) {
+if (!list || list.length === 0) return 1;
+let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
+
+for (let n = 1; n <= maxNiveau; n++) {
+const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
+const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5);
+if (kanjisValides.length < kanjisNiveau.length) {
+return n;
+}
+}
+return maxNiveau;
+}
+
+function updateLevelProgress(list, niveau) {
+renderHiraganaCards(list, niveau);
+}
+
+// Initialisation avec Google Apps Script
+// *** NOUVELLE URL DE VOTRE WEB APP GOOGLE ***
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyunFkM7h0FV_xu1GRa4uOiuxeggNSVY1HRCzNungo8QonzHznN0TRNLDOEEOtfQu_8FQ/exec';
+
+// Fonction pour appeler l'API
+async function callAPI(action, data = null) {
+try {
+if (action === 'updateStats') {
+// Utiliser GET pour éviter CORS
+const params = new URLSearchParams({
+action,
+id: data.id,
+scorePoints: data.scorePoints
+});
+const response = await fetch(`${WEB_APP_URL}?${params}`);
+return await response.json();
+} else {
+const response = await fetch(`${WEB_APP_URL}?action=${action}`);
+return await response.json();
+}
+} catch (error) {
+logError('Erreur API: ' + error.message);
+return { error: error.message };
+}
+}
+
+// Initialisation avec l'API
+async function initGame() {
+const data = await callAPI('getHiraganas');
+if (data.error) {
+logError('Erreur lors du chargement: ' + data.error);
+return;
+}
+
+HiraganaList = data;
+niveauActif = determineNiveauActif(HiraganaList);
+document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+updateLevelProgress(HiraganaList, niveauActif);
+renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+nextQuestion();
+}
+
+function nextQuestion() {
+document.getElementById("result").innerText = "";
+document.getElementById("continueBtn").style.visibility = "hidden";
+selections = { first: null, second: null };
+isAnswered = false;
+
+const kanas = HiraganaList.filter(k =>
+parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
+);
+
+if (kanas.length === 0) {
+const nouveauNiveau = determineNiveauActif(HiraganaList);
+if (nouveauNiveau !== niveauActif) {
+niveauActif = nouveauNiveau;
+document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+updateLevelProgress(HiraganaList, niveauActif);
+nextQuestion();
+return;
+}
+}
+
+const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
+
+const currentWeights = finalKanas.map(k => {
+const validation = parseInt(k.Validation || 0);
+return Math.max(0.1, 5 - validation + 0.5);
+});
+
+const sum = currentWeights.reduce((a, b) => a + b, 0);
+const rand = Math.random() * sum;
+let acc = 0;
+for (let i = 0; i < finalKanas.length; i++) {
+acc += currentWeights[i];
+if (rand < acc) {
+current = finalKanas[i];
+break;
+}
+}
+
+const modes = [
+{ question: "Hiragana", options1: "Katakana", options2: "Romaji" },
+{ question: "Katakana", options1: "Hiragana", options2: "Romaji" },
+{ question: "Romaji", options1: "Hiragana", options2: "Katakana" }
+];
+const mode = modes[Math.floor(Math.random() * modes.length)];
+targetFields = [mode.options1, mode.options2];
+
+document.getElementById("question").innerText = current[mode.question];
+renderChoices("choices1", generateChoices(mode.options1), "first");
+renderChoices("choices2", generateChoices(mode.options2), "second");
+}
+
+function generateChoices(field) {
+const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau) === niveauActif);
+const values = [current[field], ...others.sort(() => 0.5 - Math.random()).slice(0, 3).map(k => k[field])];
+return values.sort(() => 0.5 - Math.random());
+}
+
+function renderChoices(id, options, slot) {
+const container = document.getElementById(id);
+container.innerHTML = "";
+options.forEach(text => {
+const btn = document.createElement("button");
+btn.innerText = text;
+btn.className = "arcade-button";
+btn.onclick = () => {
+if (selections[slot] !== null || isAnswered) return;
+selections[slot] = text;
+
+// Ajouter l'effet de halo sans le retirer immédiatement
+btn.classList.add("clicked-glow");
+
+// Garder l'effet d'opacité pour les autres boutons
+container.querySelectorAll("button").forEach(b => {
+b.disabled = true;
+if (b !== btn) b.style.opacity = 0.5;
+});
+checkAnswer();
+};
+container.appendChild(btn);
+});
+}
+
+async function checkAnswer() {
+if (selections.first && selections.second && !isAnswered) {
+isAnswered = true;
+const correct1 = current[targetFields[0]];
+const correct2 = current[targetFields[1]];
+let score = 0;
+const containers = [document.getElementById("choices1"), document.getElementById("choices2")];
+const correctAnswers = [correct1, correct2];
+const userSelections = [selections.first, selections.second];
+
+// Retirer l'effet de halo
+containers.forEach(container => {
+container.querySelectorAll("button").forEach(btn => {
+btn.classList.remove("clicked-glow");
+});
+});
+
+containers.forEach((container, index) => {
+const buttons = container.querySelectorAll("button");
+buttons.forEach(btn => {
+btn.classList.remove("correct", "incorrect");
+if (btn.innerText === correctAnswers[index]) {
+btn.disabled = false;
+btn.style.opacity = '1';
+btn.classList.add("correct");
+if (btn.innerText === userSelections[index]) {
+score += 0.5;
+}
+} else if (btn.innerText === userSelections[index]) {
+btn.disabled = false;
+btn.style.opacity = '1';
+btn.classList.add("incorrect");
+}
+});
+});
+
+const currentValidation = parseInt(current.Validation || 0);
+let newValidation = currentValidation;
+
+if (score === 1) {
+newValidation = Math.min(5, currentValidation + 1);
+} else if (score === 0.5) {
+newValidation = Math.max(0, currentValidation - 1);
+} else {
+newValidation = Math.max(0, currentValidation - 2);
+}
+
+const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
+
+// ✅ MISE À JOUR IMMÉDIATE DE L'INTERFACE
+updateStarsForHiragana(parseInt(current.ID), newValidation);
+
+const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
+if (hiraganaIndex !== -1) {
+HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+}
+
+// ✅ AFFICHAGE IMMÉDIAT DU RÉSULTAT
+let emoji = "", resultText = "";
+if (score === 1) {
+const emojisOK = ["🍣", "🍜", "🍬", "🍥", "🍵", "🍙", "🌸", "🕹️", "🎮", "🍘", "🍚", "🍤", "🍱"];
+emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
+resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
+if (!isFinalValidation) {
+playMarioCoin();
+}
+} else if (score === 0.5) {
+const emojisMid = ["🗻", "🥋", "👘", "🏮"];
+emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
+resultText = "Dommage...";
+playSuccess90s();
+} else {
+const emojisBad = ["👹", "👺", "👻", "💀", "👾", "🥷🏿", "💩", "🙈", "🥹", "🙊", "🤡"];
+emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
+resultText = "Nul...tout faux.";
+playFail();
+}
+
+document.getElementById("result").innerHTML = `
+<div class="result-line">${emoji} ${resultText} ${emoji}</div>
+<div class="result-line highlight">
+👉 Bonnes réponses : <strong>${correct1}</strong> – <strong>${correct2}</strong>
+</div>`;
+
+if (score === 1) {
+document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
+setTimeout(nextQuestion, 1500);
+} else {
+document.getElementById("continueBtn").style.visibility = "visible";
+}
+
+// 🚀 APPEL API EN ARRIÈRE-PLAN (NON-BLOQUANT)
+// L'interface est déjà mise à jour, on peut faire l'appel tranquillement
+callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
+.then(response => {
+if (response.error) {
+console.warn('Erreur sauvegarde:', response.error);
+// Optionnel : afficher une petite notification d'erreur discrète
+} else {
+console.log('✅ Score sauvegardé en arrière-plan');
+}
+})
+.catch(error => {
+console.error('Erreur lors de la sauvegarde:', error);
+// Optionnel : implémenter une file d'attente pour réessayer plus tard
+});
+}
+}
+
+
+function triggerLightFirework(card) {
+// HALO LUMINEUX
+const halo = document.createElement("div");
+halo.style.position = "absolute";
+halo.style.width = "30px";
+halo.style.height = "30px";
+halo.style.borderRadius = "50%";
+halo.style.background = "radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.1))";
+halo.style.transform = "translate(-50%, -50%) scale(1)";
+halo.style.opacity = "1";
+halo.style.pointerEvents = "none";
+halo.style.zIndex = "10";
+
+const rect = card.getBoundingClientRect();
+const cx = rect.left + rect.width / 2;
+const cy = rect.top + rect.height / 2;
+
+halo.style.left = `${cx}px`;
+halo.style.top = `${cy}px`;
+document.body.appendChild(halo);
+
+halo.animate([
+{ transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
+{ transform: "translate(-50%, -50%) scale(4)", opacity: 0 }
+], {
+duration: 800,
+easing: "ease-out"
+}).onfinish = () => halo.remove();
+
+// PALETTES (remplacement de la rouge par palette luxe)
+const lightFireworkPalettes = [
+['#ffffff', '#ffffcc', '#fffacd', '#fff8dc', '#ffe4b5', '#dcdcdc'], // 🎨 Luxe : blanc, or pâle, argent
+['#B3E5FC', '#81D4FA', '#4FC3F7', '#29B6F6', '#039BE5', '#0277BD'],
+['#B2FF59', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
+['#F8BBD0', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
+['#E1BEE7', '#CE93D8', '#BA68C8', '#AB47BC', '#9C27B0', '#7B1FA2']
+];
+const palette = lightFireworkPalettes[Math.floor(Math.random() * lightFireworkPalettes.length)];
+
+// SALVES
+for (let i = 0; i < 5; i++) {
+setTimeout(() => {
+const fw = document.createElement("div");
+fw.className = "firework";
+
+const offsetX = (Math.random() - 0.5) * 80;
+const offsetY = (Math.random() - 0.5) * 80;
+const scale = 0.8 + Math.random() * 0.6; // 🔁 Variation échelle
+
+fw.style.left = `${cx + offsetX}px`;
+fw.style.top = `${cy + offsetY}px`;
+fw.style.animationDuration = "1.2s";
+fw.style.transform = `scale(${scale})`;
+
+const baseColor = palette[Math.floor(Math.random() * palette.length)];
+const particles = [];
+for (let j = 0; j < 8; j++) {
+const angle = j * 45;
+const dx = Math.round(30 * Math.cos(angle * Math.PI / 180));
+const dy = Math.round(30 * Math.sin(angle * Math.PI / 180));
+particles.push(`${dx}px ${-dy}px ${baseColor}`);
+}
+
+// 🔥 box-shadow dynamique forcé avec !important
+fw.style.setProperty("box-shadow", `0 0 6px ${baseColor}, ` + particles.join(', '), "important");
+
+document.body.appendChild(fw);
+setTimeout(() => fw.remove(), 1200);
+
+// 🌫 FUMÉE
+const smoke = document.createElement("div");
+smoke.style.position = "absolute";
+smoke.style.width = "50px";
+smoke.style.height = "50px";
+smoke.style.borderRadius = "50%";
+smoke.style.background = "radial-gradient(rgba(255,255,255,0.2), transparent)";
+smoke.style.left = `${cx + offsetX}px`;
+smoke.style.top = `${cy + offsetY}px`;
+smoke.style.opacity = "0.5";
+smoke.style.pointerEvents = "none";
+smoke.style.zIndex = "1";
+
+smoke.animate([
+{ transform: "translateY(0px)", opacity: 0.4 },
+{ transform: "translateY(-40px)", opacity: 0 }
+], {
+duration: 1000,
+easing: "ease-out"
+}).onfinish = () => smoke.remove();
+
+document.body.appendChild(smoke);
+}, i * 250);
+}
+
+// 🔊 SONS
+const validatedCount = getValidatedCountForLevel(niveauActif);
+if (validatedCount === 0) {
+playFireworkSound();
+} else if (validatedCount === 1) {
+playfireworksound2();
+} else if (validatedCount === 2) {
+playfireworksound3();
+} else if (validatedCount === 3) {
+playfireworksound4();
+} else if (validatedCount === 4) {
+playLevelUp();
+triggerLevelUpAnimation(card);
+}
+}
+
+
+
+
+
+function triggerLevelUpAnimation(container) {
+// Cacher le quiz pendant le spectacle
+const toHide = ['#question', '#choices1', '#choices2'];
+toHide.forEach(id => {
+const el = document.querySelector(id);
+if (el) el.style.visibility = 'hidden';
+});
+
+// Feux d’artifice en cascade
+for (let group = 0; group < 3; group++) {
+setTimeout(() => {
+for (let i = 0; i < 3; i++) {
+const fire = document.createElement('div');
+fire.className = 'firework';
+fire.style.top = `${15 + Math.random() * 50}%`;
+fire.style.left = `${20 + Math.random() * 60}%`;
+fire.style.animationDuration = "1.5s";
+fire.style.boxShadow = `
+0 -40px #f0f,
+40px -40px #0ff,
+50px 0 #ff0,
+40px 40px #0f0,
+0 50px #00f,
+-40px 40px #f00,
+-50px 0 #fff,
+-40px -40px #0ff
+`;
+container.appendChild(fire);
+setTimeout(() => fire.remove(), 1500);
+}
+}, group * 300);
+}
+
+// Réaffichage doux après le final
+setTimeout(() => {
+toHide.forEach(id => {
+const el = document.querySelector(id);
+if (el) {
+el.style.visibility = 'visible';
+el.style.opacity = 0;
+el.animate([
+{ opacity: 0 },
+{ opacity: 1 }
+], {
+duration: 600,
+fill: 'forwards'
+});
+}
+});
+}, 3000);
+
+// 🌸 Texte flottant - version corrigée
+const msgWrapper = document.createElement("div");
+msgWrapper.style.position = "fixed";
+msgWrapper.style.top = "30%";
+msgWrapper.style.left = "0";
+msgWrapper.style.width = "100vw";
+msgWrapper.style.textAlign = "center";
+msgWrapper.style.zIndex = 9999;
+msgWrapper.style.pointerEvents = "none";
+document.body.appendChild(msgWrapper);
+
+const msg = document.createElement("div");
+msg.innerText = "レベルアップ！";
+msg.style.display = "inline-block";
+msg.style.fontSize = "5em";
+msg.style.fontWeight = "bold";
+msg.style.color = "#fff";
+msg.style.textShadow = "0 0 20px #FFD700, 0 0 40px #FF69B4";
+msg.style.writingMode = "horizontal-tb";
+msg.style.whiteSpace = "nowrap";
+msgWrapper.appendChild(msg);
+
+msg.animate([
+{ transform: "translateY(0)", opacity: 1 },
+{ transform: "translateY(-40px)", opacity: 0 }
+], {
+duration: 5000,
+easing: "ease-out"
+}).onfinish = () => msgWrapper.remove();
+
+// 🎆 Feux plein écran
+for (let i = 0; i < 3; i++) {
+setTimeout(() => {
+const fire = document.createElement('div');
+fire.className = 'firework';
+fire.style.top = `${20 + Math.random() * 30}%`;
+fire.style.left = `${20 + Math.random() * 60}%`;
+fire.style.animationDuration = "1.8s";
+fire.style.boxShadow = `
+0 -50px #f0f,
+40px -40px #0ff,
+50px 0 #ff0,
+40px 40px #0f0,
+0 50px #00f,
+-40px 40px #f00,
+-50px 0 #fff,
+-40px -40px #0ff
+`;
+container.appendChild(fire);
+setTimeout(() => fire.remove(), 1800);
+}, i * 400);
+}
+
+// 🎉 Confettis
+for (let i = 0; i < 50; i++) {
+const confetti = document.createElement("div");
+confetti.style.position = "fixed";
+confetti.style.left = Math.random() * 100 + "vw";
+confetti.style.top = "-10px";
+confetti.style.width = "8px";
+confetti.style.height = "8px";
+confetti.style.borderRadius = "50%";
+confetti.style.backgroundColor = ["#FFD700", "#00BCD4", "#FF4081", "#8BC34A", "#FF9800"][Math.floor(Math.random() * 5)];
+confetti.style.opacity = Math.random() * 0.9 + 0.1;
+confetti.style.zIndex = 5000;
+confetti.style.pointerEvents = "none";
+confetti.style.animation = `confettiFall ${2 + Math.random() * 2}s linear ${Math.random()}s forwards`;
+document.body.appendChild(confetti);
+setTimeout(() => confetti.remove(), 5000);
+}
+
+// 🌐 Vibration écran rapide
+//document.body.classList.add("shake");
+//setTimeout(() => document.body.classList.remove("shake"), 600);
+// 🐼 Panda tourne sans rebondir
+const marker = document.querySelector(".progress-marker");
+if (marker) {
+marker.animate([
+{ transform: "translate(-50%, -50%) rotate(0deg) scale(1)" },
+{ transform: "translate(-50%, -50%) rotate(180deg) scale(4)" },
+{ transform: "translate(-50%, -50%) rotate(360deg) scale(1)" }
+], {
+duration: 1000,
+easing: "ease-in-out"
+});
+}
+}
+
+// Démarrage du jeu
+window.onload = () => {
+initGame();
+};
+</script>
 </body>
 </html>
