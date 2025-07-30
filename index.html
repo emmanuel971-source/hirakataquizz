@@ -17,7 +17,7 @@
       overflow: hidden;
       background: #F8F1E9; /* Blanc cassé, papier washi */
       font-family: 'Noto Sans JP', sans-serif;
-      color: #2D3436; /* Gris foncé élégant */
+      color: #4A4E69; /* Gris violet naturel */
       display: flex;
       flex-direction: column;
       position: relative;
@@ -39,7 +39,7 @@
       margin: 0.5em 0;
       font-size: 1.8em;
       text-align: center;
-      color: #2D3436;
+      color: #4A4E69;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
@@ -86,7 +86,6 @@
       transform: translate(-50%, -75%);
       font-size: 2em;
       transition: left 1.5s ease;
-      pointer-events: none;
       color: #636E72; /* Gris pierre */
     }
 
@@ -104,7 +103,7 @@
     .level {
       font-size: 1.1em;
       margin: 0.5em 0;
-      color: #636E72;
+      color: #4A4E69;
       text-align: center;
     }
 
@@ -147,7 +146,8 @@
       font-size: 2.2em;
       font-weight: bold;
       margin-bottom: 6px;
-      color: #2D3436;
+      color: #4A4E69;
+      text-shadow: 0 0 3px rgba(74, 78, 105, 0.3);
     }
 
     .hiragana-card.completed .hiragana-char {
@@ -289,8 +289,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #2D3436;
-      text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+      color: #4A4E69;
+      text-shadow: 0 0 5px rgba(74, 78, 105, 0.2);
     }
 
     .answers {
@@ -318,7 +318,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        text-shadow: 0 0 10px rgba(74, 78, 105, 0.2);
       }
 
       .answers {
@@ -339,7 +339,7 @@
       border: 1px solid #636E72;
       border-radius: 12px;
       padding: 0.8em 1.5em;
-      color: #2D3436;
+      color: #4A4E69;
       font-size: 1.4em;
       line-height: 1;
       font-weight: bold;
@@ -348,6 +348,7 @@
       transition: all 0.3s ease;
       min-width: 120px;
       text-align: center;
+      pointer-events: auto;
     }
 
     .arcade-button:hover {
@@ -363,6 +364,7 @@
     .arcade-button:disabled {
       cursor: not-allowed;
       opacity: 0.6;
+      pointer-events: none;
     }
 
     .arcade-button.clicked-glow {
@@ -400,12 +402,26 @@
       animation: fadeIn 0.4s ease-in;
       font-size: 1.3em;
       line-height: 1.4em;
-      margin: 0.5em 0 0.2em 0;
+      margin: 0.5em auto;
       min-height: 4.5em;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      color: #2D3436;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: #4A4E69;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .result-line {
+      width: 100%;
+      text-align: center;
+    }
+
+    .result-line.highlight {
+      margin-top: 0.5em;
+      font-size: 1.1em;
     }
 
     @keyframes fadeIn {
@@ -414,22 +430,27 @@
     }
 
     #continueBtn {
-      margin-top: 1em;
-      margin-bottom: 1em;
+      margin: 1em auto;
       height: 3em;
       visibility: hidden;
+      display: block;
+    }
+
+    #boutonPleinEcran, #boutonInstaller {
+      margin: 0.5em auto;
+      display: block;
     }
 
     .correct {
       background: #A8D5BA !important; /* Vert matcha */
-      color: #2D3436 !important;
+      color: #4A4E69 !important;
       border-color: #6B8E23 !important;
       animation: correctGlow 0.6s ease-in-out;
     }
 
     .incorrect {
       background: #FDC1C5 !important; /* Rose sakura */
-      color: #2D3436 !important;
+      color: #4A4E69 !important;
       border-color: #C71585 !important;
       animation: incorrectFade 0.6s ease-in-out;
     }
@@ -451,18 +472,8 @@
            screen and (min-resolution: 192dpi) {
       .result {
         margin-top: 5em;
-      }
-
-      .result > * {
-        width: 100%;
-      }
-
-      .result {
-        text-align: center;
-        word-break: break-word;
-        white-space: normal;
-        display: block;
-        min-height: auto;
+        max-width: 100%;
+        padding: 0 1em;
       }
 
       .result-line {
@@ -477,8 +488,7 @@
       }
 
       #continueBtn {
-        margin-top: 2em;
-        margin-bottom: 2em;
+        margin: 2em auto;
         height: 3em;
         visibility: hidden;
       }
@@ -631,12 +641,14 @@
     let previousValidationStates = new Map();
     let activeSparks = [];
     let globalParticleCount = 0;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 
     function logError(msg) {
       console.warn(msg);
     }
 
     function triggerSakuraFall(container) {
+      console.log('Triggering sakura fall');
       for (let i = 0; i < 20; i++) {
         const sakura = document.createElement("div");
         sakura.className = "sakura";
@@ -677,9 +689,9 @@
           const gain = audioContext.createGain();
           osc.connect(gain);
           gain.connect(audioContext.destination);
-          osc.type = 'sine'; // Plus doux que 'square'
+          osc.type = 'sine';
           osc.frequency.value = freq;
-          gain.gain.setValueAtTime(0.05, audioContext.currentTime); // Volume réduit
+          gain.gain.setValueAtTime(0.05, audioContext.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + durations[i]);
           osc.start();
           osc.stop(audioContext.currentTime + durations[i]);
@@ -703,7 +715,7 @@
       osc1.frequency.value = baseFreq;
       osc2.frequency.setValueAtTime(baseFreq * 1.5, audioContext.currentTime);
       osc2.frequency.exponentialRampToValueAtTime(baseFreq * 3, audioContext.currentTime + 0.3);
-      gain1.gain.setValueAtTime(0.03, audioContext.currentTime); // Volume réduit
+      gain1.gain.setValueAtTime(0.03, audioContext.currentTime);
       gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
       gain2.gain.setValueAtTime(0.01, audioContext.currentTime);
       gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
@@ -720,7 +732,7 @@
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
       oscillator.type = 'sine';
-      gainNode.gain.setValueAtTime(0.04, audioContext.currentTime); // Volume réduit
+      gainNode.gain.setValueAtTime(0.04, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
       oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
       oscillator.frequency.exponentialRampToValueAtTime(110, audioContext.currentTime + 0.4);
@@ -744,7 +756,7 @@
             osc.frequency.value = freq;
             filter.type = 'lowpass';
             filter.frequency.value = freq * 2;
-            gain.gain.setValueAtTime(0.03, audioContext.currentTime); // Volume réduit
+            gain.gain.setValueAtTime(0.03, audioContext.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
             osc.start();
             osc.stop(audioContext.currentTime + 0.4);
@@ -903,7 +915,7 @@
     function triggerAdvancedFirework(container) {
       initAudio();
       const validatedCount = getValidatedCountForLevel(niveauActif);
-      triggerSakuraFall(container); // Remplace les feux d'artifice par des pétales
+      triggerSakuraFall(container);
       if (validatedCount === 0) {
         playFireworkSound();
       } else if (validatedCount === 1) {
@@ -924,6 +936,7 @@
     }
 
     function updateStarsForHiragana(hiraganaId, newValidation) {
+      console.log(`Updating stars for hiragana ID ${hiraganaId} with validation ${newValidation}`);
       const cards = document.querySelectorAll('.hiragana-card');
       cards.forEach(card => {
         const hiraganaChar = card.querySelector('.hiragana-char').textContent;
@@ -1056,6 +1069,7 @@
     }
 
     async function initGame() {
+      console.log('Initializing game');
       const data = await callAPI('getHiraganas');
       if (data.error) {
         logError('Erreur lors du chargement: ' + data.error);
@@ -1071,6 +1085,7 @@
     }
 
     function nextQuestion() {
+      console.log('Next question');
       document.getElementById("result").innerText = "";
       document.getElementById("continueBtn").style.visibility = "hidden";
       selections = { first: null, second: null };
@@ -1130,6 +1145,7 @@
     }
 
     function renderChoices(id, options, slot) {
+      console.log(`Rendering choices for ${id}:`, options);
       const container = document.getElementById(id);
       container.innerHTML = "";
       options.forEach(text => {
@@ -1137,8 +1153,13 @@
         btn.innerText = text;
         btn.className = "arcade-button";
         btn.onclick = () => {
-          if (selections[slot] !== null || isAnswered) return;
+          console.log(`Button clicked: ${text} for slot ${slot}`);
+          if (selections[slot] !== null || isAnswered) {
+            console.log(`Click ignored: slot=${selections[slot]}, isAnswered=${isAnswered}`);
+            return;
+          }
           selections[slot] = text;
+          console.log(`Selection updated:`, selections);
 
           btn.classList.add("clicked-glow");
 
@@ -1153,6 +1174,7 @@
     }
 
     async function checkAnswer() {
+      console.log('Checking answer:', selections);
       if (selections.first && selections.second && !isAnswered) {
         isAnswered = true;
         const correct1 = current[targetFields[0]];
@@ -1212,9 +1234,11 @@
           const emojisOK = ["🌸", "🎍", "🍵", "🪴"];
           emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
           resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
-          if (!isFinalValidation) {
+          if (isFinalValidation) {
             playMarioCoin();
             triggerSakuraFall(document.body);
+          } else {
+            playMarioCoin();
           }
         } else if (score === 0.5) {
           const emojisMid = ["🪨", "🌿", "🪵"];
@@ -1252,6 +1276,8 @@
           .catch(error => {
             console.error('Erreur lors de la sauvegarde:', error);
           });
+      } else {
+        console.log('Answer check skipped:', { first: selections.first, second: selections.second, isAnswered });
       }
     }
 
@@ -1365,7 +1391,7 @@
       msg.style.display = "inline-block";
       msg.style.fontSize = "5em";
       msg.style.fontWeight = "bold";
-      msg.style.color = "#2D3436";
+      msg.style.color = "#4A4E69";
       msg.style.textShadow = "0 0 10px #A8D5BA";
       msg.style.writingMode = "horizontal-tb";
       msg.style.whiteSpace = "nowrap";
@@ -1407,6 +1433,7 @@
 
     // Fullscreen API
     document.getElementById('boutonPleinEcran').addEventListener('click', () => {
+      console.log('Requesting fullscreen');
       const element = document.documentElement;
       if (element.requestFullscreen) {
         element.requestFullscreen();
@@ -1422,12 +1449,14 @@
     // PWA installation
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
+      console.log('Before install prompt triggered');
       e.preventDefault();
       deferredPrompt = e;
       document.getElementById('boutonInstaller').style.display = 'block';
     });
 
     document.getElementById('boutonInstaller').addEventListener('click', () => {
+      console.log('Install button clicked');
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
@@ -1452,6 +1481,7 @@
     }
 
     window.onload = () => {
+      console.log('Window loaded, starting game');
       initGame();
     };
   </script>
