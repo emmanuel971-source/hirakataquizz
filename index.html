@@ -17,7 +17,7 @@
       overflow: hidden;
       background: #F8F1E9; /* Blanc cassé, papier washi */
       font-family: 'Noto Sans JP', sans-serif;
-      color: #4A4E69; /* Gris violet naturel */
+      color: #2F4F4F; /* Vert forêt */
       display: flex;
       flex-direction: column;
       position: relative;
@@ -39,7 +39,7 @@
       margin: 0.5em 0;
       font-size: 1.8em;
       text-align: center;
-      color: #4A4E69;
+      color: #2F4F4F;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
@@ -73,7 +73,7 @@
     .progress-bar-track {
       position: relative;
       height: 16px;
-      background: linear-gradient(to right, #A3BFFA, #FDC1C5); /* Bleu céramique à rose sakura */
+      background: linear-gradient(to right, #6B8E23, #FDC1C5); /* Vert bambou à rose sakura */
       border-radius: 6px;
       flex: 1;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -147,7 +147,7 @@
     .level {
       font-size: 1.1em;
       margin: 0.5em 0;
-      color: #4A4E69;
+      color: #2F4F4F;
       text-align: center;
     }
 
@@ -204,8 +204,8 @@
       font-size: 2.2em;
       font-weight: bold;
       margin-bottom: 6px;
-      color: #4A4E69;
-      text-shadow: 0 0 3px rgba(74, 78, 105, 0.3);
+      color: #2F4F4F;
+      text-shadow: 0 0 3px rgba(47, 79, 79, 0.3);
     }
 
     .hiragana-card.completed .hiragana-char {
@@ -388,19 +388,19 @@
     /* Styles boutons arcade */
     .arcade-button {
       position: relative;
-      background: linear-gradient(to bottom, #A3BFFA, #FDC1C5); /* Bleu céramique à rose sakura */
-      border: 1px solid #4A4E69;
+      background: linear-gradient(to bottom, #6B8E23, #FDC1C5); /* Vert bambou à rose sakura */
+      border: 1px solid #2F4F4F;
       border-radius: 16px;
       padding: 0.8em 1.5em;
-      color: #4A4E69;
+      color: #2F4F4F;
       font-size: 1.4em;
       line-height: 0.6;
       white-space: normal;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 6px #4A4E69, 0 10px 15px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 6px #2F4F4F, 0 10px 15px rgba(0, 0, 0, 0.3);
       transition: all 0.15s ease;
-      text-shadow: 0 0 8px rgba(74, 78, 105, 0.5);
+      text-shadow: 0 0 8px rgba(47, 79, 79, 0.5);
       overflow: hidden;
       min-width: 120px;
       text-align: center;
@@ -421,13 +421,13 @@
 
     .arcade-button:hover {
       transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 8px #4A4E69, 0 14px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px #2F4F4F, 0 14px 20px rgba(0, 0, 0, 0.4);
       border-color: #636E72;
     }
 
     .arcade-button:active {
       transform: translateY(3px) scale(0.98);
-      box-shadow: 0 3px #4A4E69, 0 5px 8px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 3px #2F4F4F, 0 5px 8px rgba(0, 0, 0, 0.3);
     }
 
     .arcade-button:disabled {
@@ -436,13 +436,13 @@
 
     .arcade-button:disabled:hover {
       transform: none;
-      box-shadow: 0 6px #4A4E69, 0 10px 15px rgba(0, 0, 0, 0.3);
-      border-color: #4A4E69;
+      box-shadow: 0 6px #2F4F4F, 0 10px 15px rgba(0, 0, 0, 0.3);
+      border-color: #2F4F4F;
     }
 
     .arcade-button:disabled:active {
       transform: none;
-      box-shadow: 0 6px #4A4E69, 0 10px 15px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 6px #2F4F4F, 0 10px 15px rgba(0, 0, 0, 0.3);
     }
 
     .arcade-button.clicked-glow {
@@ -503,22 +503,22 @@
 
     .correct {
       background: linear-gradient(135deg, #A8D5BA 0%, #DDE6D5 100%); /* Vert matcha */
-      color: #4A4E69;
+      color: #2F4F4F;
       border-color: #A8D5BA;
       animation: correctGlow 0.6s ease-in-out;
     }
 
     .incorrect {
       background: linear-gradient(135deg, #FDC1C5 0%, #FFB6C1 100%); /* Rose sakura */
-      color: #4A4E69;
+      color: #2F4F4F;
       border-color: #FDC1C5;
       animation: incorrectShake 0.6s ease-in-out;
     }
 
     @keyframes correctGlow {
-      0% { box-shadow: 0 6px #4A4E69, 0 10px 15px rgba(0, 0, 0, 0.3); }
-      50% { box-shadow: 0 8px #4A4E69, 0 0 20px rgba(168, 213, 186, 0.6); }
-      100% { box-shadow: 0 6px #4A4E69, 0 10px 15px rgba(0, 0, 0, 0.3); }
+      0% { box-shadow: 0 6px #2F4F4F, 0 10px 15px rgba(0, 0, 0, 0.3); }
+      50% { box-shadow: 0 8px #2F4F4F, 0 0 20px rgba(168, 213, 186, 0.6); }
+      100% { box-shadow: 0 6px #2F4F4F, 0 10px 15px rgba(0, 0, 0, 0.3); }
     }
 
     @keyframes incorrectShake {
@@ -639,7 +639,7 @@
   </style>
 </head>
 <body>
-  <h1>🎌⛩️ Hira-Kata-Quizzz Zen ⛩️🎌</h1>
+  <h1>🌿⛩️ Hira-Kata-Quizzz Zen ⛩️🌸</h1>
   <div id="progressBarContainer"></div>
   <div class="level" id="levelDisplay">Niveau actuel : 1</div>
   <div class="level-hiraganas">
@@ -653,7 +653,7 @@
     </div>
     <div>
       <div class="result" id="result"></div>
-      <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🙄 OK... j'ai capté 🙄</button>
+      <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j'ai capté 🌱</button>
     </div>
   </div>
 
@@ -722,224 +722,114 @@
       return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Validation) >= 5).length;
     }
 
-    function playMarioCoin() {
+    function playZenChime() {
       initAudio();
-      const notes = [659.25, 1046.50];
-      const durations = [0.1, 0.2];
-      notes.forEach((freq, i) => {
+      try {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioContext.currentTime);
+        gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
+        osc.start();
+        osc.stop(audioContext.currentTime + 1.5);
+      } catch (error) {
+        logError('Erreur Zen Chime: ' + error.message);
+      }
+    }
+
+    function playWaterDrop() {
+      initAudio();
+      try {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioContext.currentTime);
+        gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.3);
+      } catch (error) {
+        logError('Erreur Water Drop: ' + error.message);
+      }
+    }
+
+    function playWindBreeze() {
+      initAudio();
+      try {
+        const noise = audioContext.createBufferSource();
+        const buffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.5, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+          data[i] = Math.random() * 0.05 - 0.025;
+        }
+        noise.buffer = buffer;
+        const gain = audioContext.createGain();
+        noise.connect(gain);
+        gain.connect(audioContext.destination);
+        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        noise.start();
+        noise.stop(audioContext.currentTime + 0.5);
+      } catch (error) {
+        logError('Erreur Wind Breeze: ' + error.message);
+      }
+    }
+
+    function playZenBell() {
+      initAudio();
+      try {
+        const osc1 = audioContext.createOscillator();
+        const gain1 = audioContext.createGain();
+        osc1.connect(gain1);
+        gain1.connect(audioContext.destination);
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(523.25, audioContext.currentTime);
+        gain1.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.2);
+        osc1.start();
+        osc1.stop(audioContext.currentTime + 1.2);
         setTimeout(() => {
-          const osc = audioContext.createOscillator();
-          const gain = audioContext.createGain();
-          osc.connect(gain);
-          gain.connect(audioContext.destination);
-          osc.type = 'square';
-          osc.frequency.value = freq;
-          gain.gain.setValueAtTime(0.1, audioContext.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + durations[i]);
-          osc.start();
-          osc.stop(audioContext.currentTime + durations[i]);
-        }, i * 100);
-      });
+          const osc2 = audioContext.createOscillator();
+          const gain2 = audioContext.createGain();
+          osc2.connect(gain2);
+          gain2.connect(audioContext.destination);
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(659.25, audioContext.currentTime);
+          gain2.gain.setValueAtTime(0.15, audioContext.currentTime);
+          gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.0);
+          osc2.start();
+          osc2.stop(audioContext.currentTime + 1.0);
+        }, 200);
+      } catch (error) {
+        logError('Erreur Zen Bell: ' + error.message);
+      }
     }
 
-    function playSuccess90s() {
+    function playLevelUpChime() {
       initAudio();
-      const baseFreq = 587.33;
-      const osc1 = audioContext.createOscillator();
-      const gain1 = audioContext.createGain();
-      const osc2 = audioContext.createOscillator();
-      const gain2 = audioContext.createGain();
-      osc1.connect(gain1);
-      osc2.connect(gain2);
-      gain1.connect(audioContext.destination);
-      gain2.connect(audioContext.destination);
-      osc1.type = 'square';
-      osc2.type = 'sawtooth';
-      osc1.frequency.value = baseFreq;
-      osc2.frequency.setValueAtTime(baseFreq * 1.5, audioContext.currentTime);
-      osc2.frequency.exponentialRampToValueAtTime(baseFreq * 3, audioContext.currentTime + 0.3);
-      gain1.gain.setValueAtTime(0.06, audioContext.currentTime);
-      gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-      gain2.gain.setValueAtTime(0.02, audioContext.currentTime);
-      gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-      osc1.start();
-      osc2.start();
-      osc1.stop(audioContext.currentTime + 0.4);
-      osc2.stop(audioContext.currentTime + 0.3);
-    }
-
-    function playFail() {
-      initAudio();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      oscillator.type = 'square';
-      gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-      oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(110, audioContext.currentTime + 0.4);
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.4);
-    }
-
-    function playFireworkSound() {
-      if (!audioInitialized) initAudio();
       try {
-        const frequencies = [329.63, 415.30, 523.25, 659.25];
-        frequencies.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            const filter = audioContext.createBiquadFilter();
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'triangle';
-            osc.frequency.value = freq;
-            filter.type = 'lowpass';
-            filter.frequency.value = freq * 2;
-            gain.gain.setValueAtTime(0.06, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.4);
-          }, i * 150);
-        });
-        console.log('Treasure Found joué');
-      } catch (error) {
-        logError('Erreur Treasure: ' + error.message);
-      }
-    }
-
-    function playfireworksound2() {
-      if (!audioInitialized) initAudio();
-      try {
-        const sequence = [554.37, 659.25, 830.61, 987.77];
-        sequence.forEach((freq, i) => {
+        const notes = [523.25, 659.25, 783.99];
+        notes.forEach((freq, i) => {
           setTimeout(() => {
             const osc = audioContext.createOscillator();
             const gain = audioContext.createGain();
             osc.connect(gain);
             gain.connect(audioContext.destination);
-            osc.type = 'square';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.07, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
             osc.start();
-            osc.stop(audioContext.currentTime + 0.2);
-          }, i * 100);
+            osc.stop(audioContext.currentTime + 0.8);
+          }, i * 300);
         });
-        console.log('fireworksound 2 joué');
       } catch (error) {
-        logError('Erreur fireworksound 2: ' + error.message);
-      }
-    }
-
-    function playfireworksound3() {
-      if (!audioInitialized) initAudio();
-      try {
-        const sequence = [659.25, 783.99, 987.77, 1174.66];
-        sequence.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'square';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.07, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.2);
-          }, i * 100);
-        });
-        console.log('fireworksound 3 joué');
-      } catch (error) {
-        logError('Erreur fireworksound 3: ' + error.message);
-      }
-    }
-
-    function playfireworksound4() {
-      if (!audioInitialized) initAudio();
-      try {
-        const sequence = [783.99, 987.77, 1174.66, 1396.91];
-        sequence.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'square';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.07, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.2);
-          }, i * 100);
-        });
-        console.log('fireworksound 4 joué');
-      } catch (error) {
-        logError('Erreur fireworksound 4: ' + error.message);
-      }
-    }
-
-    function playLevelUp() {
-      if (!audioInitialized) initAudio();
-      try {
-        const sequence = [523.25, 659.25, 783.99, 1046.50];
-        const flourish = [783.99, 1046.50, 1318.51];
-        sequence.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'square';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.08, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.12);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.12);
-          }, i * 120);
-        });
-        flourish.forEach((freq, i) => {
-          setTimeout(() => {
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.type = 'square';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.08, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-            osc.start();
-            osc.stop(audioContext.currentTime + 0.1);
-          }, 480 + i * 100);
-        });
-        setTimeout(() => {
-          const osc = audioContext.createOscillator();
-          const gain = audioContext.createGain();
-          const mod = audioContext.createOscillator();
-          const modGain = audioContext.createGain();
-          mod.connect(modGain);
-          modGain.connect(osc.frequency);
-          osc.connect(gain);
-          gain.connect(audioContext.destination);
-          osc.type = 'square';
-          mod.type = 'sine';
-          osc.frequency.value = 1318.51;
-          mod.frequency.value = 5;
-          modGain.gain.value = 10;
-          gain.gain.setValueAtTime(0.08, audioContext.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2.0);
-          osc.start();
-          mod.start();
-          osc.stop(audioContext.currentTime + 2.0);
-          mod.stop(audioContext.currentTime + 2.0);
-        }, 780);
-        console.log('Level Up joué');
-      } catch (error) {
-        logError('Erreur Level Up: ' + error.message);
+        logError('Erreur Level Up Chime: ' + error.message);
       }
     }
 
@@ -976,10 +866,9 @@
       const ctx = canvas.getContext('2d');
 
       const colorPalettes = [
-        ['#A3BFFA', '#81D4FA', '#4FC3F7', '#29B6F6', '#039BE5', '#0277BD'],
+        ['#6B8E23', '#9ACD32', '#32CD32', '#228B22', '#008000', '#006400'], // Palette verte
         ['#A8D5BA', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
         ['#FDC1C5', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
-        ['#E1BEE7', '#CE93D8', '#BA68C8', '#AB47BC', '#9C27B0', '#7B1FA2']
       ];
       const colors = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
 
@@ -1015,15 +904,15 @@
       }).onfinish = () => halo.remove();
 
       if (validatedCount === 0) {
-        playFireworkSound();
+        playZenBell();
       } else if (validatedCount === 1) {
-        playfireworksound2();
+        playZenBell();
       } else if (validatedCount === 2) {
-        playfireworksound3();
+        playZenBell();
       } else if (validatedCount === 3) {
-        playfireworksound4();
+        playZenBell();
       } else if (validatedCount === 4) {
-        playLevelUp();
+        playLevelUpChime();
         triggerLevelUpAnimation(container);
       }
 
@@ -1210,11 +1099,11 @@
       container.innerHTML = "";
 
       const leftEmoji = document.createElement("span");
-      leftEmoji.textContent = "👎";
+      leftEmoji.textContent = "🌱";
       leftEmoji.className = "side-emoji";
 
       const rightEmoji = document.createElement("span");
-      rightEmoji.textContent = "💪";
+      rightEmoji.textContent = "🌳";
       rightEmoji.className = "side-emoji";
 
       const barTrack = document.createElement("div");
@@ -1427,22 +1316,22 @@
 
         let emoji = "", resultText = "";
         if (score === 1) {
-          const emojisOK = ["🍣", "🍜", "🍬", "🍥", "🍵", "🍙", "🌸", "🕹️", "🎮", "🍘", "🍚", "🍤", "🍱"];
+          const emojisOK = ["🌸", "🌿", "🍃", "🌱", "🌳", "🍀"];
           emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
           resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
           if (!isFinalValidation) {
-            playMarioCoin();
+            playZenChime();
           }
         } else if (score === 0.5) {
-          const emojisMid = ["🗻", "🥋", "👘", "🏮"];
+          const emojisMid = ["🌾", "🍂", "🌧️"];
           emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
-          resultText = "Dommage...";
-          playSuccess90s();
+          resultText = "Presque...";
+          playWaterDrop();
         } else {
-          const emojisBad = ["👹", "👺", "👻", "💀", "👾", "🥷🏿", "💩", "🙈", "🥹", "🙊", "🤡"];
+          const emojisBad = ["🍂", "🌧️", "💧"];
           emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
-          resultText = "Nul...tout faux.";
-          playFail();
+          resultText = "Oups... tout faux.";
+          playWindBreeze();
         }
 
         document.getElementById("result").innerHTML = `
@@ -1462,6 +1351,7 @@
               setTimeout(() => sakura.remove(), 3000);
             }, i * 100);
           }
+          playZenBell();
         }
 
         if (score === 1) {
@@ -1514,10 +1404,9 @@
       }).onfinish = () => halo.remove();
 
       const lightFireworkPalettes = [
-        ['#A3BFFA', '#81D4FA', '#4FC3F7', '#29B6F6', '#039BE5', '#0277BD'],
+        ['#6B8E23', '#9ACD32', '#32CD32', '#228B22', '#008000', '#006400'], // Palette verte
         ['#A8D5BA', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
         ['#FDC1C5', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
-        ['#E1BEE7', '#CE93D8', '#BA68C8', '#AB47BC', '#9C27B0', '#7B1FA2']
       ];
       const palette = lightFireworkPalettes[Math.floor(Math.random() * lightFireworkPalettes.length)];
 
@@ -1540,7 +1429,7 @@
           const smoke = document.createElement("div");
           smoke.style.position = "absolute";
           smoke.style.width = "50px";
-          smoke.style.height = "50px";
+          noise.style.height = "50px";
           smoke.style.borderRadius = "50%";
           smoke.style.background = "radial-gradient(rgba(255,255,255,0.2), transparent)";
           smoke.style.left = `${cx + offsetX}px`;
@@ -1563,15 +1452,15 @@
 
       const validatedCount = getValidatedCountForLevel(niveauActif);
       if (validatedCount === 0) {
-        playFireworkSound();
+        playZenBell();
       } else if (validatedCount === 1) {
-        playfireworksound2();
+        playZenBell();
       } else if (validatedCount === 2) {
-        playfireworksound3();
+        playZenBell();
       } else if (validatedCount === 3) {
-        playfireworksound4();
+        playZenBell();
       } else if (validatedCount === 4) {
-        playLevelUp();
+        playLevelUpChime();
         triggerLevelUpAnimation(card);
       }
     }
@@ -1630,7 +1519,7 @@
       msg.style.display = "inline-block";
       msg.style.fontSize = "5em";
       msg.style.fontWeight = "bold";
-      msg.style.color = "#4A4E69";
+      msg.style.color = "#2F4F4F";
       msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #FDC1C5";
       msg.style.writingMode = "horizontal-tb";
       msg.style.whiteSpace = "nowrap";
@@ -1662,7 +1551,7 @@
         confetti.className = "sakura";
         confetti.style.left = Math.random() * 100 + "vw";
         confetti.style.top = "-10px";
-        confetti.style.background = ["#A3BFFA", "#A8D5BA", "#FDC1C5"][Math.floor(Math.random() * 3)];
+        confetti.style.background = ["#6B8E23", "#A8D5BA", "#FDC1C5"][Math.floor(Math.random() * 3)];
         confetti.style.opacity = Math.random() * 0.9 + 0.1;
         confetti.style.zIndex = 5000;
         confetti.style.pointerEvents = "none";
