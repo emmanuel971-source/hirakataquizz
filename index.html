@@ -370,22 +370,27 @@ padding-bottom: 2em;
 }
 
 .question {
-    font-size: 3.5em;
-    font-weight: bold;
+    font-size: 3.5em; /* Taille de base pour le conteneur */
     margin: 0.5em 0;
     height: 1.2em;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #8B6F47; /* Marron clair, cohérent avec le thème */
-    background: #F8F1E9; /* Même couleur que le fond du body pour l'intégration */
-    border-radius: 8px; /* Coins arrondis pour adoucir */
-    padding: 0.2em 0.4em; /* Léger padding pour encadrer le texte */
-    box-shadow: inset 2px 2px 4px rgba(139, 111, 71, 0.3), /* Ombre intérieure sombre */
-                inset -2px -2px 4px rgba(255, 255, 255, 0.5); /* Ombre intérieure claire pour l'effet 3D */
-    text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.2); /* Léger éclat pour le contraste */
+    color: #8B6F47; /* Marron clair */
 }
 
+.question-text {
+    font-weight: bold;
+    color: #8B6F47;
+    background: #F8F1E9; /* Fond assorti au body */
+    padding: 0.1em 0.2em; /* Padding léger pour encadrer le caractère */
+    border-radius: 4px; /* Coins arrondis subtils */
+    box-shadow: inset 2px 2px 4px rgba(139, 111, 71, 0.4), /* Ombre intérieure sombre */
+                inset -2px -2px 4px rgba(255, 255, 255, 0.6); /* Ombre intérieure claire */
+    text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.3), /* Éclat léger */
+                 -1px -1px 1px rgba(139, 111, 71, 0.2); /* Ombre subtile */
+}
+  
 .answers {
 display: flex;
 flex-wrap: wrap;
@@ -408,20 +413,24 @@ padding-bottom: 2em;
 }
 
 .question {
-        font-size: 10em;
-        font-weight: bold;
+        font-size: 10em; /* Taille pour mobile */
         margin: 0.5em 0;
         height: 1.2em;
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    .question-text {
+        font-weight: bold;
         color: #8B6F47;
         background: #F8F1E9;
-        border-radius: 12px; /* Plus arrondi pour les petits écrans */
-        padding: 0.15em 0.3em;
-        box-shadow: inset 3px 3px 6px rgba(139, 111, 71, 0.3), /* Ombre plus marquée */
-                    inset -3px -3px 6px rgba(255, 255, 255, 0.5);
-        text-shadow: 2px 2px 2px rgba(255, 255, 255, 0.2); /* Text-shadow ajusté */
+        padding: 0.1em 0.2em;
+        border-radius: 6px; /* Plus arrondi pour mobile */
+        box-shadow: inset 3px 3px 6px rgba(139, 111, 71, 0.4), 
+                    inset -3px -3px 6px rgba(255, 255, 255, 0.6);
+        text-shadow: 1.5px 1.5px 1.5px rgba(255, 255, 255, 0.3), 
+                     -1.5px -1.5px 1.5px rgba(139, 111, 71, 0.2);
     }
 
 .answers {
@@ -1629,7 +1638,7 @@ function nextQuestion() {
     const mode = modes[Math.floor(Math.random() * modes.length)];
     targetFields = [mode.options1, mode.options2];
 
-    document.getElementById("question").innerText = current[mode.question];
+    document.getElementById("question").innerHTML = `<span class="question-text">${current[mode.question]}</span>`;
     renderChoices("choices1", generateChoices(mode.options1), "first");
     renderChoices("choices2", generateChoices(mode.options2), "second");
 }
