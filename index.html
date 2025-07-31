@@ -1775,6 +1775,54 @@ console.error('Erreur lors de la sauvegarde:', error);
 }
 
 function triggerLightFirework(card) {
+            const halo = document.createElement("div");
+            halo.style.position = "absolute";
+            halo.style.width = "30px";
+            halo.style.height = "30px";
+            halo.style.borderRadius = "50%";
+            halo.style.background = "radial-gradient(circle, rgba(253,193,197,0.9), rgba(253,193,197,0.1))";
+            halo.style.transform = "translate(-50%, -50%) scale(1)";
+            halo.style.opacity = "1";
+            halo.style.pointerEvents = "none";
+            halo.style.zIndex = "10";
+
+            const rect = card.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height;
+
+            halo.style.left = `${cx}px`;
+            halo.style.top = `${cy}px`;
+            document.body.appendChild(halo);
+
+            halo.animate([
+                { transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
+                { transform: "translate(-50%, -50%) scale(4)", opacity: 0 }
+            ], {
+                duration: 800,
+                easing: "ease-out"
+            }).onfinish = () => halo.remove();
+
+            const petalCount = 14; /* Nombre fixé à 14 */
+            const fallSpeed = 3.5; /* Vitesse fixée à 3.5s */
+            const lifespan = 2500; /* Durée de vie fixée à 2500ms */
+
+            for (let i = 0; i < petalCount; i++) {
+                setTimeout(() => {
+                    const sakura = document.createElement("div");
+                    sakura.className = "sakura";
+                    const offsetX = (Math.random() - 0.5) * 200; /* Toute la largeur de la carte */
+                    const offsetY = Math.random() * 40;
+                    sakura.style.left = `${cx + offsetX}px`;
+                    sakura.style.top = `${cy + offsetY}px`;
+                    sakura.style.animation = `sakura-fall ${fallSpeed}s ease-out forwards`;
+                    document.body.appendChild(sakura);
+                    setTimeout(() => sakura.remove(), lifespan);
+                }, i * (1000 / petalCount));
+            }
+        }
+
+  /*
+function triggerLightFirework(card) {
 const halo = document.createElement("div");
 halo.style.position = "absolute";
 halo.style.width = "30px";
@@ -1815,7 +1863,7 @@ document.body.appendChild(sakura);
 setTimeout(() => sakura.remove(), 1500);
 }, i * 250);
 }
-
+*/
 const validatedCount = getValidatedCountForLevel(niveauActif);
 if (validatedCount === 0) {
 playFireworkSound();
