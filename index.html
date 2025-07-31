@@ -370,15 +370,20 @@ padding-bottom: 2em;
 }
 
 .question {
-font-size: 3.5em;
-font-weight: bold;
-margin: 0.5em 0;
-height: 1.2em;
-display: flex;
-align-items: center;
-justify-content: center;
-color: #8B6F47;
-text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
+    font-size: 3.5em;
+    font-weight: bold;
+    margin: 0.5em 0;
+    height: 1.2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8B6F47; /* Marron clair, cohérent avec le thème */
+    background: #F8F1E9; /* Même couleur que le fond du body pour l'intégration */
+    border-radius: 8px; /* Coins arrondis pour adoucir */
+    padding: 0.2em 0.4em; /* Léger padding pour encadrer le texte */
+    box-shadow: inset 2px 2px 4px rgba(139, 111, 71, 0.3), /* Ombre intérieure sombre */
+                inset -2px -2px 4px rgba(255, 255, 255, 0.5); /* Ombre intérieure claire pour l'effet 3D */
+    text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.2); /* Léger éclat pour le contraste */
 }
 
 .answers {
@@ -403,15 +408,21 @@ padding-bottom: 2em;
 }
 
 .question {
-font-size: 10em;
-font-weight: bold;
-margin: 0.5em 0;
-height: 1.2em;
-display: flex;
-align-items: center;
-justify-content: center;
-text-shadow: 0 0 24px #00ff88, 0 0 8px #00ff88;
-}
+        font-size: 10em;
+        font-weight: bold;
+        margin: 0.5em 0;
+        height: 1.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8B6F47;
+        background: #F8F1E9;
+        border-radius: 12px; /* Plus arrondi pour les petits écrans */
+        padding: 0.15em 0.3em;
+        box-shadow: inset 3px 3px 6px rgba(139, 111, 71, 0.3), /* Ombre plus marquée */
+                    inset -3px -3px 6px rgba(255, 255, 255, 0.5);
+        text-shadow: 2px 2px 2px rgba(255, 255, 255, 0.2); /* Text-shadow ajusté */
+    }
 
 .answers {
 display: grid;
@@ -868,7 +879,7 @@ margin: 0.1em 0;
 </style>
 </head>
 <body>
-<h1>🌿⛩️ Welcome to Hira-Kata-Quizzz ⛩️🌸</h1>
+<h1>🌿⛩️ Welcome to Hira-Kata-Quizz ⛩️🌸</h1>
 <div id="progressBarContainer"></div>
 <div class="level" id="levelDisplay">Niveau actuel : 1</div>
 <div class="level-hiraganas">
@@ -1740,7 +1751,7 @@ async function checkAnswer() {
     document.getElementById("result").innerHTML = `
       <div class="result-line">${emoji} ${resultText} ${emoji}</div>
       <div class="result-line highlight">
-        👉 Bonnes réponses : <strong>${correct1}</strong> – <strong>${correct2}</strong>
+        👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
       </div>`;
 
     if (score === 1) {
