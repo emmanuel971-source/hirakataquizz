@@ -490,27 +490,40 @@ padding: 0 1em;
     opacity: 0.8;
 }
 
+.arcade-button.clicked {
+    opacity: 1 !important;
+    cursor: default;
+}
+
 .arcade-button.clicked-glow {
     text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
     animation: glowPulse 1s ease-in-out infinite;
 }
 
 .arcade-button.correct {
-    background: linear-gradient(135deg, #A8D5BA 0%, #DDE6D5 100%); /* Vert matcha */
+    background: rgba(168, 213, 186, 0.5) !important; /* Voile vert semi-transparent */
     color: #8B6F47;
     border-color: #A8D5BA;
-    background-image: none;
+    background-image: none !important;
     animation: correctGlow 0.6s ease-in-out;
     opacity: 1 !important;
 }
 
+.arcade-button.correct::before {
+    display: none; /* Supprime le pseudo-élément */
+}
+
 .arcade-button.incorrect {
-    background: linear-gradient(135deg, #FDC1C5 0%, #FFB6C1 100%); /* Rose sakura */
+    background: rgba(253, 193, 197, 0.5) !important; /* Voile rose semi-transparent */
     color: #8B6F47;
     border-color: #FDC1C5;
-    background-image: none;
+    background-image: none !important;
     animation: incorrectShake 0.6s ease-in-out;
     opacity: 1 !important;
+}
+
+.arcade-button.incorrect::before {
+    display: none; /* Supprime le pseudo-élément */
 }
 
 @keyframes glowPulse {
@@ -555,7 +568,6 @@ padding: 0 1em;
         text-align: center;
     }
 }
-
 
 /* zone de résultats */
 /* Zone de résultats */
@@ -1649,7 +1661,7 @@ async function checkAnswer() {
     // Retirer l'effet de halo
     containers.forEach(container => {
       container.querySelectorAll("button").forEach(btn => {
-        btn.classList.remove("clicked-glow");
+        btn.classList.remove("clicked-glow", "correct", "incorrect");
       });
     });
 
@@ -1657,14 +1669,13 @@ async function checkAnswer() {
     containers.forEach((container, index) => {
       const buttons = container.querySelectorAll("button");
       buttons.forEach(btn => {
-        btn.classList.remove("correct", "incorrect", "correct-reveal", "incorrect-clicked");
-
         if (btn.innerText === correctAnswers[index]) {
           // Toutes les bonnes réponses (cliquées ou non) ont le voile vert
           btn.classList.add("correct");
           btn.disabled = true;
           if (btn.innerText === userSelections[index]) {
             score += 0.5;
+            btn.classList.add("clicked"); // Maintenir .clicked pour style
           }
         } else if (btn.innerText === userSelections[index]) {
           // Bouton cliqué mais incorrect : voile rouge
@@ -1744,8 +1755,6 @@ async function checkAnswer() {
       });
   }
 }
-
-
 
 function triggerLightFirework(card) {
 const halo = document.createElement("div");
