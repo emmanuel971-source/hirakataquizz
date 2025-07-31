@@ -932,18 +932,7 @@ sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
 document.body.appendChild(sakura);
 setTimeout(() => sakura.remove(), 4000);
 }
-if (validatedCount === 0) {
-playFireworkSound();
-} else if (validatedCount === 1) {
-playfireworksound2();
-} else if (validatedCount === 2) {
-playfireworksound3();
-} else if (validatedCount === 3) {
-playfireworksound4();
-} else if (validatedCount === 4) {
-playLevelUp();
-triggerLevelUpAnimation(container);
-} 
+
   
 }
 
@@ -1452,7 +1441,7 @@ star.classList.remove('filled', 'new-star');
 
 if (newValidation >= 5 && previousValidation < 5) {
 if (isMobile) {
-triggerSakuraFall(card);
+triggerLightFirework(card);
 } else {
 triggerAdvancedFirework(card);
 }
