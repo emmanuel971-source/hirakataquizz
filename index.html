@@ -58,6 +58,7 @@ margin: 0.15em 0;
 }
 
 /* BARRE DE PROGRESSION GRADIENT - REPOSITIONNÉE */
+/* Barre de progression */
 #progressBarContainer {
 display: flex;
 align-items: center;
@@ -71,25 +72,26 @@ width: 100%;
 .progress-bar-track {
 position: relative;
 height: 16px;
-background: linear-gradient(to right, #F8E400, #E00000);
+background: linear-gradient(to right, #E0F7FA, #355E3B); /* Vert d'eau à vert forêt clair */
 border-radius: 6px;
 flex: 1;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-marker {
 position: absolute;
-top: 25%;
+top: 45%;
 left: 0;
-transform: translate(-50%, -75%);
+transform: translate(-50%, -50%);
 font-size: 2em;
-animation: pulse 1.5s infinite alternate;
 transition: left 1.5s ease;
-pointer-events: none;
+color: #636E72; /* Gris pierre */
 }
 
 .side-emoji {
 font-size: 1.6em;
 line-height: 1;
+color: #636E72;
 }
 
 @keyframes pulse {
@@ -97,12 +99,28 @@ line-height: 1;
 100% { transform: translate(-50%, -50%) scale(1.2); }
 }
 
-.level {
-font-size: 1.1em;
-margin: 0.5em 0;
-color: #bbb;
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+#progressBarContainer {
+max-width: 80%;
+margin: 1.5em auto 0.5em auto;
+gap: 1em;
 }
 
+.progress-bar-track {
+height: 32px;
+border-radius: 12px;
+}
+
+.progress-marker {
+font-size: 4.5em;
+top: 45%;
+transform: translate(-50%, -50%);
+}
+
+.side-emoji {
+font-size: 2.5em;
+}
+}
 /* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION CLEAN */
 .level-hiraganas {
 margin: 1em auto;
