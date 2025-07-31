@@ -18,7 +18,7 @@ display: flex;
 flex-direction: column;
 }
 
-  
+
 body::before {
 content: '';
 position: absolute;
@@ -29,7 +29,7 @@ background: url('https://www.transparenttextures.com/patterns/paper-fibers.png')
 opacity: 0.1;
 z-index: -1;
 }
-  
+
 h1 {
 margin: 0.5em 0;
 font-size: 1.8em;
@@ -142,7 +142,7 @@ padding: 10px;
 background: #FFFFFF;
 border-radius: 8px;
 
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 .hiragana-card.completed {
@@ -260,53 +260,53 @@ z-index: 10;
 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
 }
 
-  
+
 /* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION tél */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
 
-  .level-hiraganas {
-    max-width: none;
-    width: 100vw; /* pleine largeur de l’écran */
-    padding: 0 2em;
-    box-sizing: border-box;
-  }
+.level-hiraganas {
+max-width: none;
+width: 100vw; /* pleine largeur de l’écran */
+padding: 0 2em;
+box-sizing: border-box;
+}
 
-  .hiraganas-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-evenly; /* étale les cartes */
-    gap: 15px; /* RÉDUIT de 40px à 15px */
-  }
+.hiraganas-grid {
+display: flex;
+flex-wrap: wrap;
+justify-content: space-evenly; /* étale les cartes */
+gap: 15px; /* RÉDUIT de 40px à 15px */
+}
 
-  .hiragana-card {
-    /* transform: scale(1.1); ← à retirer si ça pose problème */
-    flex: 1 1 auto; /* permet aux cartes de s'adapter à la largeur */
-    min-width: 80px; /* largeur minimale */
-    text-align: center;
-    transition: all 0.3s ease;
-    position: relative;
-    padding: 10px;
-    background: #FFFFFF;
-    border-radius: 8px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
-  }
+.hiragana-card {
+/* transform: scale(1.1); ← à retirer si ça pose problème */
+flex: 1 1 auto; /* permet aux cartes de s'adapter à la largeur */
+min-width: 80px; /* largeur minimale */
+text-align: center;
+transition: all 0.3s ease;
+position: relative;
+padding: 10px;
+background: #FFFFFF;
+border-radius: 8px;
+box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+}
 
-  .hiragana-char {
-    font-size: 4em;
-    margin-bottom: 10px;
-  }
+.hiragana-char {
+font-size: 4em;
+margin-bottom: 10px;
+}
 
-  .stars-container {
-    display: flex;
-    justify-content: center;
-    gap: 2px;
-  }
+.stars-container {
+display: flex;
+justify-content: center;
+gap: 2px;
+}
 
 
-  .star {
-    width: 28px;
-    height: 28px;
-  }
+.star {
+width: 28px;
+height: 28px;
+}
 }
 
 
@@ -314,103 +314,73 @@ z-index: 10;
 
 @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
 
-  .level-hiraganas {
-    max-width: none;
-    width: 100vw; /* pleine largeur */
-    padding: 0 2em;
-    box-sizing: border-box;
-  }
+.level-hiraganas {
+max-width: none;
+width: 100vw; /* pleine largeur */
+padding: 0 2em;
+box-sizing: border-box;
+}
 
-  .hiraganas-grid {
-    width: 100%;
-    box-sizing: border-box;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-evenly; /* meilleur équilibrage */
-    gap: 20px;
-  }
+.hiraganas-grid {
+width: 100%;
+box-sizing: border-box;
+display: flex;
+flex-wrap: wrap;
+justify-content: space-evenly; /* meilleur équilibrage */
+gap: 20px;
+}
 
-  .hiragana-card {
-    flex: 1 1 120px;
-    max-width: 140px;
-    text-align: center;
-    transition: all 0.3s ease;
-    position: relative;
-    padding: 10px;
-    background: #FFFFFF;
-    border-radius: 8px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
-  }
+.hiragana-card {
+flex: 1 1 120px;
+max-width: 140px;
+text-align: center;
+transition: all 0.3s ease;
+position: relative;
+padding: 10px;
+background: #FFFFFF;
+border-radius: 8px;
+box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+}
 
-  .hiragana-char {
-    font-size: 6em;
-    margin-bottom: 10px;
-  }
+.hiragana-char {
+font-size: 6em;
+margin-bottom: 10px;
+}
 
-  .stars-container {
-    gap: 2px;
-  }
+.stars-container {
+gap: 2px;
+}
 
-  .star {
-    width: 14px;
-    height: 14px;
-  }
+.star {
+width: 14px;
+height: 14px;
+}
 }
 
 
 
 /* ZONE DE QUIZ - OPTIMISÉE POUR L'ESPACE */
-.question {
-    font-size: 3.5em;
-    font-weight: bold;
-    margin: 0.5em 0;
-    height: 1.2em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #8B6F47;
-    text-shadow: 2px 2px 2px rgba(139, 111, 71, 0.4), /* Ombre sombre */
-                 -1px -1px 1px rgba(255, 255, 255, 0.6), /* Éclat clair */
-                 0 0 2px rgba(139, 111, 71, 0.2); /* Contour subtil */
+.quiz-container {
+flex: 1;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+min-height: 0;
+padding-bottom: 2em;
 }
 
-.question-text {
-    font-weight: bold;
-    color: #8B6F47;
-    background: #F8F1E9; /* Fond assorti au body */
-    padding: 0.1em 0.2em; /* Padding léger pour encadrer le caractère */
-    border-radius: 4px; /* Coins arrondis subtils */
-    box-shadow: inset 2px 2px 4px rgba(139, 111, 71, 0.4), /* Ombre intérieure sombre */
-                inset -2px -2px 4px rgba(255, 255, 255, 0.6); /* Ombre intérieure claire */
-    text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.3), /* Éclat léger */
-                 -1px -1px 1px rgba(139, 111, 71, 0.2); /* Ombre subtile */
+.question {
+font-size: 3.5em;
+font-weight: bold;
+margin: 0.5em 0;
+height: 1.2em;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #8B6F47;
+text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
 }
 
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-.question {
-        font-size: 10em;
-        font-weight: bold;
-        margin: 0.5em 0;
-        height: 1.2em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #8B6F47;
-        text-shadow: 3px 3px 3px rgba(139, 111, 71, 0.4), 
-                     -1.5px -1.5px 1.5px rgba(255, 255, 255, 0.6), 
-                     0 0 3px rgba(139, 111, 71, 0.2);
-    }
-    .question-text {
-        font-weight: bold;
-        color: #8B6F47;
-        background: #F8F1E9;
-        padding: 0.1em 0.2em;
-        border-radius: 6px; /* Plus arrondi pour mobile */
-        box-shadow: inset 3px 3px 6px rgba(139, 111, 71, 0.4), 
-                    inset -3px -3px 6px rgba(255, 255, 255, 0.6);
-        text-shadow: 1.5px 1.5px 1.5px rgba(255, 255, 255, 0.3), 
-                     -1.5px -1.5px 1.5px rgba(139, 111, 71, 0.2);
-    }
 .answers {
 display: flex;
 flex-wrap: wrap;
@@ -432,32 +402,16 @@ min-height: 0;
 padding-bottom: 2em;
 }
 
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
 .question {
-        font-size: 10em;
-        font-weight: bold;
-        margin: 0.5em 0;
-        height: 1.2em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #8B6F47;
-        text-shadow: 3px 3px 3px rgba(139, 111, 71, 0.4), 
-                     -1.5px -1.5px 1.5px rgba(255, 255, 255, 0.6), 
-                     0 0 3px rgba(139, 111, 71, 0.2);
-    }
-
-    .question-text {
-        font-weight: bold;
-        color: #8B6F47;
-        background: #F8F1E9;
-        padding: 0.1em 0.2em;
-        border-radius: 6px; /* Plus arrondi pour mobile */
-        box-shadow: inset 3px 3px 6px rgba(139, 111, 71, 0.4), 
-                    inset -3px -3px 6px rgba(255, 255, 255, 0.6);
-        text-shadow: 1.5px 1.5px 1.5px rgba(255, 255, 255, 0.3), 
-                     -1.5px -1.5px 1.5px rgba(139, 111, 71, 0.2);
-    }
+font-size: 10em;
+font-weight: bold;
+margin: 0.5em 0;
+height: 1.2em;
+display: flex;
+align-items: center;
+justify-content: center;
+text-shadow: 0 0 24px #00ff88, 0 0 8px #00ff88;
+}
 
 .answers {
 display: grid;
@@ -469,10 +423,10 @@ box-sizing: border-box;
 padding: 0 1em;
 }
 .sakura {
-        width: 20px;
-        height: 20px;
-       
-    }
+width: 20px;
+height: 20px;
+
+}
 
 }
 
@@ -487,132 +441,132 @@ padding: 0 1em;
 /* Styles boutons bois/domino */
 /* Styles boutons bois/domino */
 .arcade-button {
-    position: relative;
-    background: #F5E8C7; /* Ivoire/bois clair */
-    background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
-    border: 2px solid #8B6F47; /* Marron clair */
-    border-radius: 10px;
-    padding: 0.8em 1.5em;
-    color: #8B6F47;
-    font-size: 1.4em;
-    line-height: 0.6;
-    white-space: normal;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-    transition: all 0.15s ease;
-    text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
-    overflow: hidden;
-    min-width: 120px;
-    text-align: center;
+position: relative;
+background: #F5E8C7; /* Ivoire/bois clair */
+background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
+border: 2px solid #8B6F47; /* Marron clair */
+border-radius: 10px;
+padding: 0.8em 1.5em;
+color: #8B6F47;
+font-size: 1.4em;
+line-height: 0.6;
+white-space: normal;
+font-weight: bold;
+cursor: pointer;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+transition: all 0.15s ease;
+text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
+overflow: hidden;
+min-width: 120px;
+text-align: center;
 }
 
 .arcade-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 50%;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    pointer-events: none;
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+height: 50%;
+background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+border-top-left-radius: 10px;
+border-top-right-radius: 10px;
+pointer-events: none;
 }
 
 .arcade-button:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-    border-color: #7A5C3A; /* Marron clair légèrement plus foncé */
+transform: translateY(-2px) scale(1.02);
+box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+border-color: #7A5C3A; /* Marron clair légèrement plus foncé */
 }
 
 .arcade-button:active {
-    transform: translateY(2px) scale(0.98);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+transform: translateY(2px) scale(0.98);
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
 }
 
 .arcade-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.8;
+cursor: not-allowed;
+opacity: 0.8;
 }
 
 .arcade-button.clicked {
-    opacity: 1 !important;
-    cursor: default;
+opacity: 1 !important;
+cursor: default;
 }
 
 .arcade-button.clicked-glow {
-    text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
-    animation: glowPulse 1s ease-in-out infinite;
+text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
+animation: glowPulse 1s ease-in-out infinite;
 }
 
 .arcade-button.correct {
-    background: rgba(168, 213, 186, 0.5) !important; /* Voile vert semi-transparent */
-    color: #8B6F47;
-    border-color: #A8D5BA;
-    background-image: none !important;
-    animation: correctGlow 0.6s ease-in-out;
-    opacity: 1 !important;
+background: rgba(168, 213, 186, 0.5) !important; /* Voile vert semi-transparent */
+color: #8B6F47;
+border-color: #A8D5BA;
+background-image: none !important;
+animation: correctGlow 0.6s ease-in-out;
+opacity: 1 !important;
 }
 
 .arcade-button.correct::before {
-    display: none; /* Supprime le pseudo-élément */
+display: none; /* Supprime le pseudo-élément */
 }
 
 .arcade-button.incorrect {
-    background: rgba(253, 193, 197, 0.5) !important; /* Voile rose semi-transparent */
-    color: #8B6F47;
-    border-color: #FDC1C5;
-    background-image: none !important;
-    animation: incorrectShake 0.6s ease-in-out;
-    opacity: 1 !important;
+background: rgba(253, 193, 197, 0.5) !important; /* Voile rose semi-transparent */
+color: #8B6F47;
+border-color: #FDC1C5;
+background-image: none !important;
+animation: incorrectShake 0.6s ease-in-out;
+opacity: 1 !important;
 }
 
 .arcade-button.incorrect::before {
-    display: none; /* Supprime le pseudo-élément */
+display: none; /* Supprime le pseudo-élément */
 }
 
 @keyframes glowPulse {
-    0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
-    50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
+0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
+50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
 }
 
 @keyframes correctGlow {
-    0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
-    50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
-    100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
+100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
 }
 
 @keyframes incorrectShake {
-    0% { transform: translateX(0); }
-    10% { transform: translateX(-8px); }
-    20% { transform: translateX(8px); }
-    30% { transform: translateX(-6px); }
-    40% { transform: translateX(6px); }
-    50% { transform: translateX(-4px); }
-    60% { transform: translateX(4px); }
-    70% { transform: translateX(-2px); }
-    80% { transform: translateX(2px); }
-    90% { transform: translateX(-1px); }
-    100% { transform: translateX(0); }
+0% { transform: translateX(0); }
+10% { transform: translateX(-8px); }
+20% { transform: translateX(8px); }
+30% { transform: translateX(-6px); }
+40% { transform: translateX(6px); }
+50% { transform: translateX(-4px); }
+60% { transform: translateX(4px); }
+70% { transform: translateX(-2px); }
+80% { transform: translateX(2px); }
+90% { transform: translateX(-1px); }
+100% { transform: translateX(0); }
 }
 
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
-    button, a, input, textarea {
-        -webkit-tap-highlight-color: transparent;
-    }
+button, a, input, textarea {
+-webkit-tap-highlight-color: transparent;
+}
 
-    .arcade-button {
-        font-size: 4em;
-        aspect-ratio: 1 / 0.6;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
+.arcade-button {
+font-size: 4em;
+aspect-ratio: 1 / 0.6;
+width: 100%;
+box-sizing: border-box;
+padding: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+}
 }
 
 /* zone de résultats */
@@ -732,7 +686,7 @@ font-size: 3em;
 margin-top: 2em;
 margin-bottom: 2em;
 height: 3em;
-  width: 100%; /* ← Ajoutez cette ligne */
+width: 100%; /* ← Ajoutez cette ligne */
 }
 visibility: hidden;
 }
@@ -743,14 +697,14 @@ height: 3em;
 }
 
 .sakura {
-        width: 20px;
-        height: 20px;
-       
-    }
+width: 20px;
+height: 20px;
+
+}
 }
 
 
-  
+
 }
 
 
@@ -774,7 +728,7 @@ height: 3em;
 90% { transform: translateX(-1px); }
 100% { transform: translateX(0); }
 }
- */
+*/
 /* RESPONSIVE - OPTIMISATION POUR PETITS ÉCRANS */
 @media (max-width: 768px) {
 
@@ -914,7 +868,7 @@ margin: 0.1em 0;
 </style>
 </head>
 <body>
-<h1>🌿⛩️ Welcome to Hira-Kata-Quizz ⛩️🌸</h1>
+<h1>🌿⛩️ Welcome to Hira-Kata-Quiz ⛩️🌸</h1>
 <div id="progressBarContainer"></div>
 <div class="level" id="levelDisplay">Niveau actuel : 1</div>
 <div class="level-hiraganas">
@@ -944,8 +898,6 @@ let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
-
-  
 function logError(msg) {
 console.warn(msg);
 }
@@ -972,10 +924,10 @@ document.body.appendChild(sakura);
 setTimeout(() => sakura.remove(), 4000);
 }
 
-  
+
 }
 
-  
+
 // 🎯 GESTIONNAIRE DE PARTICULES OPTIMISÉ
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30; // Limite stricte
@@ -1023,7 +975,7 @@ function getValidatedCountForLevel(level) {
 return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Validation) >= 5).length;
 }
 
-  function playMarioCoin() {
+function playMarioCoin() {
 initAudio();
 const notes = [659.25, 1046.50];
 const durations = [0.1, 0.2];
@@ -1664,7 +1616,7 @@ function nextQuestion() {
     const mode = modes[Math.floor(Math.random() * modes.length)];
     targetFields = [mode.options1, mode.options2];
 
-    document.getElementById("question").innerHTML = `<span class="question-text">${current[mode.question]}</span>`;
+    document.getElementById("question").innerText = current[mode.question];
     renderChoices("choices1", generateChoices(mode.options1), "first");
     renderChoices("choices2", generateChoices(mode.options2), "second");
 }
@@ -1691,10 +1643,10 @@ btn.classList.add("clicked-glow");
 
 // Garder l'effet d'opacité pour les autres boutons
 container.querySelectorAll("button").forEach(b => {
-  b.disabled = true;
-  if (b === btn) {
-    b.classList.add("clicked");
-  }
+b.disabled = true;
+if (b === btn) {
+b.classList.add("clicked");
+}
 });
 checkAnswer();
 };
@@ -1703,111 +1655,111 @@ container.appendChild(btn);
 }
 
 async function checkAnswer() {
-  if (selections.first && selections.second && !isAnswered) {
-    isAnswered = true;
-    const correct1 = current[targetFields[0]];
-    const correct2 = current[targetFields[1]];
-    let score = 0;
-    const containers = [document.getElementById("choices1"), document.getElementById("choices2")];
-    const correctAnswers = [correct1, correct2];
-    const userSelections = [selections.first, selections.second];
+if (selections.first && selections.second && !isAnswered) {
+isAnswered = true;
+const correct1 = current[targetFields[0]];
+const correct2 = current[targetFields[1]];
+let score = 0;
+const containers = [document.getElementById("choices1"), document.getElementById("choices2")];
+const correctAnswers = [correct1, correct2];
+const userSelections = [selections.first, selections.second];
 
-    // Retirer l'effet de halo
-    containers.forEach(container => {
-      container.querySelectorAll("button").forEach(btn => {
-        btn.classList.remove("clicked-glow", "correct", "incorrect");
-      });
-    });
+// Retirer l'effet de halo
+containers.forEach(container => {
+container.querySelectorAll("button").forEach(btn => {
+btn.classList.remove("clicked-glow", "correct", "incorrect");
+});
+});
 
-    // Appliquer les classes pour les voiles
-    containers.forEach((container, index) => {
-      const buttons = container.querySelectorAll("button");
-      buttons.forEach(btn => {
-        if (btn.innerText === correctAnswers[index]) {
-          // Toutes les bonnes réponses (cliquées ou non) ont le voile vert
-          btn.classList.add("correct");
-          btn.disabled = true;
-          if (btn.innerText === userSelections[index]) {
-            score += 0.5;
-            btn.classList.add("clicked"); // Maintenir .clicked pour style
-          }
-        } else if (btn.innerText === userSelections[index]) {
-          // Bouton cliqué mais incorrect : voile rouge
-          btn.classList.add("incorrect");
-          btn.disabled = true;
-        } else {
-          // Bouton non cliqué et incorrect : reste neutre
-          btn.disabled = true;
-        }
-      });
-    });
+// Appliquer les classes pour les voiles
+containers.forEach((container, index) => {
+const buttons = container.querySelectorAll("button");
+buttons.forEach(btn => {
+if (btn.innerText === correctAnswers[index]) {
+// Toutes les bonnes réponses (cliquées ou non) ont le voile vert
+btn.classList.add("correct");
+btn.disabled = true;
+if (btn.innerText === userSelections[index]) {
+score += 0.5;
+btn.classList.add("clicked"); // Maintenir .clicked pour style
+}
+} else if (btn.innerText === userSelections[index]) {
+// Bouton cliqué mais incorrect : voile rouge
+btn.classList.add("incorrect");
+btn.disabled = true;
+} else {
+// Bouton non cliqué et incorrect : reste neutre
+btn.disabled = true;
+}
+});
+});
 
-    // Reste du code inchangé...
-    const currentValidation = parseInt(current.Validation || 0);
-    let newValidation = currentValidation;
+// Reste du code inchangé...
+const currentValidation = parseInt(current.Validation || 0);
+let newValidation = currentValidation;
 
-    if (score === 1) {
-      newValidation = Math.min(5, currentValidation + 1);
-    } else if (score === 0.5) {
-      newValidation = Math.max(0, currentValidation - 1);
-    } else {
-      newValidation = Math.max(0, currentValidation - 2);
-    }
+if (score === 1) {
+newValidation = Math.min(5, currentValidation + 1);
+} else if (score === 0.5) {
+newValidation = Math.max(0, currentValidation - 1);
+} else {
+newValidation = Math.max(0, currentValidation - 2);
+}
 
-    const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
+const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
 
-    updateStarsForHiragana(parseInt(current.ID), newValidation);
+updateStarsForHiragana(parseInt(current.ID), newValidation);
 
-    const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
-    if (hiraganaIndex !== -1) {
-      HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-    }
+const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
+if (hiraganaIndex !== -1) {
+HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+}
 
-    let emoji = "", resultText = "";
-    if (score === 1) {
-      const emojisOK = ["🌸", "🎍", "🍵", "🪴"];
-      emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-      resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
-      if (!isFinalValidation) {
-        playMarioCoin();
-      }
-    } else if (score === 0.5) {
-      const emojisMid = ["🪨", "🌿", "🪵"];
-      emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
-      resultText = "Presque...";
-      playSuccess90s();
-    } else {
-      const emojisBad = ["🍂", "🌫️", "🪨"];
-      emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
-      resultText = "Pas tout à fait...";
-      playFail();
-    }
+let emoji = "", resultText = "";
+if (score === 1) {
+const emojisOK = ["🌸", "🎍", "🍵", "🪴"];
+emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
+resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
+if (!isFinalValidation) {
+playMarioCoin();
+}
+} else if (score === 0.5) {
+const emojisMid = ["🪨", "🌿", "🪵"];
+emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
+resultText = "Presque...";
+playSuccess90s();
+} else {
+const emojisBad = ["🍂", "🌫️", "🪨"];
+emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
+resultText = "Pas tout à fait...";
+playFail();
+}
 
-    document.getElementById("result").innerHTML = `
-      <div class="result-line">${emoji} ${resultText} ${emoji}</div>
-      <div class="result-line highlight">
-        👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
-      </div>`;
+document.getElementById("result").innerHTML = `
+<div class="result-line">${emoji} ${resultText} ${emoji}</div>
+<div class="result-line highlight">
+👉 Bonnes réponses : <strong>${correct1}</strong> – <strong>${correct2}</strong>
+</div>`;
 
-    if (score === 1) {
-      document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
-      setTimeout(nextQuestion, 1500);
-    } else {
-      document.getElementById("continueBtn").style.visibility = "visible";
-    }
+if (score === 1) {
+document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
+setTimeout(nextQuestion, 1500);
+} else {
+document.getElementById("continueBtn").style.visibility = "visible";
+}
 
-    callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
-      .then(response => {
-        if (response.error) {
-          console.warn('Erreur sauvegarde:', response.error);
-        } else {
-          console.log('✅ Score sauvegardé en arrière-plan');
-        }
-      })
-      .catch(error => {
-        console.error('Erreur lors de la sauvegarde:', error);
-      });
-  }
+callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
+.then(response => {
+if (response.error) {
+console.warn('Erreur sauvegarde:', response.error);
+} else {
+console.log('✅ Score sauvegardé en arrière-plan');
+}
+})
+.catch(error => {
+console.error('Erreur lors de la sauvegarde:', error);
+});
+}
 }
 
 function triggerLightFirework(card) {
