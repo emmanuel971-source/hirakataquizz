@@ -360,15 +360,6 @@ z-index: 10;
 
 
 /* ZONE DE QUIZ - OPTIMISÉE POUR L'ESPACE */
-.quiz-container {
-flex: 1;
-display: flex;
-flex-direction: column;
-justify-content: space-between;
-min-height: 0;
-padding-bottom: 2em;
-}
-
 .question {
     font-size: 3.5em;
     font-weight: bold;
@@ -377,20 +368,49 @@ padding-bottom: 2em;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #8B6F47; /* Marron clair du thème */
-    background: #F8F1E9; /* Fond assorti au body */
+    color: #8B6F47;
+    text-shadow: 2px 2px 2px rgba(139, 111, 71, 0.4), /* Ombre sombre */
+                 -1px -1px 1px rgba(255, 255, 255, 0.6), /* Éclat clair */
+                 0 0 2px rgba(139, 111, 71, 0.2); /* Contour subtil */
 }
 
 .question-text {
     font-weight: bold;
     color: #8B6F47;
-    text-shadow: 
-        2px 2px 2px rgba(139, 111, 71, 0.5),    /* Ombre sombre en haut à droite (profondeur) */
-        -2px -2px 2px rgba(255, 255, 255, 0.7), /* Éclat clair en bas à gauche (relief) */
-        0 0 3px rgba(139, 111, 71, 0.3),        /* Contour subtil pour la définition */
-        1px 1px 1px rgba(255, 255, 255, 0.4);   /* Légère brillance pour l’effet sculpté */
+    background: #F8F1E9; /* Fond assorti au body */
+    padding: 0.1em 0.2em; /* Padding léger pour encadrer le caractère */
+    border-radius: 4px; /* Coins arrondis subtils */
+    box-shadow: inset 2px 2px 4px rgba(139, 111, 71, 0.4), /* Ombre intérieure sombre */
+                inset -2px -2px 4px rgba(255, 255, 255, 0.6); /* Ombre intérieure claire */
+    text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.3), /* Éclat léger */
+                 -1px -1px 1px rgba(139, 111, 71, 0.2); /* Ombre subtile */
 }
-  
+
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+.question {
+        font-size: 10em;
+        font-weight: bold;
+        margin: 0.5em 0;
+        height: 1.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8B6F47;
+        text-shadow: 3px 3px 3px rgba(139, 111, 71, 0.4), 
+                     -1.5px -1.5px 1.5px rgba(255, 255, 255, 0.6), 
+                     0 0 3px rgba(139, 111, 71, 0.2);
+    }
+    .question-text {
+        font-weight: bold;
+        color: #8B6F47;
+        background: #F8F1E9;
+        padding: 0.1em 0.2em;
+        border-radius: 6px; /* Plus arrondi pour mobile */
+        box-shadow: inset 3px 3px 6px rgba(139, 111, 71, 0.4), 
+                    inset -3px -3px 6px rgba(255, 255, 255, 0.6);
+        text-shadow: 1.5px 1.5px 1.5px rgba(255, 255, 255, 0.3), 
+                     -1.5px -1.5px 1.5px rgba(139, 111, 71, 0.2);
+    }
 .answers {
 display: flex;
 flex-wrap: wrap;
@@ -413,23 +433,30 @@ padding-bottom: 2em;
 }
 
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-    .question {
+.question {
         font-size: 10em;
+        font-weight: bold;
         margin: 0.5em 0;
         height: 1.2em;
         display: flex;
         align-items: center;
         justify-content: center;
+        color: #8B6F47;
+        text-shadow: 3px 3px 3px rgba(139, 111, 71, 0.4), 
+                     -1.5px -1.5px 1.5px rgba(255, 255, 255, 0.6), 
+                     0 0 3px rgba(139, 111, 71, 0.2);
     }
 
     .question-text {
         font-weight: bold;
         color: #8B6F47;
-        text-shadow: 
-            3px 3px 3px rgba(139, 111, 71, 0.5),
-            -3px -3px 3px rgba(255, 255, 255, 0.7),
-            0 0 4px rgba(139, 111, 71, 0.3),
-            1.5px 1.5px 1.5px rgba(255, 255, 255, 0.4);
+        background: #F8F1E9;
+        padding: 0.1em 0.2em;
+        border-radius: 6px; /* Plus arrondi pour mobile */
+        box-shadow: inset 3px 3px 6px rgba(139, 111, 71, 0.4), 
+                    inset -3px -3px 6px rgba(255, 255, 255, 0.6);
+        text-shadow: 1.5px 1.5px 1.5px rgba(255, 255, 255, 0.3), 
+                     -1.5px -1.5px 1.5px rgba(139, 111, 71, 0.2);
     }
 
 .answers {
