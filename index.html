@@ -932,7 +932,6 @@ sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
 document.body.appendChild(sakura);
 setTimeout(() => sakura.remove(), 4000);
 }
-  const validatedCount = getValidatedCountForLevel(niveauActif);
 if (validatedCount === 0) {
 playFireworkSound();
 } else if (validatedCount === 1) {
@@ -943,8 +942,9 @@ playfireworksound3();
 playfireworksound4();
 } else if (validatedCount === 4) {
 playLevelUp();
-triggerLevelUpAnimation(document.body);
-}
+triggerLevelUpAnimation(container);
+} 
+  
 }
 
   
