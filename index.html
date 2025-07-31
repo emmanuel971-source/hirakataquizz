@@ -1810,6 +1810,20 @@ easing: "ease-out"
 // Use sakura fall effect from the top screen
 triggerSakuraFall(container);
 
+// Use sakura fall effect centered around the card
+for (let i = 0; i < 30; i++) {
+const sakura = document.createElement("div");
+sakura.className = "sakura";
+sakura.style.left = `${cx + (Math.random() - 0.5) * 100}px`;
+sakura.style.top = `${cy - 50}px`; // Start slightly above the center
+sakura.style.animationDelay = Math.random() * 1.5 + "s";
+sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
+document.body.appendChild(sakura);
+setTimeout(() => sakura.remove(), 4000);
+}
+
+
+         
 const validatedCount = getValidatedCountForLevel(niveauActif);
 if (validatedCount === 0) {
 playFireworkSound();
