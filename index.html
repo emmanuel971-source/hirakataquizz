@@ -373,7 +373,8 @@ height: 1.2em;
 display: flex;
 align-items: center;
 justify-content: center;
-text-shadow: 0 0 12px #00ff88, 0 0 4px #00ff88;
+color: #8B6F47;
+text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
 }
 
 .answers {
@@ -429,23 +430,23 @@ padding: 0 1em;
 
 /* STYLES BOUTONS ARCADE - INTÉGRÉS */
 
-
-
+/* Styles boutons bois/domino */
 .arcade-button {
 position: relative;
-background: linear-gradient(to bottom, #2a2a2a, #0d0d0d);
-border: 1px solid #333;
-border-radius: 16px;
+background: #F5E8C7; /* Ivoire/bois clair */
+background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
+border: 2px solid #8B6F47; /* Marron clair */
+border-radius: 10px;
 padding: 0.8em 1.5em;
-color: #fff;
+color: #8B6F47;
 font-size: 1.4em;
 line-height: 0.6;
 white-space: normal;
 font-weight: bold;
 cursor: pointer;
-box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8);
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
 transition: all 0.15s ease;
-text-shadow: 0 0 8px rgba(255,255,255,0.5);
+text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
 overflow: hidden;
 min-width: 120px;
 text-align: center;
@@ -458,47 +459,83 @@ top: 0;
 left: 0;
 right: 0;
 height: 50%;
-background: linear-gradient(to bottom, rgba(255,255,255,0.15), rgba(255,255,255,0));
-border-top-left-radius: 16px;
-border-top-right-radius: 16px;
+background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+border-top-left-radius: 10px;
+border-top-right-radius: 10px;
 pointer-events: none;
 }
 
 .arcade-button:hover {
 transform: translateY(-2px) scale(1.02);
-box-shadow: 0 8px #000000, 0 14px 20px rgba(0,0,0,0.9);
-border-color: #444;
+box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+border-color: #7A5C3A; /* Marron clair légèrement plus foncé */
 }
 
 .arcade-button:active {
-transform: translateY(3px) scale(0.98);
-box-shadow: 0 3px #000000, 0 5px 8px rgba(0,0,0,0.7);
+transform: translateY(2px) scale(0.98);
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
 }
 
 .arcade-button:disabled {
 cursor: not-allowed;
+opacity: 0.6;
 }
 
-/* Empêcher les interactions hover/active sur les boutons désactivés mais permettre les animations */
 .arcade-button:disabled:hover {
-transform: none !important;
-box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8) !important;
-border-color: #333 !important;
+transform: none;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+border-color: #8B6F47;
 }
 
 .arcade-button:disabled:active {
-transform: none !important;
-box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8) !important;
+transform: none;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
 }
 
 .arcade-button.clicked-glow {
-text-shadow: 0 0 12px #00ff88, 0 0 4px #00ff88;
-animation: glowPulse 1s ease-in-out infinite; /* Animation continue jusqu'au retrait */
+text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
+animation: glowPulse 1s ease-in-out infinite;
+}
+
+.arcade-button.correct {
+background: linear-gradient(135deg, #A8D5BA 0%, #DDE6D5 100%); /* Vert matcha */
+color: #8B6F47;
+border-color: #A8D5BA;
+background-image: none;
+animation: correctGlow 0.6s ease-in-out;
+}
+
+.arcade-button.incorrect {
+background: linear-gradient(135deg, #FDC1C5 0%, #FFB6C1 100%); /* Rose sakura */
+color: #8B6F47;
+border-color: #FDC1C5;
+background-image: none;
+animation: incorrectShake 0.6s ease-in-out;
 }
 
 @keyframes glowPulse {
-0%, 100% { text-shadow: 0 0 12px #00ff88, 0 0 4px #00ff88; }
-50% { text-shadow: 0 0 18px #00ff88, 0 0 6px #00ff88; }
+0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
+50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
+}
+
+@keyframes correctGlow {
+0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
+100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+}
+
+@keyframes incorrectShake {
+0% { transform: translateX(0); }
+10% { transform: translateX(-8px); }
+20% { transform: translateX(8px); }
+30% { transform: translateX(-6px); }
+40% { transform: translateX(6px); }
+50% { transform: translateX(-4px); }
+60% { transform: translateX(4px); }
+70% { transform: translateX(-2px); }
+80% { transform: translateX(2px); }
+90% { transform: translateX(-1px); }
+100% { transform: translateX(0); }
 }
 
 
