@@ -1,40 +1,35 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" href="data:,">
 <base target="_top">
-<title>Hira-Kata-Quizzz Zen</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-<link rel="manifest" href="/manifest.json">
 <style>
-html, body {
-margin: 0;
-padding: 0;
-height: 100%;
-width: 100%;
-overflow: hidden;
+body {
 background: #F8F1E9; /* Blanc cassé, papier washi */
 font-family: 'Noto Sans JP', sans-serif;
 color: #8B6F47; /* Marron clair */
+font-family: sans-serif;
+text-align: center;
+padding: 0.5em 1em 1em 1em;
+margin: 0;
+height: 100vh;
+overflow: hidden;
 display: flex;
 flex-direction: column;
-position: relative;
 }
 
+  
 body::before {
 content: '';
 position: absolute;
 top: 0;
 left: 0;
-width: 100%;
-height: 100%;
+
 background: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
 opacity: 0.1;
 z-index: -1;
 }
-
+  
 h1 {
 margin: 0.5em 0;
 font-size: 1.8em;
@@ -42,6 +37,8 @@ text-align: center;
 color: #8B6F47;
 text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
 }
+
+
 
 @media screen and (max-width: 400px),
 screen and (-webkit-min-device-pixel-ratio: 2),
@@ -60,7 +57,7 @@ margin: 0.15em 0;
 }
 }
 
-/* Barre de progression */
+/* BARRE DE PROGRESSION GRADIENT - REPOSITIONNÉE */
 #progressBarContainer {
 display: flex;
 align-items: center;
@@ -74,26 +71,25 @@ width: 100%;
 .progress-bar-track {
 position: relative;
 height: 16px;
-background: linear-gradient(to right, #E0F7FA, #355E3B); /* Vert d'eau à vert forêt clair */
+background: linear-gradient(to right, #F8E400, #E00000);
 border-radius: 6px;
 flex: 1;
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-marker {
 position: absolute;
-top: 45%;
+top: 25%;
 left: 0;
-transform: translate(-50%, -50%);
+transform: translate(-50%, -75%);
 font-size: 2em;
+animation: pulse 1.5s infinite alternate;
 transition: left 1.5s ease;
-color: #636E72; /* Gris pierre */
+pointer-events: none;
 }
 
 .side-emoji {
 font-size: 1.6em;
 line-height: 1;
-color: #636E72;
 }
 
 @keyframes pulse {
@@ -101,53 +97,13 @@ color: #636E72;
 100% { transform: translate(-50%, -50%) scale(1.2); }
 }
 
-
-
-.progress-bar-track {
-height: 32px;
-border-radius: 12px;
-}
-
-.progress-marker {
-font-size: 4.5em;
-top: 45%;
-transform: translate(-50%, -50%);
-}
-
-.side-emoji {
-font-size: 2.5em;
-}
-
-
-
-
-.progress-bar-track {
-height: 32px;
-border-radius: 12px;
-}
-
-.progress-marker {
-font-size: 4.5em;
-top: 45%;
-transform: translate(-50%, -50%);
-}
-
-.side-emoji {
-font-size: 2.5em;
-}
-
-
 .level {
 font-size: 1.1em;
 margin: 0.5em 0;
-color: #8B6F47;
-text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
-text-align: center;
+color: #bbb;
 }
 
-
-
-/* Système d'étoiles pour les hiraganas */
+/* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION CLEAN */
 .level-hiraganas {
 margin: 1em auto;
 max-width: 800px;
@@ -166,14 +122,9 @@ margin-bottom: 0.5em;
 text-align: center;
 transition: all 0.3s ease;
 position: relative;
-padding: 10px;
-background: #FFFFFF;
-border-radius: 8px;
-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .hiragana-card.completed {
-background: #DDE6D5; /* Vert matcha clair */
 animation: completedPulse 2s ease-in-out infinite;
 }
 
@@ -186,14 +137,12 @@ animation: completedPulse 2s ease-in-out infinite;
 font-size: 2.2em;
 font-weight: bold;
 margin-bottom: 6px;
-color: #8B6F47;
-text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
+color: #fff;
 }
 
 .hiragana-card.completed .hiragana-char {
-color: #A8D5BA; /* Vert matcha */
-text-shadow: 0 0 5px rgba(168, 213, 186, 0.5);
-animation: starGlow 2s ease-in-out infinite;
+color: #ffd700;
+text-shadow: 0 0 15px #ffd700;
 }
 
 .stars-container {
@@ -205,13 +154,13 @@ gap: 2px;
 .star {
 width: 12px;
 height: 12px;
-background: #E8ECEF; /* Gris clair */
+background: #333;
 clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
 transition: all 0.3s ease;
 }
 
 .star.filled {
-background: #FDC1C5; /* Rose sakura */
+background: #F8E400;
 }
 
 .star.new-star {
@@ -219,7 +168,7 @@ animation: starFill 0.5s ease-in-out;
 }
 
 .hiragana-card.completed .star.filled {
-background: #A8D5BA; /* Vert matcha */
+background: #ffd700;
 animation: starGlow 2s ease-in-out infinite;
 }
 
@@ -230,54 +179,44 @@ animation: starGlow 2s ease-in-out infinite;
 
 @keyframes starGlow {
 0%, 100% { filter: brightness(1); }
-50% { filter: brightness(1.3); }
+50% { filter: brightness(1.5) drop-shadow(0 0 5px #ffd700); }
 }
 
-
-
-.hiraganas-grid {
-gap: 60px;
+.firework {
+position: absolute;
+top: 0;
+left: 50%;
+transform: translateX(-50%);
+width: 0.5em;
+height: 0.5em;
+background: transparent;
+pointer-events: none;
+animation: fireworkExplosion 700ms ease-out forwards;
+z-index: 10;
 }
 
-.hiragana-card {
-transform: scale(1.1);
+@keyframes fireworkExplosion {
+0% {
+box-shadow:
+0 0 #ff0,
+0 0 #f00,
+0 0 #0ff;
+opacity: 1;
+transform: translateX(-50%) scale(1);
 }
-
-.hiragana-char {
-font-size: 4em;
-margin-bottom: 10px;
+100% {
+box-shadow:
+0 -40px #ff0,
+30px -30px #f00,
+40px 0 #0ff,
+30px 30px #0f0,
+0 40px #00f,
+-30px 30px #f0f,
+-40px 0 #fff,
+-30px -30px #ff0;
+opacity: 0;
+transform: translateX(-50%) scale(0.5);
 }
-
-.stars-container {
-gap: 2px;
-}
-
-.star {
-width: 24px;
-height: 24px;
-}
-
-
-
-.hiraganas-grid {
-width: 100%;
-box-sizing: border-box;
-justify-content: space-evenly;
-gap: 40px;
-}
-
-.hiragana-char {
-font-size: 6em;
-margin-bottom: 10px;
-}
-
-.stars-container {
-gap: 2px;
-}
-
-.star {
-width: 14px;
-height: 14px;
 }
 
 /* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION tél */
@@ -355,25 +294,8 @@ height: 14px;
 }
 
 
-  
-/* Animation pétales de cerisier */
-.sakura {
-position: absolute;
-width: 10px;
-height: 10px;
-background: #FDC1C5; /* Rose sakura */
-border-radius: 50%;
-pointer-events: none;
-animation: sakuraFall 3s linear forwards;
-z-index: 10;
-}
 
-@keyframes sakuraFall {
-0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-}
-
-/* Zone de quiz */
+/* ZONE DE QUIZ - OPTIMISÉE POUR L'ESPACE */
 .quiz-container {
 flex: 1;
 display: flex;
@@ -381,7 +303,6 @@ flex-direction: column;
 justify-content: space-between;
 min-height: 0;
 padding-bottom: 2em;
-align-items: center; /* Centrer horizontalement le contenu */
 }
 
 .question {
@@ -392,8 +313,7 @@ height: 1.2em;
 display: flex;
 align-items: center;
 justify-content: center;
-color: #8B6F47;
-text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
+text-shadow: 0 0 12px #00ff88, 0 0 4px #00ff88;
 }
 
 .answers {
@@ -404,23 +324,6 @@ gap: 0.8em;
 margin-bottom: 1em;
 }
 
-
-.question {
-font-size: 10em;
-margin: 0.5em 0;
-height: 1.2em;
-text-shadow: 0 0 24px #A8D5BA, 0 0 8px #A8D5BA;
-}
-
-.answers {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-gap: 0.8em;
-margin-bottom: 1em;
-width: 100%;
-box-sizing: border-box;
-padding: 0 1em;
-}
 
 /* ZONE DE QUIZ - OPTIMISÉE POUR L'ESPACE ---- version téléphone */
 
@@ -457,24 +360,32 @@ padding: 0 1em;
 
 
 }
-  
-/* Styles boutons bois/domino */
+
+
+
+
+
+
+
+/* STYLES BOUTONS ARCADE - INTÉGRÉS */
+
+
+
 .arcade-button {
 position: relative;
-background: #F5E8C7; /* Ivoire/bois clair */
-background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
-border: 2px solid #8B6F47; /* Marron clair */
-border-radius: 10px;
+background: linear-gradient(to bottom, #2a2a2a, #0d0d0d);
+border: 1px solid #333;
+border-radius: 16px;
 padding: 0.8em 1.5em;
-color: #8B6F47;
+color: #fff;
 font-size: 1.4em;
 line-height: 0.6;
 white-space: normal;
 font-weight: bold;
 cursor: pointer;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8);
 transition: all 0.15s ease;
-text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
+text-shadow: 0 0 8px rgba(255,255,255,0.5);
 overflow: hidden;
 min-width: 120px;
 text-align: center;
@@ -487,69 +398,47 @@ top: 0;
 left: 0;
 right: 0;
 height: 50%;
-background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-border-top-left-radius: 10px;
-border-top-right-radius: 10px;
+background: linear-gradient(to bottom, rgba(255,255,255,0.15), rgba(255,255,255,0));
+border-top-left-radius: 16px;
+border-top-right-radius: 16px;
 pointer-events: none;
 }
 
 .arcade-button:hover {
 transform: translateY(-2px) scale(1.02);
-box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-border-color: #7A5C3A; /* Marron clair légèrement plus foncé */
+box-shadow: 0 8px #000000, 0 14px 20px rgba(0,0,0,0.9);
+border-color: #444;
 }
 
 .arcade-button:active {
-transform: translateY(2px) scale(0.98);
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+transform: translateY(3px) scale(0.98);
+box-shadow: 0 3px #000000, 0 5px 8px rgba(0,0,0,0.7);
 }
 
 .arcade-button:disabled {
 cursor: not-allowed;
-opacity: 0.6;
 }
 
+/* Empêcher les interactions hover/active sur les boutons désactivés mais permettre les animations */
 .arcade-button:disabled:hover {
-transform: none;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-border-color: #8B6F47;
+transform: none !important;
+box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8) !important;
+border-color: #333 !important;
 }
 
 .arcade-button:disabled:active {
-transform: none;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+transform: none !important;
+box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8) !important;
 }
 
 .arcade-button.clicked-glow {
-text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
-animation: glowPulse 1s ease-in-out infinite;
-}
-
-.arcade-button.correct {
-background: linear-gradient(135deg, #A8D5BA 0%, #DDE6D5 100%); /* Vert matcha */
-color: #8B6F47;
-border-color: #A8D5BA;
-background-image: none;
-animation: correctGlow 0.6s ease-in-out;
-}
-
-.arcade-button.incorrect {
-background: linear-gradient(135deg, #FDC1C5 0%, #FFB6C1 100%); /* Rose sakura */
-color: #8B6F47;
-border-color: #FDC1C5;
-background-image: none;
-animation: incorrectShake 0.6s ease-in-out;
+text-shadow: 0 0 12px #00ff88, 0 0 4px #00ff88;
+animation: glowPulse 1s ease-in-out infinite; /* Animation continue jusqu'au retrait */
 }
 
 @keyframes glowPulse {
-0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
-50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
-}
-
-@keyframes correctGlow {
-0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
-50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
-100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+0%, 100% { text-shadow: 0 0 12px #00ff88, 0 0 4px #00ff88; }
+50% { text-shadow: 0 0 18px #00ff88, 0 0 6px #00ff88; }
 }
 
 
@@ -578,7 +467,8 @@ text-align: center;
 }
 
 
-/* Zone de résultats */
+/* zone de résultats */
+
 .result {
 animation: fadeIn 0.4s ease-in;
 font-size: 1.3em;
@@ -587,14 +477,7 @@ margin: 0.5em 0 0.2em 0;
 min-height: 4.5em;
 display: flex;
 flex-direction: column;
-justify-content: center;
-align-items: center;
-text-align: center;
-color: #8B6F47;
-}
-
-.result-line.highlight {
-color: #8B6F47;
+justify-content: flex-start;
 }
 
 @keyframes fadeIn {
@@ -603,11 +486,32 @@ to { opacity: 1; transform: translateY(0); }
 }
 
 #continueBtn {
+margin-top: 1em;
+margin-bottom: 1em;
+height: 3em;
 visibility: hidden;
-margin: 0.5em auto;
-display: block; /* Assurer que le bouton est un block pour le centrage */
-width: fit-content; /* Ajuster la largeur au contenu */
 }
+
+.correct {
+background: linear-gradient(135deg, #90EE90 0%, #32CD32 100%) !important;
+color: #006400 !important;
+border-color: #228B22 !important;
+animation: correctGlow 0.6s ease-in-out;
+}
+
+.incorrect {
+background: linear-gradient(135deg, #FFB6C1 0%, #FF6B6B 100%) !important;
+color: #8B0000 !important;
+border-color: #DC143C !important;
+animation: incorrectShake 0.6s ease-in-out;
+}
+
+@keyframes correctGlow {
+0% { box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8); }
+50% { box-shadow: 0 8px #000000, 0 0 20px rgba(50, 205, 50, 0.6); }
+100% { box-shadow: 0 6px #000000, 0 10px 15px rgba(0,0,0,0.8); }
+}
+
 
 /* zone de résultats -------- mobiles */
 
@@ -652,6 +556,14 @@ visibility: hidden;
 
 
 }
+
+
+
+
+
+
+
+
 /* Ajuster l'animation incorrectShake pour un démarrage immédiat */
 @keyframes incorrectShake {
 0% { transform: translateX(0); }
@@ -666,7 +578,6 @@ visibility: hidden;
 90% { transform: translateX(-1px); }
 100% { transform: translateX(0); }
 }
-
 
 /* RESPONSIVE - OPTIMISATION POUR PETITS ÉCRANS */
 @media (max-width: 768px) {
@@ -807,22 +718,27 @@ margin: 0.1em 0;
 </style>
 </head>
 <body>
-<h1>🎌⛩️ Hira-Kata-Quizzz Zen ⛩️🎌</h1>
+<h1>🎌⛩️ Welcome to Hira-Kata-Quizzz ⛩️🎌</h1>
+
 <div id="progressBarContainer"></div>
+
 <div class="level" id="levelDisplay">Niveau actuel : 1</div>
+
 <div class="level-hiraganas">
 <div class="hiraganas-grid" id="hiraganaCards"></div>
 </div>
+
 <div class="quiz-container">
 <div class="question" id="question">load...</div>
 <div>
 <div class="answers" id="choices1"></div>
 <div class="answers" id="choices2"></div>
+
+
 </div>
 <div>
 <div class="result" id="result"></div>
-<button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j’ai capté 🌱</button>
-<button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
+<button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🙄 OK... j'ai capté 🙄</button>
 </div>
 </div>
 
@@ -834,27 +750,52 @@ let targetFields = [];
 let isAnswered = false;
 let niveauActif = 1;
 let previousValidationStates = new Map();
-let activeSparks = [];
-let globalParticleCount = 0;
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+let activeSparks = []; // Variable globale pour les particules
+let globalParticleCount = 0; // Compteur global
 
 function logError(msg) {
 console.warn(msg);
 }
 
-function triggerSakuraFall(container) {
-for (let i = 0; i < 30; i++) {
-const sakura = document.createElement("div");
-sakura.className = "sakura";
-sakura.style.left = Math.random() * 100 + "vw";
-sakura.style.top = "-10px";
-sakura.style.animationDelay = Math.random() * 1.5 + "s";
-sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
-document.body.appendChild(sakura);
-setTimeout(() => sakura.remove(), 4000);
+
+function testFeu() {
+const container = document.querySelector('.quiz-container');
+if (isMobile) {
+triggerLightFirework(container);
+} else {
+triggerAdvancedFirework(container);
 }
 }
 
+// 🎯 GESTIONNAIRE DE PARTICULES OPTIMISÉ
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30; // Limite stricte
+
+// Fonction de nettoyage des particules
+function cleanupOldParticles() {
+// Supprimer les particules les plus anciennes si on dépasse la limite
+while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
+const oldSpark = activeSparks.shift();
+if (oldSpark && oldSpark.canvas && oldSpark.canvas.parentNode) {
+oldSpark.canvas.remove();
+globalParticleCount--;
+}
+}
+// Nettoyer les particules orphelines
+activeSparks = activeSparks.filter(spark => {
+if (!spark.canvas || !spark.canvas.parentNode) {
+globalParticleCount--;
+return false;
+}
+return true;
+});
+console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
+}
+
+// Nettoyage automatique toutes les 3 secondes
+setInterval(cleanupOldParticles, 3000);
+
+// Audio
 let audioContext;
 let audioInitialized = false;
 
@@ -883,9 +824,9 @@ const osc = audioContext.createOscillator();
 const gain = audioContext.createGain();
 osc.connect(gain);
 gain.connect(audioContext.destination);
-osc.type = 'sine';
+osc.type = 'square';
 osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.05, audioContext.currentTime);
+gain.gain.setValueAtTime(0.1, audioContext.currentTime);
 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + durations[i]);
 osc.start();
 osc.stop(audioContext.currentTime + durations[i]);
@@ -904,14 +845,14 @@ osc1.connect(gain1);
 osc2.connect(gain2);
 gain1.connect(audioContext.destination);
 gain2.connect(audioContext.destination);
-osc1.type = 'sine';
-osc2.type = 'sine';
+osc1.type = 'square';
+osc2.type = 'sawtooth';
 osc1.frequency.value = baseFreq;
 osc2.frequency.setValueAtTime(baseFreq * 1.5, audioContext.currentTime);
 osc2.frequency.exponentialRampToValueAtTime(baseFreq * 3, audioContext.currentTime + 0.3);
-gain1.gain.setValueAtTime(0.03, audioContext.currentTime);
+gain1.gain.setValueAtTime(0.06, audioContext.currentTime);
 gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-gain2.gain.setValueAtTime(0.01, audioContext.currentTime);
+gain2.gain.setValueAtTime(0.02, audioContext.currentTime);
 gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
 osc1.start();
 osc2.start();
@@ -925,8 +866,8 @@ const oscillator = audioContext.createOscillator();
 const gainNode = audioContext.createGain();
 oscillator.connect(gainNode);
 gainNode.connect(audioContext.destination);
-oscillator.type = 'sine';
-gainNode.gain.setValueAtTime(0.04, audioContext.currentTime);
+oscillator.type = 'square';
+gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
 gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
 oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
 oscillator.frequency.exponentialRampToValueAtTime(110, audioContext.currentTime + 0.4);
@@ -935,9 +876,9 @@ oscillator.stop(audioContext.currentTime + 0.4);
 }
 
 function playFireworkSound() {
-initAudio();
+if (!audioInitialized) initAudio();
 try {
-const frequencies = [329.63, 415.30, 523.25, 659.25];
+const frequencies = [329.63, 415.30, 523.25, 659.25]; // Mi, Sol#, Do, Mi
 frequencies.forEach((freq, i) => {
 setTimeout(() => {
 const osc = audioContext.createOscillator();
@@ -950,100 +891,104 @@ osc.type = 'triangle';
 osc.frequency.value = freq;
 filter.type = 'lowpass';
 filter.frequency.value = freq * 2;
-gain.gain.setValueAtTime(0.03, audioContext.currentTime);
+gain.gain.setValueAtTime(0.06, audioContext.currentTime);
 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
 osc.start();
 osc.stop(audioContext.currentTime + 0.4);
 }, i * 150);
 });
+console.log('Treasure Found joué');
 } catch (error) {
-logError('Erreur Firework: ' + error.message);
+logError('Erreur Treasure: ' + error.message);
 }
 }
 
 function playfireworksound2() {
-initAudio();
+if (!audioInitialized) initAudio();
 try {
-const sequence = [554.37, 659.25, 830.61, 987.77];
+const sequence = [554.37, 659.25, 830.61, 987.77]; // Do#5, Mi5, Sol#5, Si5
 sequence.forEach((freq, i) => {
 setTimeout(() => {
 const osc = audioContext.createOscillator();
 const gain = audioContext.createGain();
 osc.connect(gain);
 gain.connect(audioContext.destination);
-osc.type = 'sine';
+osc.type = 'square';
 osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.035, audioContext.currentTime);
+gain.gain.setValueAtTime(0.07, audioContext.currentTime);
 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
 osc.start();
 osc.stop(audioContext.currentTime + 0.2);
 }, i * 100);
 });
+console.log('fireworksound 2 joué');
 } catch (error) {
 logError('Erreur fireworksound 2: ' + error.message);
 }
 }
 
 function playfireworksound3() {
-initAudio();
+if (!audioInitialized) initAudio();
 try {
-const sequence = [659.25, 783.99, 987.77, 1174.66];
+const sequence = [659.25, 783.99, 987.77, 1174.66]; // Mi5, Sol5, Si5, Ré6
 sequence.forEach((freq, i) => {
 setTimeout(() => {
 const osc = audioContext.createOscillator();
 const gain = audioContext.createGain();
 osc.connect(gain);
 gain.connect(audioContext.destination);
-osc.type = 'sine';
+osc.type = 'square';
 osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.035, audioContext.currentTime);
+gain.gain.setValueAtTime(0.07, audioContext.currentTime);
 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
 osc.start();
 osc.stop(audioContext.currentTime + 0.2);
 }, i * 100);
 });
+console.log('fireworksound 3 joué');
 } catch (error) {
 logError('Erreur fireworksound 3: ' + error.message);
 }
 }
 
 function playfireworksound4() {
-initAudio();
+if (!audioInitialized) initAudio();
 try {
-const sequence = [783.99, 987.77, 1174.66, 1396.91];
+const sequence = [783.99, 987.77, 1174.66, 1396.91]; // Sol5, Si5, Ré6, Fa6
 sequence.forEach((freq, i) => {
 setTimeout(() => {
 const osc = audioContext.createOscillator();
 const gain = audioContext.createGain();
 osc.connect(gain);
 gain.connect(audioContext.destination);
-osc.type = 'sine';
+osc.type = 'square';
 osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.035, audioContext.currentTime);
+gain.gain.setValueAtTime(0.07, audioContext.currentTime);
 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
 osc.start();
 osc.stop(audioContext.currentTime + 0.2);
 }, i * 100);
 });
+console.log('fireworksound 4 joué');
 } catch (error) {
 logError('Erreur fireworksound 4: ' + error.message);
 }
 }
 
 function playLevelUp() {
-initAudio();
+if (!audioInitialized) initAudio();
 try {
-const sequence = [523.25, 659.25, 783.99, 1046.50];
-const flourish = [783.99, 1046.50, 1318.51];
+const sequence = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+const flourish = [783.99, 1046.50, 1318.51]; // G5, C6, E6
 sequence.forEach((freq, i) => {
 setTimeout(() => {
 const osc = audioContext.createOscillator();
 const gain = audioContext.createGain();
 osc.connect(gain);
 gain.connect(audioContext.destination);
-osc.type = 'sine';
+osc.type = 'square';
 osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+gain.gain.setValueAtTime(0.08, audioContext.currentTime);
 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.12);
 osc.start();
 osc.stop(audioContext.currentTime + 0.12);
@@ -1055,9 +1000,9 @@ const osc = audioContext.createOscillator();
 const gain = audioContext.createGain();
 osc.connect(gain);
 gain.connect(audioContext.destination);
-osc.type = 'sine';
+osc.type = 'square';
 osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+gain.gain.setValueAtTime(0.08, audioContext.currentTime);
 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
 osc.start();
 osc.stop(audioContext.currentTime + 0.1);
@@ -1072,25 +1017,26 @@ mod.connect(modGain);
 modGain.connect(osc.frequency);
 osc.connect(gain);
 gain.connect(audioContext.destination);
-osc.type = 'sine';
+osc.type = 'square';
 mod.type = 'sine';
-osc.frequency.value = 1318.51;
+osc.frequency.value = 1318.51; // E6
 mod.frequency.value = 5;
 modGain.gain.value = 10;
-gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+gain.gain.setValueAtTime(0.08, audioContext.currentTime);
 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2.0);
 osc.start();
 mod.start();
 osc.stop(audioContext.currentTime + 2.0);
 mod.stop(audioContext.currentTime + 2.0);
 }, 780);
+console.log('Level Up joué');
 } catch (error) {
 logError('Erreur Level Up: ' + error.message);
 }
 }
 
 function drawStar(ctx, x, y, radius, rotation = 0) {
-const points = 5;
+const points = 5; // Nombre de pointes de l'étoile
 const outerRadius = radius;
 const innerRadius = radius / 2;
 ctx.beginPath();
@@ -1109,6 +1055,8 @@ ctx.fill();
 function triggerAdvancedFirework(container) {
 initAudio();
 const validatedCount = getValidatedCountForLevel(niveauActif);
+
+// Création du canvas
 const canvas = document.createElement('canvas');
 canvas.style.position = 'absolute';
 canvas.style.left = '50%';
@@ -1121,13 +1069,17 @@ canvas.height = 400;
 container.appendChild(canvas);
 const ctx = canvas.getContext('2d');
 
+// Palette de couleurs
 const colorPalettes = [
-['#6B8E23', '#9ACD32', '#32CD32', '#228B22', '#008000', '#006400'], // Palette verte
-['#A8D5BA', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
-['#FDC1C5', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
+['#FFD700', '#FF8C00', '#FF4500', '#FF3D00', '#FF5722', '#FFA500'],
+['#B3E5FC', '#81D4FA', '#4FC3F7', '#29B6F6', '#039BE5', '#0277BD'],
+['#B2FF59', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
+['#F8BBD0', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
+['#E1BEE7', '#CE93D8', '#BA68C8', '#AB47BC', '#9C27B0', '#7B1FA2']
 ];
 const colors = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
 
+// Paramètres adaptés pour mobile
 const maxLifeBase = isMobile ? 30 : 50;
 const numParticles = isMobile ? 9 : 12;
 const numSalvos = isMobile ? 3 : 3;
@@ -1135,9 +1087,11 @@ const gravity = 0.1;
 const salvoDelay = 150;
 const dispersionBase = 3;
 
+// Gestion des particules et traînées
 const particles = [];
 const trails = [];
 
+// Flash central
 const halo = document.createElement('div');
 halo.style.position = 'absolute';
 halo.style.left = '50%';
@@ -1159,6 +1113,7 @@ duration: 700,
 easing: 'ease-out'
 }).onfinish = () => halo.remove();
 
+// Sons
 if (validatedCount === 0) {
 playFireworkSound();
 } else if (validatedCount === 1) {
@@ -1172,6 +1127,7 @@ playLevelUp();
 triggerLevelUpAnimation(container);
 }
 
+// Création des salves
 for (let salvo = 0; salvo < numSalvos; salvo++) {
 setTimeout(() => {
 if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
@@ -1211,7 +1167,7 @@ vy: v0y,
 life: maxLifeBase + Math.random() * 20,
 maxLife: maxLifeBase + Math.random() * 20,
 color: color,
-rotation: Math.random() * Math.PI * 2
+rotation: Math.random() * Math.PI * 2 // Rotation aléatoire pour l'étoile
 });
 activeSparks.push({ canvas });
 globalParticleCount++;
@@ -1220,9 +1176,11 @@ console.log(`Particule ajoutée: ${particles.length} particules, ${activeSparks.
 }, salvo * salvoDelay);
 }
 
+// Animation des particules et traînées
 function animate() {
 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+// Dessiner les traînées
 if (!isMobile) {
 particles.forEach(p => {
 if (Math.random() < 0.2) {
@@ -1249,12 +1207,13 @@ ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
 ctx.fill();
 });
 
+// Dessiner les particules en forme d'étoiles
 particles.forEach((p, i) => {
 p.x += p.vx;
 p.y += p.vy;
 p.vy += gravity;
 p.life--;
-p.rotation += 0.05;
+p.rotation += 0.05; // Rotation dynamique pour effet scintillant
 if (p.life <= 0) {
 particles.splice(i, 1);
 activeSparks.splice(i, 1);
@@ -1269,6 +1228,7 @@ drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
 ctx.restore();
 });
 
+// Continuer l'animation si des particules ou salves sont en attente
 if (particles.length > 0 || Date.now() < Date.now() + numSalvos * salvoDelay) {
 requestAnimationFrame(animate);
 } else {
@@ -1280,28 +1240,6 @@ console.log('Animation terminée');
 }
 requestAnimationFrame(animate);
 }
-
-function cleanupOldParticles() {
-while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
-const oldSpark = activeSparks.shift();
-if (oldSpark && oldSpark.canvas && oldSpark.canvas.parentNode) {
-oldSpark.canvas.remove();
-globalParticleCount--;
-}
-}
-activeSparks = activeSparks.filter(spark => {
-if (!spark.canvas || !spark.canvas.parentNode) {
-globalParticleCount--;
-return false;
-}
-return true;
-});
-console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
-}
-
-setInterval(cleanupOldParticles, 3000);
-
-const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30;
 
 function getMaxLevel(list) {
 if (!list || list.length === 0) return 1;
@@ -1377,11 +1315,11 @@ if (!container) return;
 container.innerHTML = "";
 
 const leftEmoji = document.createElement("span");
-leftEmoji.textContent = "🌱";
+leftEmoji.textContent = "👎";
 leftEmoji.className = "side-emoji";
 
 const rightEmoji = document.createElement("span");
-rightEmoji.textContent = "🌳";
+rightEmoji.textContent = "💪";
 rightEmoji.className = "side-emoji";
 
 const barTrack = document.createElement("div");
@@ -1389,7 +1327,7 @@ barTrack.className = "progress-bar-track";
 
 const marker = document.createElement("div");
 marker.className = "progress-marker";
-marker.innerText = "🐼";
+marker.innerText = "🐼";  /*  🐼 🐱💩🤡🐶🐯🐱 */
 
 const pct = maxLevel > 1 ? ((currentLevel - 1) / (maxLevel - 1)) * 100 : 0;
 marker.style.left = `${Math.min(100, Math.max(0, pct))}%`;
@@ -1604,21 +1542,21 @@ HiraganaList[hiraganaIndex].Validation = newValidation.toString();
 // ✅ AFFICHAGE IMMÉDIAT DU RÉSULTAT
 let emoji = "", resultText = "";
 if (score === 1) {
-const emojisOK = ["🌸", "🎍", "🍵", "🪴"];
+const emojisOK = ["🍣", "🍜", "🍬", "🍥", "🍵", "🍙", "🌸", "🕹️", "🎮", "🍘", "🍚", "🍤", "🍱"];
 emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
 resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
 if (!isFinalValidation) {
 playMarioCoin();
 }
 } else if (score === 0.5) {
-const emojisMid = ["🪨", "🌿", "🪵"];
+const emojisMid = ["🗻", "🥋", "👘", "🏮"];
 emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
-resultText = "Presque...";
+resultText = "Dommage...";
 playSuccess90s();
 } else {
-const emojisBad = ["🍂", "🌫️", "🪨"];
+const emojisBad = ["👹", "👺", "👻", "💀", "👾", "🥷🏿", "💩", "🙈", "🥹", "🙊", "🤡"];
 emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
-resultText = "Pas tout à fait...";
+resultText = "Nul...tout faux.";
 playFail();
 }
 
@@ -1654,14 +1592,14 @@ console.error('Erreur lors de la sauvegarde:', error);
 }
 
 
-
 function triggerLightFirework(card) {
+// HALO LUMINEUX
 const halo = document.createElement("div");
 halo.style.position = "absolute";
 halo.style.width = "30px";
 halo.style.height = "30px";
 halo.style.borderRadius = "50%";
-halo.style.background = "radial-gradient(circle, rgba(253,193,197,0.9), rgba(253,193,197,0.1))";
+halo.style.background = "radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.1))";
 halo.style.transform = "translate(-50%, -50%) scale(1)";
 halo.style.opacity = "1";
 halo.style.pointerEvents = "none";
@@ -1683,20 +1621,72 @@ duration: 800,
 easing: "ease-out"
 }).onfinish = () => halo.remove();
 
+// PALETTES (remplacement de la rouge par palette luxe)
+const lightFireworkPalettes = [
+['#ffffff', '#ffffcc', '#fffacd', '#fff8dc', '#ffe4b5', '#dcdcdc'], // 🎨 Luxe : blanc, or pâle, argent
+['#B3E5FC', '#81D4FA', '#4FC3F7', '#29B6F6', '#039BE5', '#0277BD'],
+['#B2FF59', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
+['#F8BBD0', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
+['#E1BEE7', '#CE93D8', '#BA68C8', '#AB47BC', '#9C27B0', '#7B1FA2']
+];
+const palette = lightFireworkPalettes[Math.floor(Math.random() * lightFireworkPalettes.length)];
+
+// SALVES
 for (let i = 0; i < 5; i++) {
 setTimeout(() => {
-const sakura = document.createElement("div");
-sakura.className = "sakura";
+const fw = document.createElement("div");
+fw.className = "firework";
+
 const offsetX = (Math.random() - 0.5) * 80;
 const offsetY = (Math.random() - 0.5) * 80;
-sakura.style.left = `${cx + offsetX}px`;
-sakura.style.top = `${cy + offsetY}px`;
-sakura.style.animationDuration = "1.5s";
-document.body.appendChild(sakura);
-setTimeout(() => sakura.remove(), 1500);
+const scale = 0.8 + Math.random() * 0.6; // 🔁 Variation échelle
+
+fw.style.left = `${cx + offsetX}px`;
+fw.style.top = `${cy + offsetY}px`;
+fw.style.animationDuration = "1.2s";
+fw.style.transform = `scale(${scale})`;
+
+const baseColor = palette[Math.floor(Math.random() * palette.length)];
+const particles = [];
+for (let j = 0; j < 8; j++) {
+const angle = j * 45;
+const dx = Math.round(30 * Math.cos(angle * Math.PI / 180));
+const dy = Math.round(30 * Math.sin(angle * Math.PI / 180));
+particles.push(`${dx}px ${-dy}px ${baseColor}`);
+}
+
+// 🔥 box-shadow dynamique forcé avec !important
+fw.style.setProperty("box-shadow", `0 0 6px ${baseColor}, ` + particles.join(', '), "important");
+
+document.body.appendChild(fw);
+setTimeout(() => fw.remove(), 1200);
+
+// 🌫 FUMÉE
+const smoke = document.createElement("div");
+smoke.style.position = "absolute";
+smoke.style.width = "50px";
+smoke.style.height = "50px";
+smoke.style.borderRadius = "50%";
+smoke.style.background = "radial-gradient(rgba(255,255,255,0.2), transparent)";
+smoke.style.left = `${cx + offsetX}px`;
+smoke.style.top = `${cy + offsetY}px`;
+smoke.style.opacity = "0.5";
+smoke.style.pointerEvents = "none";
+smoke.style.zIndex = "1";
+
+smoke.animate([
+{ transform: "translateY(0px)", opacity: 0.4 },
+{ transform: "translateY(-40px)", opacity: 0 }
+], {
+duration: 1000,
+easing: "ease-out"
+}).onfinish = () => smoke.remove();
+
+document.body.appendChild(smoke);
 }, i * 250);
 }
 
+// 🔊 SONS
 const validatedCount = getValidatedCountForLevel(niveauActif);
 if (validatedCount === 0) {
 playFireworkSound();
@@ -1708,19 +1698,48 @@ playfireworksound3();
 playfireworksound4();
 } else if (validatedCount === 4) {
 playLevelUp();
-triggerLevelUpAnimation(document.body);
+triggerLevelUpAnimation(card);
 }
 }
 
+
+
+
+
 function triggerLevelUpAnimation(container) {
+// Cacher le quiz pendant le spectacle
 const toHide = ['#question', '#choices1', '#choices2'];
 toHide.forEach(id => {
 const el = document.querySelector(id);
 if (el) el.style.visibility = 'hidden';
 });
 
-triggerSakuraFall(container);
+// Feux d’artifice en cascade
+for (let group = 0; group < 3; group++) {
+setTimeout(() => {
+for (let i = 0; i < 3; i++) {
+const fire = document.createElement('div');
+fire.className = 'firework';
+fire.style.top = `${15 + Math.random() * 50}%`;
+fire.style.left = `${20 + Math.random() * 60}%`;
+fire.style.animationDuration = "1.5s";
+fire.style.boxShadow = `
+0 -40px #f0f,
+40px -40px #0ff,
+50px 0 #ff0,
+40px 40px #0f0,
+0 50px #00f,
+-40px 40px #f00,
+-50px 0 #fff,
+-40px -40px #0ff
+`;
+container.appendChild(fire);
+setTimeout(() => fire.remove(), 1500);
+}
+}, group * 300);
+}
 
+// Réaffichage doux après le final
 setTimeout(() => {
 toHide.forEach(id => {
 const el = document.querySelector(id);
@@ -1738,6 +1757,7 @@ fill: 'forwards'
 });
 }, 3000);
 
+// 🌸 Texte flottant - version corrigée
 const msgWrapper = document.createElement("div");
 msgWrapper.style.position = "fixed";
 msgWrapper.style.top = "30%";
@@ -1753,8 +1773,8 @@ msg.innerText = "レベルアップ！";
 msg.style.display = "inline-block";
 msg.style.fontSize = "5em";
 msg.style.fontWeight = "bold";
-msg.style.color = "#8B6F47";
-msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #FDC1C5";
+msg.style.color = "#fff";
+msg.style.textShadow = "0 0 20px #FFD700, 0 0 40px #FF69B4";
 msg.style.writingMode = "horizontal-tb";
 msg.style.whiteSpace = "nowrap";
 msgWrapper.appendChild(msg);
@@ -1767,6 +1787,51 @@ duration: 5000,
 easing: "ease-out"
 }).onfinish = () => msgWrapper.remove();
 
+// 🎆 Feux plein écran
+for (let i = 0; i < 3; i++) {
+setTimeout(() => {
+const fire = document.createElement('div');
+fire.className = 'firework';
+fire.style.top = `${20 + Math.random() * 30}%`;
+fire.style.left = `${20 + Math.random() * 60}%`;
+fire.style.animationDuration = "1.8s";
+fire.style.boxShadow = `
+0 -50px #f0f,
+40px -40px #0ff,
+50px 0 #ff0,
+40px 40px #0f0,
+0 50px #00f,
+-40px 40px #f00,
+-50px 0 #fff,
+-40px -40px #0ff
+`;
+container.appendChild(fire);
+setTimeout(() => fire.remove(), 1800);
+}, i * 400);
+}
+
+// 🎉 Confettis
+for (let i = 0; i < 50; i++) {
+const confetti = document.createElement("div");
+confetti.style.position = "fixed";
+confetti.style.left = Math.random() * 100 + "vw";
+confetti.style.top = "-10px";
+confetti.style.width = "8px";
+confetti.style.height = "8px";
+confetti.style.borderRadius = "50%";
+confetti.style.backgroundColor = ["#FFD700", "#00BCD4", "#FF4081", "#8BC34A", "#FF9800"][Math.floor(Math.random() * 5)];
+confetti.style.opacity = Math.random() * 0.9 + 0.1;
+confetti.style.zIndex = 5000;
+confetti.style.pointerEvents = "none";
+confetti.style.animation = `confettiFall ${2 + Math.random() * 2}s linear ${Math.random()}s forwards`;
+document.body.appendChild(confetti);
+setTimeout(() => confetti.remove(), 5000);
+}
+
+// 🌐 Vibration écran rapide
+//document.body.classList.add("shake");
+//setTimeout(() => document.body.classList.remove("shake"), 600);
+// 🐼 Panda tourne sans rebondir
 const marker = document.querySelector(".progress-marker");
 if (marker) {
 marker.animate([
@@ -1780,38 +1845,7 @@ easing: "ease-in-out"
 }
 }
 
-// PWA installation
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-e.preventDefault();
-deferredPrompt = e;
-document.getElementById('boutonInstaller').style.display = 'block';
-});
-
-document.getElementById('boutonInstaller').addEventListener('click', () => {
-deferredPrompt.prompt();
-deferredPrompt.userChoice.then((choiceResult) => {
-if (choiceResult.outcome === 'accepted') {
-console.log('PWA installée');
-}
-deferredPrompt = null;
-});
-});
-
-// Service Worker
-if ('serviceWorker' in navigator) {
-window.addEventListener('load', () => {
-navigator.serviceWorker.register('/sw.js').then(
-(registration) => {
-console.log('Service Worker enregistré:', registration);
-},
-(error) => {
-console.log('Échec Service Worker:', error);
-}
-);
-});
-}
-
+// Démarrage du jeu
 window.onload = () => {
 initGame();
 };
