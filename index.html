@@ -486,10 +486,7 @@ box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.
 }
 
   
-.arcade-button:disabled {
-cursor: not-allowed;
-opacity: 0.6;
-}
+
 
 .arcade-button:disabled:hover {
 transform: none;
@@ -548,7 +545,10 @@ animation: incorrectShake 0.6s ease-in-out;
 100% { transform: translateX(0); }
 }
 
-
+.arcade-button:disabled {
+cursor: not-allowed;
+opacity: 0.6;
+}
 /* ----mettre ici les conditions boutons pour tél et ipad------------*/
 
 
@@ -1631,8 +1631,10 @@ btn.classList.add("clicked-glow");
 
 // Garder l'effet d'opacité pour les autres boutons
 container.querySelectorAll("button").forEach(b => {
-b.disabled = true;
-if (b !== btn) b.style.opacity = 0.5;
+  b.disabled = true;
+  if (b === btn) {
+    b.classList.add("clicked");
+  }
 });
 checkAnswer();
 };
@@ -1664,7 +1666,7 @@ buttons.forEach(btn => {
 
   if (btn.innerText === correctAnswers[index]) {
     btn.disabled = false;
-    btn.style.opacity = '1';
+ /*   btn.style.opacity = '1';*/
     btn.classList.add("correct");
 
     if (btn.innerText === userSelections[index]) {
