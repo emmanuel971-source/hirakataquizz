@@ -852,7 +852,7 @@ margin: 0.1em 0;
 </style>
 </head>
 <body>
-<h1>🌿⛩️ Hira-Kata-Quizzz Zen ⛩️🌸</h1>
+<h1>🌿⛩️ Hira-Kata-Quizzz ⛩️🌸</h1>
 <div id="progressBarContainer"></div>
 <div class="level" id="levelDisplay">Niveau actuel : 1</div>
 <div class="level-hiraganas">
@@ -1364,7 +1364,7 @@ console.log('Animation terminée');
 }
 requestAnimationFrame(animate);
 }
-
+/*
 function cleanupOldParticles() {
 while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
 const oldSpark = activeSparks.shift();
@@ -1386,7 +1386,7 @@ console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${global
 setInterval(cleanupOldParticles, 3000);
 
 const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30;
-
+*/
 function getMaxLevel(list) {
 if (!list || list.length === 0) return 1;
 return Math.max(...list.map(k => parseInt(k.Niveau) || 1));
