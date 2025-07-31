@@ -31,7 +31,7 @@ z-index: -1;
 }
   
 h1 {
-margin: 0.5em 0;
+margin: 0.3em 0;
 font-size: 1.8em;
 text-align: center;
 color: #8B6F47;
@@ -266,37 +266,48 @@ z-index: 10;
 /* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION tél */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
 
-.level-hiraganas {
-max-width: none;
-width: 100vw; /* pleine largeur de l’écran */
-width: 100%;
-padding: 0 2em;
-box-sizing: border-box;
+  .level-hiraganas {
+    max-width: none;
+    width: 100vw; /* pleine largeur de l’écran */
+    padding: 0 2em;
+    box-sizing: border-box;
+  }
+
+  .hiraganas-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly; /* étale les cartes */
+    gap: 40px; /* espace entre les cartes */
+  }
+
+  .hiragana-card {
+    /* transform: scale(1.1); ← à retirer si ça pose problème */
+    flex: 1 1 100px; /* permet aux cartes de s’adapter à la largeur */
+    max-width: 120px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 10px;
+    background: #FFFFFF;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .hiragana-char {
+    font-size: 4em;
+    margin-bottom: 10px;
+  }
+
+  .stars-container {
+    gap: 2px;
+  }
+
+  .star {
+    width: 24px;
+    height: 24px;
+  }
 }
 
-
-.hiraganas-grid {
-gap: 40px; /* 60 px max d’espace horizontal ET vertical entre les cards sinon ca déborde sur 2 lignes*/
-}
-
-.hiragana-card {
-transform: scale(1.1);
-}
-
-.hiragana-char {
-font-size: 4em;
-margin-bottom: 10px;
-}
-
-.stars-container {
-gap: 2px;
-}
-
-.star {
-width: 24px; /* 24 px trop gros pour Ipad ca déborde sur 2 lignes*/
-height: 24px;
-}
-}
 
 /* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION Ipad */
 
