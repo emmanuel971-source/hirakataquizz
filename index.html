@@ -868,7 +868,7 @@ margin: 0.1em 0;
 </style>
 </head>
 <body>
-<h1>🌿⛩️ Welcome to Hira-Kata-Quiz ⛩️🌸</h1>
+<h1>🌿⛩️ Welcome to Hira-Kata-Quizzz ⛩️🌸</h1>
 <div id="progressBarContainer"></div>
 <div class="level" id="levelDisplay">Niveau actuel : 1</div>
 <div class="level-hiraganas">
@@ -897,7 +897,9 @@ let niveauActif = 1;
 let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
+let previousCharacter = null;
 
+  
 function logError(msg) {
 console.warn(msg);
 }
@@ -1563,56 +1565,62 @@ nextQuestion();
 }
 
 function nextQuestion() {
-document.getElementById("result").innerText = "";
-document.getElementById("continueBtn").style.visibility = "hidden";
-selections = { first: null, second: null };
-isAnswered = false;
+    document.getElementById("result").innerText = "";
+    document.getElementById("continueBtn").style.visibility = "hidden";
+    selections = { first: null, second: null };
+    isAnswered = false;
 
-const kanas = HiraganaList.filter(k =>
-parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
-);
+    const kanas = HiraganaList.filter(k =>
+        parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
+    );
 
-if (kanas.length === 0) {
-const nouveauNiveau = determineNiveauActif(HiraganaList);
-if (nouveauNiveau !== niveauActif) {
-niveauActif = nouveauNiveau;
-document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-updateLevelProgress(HiraganaList, niveauActif);
-nextQuestion();
-return;
-}
-}
+    if (kanas.length === 0) {
+        const nouveauNiveau = determineNiveauActif(HiraganaList);
+        if (nouveauNiveau !== niveauActif) {
+            niveauActif = nouveauNiveau;
+            document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+            renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+            updateLevelProgress(HiraganaList, niveauActif);
+            nextQuestion();
+            return;
+        }
+    }
 
-const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
+    const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
 
-const currentWeights = finalKanas.map(k => {
-const validation = parseInt(k.Validation || 0);
-return Math.max(0.1, 5 - validation + 0.5);
-});
+    const currentWeights = finalKanas.map(k => {
+        const validation = parseInt(k.Validation || 0);
+        return Math.max(0.1, 5 - validation + 0.5);
+    });
 
-const sum = currentWeights.reduce((a, b) => a + b, 0);
-const rand = Math.random() * sum;
-let acc = 0;
-for (let i = 0; i < finalKanas.length; i++) {
-acc += currentWeights[i];
-if (rand < acc) {
-current = finalKanas[i];
-break;
-}
-}
+    let selected;
+    do {
+        const sum = currentWeights.reduce((a, b) => a + b, 0);
+        const rand = Math.random() * sum;
+        let acc = 0;
+        for (let i = 0; i < finalKanas.length; i++) {
+            acc += currentWeights[i];
+            if (rand < acc) {
+                selected = finalKanas[i];
+                break;
+            }
+        }
+    } while (selected === previousCharacter && finalKanas.length > 1); // Repeat if same as previous and more than one option exists
 
-const modes = [
-{ question: "Hiragana", options1: "Katakana", options2: "Romaji" },
-{ question: "Katakana", options1: "Hiragana", options2: "Romaji" },
-{ question: "Romaji", options1: "Hiragana", options2: "Katakana" }
-];
-const mode = modes[Math.floor(Math.random() * modes.length)];
-targetFields = [mode.options1, mode.options2];
+    current = selected;
+    previousCharacter = current; // Update previous character
 
-document.getElementById("question").innerText = current[mode.question];
-renderChoices("choices1", generateChoices(mode.options1), "first");
-renderChoices("choices2", generateChoices(mode.options2), "second");
+    const modes = [
+        { question: "Hiragana", options1: "Katakana", options2: "Romaji" },
+        { question: "Katakana", options1: "Hiragana", options2: "Romaji" },
+        { question: "Romaji", options1: "Hiragana", options2: "Katakana" }
+    ];
+    const mode = modes[Math.floor(Math.random() * modes.length)];
+    targetFields = [mode.options1, mode.options2];
+
+    document.getElementById("question").innerText = current[mode.question];
+    renderChoices("choices1", generateChoices(mode.options1), "first");
+    renderChoices("choices2", generateChoices(mode.options2), "second");
 }
 
 function generateChoices(field) {
