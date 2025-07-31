@@ -480,6 +480,12 @@ transform: translateY(2px) scale(0.98);
 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
 }
 
+.arcade-button.clicked:disabled {
+  opacity: 1 !important;
+  cursor: default;
+}
+
+  
 .arcade-button:disabled {
 cursor: not-allowed;
 opacity: 0.6;
@@ -1654,20 +1660,27 @@ btn.classList.remove("clicked-glow");
 containers.forEach((container, index) => {
 const buttons = container.querySelectorAll("button");
 buttons.forEach(btn => {
-btn.classList.remove("correct", "incorrect");
-if (btn.innerText === correctAnswers[index]) {
-btn.disabled = false;
-btn.style.opacity = '1';
-btn.classList.add("correct");
-if (btn.innerText === userSelections[index]) {
-score += 0.5;
-}
-} else if (btn.innerText === userSelections[index]) {
-btn.disabled = false;
-btn.style.opacity = '1';
-btn.classList.add("incorrect");
-}
+  btn.classList.remove("correct", "incorrect");
+
+  if (btn.innerText === correctAnswers[index]) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.classList.add("correct");
+
+    if (btn.innerText === userSelections[index]) {
+      score += 0.5;
+      btn.classList.add("clicked"); // ✅ ICI : marquer le bouton cliqué et correct
+    }
+
+  } else if (btn.innerText === userSelections[index]) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.classList.add("incorrect");
+    btn.classList.add("clicked"); // ✅ ICI : marquer le bouton cliqué et incorrect
+  }
 });
+
+  
 });
 
 const currentValidation = parseInt(current.Validation || 0);
