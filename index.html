@@ -274,13 +274,13 @@ z-index: 10;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly; /* étale les cartes */
-    gap: 15px; /* espace entre les cartes */
+    gap: 15px; /* RÉDUIT de 40px à 15px */
   }
 
   .hiragana-card {
     /* transform: scale(1.1); ← à retirer si ça pose problème */
-    flex: 1 1 100px; /* permet aux cartes de s’adapter à la largeur */
-    max-width: 120px;
+    flex: 1 1 auto; /* permet aux cartes de s'adapter à la largeur */
+    min-width: 80px; /* largeur minimale */
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
