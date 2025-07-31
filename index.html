@@ -439,155 +439,121 @@ padding: 0 1em;
 /* STYLES BOUTONS ARCADE - INTÉGRÉS */
 
 /* Styles boutons bois/domino */
+/* Styles boutons bois/domino */
 .arcade-button {
-position: relative;
-background: #F5E8C7; /* Ivoire/bois clair */
-background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
-border: 2px solid #8B6F47; /* Marron clair */
-border-radius: 10px;
-padding: 0.8em 1.5em;
-color: #8B6F47;
-font-size: 1.4em;
-line-height: 0.6;
-white-space: normal;
-font-weight: bold;
-cursor: pointer;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-transition: all 0.15s ease;
-text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
-overflow: hidden;
-min-width: 120px;
-text-align: center;
+    position: relative;
+    background: #F5E8C7; /* Ivoire/bois clair */
+    background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
+    border: 2px solid #8B6F47; /* Marron clair */
+    border-radius: 10px;
+    padding: 0.8em 1.5em;
+    color: #8B6F47;
+    font-size: 1.4em;
+    line-height: 0.6;
+    white-space: normal;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+    transition: all 0.15s ease;
+    text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
+    overflow: hidden;
+    min-width: 120px;
+    text-align: center;
 }
 
 .arcade-button::before {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-height: 50%;
-background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-border-top-left-radius: 10px;
-border-top-right-radius: 10px;
-pointer-events: none;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    pointer-events: none;
 }
 
 .arcade-button:hover {
-transform: translateY(-2px) scale(1.02);
-box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-border-color: #7A5C3A; /* Marron clair légèrement plus foncé */
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+    border-color: #7A5C3A; /* Marron clair légèrement plus foncé */
 }
 
 .arcade-button:active {
-transform: translateY(2px) scale(0.98);
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
-}
-
-.arcade-button.clicked:disabled {
-  opacity: 1 !important;
-  cursor: default;
-}
-
-  
-
-
-.arcade-button:disabled:hover {
-transform: none;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-border-color: #8B6F47;
-}
-
-.arcade-button:disabled:active {
-transform: none;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-}
-
-.arcade-button.clicked-glow {
-text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
-animation: glowPulse 1s ease-in-out infinite;
-}
-
-.arcade-button.correct {
-background: linear-gradient(135deg, #A8D5BA 0%, #DDE6D5 100%); /* Vert matcha */
-color: #8B6F47;
-border-color: #A8D5BA;
-background-image: none;
-animation: correctGlow 0.6s ease-in-out;
-}
-
-.arcade-button.incorrect {
-background: linear-gradient(135deg, #FDC1C5 0%, #FFB6C1 100%); /* Rose sakura */
-color: #8B6F47;
-border-color: #FDC1C5;
-background-image: none;
-animation: incorrectShake 0.6s ease-in-out;
-}
-
-@keyframes glowPulse {
-0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
-50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
-}
-
-@keyframes correctGlow {
-0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
-50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
-100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
-}
-
-@keyframes incorrectShake {
-0% { transform: translateX(0); }
-10% { transform: translateX(-8px); }
-20% { transform: translateX(8px); }
-30% { transform: translateX(-6px); }
-40% { transform: translateX(6px); }
-50% { transform: translateX(-4px); }
-60% { transform: translateX(4px); }
-70% { transform: translateX(-2px); }
-80% { transform: translateX(2px); }
-90% { transform: translateX(-1px); }
-100% { transform: translateX(0); }
+    transform: translateY(2px) scale(0.98);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
 }
 
 .arcade-button:disabled {
-cursor: not-allowed;
-opacity: 0.6;
+    cursor: not-allowed;
+    opacity: 0.8;
 }
 
-.arcade-button.incorrect-clicked:disabled {
-  background-color: rgba(253, 193, 197, 0.3); /* rose sakura pastel */
-  opacity: 1 !important;
-  cursor: default;
+.arcade-button.clicked-glow {
+    text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
+    animation: glowPulse 1s ease-in-out infinite;
 }
 
-.arcade-button.correct-reveal:disabled {
-  background-color: rgba(168, 213, 186, 0.3); /* vert matcha pastel */
-  opacity: 1 !important;
-  cursor: default;
-}
-  
-/* ----mettre ici les conditions boutons pour tél et ipad------------*/
-
-
-@media screen and (max-width: 768px),
-screen and (-webkit-min-device-pixel-ratio: 2),
-screen and (min-resolution: 192dpi) {
-
-button, a, input, textarea {
--webkit-tap-highlight-color: transparent;
+.arcade-button.correct {
+    background: linear-gradient(135deg, #A8D5BA 0%, #DDE6D5 100%); /* Vert matcha */
+    color: #8B6F47;
+    border-color: #A8D5BA;
+    background-image: none;
+    animation: correctGlow 0.6s ease-in-out;
+    opacity: 1 !important;
 }
 
-.arcade-button {
-font-size: 4em;
-aspect-ratio: 1 / 0.6;  /* hauteur 2.5× plus grande que la largeur */
-width: 100%;
-box-sizing: border-box;
-padding: 0;  /* le ratio suffit, pas besoin de padding vertical ici */
-display: flex;
-align-items: center;
-justify-content: center;
-text-align: center;
+.arcade-button.incorrect {
+    background: linear-gradient(135deg, #FDC1C5 0%, #FFB6C1 100%); /* Rose sakura */
+    color: #8B6F47;
+    border-color: #FDC1C5;
+    background-image: none;
+    animation: incorrectShake 0.6s ease-in-out;
+    opacity: 1 !important;
 }
+
+@keyframes glowPulse {
+    0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
+    50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
+}
+
+@keyframes correctGlow {
+    0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+    50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
+    100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+}
+
+@keyframes incorrectShake {
+    0% { transform: translateX(0); }
+    10% { transform: translateX(-8px); }
+    20% { transform: translateX(8px); }
+    30% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    50% { transform: translateX(-4px); }
+    60% { transform: translateX(4px); }
+    70% { transform: translateX(-2px); }
+    80% { transform: translateX(2px); }
+    90% { transform: translateX(-1px); }
+    100% { transform: translateX(0); }
+}
+
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+    button, a, input, textarea {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .arcade-button {
+        font-size: 4em;
+        aspect-ratio: 1 / 0.6;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
 }
 
 
@@ -1670,125 +1636,114 @@ container.appendChild(btn);
 });
 }
 
-  async function checkAnswer() {
-if (selections.first && selections.second && !isAnswered) {
-isAnswered = true;
-const correct1 = current[targetFields[0]];
-const correct2 = current[targetFields[1]];
-let score = 0;
-const containers = [document.getElementById("choices1"), document.getElementById("choices2")];
-const correctAnswers = [correct1, correct2];
-const userSelections = [selections.first, selections.second];
+async function checkAnswer() {
+  if (selections.first && selections.second && !isAnswered) {
+    isAnswered = true;
+    const correct1 = current[targetFields[0]];
+    const correct2 = current[targetFields[1]];
+    let score = 0;
+    const containers = [document.getElementById("choices1"), document.getElementById("choices2")];
+    const correctAnswers = [correct1, correct2];
+    const userSelections = [selections.first, selections.second];
 
-// Retirer l'effet de halo
-containers.forEach(container => {
-container.querySelectorAll("button").forEach(btn => {
-btn.classList.remove("clicked-glow");
-});
-});
+    // Retirer l'effet de halo
+    containers.forEach(container => {
+      container.querySelectorAll("button").forEach(btn => {
+        btn.classList.remove("clicked-glow");
+      });
+    });
 
-containers.forEach((container, index) => {
-const buttons = container.querySelectorAll("button");
-buttons.forEach(btn => {
-  btn.classList.remove("correct", "incorrect");
-  
-if (btn.innerText === correctAnswers[index]) {
-  if (btn.innerText === userSelections[index]) {
-    score += 0.5;
-    btn.classList.add("correct");
-    btn.classList.add("clicked");
-    btn.disabled = true;
-  } else {
-    btn.classList.add("correct-reveal");
-    btn.disabled = true;
+    // Appliquer les classes pour les voiles
+    containers.forEach((container, index) => {
+      const buttons = container.querySelectorAll("button");
+      buttons.forEach(btn => {
+        btn.classList.remove("correct", "incorrect", "correct-reveal", "incorrect-clicked");
+
+        if (btn.innerText === correctAnswers[index]) {
+          // Toutes les bonnes réponses (cliquées ou non) ont le voile vert
+          btn.classList.add("correct");
+          btn.disabled = true;
+          if (btn.innerText === userSelections[index]) {
+            score += 0.5;
+          }
+        } else if (btn.innerText === userSelections[index]) {
+          // Bouton cliqué mais incorrect : voile rouge
+          btn.classList.add("incorrect");
+          btn.disabled = true;
+        } else {
+          // Bouton non cliqué et incorrect : reste neutre
+          btn.disabled = true;
+        }
+      });
+    });
+
+    // Reste du code inchangé...
+    const currentValidation = parseInt(current.Validation || 0);
+    let newValidation = currentValidation;
+
+    if (score === 1) {
+      newValidation = Math.min(5, currentValidation + 1);
+    } else if (score === 0.5) {
+      newValidation = Math.max(0, currentValidation - 1);
+    } else {
+      newValidation = Math.max(0, currentValidation - 2);
+    }
+
+    const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
+
+    updateStarsForHiragana(parseInt(current.ID), newValidation);
+
+    const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
+    if (hiraganaIndex !== -1) {
+      HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+    }
+
+    let emoji = "", resultText = "";
+    if (score === 1) {
+      const emojisOK = ["🌸", "🎍", "🍵", "🪴"];
+      emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
+      resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
+      if (!isFinalValidation) {
+        playMarioCoin();
+      }
+    } else if (score === 0.5) {
+      const emojisMid = ["🪨", "🌿", "🪵"];
+      emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
+      resultText = "Presque...";
+      playSuccess90s();
+    } else {
+      const emojisBad = ["🍂", "🌫️", "🪨"];
+      emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
+      resultText = "Pas tout à fait...";
+      playFail();
+    }
+
+    document.getElementById("result").innerHTML = `
+      <div class="result-line">${emoji} ${resultText} ${emoji}</div>
+      <div class="result-line highlight">
+        👉 Bonnes réponses : <strong>${correct1}</strong> – <strong>${correct2}</strong>
+      </div>`;
+
+    if (score === 1) {
+      document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
+      setTimeout(nextQuestion, 1500);
+    } else {
+      document.getElementById("continueBtn").style.visibility = "visible";
+    }
+
+    callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
+      .then(response => {
+        if (response.error) {
+          console.warn('Erreur sauvegarde:', response.error);
+        } else {
+          console.log('✅ Score sauvegardé en arrière-plan');
+        }
+      })
+      .catch(error => {
+        console.error('Erreur lors de la sauvegarde:', error);
+      });
   }
-} else if (btn.innerText === userSelections[index]) {
-  btn.classList.add("incorrect-clicked");
-  btn.disabled = true;
-} else {
-  btn.disabled = true;
 }
-
-
-  
-});
-
-  
-});
-
-const currentValidation = parseInt(current.Validation || 0);
-let newValidation = currentValidation;
-
-if (score === 1) {
-newValidation = Math.min(5, currentValidation + 1);
-} else if (score === 0.5) {
-newValidation = Math.max(0, currentValidation - 1);
-} else {
-newValidation = Math.max(0, currentValidation - 2);
-}
-
-const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
-
-// ✅ MISE À JOUR IMMÉDIATE DE L'INTERFACE
-updateStarsForHiragana(parseInt(current.ID), newValidation);
-
-const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
-if (hiraganaIndex !== -1) {
-HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-}
-
-// ✅ AFFICHAGE IMMÉDIAT DU RÉSULTAT
-let emoji = "", resultText = "";
-if (score === 1) {
-const emojisOK = ["🌸", "🎍", "🍵", "🪴"];
-emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
-if (!isFinalValidation) {
-playMarioCoin();
-}
-} else if (score === 0.5) {
-const emojisMid = ["🪨", "🌿", "🪵"];
-emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
-resultText = "Presque...";
-playSuccess90s();
-} else {
-const emojisBad = ["🍂", "🌫️", "🪨"];
-emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
-resultText = "Pas tout à fait...";
-playFail();
-}
-
-document.getElementById("result").innerHTML = `
-<div class="result-line">${emoji} ${resultText} ${emoji}</div>
-<div class="result-line highlight">
-👉 Bonnes réponses : <strong>${correct1}</strong> – <strong>${correct2}</strong>
-</div>`;
-
-if (score === 1) {
-document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
-setTimeout(nextQuestion, 1500);
-} else {
-document.getElementById("continueBtn").style.visibility = "visible";
-}
-
-// 🚀 APPEL API EN ARRIÈRE-PLAN (NON-BLOQUANT)
-// L'interface est déjà mise à jour, on peut faire l'appel tranquillement
-callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
-.then(response => {
-if (response.error) {
-console.warn('Erreur sauvegarde:', response.error);
-// Optionnel : afficher une petite notification d'erreur discrète
-} else {
-console.log('✅ Score sauvegardé en arrière-plan');
-}
-})
-.catch(error => {
-console.error('Erreur lors de la sauvegarde:', error);
-// Optionnel : implémenter une file d'attente pour réessayer plus tard
-});
-}
-}
-
 
 
 
