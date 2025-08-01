@@ -1717,19 +1717,19 @@ HiraganaList[hiraganaIndex].Validation = newValidation.toString();
 
 let emoji = "", resultText = "";
 if (score === 1) {
-const emojisOK = ["🌸", "🎍", "🍵", "🪴"];
+const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"]; 
 emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
 resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
 if (!isFinalValidation) {
 playMarioCoin();
 }
 } else if (score === 0.5) {
-const emojisMid = ["🪨", "🌿", "🪵"];
+const emojisMid = ["🪨", "🌿", "🪵", "🍃", "🌳", "🎋"];
 emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
 resultText = "Presque...";
 playSuccess90s();
 } else {
-const emojisBad = ["🍂", "🌫️", "🪨"];
+const emojisBad = ["🙈", "🙊", "🪨", "🌊", "🍂", "🍁"];  
 emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
 resultText = "Pas tout à fait...";
 playFail();
@@ -1738,7 +1738,7 @@ playFail();
 document.getElementById("result").innerHTML = `
 <div class="result-line">${emoji} ${resultText} ${emoji}</div>
 <div class="result-line highlight">
-👉 Bonnes réponses : <strong>${correct1}</strong> – <strong>${correct2}</strong>
+👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
 
 if (score === 1) {
