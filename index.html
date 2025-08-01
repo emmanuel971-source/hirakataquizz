@@ -1645,8 +1645,8 @@ function nextQuestion() {
     const mode = modes[Math.floor(Math.random() * modes.length)];
     targetFields = [mode.options1, mode.options2];
 
-    const questionElement = document.getElementById("question");
-questionElement.innerText = current[mode.question];
+  const questionElement = document.getElementById("question");
+questionElement.innerHTML = `<span style="opacity: 0;">${current[mode.question]}</span>`;
 questionElement.setAttribute("data-text", current[mode.question]);
     renderChoices("choices1", generateChoices(mode.options1), "first");
     renderChoices("choices2", generateChoices(mode.options2), "second");
