@@ -1747,15 +1747,18 @@ document.getElementById("result").innerHTML = `
 👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
 
-// 🔊 Jouer le fichier audio mp3 correspondant au Hiragana
+// 🔊 Jouer le fichier MP3 correspondant au Hiragana
 if (current && current.Hiragana) {
   const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
-  const audioUrl = `https://tonpseudo.github.io/tonrepo/audio/${audioFile}`;
+  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+  console.log("🎧 Lecture du son :", audioUrl);
+
   const audio = new Audio(audioUrl);
   audio.play().catch(e => console.warn("Erreur audio :", e));
 } else {
-  console.warn("❗ Aucun Hiragana à jouer.");
+  console.warn("❗ Aucun Hiragana à prononcer.");
 }
+
 
     
 if (score === 1) {
@@ -1917,6 +1920,7 @@ speechSynthesis.onvoiceschanged = () => {
 </script>
 </body>
 </html>
+
 
 
 
