@@ -1752,6 +1752,12 @@ document.getElementById("result").innerHTML = `
 <div class="result-line highlight">
 👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
+// 🔊 Prononcer la bonne réponse à voix haute (Romaji uniquement)
+const toSpeak = `${correct1}, ${correct2}`;
+const utterance = new SpeechSynthesisUtterance(toSpeak);
+utterance.lang = "ja-JP"; // Langue japonaise pour une meilleure prononciation
+utterance.rate = 0.9;     // Vitesse légèrement réduite pour bien entendre
+speechSynthesis.speak(utterance);
 
 if (score === 1) {
 document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
@@ -1907,4 +1913,5 @@ initGame();
 </script>
 </body>
 </html>
+
 
