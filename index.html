@@ -3,11 +3,12 @@
 
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link rel="icon" href="data:,">
 <base target="_top">
 <style>
-  html, body {
+html, body, button, a {
   touch-action: manipulation;
 }
 
@@ -1753,7 +1754,16 @@ document.getElementById("result").innerHTML = `
 👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
 // 🔊 Prononcer la bonne réponse à voix haute (Romaji uniquement)
-const toSpeak = `${correct1}, ${correct2}`;
+let toSpeak;
+if (mode.question === "Romaji") {
+    // Si la question est en français, prononcer les réponses japonaises (hiragana + katakana)
+    toSpeak = `${current.Hiragana}, ${current.Katakana}`;
+} else {
+    // Si la question est en japonais (hiragana ou katakana), prononcer la question
+    toSpeak = current[mode.question];
+}
+    
+    
 const utterance = new SpeechSynthesisUtterance(toSpeak);
 utterance.lang = "ja-JP"; // Langue japonaise pour une meilleure prononciation
 utterance.rate = 0.9;     // Vitesse légèrement réduite pour bien entendre
@@ -1913,5 +1923,3 @@ initGame();
 </script>
 </body>
 </html>
-
-
