@@ -1748,11 +1748,25 @@ document.getElementById("result").innerHTML = `
 </div>`;
 
 // 🔊 Prononcer systématiquement la colonne Hiragana à voix haute
-const toSpeak = current.Hiragana;
-const utterance = new SpeechSynthesisUtterance(toSpeak);
-utterance.lang = "ja-JP";
-utterance.rate = 0.9;
-speechSynthesis.speak(utterance);
+if (current && current.Hiragana) {
+  const toSpeak = current.Hiragana;
+  console.log("🔊 Prononciation :", toSpeak); // Debug console
+
+  const utterance = new SpeechSynthesisUtterance(toSpeak);
+  utterance.lang = "ja-JP";
+  utterance.rate = 0.9;
+
+  // Forcer l'utilisation d'une voix japonaise si disponible
+  const voices = speechSynthesis.getVoices();
+  const japaneseVoice = voices.find(v => v.lang.startsWith("ja"));
+  if (japaneseVoice) {
+    utterance.voice = japaneseVoice;
+  }
+
+  speechSynthesis.speak(utterance);
+} else {
+  console.warn("❗ Aucun Hiragana à prononcer.");
+}
 
 
     
@@ -1910,5 +1924,6 @@ initGame();
 </script>
 </body>
 </html>
+
 
 
