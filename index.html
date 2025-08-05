@@ -902,7 +902,30 @@ function logError(msg) {
 console.warn(msg);
 }
 
+function speakHiragana(hiragana) {
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(hiragana);
+    utterance.lang = 'ja-JP'; // Langue japonaise
+    const voices = speechSynthesis.getVoices();
+    const japaneseVoice = voices.find(voice => voice.lang.includes('ja-JP'));
+    if (japaneseVoice) {
+      utterance.voice = japaneseVoice; // Utiliser une voix japonaise si disponible
+    }
+    utterance.volume = 1;
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    speechSynthesis.speak(utterance);
+  } else {
+    console.warn("Synthèse vocale non supportée par le navigateur.");
+  }
+}
 
+// Charger les voix au démarrage (nécessaire pour certains navigateurs comme Chrome)
+window.speechSynthesis.onvoiceschanged = () => {
+  window.speechSynthesis.getVoices(); // Précharge les voix
+};
+
+  
 function testFeu() {
 const container = document.querySelector('.quiz-container');
 if (isMobile) {
@@ -1655,111 +1678,100 @@ container.appendChild(btn);
 }
 
 async function checkAnswer() {
-if (selections.first && selections.second && !isAnswered) {
-isAnswered = true;
-const correct1 = current[targetFields[0]];
-const correct2 = current[targetFields[1]];
-let score = 0;
-const containers = [document.getElementById("choices1"), document.getElementById("choices2")];
-const correctAnswers = [correct1, correct2];
-const userSelections = [selections.first, selections.second];
+  if (selections.first && selections.second && !isAnswered) {
+    isAnswered = true;
+    const correct1 = current[targetFields[0]];
+    const correct2 = current[targetFields[1]];
+    let score = 0;
+    const containers = [document.getElementById("choices1"), document.getElementById("choices2")];
+    const correctAnswers = [correct1, correct2];
+    const userSelections = [selections.first, selections.second];
 
-// Retirer l'effet de halo
-containers.forEach(container => {
-container.querySelectorAll("button").forEach(btn => {
-btn.classList.remove("clicked-glow", "correct", "incorrect");
-});
-});
+    containers.forEach((container, index) => {
+      const buttons = container.querySelectorAll("button");
+      buttons.forEach(btn => {
+        if (btn.innerText === correctAnswers[index]) {
+          btn.classList.add("correct");
+          btn.disabled = true;
+          if (btn.innerText === userSelections[index]) {
+            score += 0.5;
+            btn.classList.add("clicked");
+          }
+        } else if (btn.innerText === userSelections[index]) {
+          btn.classList.add("incorrect");
+          btn.disabled = true;
+        } else {
+          btn.disabled = true;
+        }
+      });
+    });
 
-// Appliquer les classes pour les voiles
-containers.forEach((container, index) => {
-const buttons = container.querySelectorAll("button");
-buttons.forEach(btn => {
-if (btn.innerText === correctAnswers[index]) {
-// Toutes les bonnes réponses (cliquées ou non) ont le voile vert
-btn.classList.add("correct");
-btn.disabled = true;
-if (btn.innerText === userSelections[index]) {
-score += 0.5;
-btn.classList.add("clicked"); // Maintenir .clicked pour style
-}
-} else if (btn.innerText === userSelections[index]) {
-// Bouton cliqué mais incorrect : voile rouge
-btn.classList.add("incorrect");
-btn.disabled = true;
-} else {
-// Bouton non cliqué et incorrect : reste neutre
-btn.disabled = true;
-}
-});
-});
+    const currentValidation = parseInt(current.Validation || 0);
+    let newValidation = currentValidation;
 
-// Reste du code inchangé...
-const currentValidation = parseInt(current.Validation || 0);
-let newValidation = currentValidation;
+    if (score === 1) {
+      newValidation = Math.min(5, currentValidation + 1);
+    } else if (score === 0.5) {
+      newValidation = Math.max(0, currentValidation - 1);
+    } else {
+      newValidation = Math.max(0, currentValidation - 2);
+    }
 
-if (score === 1) {
-newValidation = Math.min(5, currentValidation + 1);
-} else if (score === 0.5) {
-newValidation = Math.max(0, currentValidation - 1);
-} else {
-newValidation = Math.max(0, currentValidation - 2);
-}
+    const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
 
-const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
+    updateStarsForHiragana(parseInt(current.ID), newValidation);
 
-updateStarsForHiragana(parseInt(current.ID), newValidation);
+    const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
+    if (hiraganaIndex !== -1) {
+      HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+    }
 
-const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
-if (hiraganaIndex !== -1) {
-HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-}
+    let emoji = "", resultText = "";
+    if (score === 1) {
+      const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"];
+      emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
+      resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
+      playMarioCoin();
+      setTimeout(() => speakHiragana(current.Hiragana), 500); // Prononcer après le son
+    } else if (score === 0.5) {
+      const emojisMid = ["🪨", "🌿", "🪵", "🍃", "🌳", "🎋"];
+      emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
+      resultText = "Presque...";
+      playSuccess90s();
+      setTimeout(() => speakHiragana(current.Hiragana), 500); // Prononcer après le son
+    } else {
+      const emojisBad = ["🙈", "🙊", "🪨", "🌊", "🍂", "🍁"];
+      emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
+      resultText = "Pas tout à fait...";
+      playFail();
+      setTimeout(() => speakHiragana(current.Hiragana), 500); // Prononcer après le son
+    }
 
-let emoji = "", resultText = "";
-if (score === 1) {
-const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"];
-emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
-if (!isFinalValidation) {
-playMarioCoin();
-}
-} else if (score === 0.5) {
-const emojisMid = ["🪨", "🌿", "🪵", "🍃", "🌳", "🎋"];
-emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
-resultText = "Presque...";
-playSuccess90s();
-} else {
-const emojisBad = ["🙈", "🙊", "🪨", "🌊", "🍂", "🍁"];
-emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
-resultText = "Pas tout à fait...";
-playFail();
-}
+    document.getElementById("result").innerHTML = `
+      <div class="result-line">${emoji} ${resultText} ${emoji}</div>
+      <div class="result-line highlight">
+        👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
+      </div>`;
 
-document.getElementById("result").innerHTML = `
-<div class="result-line">${emoji} ${resultText} ${emoji}</div>
-<div class="result-line highlight">
-👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
-</div>`;
+    if (score === 1) {
+      document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
+      setTimeout(nextQuestion, 1500);
+    } else {
+      document.getElementById("continueBtn").style.visibility = "visible";
+    }
 
-if (score === 1) {
-document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
-setTimeout(nextQuestion, 1500);
-} else {
-document.getElementById("continueBtn").style.visibility = "visible";
-}
-
-callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
-.then(response => {
-if (response.error) {
-console.warn('Erreur sauvegarde:', response.error);
-} else {
-console.log('✅ Score sauvegardé en arrière-plan');
-}
-})
-.catch(error => {
-console.error('Erreur lors de la sauvegarde:', error);
-});
-}
+    callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
+      .then(response => {
+        if (response.error) {
+          console.warn('Erreur sauvegarde:', response.error);
+        } else {
+          console.log('✅ Score sauvegardé en arrière-plan');
+        }
+      })
+      .catch(error => {
+        console.error('Erreur lors de la sauvegarde:', error);
+      });
+  }
 }
 
 function triggerLightFirework(card) {
@@ -1895,3 +1907,4 @@ initGame();
 </script>
 </body>
 </html>
+
