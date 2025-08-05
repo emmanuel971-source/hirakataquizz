@@ -633,11 +633,7 @@ text-align: center;
 margin-top: 1.2em;
 font-size: 3em;
 }
-result-line.highlight {
-    line-height: 1.2; /* ou 1.3 si vous voulez encore plus d'espace */
-    margin-top: 0.5em; /* optionnel : ajoute un peu d'espace au-dessus */
-}
-    
+
 #continueBtn {
 margin-top: 1em;
 margin-bottom: 1em;
@@ -685,10 +681,7 @@ text-align: center;
 margin-top: 1.2em;
 font-size: 3em;
 }
-result-line.highlight {
-    line-height: 1.2; /* ou 1.3 si vous voulez encore plus d'espace */
-    margin-top: 0.5em; /* optionnel : ajoute un peu d'espace au-dessus */
-}
+
 #continueBtn {
 margin-top: 2em;
 margin-bottom: 2em;
@@ -1749,7 +1742,7 @@ document.getElementById("result").innerHTML = `
 </div>`;
 
 // 🔊 Prononcer la bonne réponse à voix haute (Romaji uniquement)
-const toSpeak = ${correct1}, ${correct2};
+const toSpeak = `${correct1}, ${correct2}`;
 const utterance = new SpeechSynthesisUtterance(toSpeak);
 utterance.lang = "ja-JP"; // Langue japonaise pour une meilleure prononciation
 utterance.rate = 0.9;     // Vitesse légèrement réduite pour bien entendre
