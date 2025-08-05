@@ -1747,12 +1747,13 @@ document.getElementById("result").innerHTML = `
 👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
 
-// 🔊 Prononcer la bonne réponse à voix haute (Romaji uniquement)
-const toSpeak = `${correct1}, ${correct2}`;
+// 🔊 Prononcer systématiquement la colonne Hiragana à voix haute
+const toSpeak = current.Hiragana;
 const utterance = new SpeechSynthesisUtterance(toSpeak);
-utterance.lang = "ja-JP"; // Langue japonaise pour une meilleure prononciation
-utterance.rate = 0.9;     // Vitesse légèrement réduite pour bien entendre
+utterance.lang = "ja-JP";
+utterance.rate = 0.9;
 speechSynthesis.speak(utterance);
+
 
     
 if (score === 1) {
@@ -1909,4 +1910,5 @@ initGame();
 </script>
 </body>
 </html>
+
 
