@@ -1747,35 +1747,15 @@ document.getElementById("result").innerHTML = `
 👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
 
-// 🔊 Prononcer systématiquement la colonne Hiragana à voix haute
+// 🔊 Jouer le fichier audio mp3 correspondant au Hiragana
 if (current && current.Hiragana) {
-  const toSpeak = current.Hiragana;
-  console.log("🔊 Prononciation :", toSpeak);
-
-  const utterance = new SpeechSynthesisUtterance(toSpeak);
-  utterance.lang = "ja-JP";
-  utterance.rate = 0.9;
-
-  const setVoice = () => {
-    const voices = speechSynthesis.getVoices();
-    const japaneseVoice = voices.find(v => v.lang.startsWith("ja"));
-    if (japaneseVoice) {
-      utterance.voice = japaneseVoice;
-    }
-    speechSynthesis.speak(utterance);
-  };
-
-  // ⚠️ Si les voix ne sont pas encore chargées
-  if (speechSynthesis.getVoices().length === 0) {
-    speechSynthesis.onvoiceschanged = () => setVoice();
-  } else {
-    setVoice();
-  }
-
+  const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
+  const audioUrl = `https://tonpseudo.github.io/tonrepo/audio/${audioFile}`;
+  const audio = new Audio(audioUrl);
+  audio.play().catch(e => console.warn("Erreur audio :", e));
 } else {
-  console.warn("❗ Aucun Hiragana à prononcer.");
+  console.warn("❗ Aucun Hiragana à jouer.");
 }
-
 
     
 if (score === 1) {
@@ -1937,6 +1917,7 @@ speechSynthesis.onvoiceschanged = () => {
 </script>
 </body>
 </html>
+
 
 
 
