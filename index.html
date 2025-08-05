@@ -1,17 +1,9 @@
 <!DOCTYPE html>
 <html>
-
-
 <head>
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <link rel="icon" href="data:,">
 <base target="_top">
 <style>
-html, body, button, a {
-  touch-action: manipulation;
-}
-
 body {
 background: #F8F1E9; /* Blanc cassé, papier washi */
 font-family: 'Noto Sans JP', sans-serif;
@@ -378,15 +370,15 @@ padding-bottom: 2em;
 }
 
 .question {
-  font-size: 3.5em;
-  font-weight: bold;
-  margin: 0.5em 0;
-  height: 1.2em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #8B6F47;
-  text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
+font-size: 3.5em;
+font-weight: bold;
+margin: 0.5em 0;
+height: 1.2em;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #8B6F47;
+text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
 }
 
 .answers {
@@ -411,14 +403,14 @@ padding-bottom: 2em;
 }
 
 .question {
-  font-size: 10em;
-  font-weight: bold;
-  margin: 0.5em 0;
-  height: 1.2em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
+font-size: 10em;
+font-weight: bold;
+margin: 0.5em 0;
+height: 1.2em;
+display: flex;
+align-items: center;
+justify-content: center;
+text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
 }
 
 .answers {
@@ -688,13 +680,8 @@ text-align: center;
 .result-line.highlight {
 margin-top: 1.2em;
 font-size: 3em;
-  
 }
-/* espacement des lignes de bonne réponse */   
-.result-line.highlight {
-    line-height: 1.2; /* ou 1.3 si vous voulez encore plus d'espace */
-    margin-top: 0.5em; /* optionnel : ajoute un peu d'espace au-dessus */
-}
+
 #continueBtn {
 margin-top: 2em;
 margin-bottom: 2em;
@@ -902,7 +889,7 @@ margin: 0.1em 0;
 
 <script>
 let HiraganaList = [];
-
+let current = {};
 let selections = { first: null, second: null };
 let targetFields = [];
 let isAnswered = false;
@@ -911,9 +898,6 @@ let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
- let current = {};
-let mode = {}; // <-- Ajouter cette ligne
-
 function logError(msg) {
 console.warn(msg);
 }
@@ -1579,62 +1563,62 @@ nextQuestion();
 }
 
 function nextQuestion() {
-    document.getElementById("result").innerText = "";
-    document.getElementById("continueBtn").style.visibility = "hidden";
-    selections = { first: null, second: null };
-    isAnswered = false;
+document.getElementById("result").innerText = "";
+document.getElementById("continueBtn").style.visibility = "hidden";
+selections = { first: null, second: null };
+isAnswered = false;
 
-    const kanas = HiraganaList.filter(k =>
-        parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
-    );
+const kanas = HiraganaList.filter(k =>
+parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
+);
 
-    if (kanas.length === 0) {
-        const nouveauNiveau = determineNiveauActif(HiraganaList);
-        if (nouveauNiveau !== niveauActif) {
-            niveauActif = nouveauNiveau;
-            document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-            renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-            updateLevelProgress(HiraganaList, niveauActif);
-            nextQuestion();
-            return;
-        }
-    }
+if (kanas.length === 0) {
+const nouveauNiveau = determineNiveauActif(HiraganaList);
+if (nouveauNiveau !== niveauActif) {
+niveauActif = nouveauNiveau;
+document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+updateLevelProgress(HiraganaList, niveauActif);
+nextQuestion();
+return;
+}
+}
 
-    const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
+const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
 
-    const currentWeights = finalKanas.map(k => {
-        const validation = parseInt(k.Validation || 0);
-        return Math.max(0.1, 5 - validation + 0.5);
-    });
+const currentWeights = finalKanas.map(k => {
+const validation = parseInt(k.Validation || 0);
+return Math.max(0.1, 5 - validation + 0.5);
+});
 
-    let selected;
-    do {
-        const sum = currentWeights.reduce((a, b) => a + b, 0);
-        const rand = Math.random() * sum;
-        let acc = 0;
-        for (let i = 0; i < finalKanas.length; i++) {
-            acc += currentWeights[i];
-            if (rand < acc) {
-                selected = finalKanas[i];
-                break;
-            }
-        }
-    } while (selected === previousCharacter && finalKanas.length > 1); // Repeat if same as previous and more than one option exists
+let selected;
+do {
+const sum = currentWeights.reduce((a, b) => a + b, 0);
+const rand = Math.random() * sum;
+let acc = 0;
+for (let i = 0; i < finalKanas.length; i++) {
+acc += currentWeights[i];
+if (rand < acc) {
+selected = finalKanas[i];
+break;
+}
+}
+} while (selected === previousCharacter && finalKanas.length > 1); // Repeat if same as previous and more than one option exists
 
-    current = selected;
-    previousCharacter = current; // Update previous character
+current = selected;
+previousCharacter = current; // Update previous character
 
-    const modes = [
-        { question: "Hiragana", options1: "Katakana", options2: "Romaji" },
-        { question: "Katakana", options1: "Hiragana", options2: "Romaji" },
-        { question: "Romaji", options1: "Hiragana", options2: "Katakana" }
-    ];
-    mode = modes[Math.floor(Math.random() * modes.length)];
-    targetFields = [mode.options1, mode.options2];
+const modes = [
+{ question: "Hiragana", options1: "Katakana", options2: "Romaji" },
+{ question: "Katakana", options1: "Hiragana", options2: "Romaji" },
+{ question: "Romaji", options1: "Hiragana", options2: "Katakana" }
+];
+const mode = modes[Math.floor(Math.random() * modes.length)];
+targetFields = [mode.options1, mode.options2];
 
-    document.getElementById("question").innerText = current[mode.question];
-    renderChoices("choices1", generateChoices(mode.options1), "first");
-    renderChoices("choices2", generateChoices(mode.options2), "second");
+document.getElementById("question").innerText = current[mode.question];
+renderChoices("choices1", generateChoices(mode.options1), "first");
+renderChoices("choices2", generateChoices(mode.options2), "second");
 }
 
 function generateChoices(field) {
@@ -1733,7 +1717,7 @@ HiraganaList[hiraganaIndex].Validation = newValidation.toString();
 
 let emoji = "", resultText = "";
 if (score === 1) {
-const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"]; 
+const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"];
 emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
 resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
 if (!isFinalValidation) {
@@ -1745,7 +1729,7 @@ emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
 resultText = "Presque...";
 playSuccess90s();
 } else {
-const emojisBad = ["🙈", "🙊", "🪨", "🌊", "🍂", "🍁"];  
+const emojisBad = ["🙈", "🙊", "🪨", "🌊", "🍂", "🍁"];
 emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
 resultText = "Pas tout à fait...";
 playFail();
@@ -1756,19 +1740,6 @@ document.getElementById("result").innerHTML = `
 <div class="result-line highlight">
 👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
-// 🔊 Prononcer la bonne réponse à voix haute (Romaji uniquement)
-let toSpeak;
-if (mode.question === "Romaji") {
-    toSpeak = `${current.Hiragana}, ${current.Katakana}`;
-} else {
-    toSpeak = current[mode.question];
-}
-    
-    
-const utterance = new SpeechSynthesisUtterance(toSpeak);
-utterance.lang = "ja-JP"; // Langue japonaise pour une meilleure prononciation
-utterance.rate = 0.9;     // Vitesse légèrement réduite pour bien entendre
-speechSynthesis.speak(utterance);
 
 if (score === 1) {
 document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
@@ -1924,6 +1895,3 @@ initGame();
 </script>
 </body>
 </html>
-
-
-
