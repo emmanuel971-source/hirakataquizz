@@ -911,6 +911,9 @@ let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
+ let current = {};
+let mode = {}; // <-- Ajouter cette ligne
+let selections = { first: null, second: null };
 function logError(msg) {
 console.warn(msg);
 }
@@ -1626,7 +1629,7 @@ function nextQuestion() {
         { question: "Katakana", options1: "Hiragana", options2: "Romaji" },
         { question: "Romaji", options1: "Hiragana", options2: "Katakana" }
     ];
-    const mode = modes[Math.floor(Math.random() * modes.length)];
+    mode = modes[Math.floor(Math.random() * modes.length)];
     targetFields = [mode.options1, mode.options2];
 
     document.getElementById("question").innerText = current[mode.question];
@@ -1756,10 +1759,8 @@ document.getElementById("result").innerHTML = `
 // 🔊 Prononcer la bonne réponse à voix haute (Romaji uniquement)
 let toSpeak;
 if (mode.question === "Romaji") {
-    // Si la question est en français, prononcer les réponses japonaises (hiragana + katakana)
     toSpeak = `${current.Hiragana}, ${current.Katakana}`;
 } else {
-    // Si la question est en japonais (hiragana ou katakana), prononcer la question
     toSpeak = current[mode.question];
 }
     
@@ -1923,3 +1924,4 @@ initGame();
 </script>
 </body>
 </html>
+
