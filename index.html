@@ -906,22 +906,14 @@ console.warn(msg);
 }
 
 function speakHiragana(hiragana) {
-  if ('speechSynthesis' in window) {
-    const utterance = new SpeechSynthesisUtterance(hiragana);
-    utterance.lang = 'ja-JP'; // Langue japonaise
-    const voices = speechSynthesis.getVoices();
-    const japaneseVoice = voices.find(voice => voice.lang.includes('ja-JP'));
-    if (japaneseVoice) {
-      utterance.voice = japaneseVoice; // Utiliser une voix japonaise si disponible
-    }
-    utterance.volume = 1;
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    speechSynthesis.speak(utterance);
-  } else {
-    console.warn("Synthèse vocale non supportée par le navigateur.");
-  }
+  const utterance = new SpeechSynthesisUtterance(hiragana);
+  utterance.lang = 'ja-JP';
+  utterance.rate = 0.9;
+  utterance.volume = 1;
+  utterance.pitch = 1;
+  speechSynthesis.speak(utterance);
 }
+
 
 // Charger les voix au démarrage (nécessaire pour certains navigateurs comme Chrome)
 window.speechSynthesis.onvoiceschanged = () => {
@@ -1759,6 +1751,8 @@ async function checkAnswer() {
 setTimeout(() => {
   speakHiragana(current.Hiragana);
 }, 500);
+
+      
     if (score === 1) {
       document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
       setTimeout(nextQuestion, 1500);
@@ -1913,5 +1907,6 @@ initGame();
 </script>
 </body>
 </html>
+
 
 
