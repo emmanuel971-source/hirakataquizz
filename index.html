@@ -19,9 +19,7 @@ display: flex;
 flex-direction: column;
 }
 
-* {
-  touch-action: manipulation;
-}
+
     
 body::before {
 content: '';
@@ -911,7 +909,9 @@ let previousCharacter = null;
 function logError(msg) {
 console.warn(msg);
 }
-
+document.addEventListener('dblclick', function(e) {
+  e.preventDefault();
+});
 
 function testFeu() {
 const container = document.querySelector('.quiz-container');
@@ -1924,6 +1924,7 @@ speechSynthesis.onvoiceschanged = () => {
 </script>
 </body>
 </html>
+
 
 
 
