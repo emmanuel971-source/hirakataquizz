@@ -909,9 +909,37 @@ let previousCharacter = null;
 function logError(msg) {
 console.warn(msg);
 }
+// Empêcher le zoom sur double-clic avec les événements touch
+let lastTouchTime = 0;
+let touchCount = 0;
+
+document.addEventListener('touchstart', function(e) {
+  const now = Date.now();
+  if (now - lastTouchTime < 500) {
+    touchCount++;
+    if (touchCount >= 2) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  } else {
+    touchCount = 1;
+  }
+  lastTouchTime = now;
+}, { passive: false });
+
+document.addEventListener('touchend', function(e) {
+  const now = Date.now();
+  if (now - lastTouchTime < 300) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}, { passive: false });
+
+// Garder aussi l'événement dblclick en backup
 document.addEventListener('dblclick', function(e) {
   e.preventDefault();
-});
+  e.stopPropagation();
+}, { passive: false });
 
 function testFeu() {
 const container = document.querySelector('.quiz-container');
@@ -1924,6 +1952,7 @@ speechSynthesis.onvoiceschanged = () => {
 </script>
 </body>
 </html>
+
 
 
 
