@@ -835,10 +835,19 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
-    @media (max-width: 768px) {
+   @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
       .hamburger {
-        bottom: 20px;
-        right: 20px;
+           position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+    width: 50px;
+    height: 50px;
+    padding: 10px;
+    font-size: 24px;
+    display: block;
+    box-sizing: border-box;
       }
     }
 
@@ -876,12 +885,21 @@
       width: 200px;
     }
 
-    @media (max-width: 768px) {
-      .menu .arcade-button {
-        width: 80%;
-        font-size: 2em;
-      }
-    }
+  @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+  .menu .arcade-button {
+    width: 600px; !important; /* Forcer la largeur */
+    font-size: 2.8em !important; /* Texte plus grand pour lisibilité */
+    padding: 0.1em 1em !important; /* Padding minimal pour réduire la hauteur */
+    line-height: 1 !important; /* Interligne compact */
+    min-height: 0 !important; /* Annuler hauteur minimale héritée */
+    max-height: 2.5em !important; /* Limiter la hauteur maximale */
+    background: #F5E8C7 !important; /* Forcer le fond ivoire/bois */
+    color: #8B6F47 !important; /* Forcer la couleur du texte */
+    text-shadow: 0 0 8px rgba(139, 111, 71, 0.5) !important; /* Conserver l'effet */
+    box-sizing: border-box !important; /* Inclure padding dans la hauteur */
+    margin: 0 !important; /* Annuler marges héritées */
+  }
+}
 
     .section {
       display: none;
@@ -1991,3 +2009,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 </body>
 </html>
+
