@@ -835,12 +835,22 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
-    @media (max-width: 768px) {
-      .hamburger {
-        bottom: 20px;
-        right: 20px;
-      }
-    }
+   /* Remplacer la media query pour .hamburger */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+  .hamburger {
+    position: fixed !important; /* Renforcer la spécificité */
+    bottom: 20px !important;
+    right: 20px !important;
+    left: auto !important; /* Supprimer toute position à gauche */
+    top: auto !important; /* Supprimer toute position en haut */
+    width: 50px;
+    height: 50px;
+    padding: 10px;
+    font-size: 24px;
+    display: block;
+    box-sizing: border-box;
+  }
+}
 
     @media (min-width: 769px) {
       .hamburger {
@@ -1995,3 +2005,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
