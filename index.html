@@ -1,888 +1,974 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="icon" href="data:,">
-<base target="_top">
-<style>
-    
-html {
-  touch-action: pan-x pan-y;
-  -ms-touch-action: pan-x pan-y;
-}
-
-* {
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-}
-    
-body {
-background: #F8F1E9; /* Blanc cassé, papier washi */
-font-family: 'Noto Sans JP', sans-serif;
-color: #8B6F47; /* Marron clair */
-font-family: sans-serif;
-text-align: center;
-padding: 0.5em 1em 1em 1em;
-margin: 0;
-height: 100vh;
-overflow: hidden;
-display: flex;
-flex-direction: column;
-}
-
-
-body::before {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-
-background: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
-opacity: 0.1;
-z-index: -1;
-}
-
-h1 {
-margin: 0.5em 0;
-font-size: 1.8em;
-text-align: center;
-color: #8B6F47;
-text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
-}
-
-@media screen and (max-width: 400px),
-screen and (-webkit-min-device-pixel-ratio: 2),
-screen and (min-resolution: 192dpi) {
-h1 {
-font-size: 3em;
-margin: 0.3em 0;
-}
-}
-
-@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-h1 {
-font-size: 2.2em;
-margin: 0.15em 0;
-}
-}
-
-/* BARRE DE PROGRESSION GRADIENT - REPOSITIONNÉE */
-/* Barre de progression */
-#progressBarContainer {
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 0.5em;
-margin: 1em auto 0.3em auto;
-max-width: 40ch;
-width: 100%;
-}
-
-.progress-bar-track {
-position: relative;
-height: 16px;
-background: linear-gradient(to right, #E0F7FA, #355E3B); /* Vert d'eau à vert forêt clair */
-border-radius: 6px;
-flex: 1;
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.progress-marker {
-position: absolute;
-top: 45%;
-left: 0;
-transform: translate(-50%, -50%);
-font-size: 2em;
-transition: left 1.5s ease;
-color: #636E72; /* Gris pierre */
-}
-
-.side-emoji {
-font-size: 1.6em;
-line-height: 1;
-color: #636E72;
-}
-
-@keyframes pulse {
-0% { transform: translate(-50%, -50%) scale(1); }
-100% { transform: translate(-50%, -50%) scale(1.2); }
-}
-
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-#progressBarContainer {
-max-width: 80%;
-margin: 1.5em auto 0.5em auto;
-gap: 1em;
-}
-
-.progress-bar-track {
-height: 32px;
-border-radius: 12px;
-}
-
-.progress-marker {
-font-size: 4.5em;
-top: 45%;
-transform: translate(-50%, -50%);
-}
-
-.side-emoji {
-font-size: 2.5em;
-}
-}
-/* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION CLEAN */
-/* Système d'étoiles pour les hiraganas */
-.level-hiraganas {
-margin: 1em auto;
-max-width: 800px;
-flex-shrink: 0;
-}
-
-.hiraganas-grid {
-display: flex;
-justify-content: center;
-gap: 20px;
-flex-wrap: wrap;
-margin-bottom: 0.5em;
-}
-
-.hiragana-card {
-text-align: center;
-transition: all 0.3s ease;
-position: relative;
-padding: 10px;
-background: #FFFFFF;
-border-radius: 8px;
-
-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-.hiragana-card.completed {
-background: #DDE6D5; /* Vert matcha clair */
-animation: completedPulse 2s ease-in-out infinite;
-}
-
-@keyframes completedPulse {
-0%, 100% { transform: scale(1); }
-50% { transform: scale(1.05); }
-}
-
-.hiragana-char {
-font-size: 2.2em;
-font-weight: bold;
-margin-bottom: 6px;
-color: #8B6F47;
-text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
-}
-
-.hiragana-card.completed .hiragana-char {
-color: #A8D5BA; /* Vert matcha */
-text-shadow: 0 0 5px rgba(168, 213, 186, 0.5);
-animation: starGlow 2s ease-in-out infinite;
-}
-
-.stars-container {
-display: flex;
-justify-content: center;
-gap: 2px;
-}
-
-.star {
-width: 12px;
-height: 12px;
-background: #E8ECEF; /* Gris clair */
-clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-transition: all 0.3s ease;
-}
-
-.star.filled {
-background: #FDC1C5; /* Rose sakura */
-}
-
-.star.new-star {
-animation: starFill 0.5s ease-in-out;
-}
-
-.hiragana-card.completed .star.filled {
-background: #A8D5BA; /* Vert matcha */
-animation: starGlow 2s ease-in-out infinite;
-}
-
-@keyframes starFill {
-0% { transform: scale(0) rotate(180deg); }
-100% { transform: scale(1) rotate(0deg); }
-}
-
-@keyframes starGlow {
-0%, 100% { filter: brightness(1); }
-50% { filter: brightness(1.3); }
-}
-
-.firework {
-position: absolute;
-top: 0;
-left: 50%;
-transform: translateX(-50%);
-width: 0.5em;
-height: 0.5em;
-background: transparent;
-pointer-events: none;
-animation: fireworkExplosion 700ms ease-out forwards;
-z-index: 10;
-}
-
-@keyframes fireworkExplosion {
-0% {
-box-shadow:
-0 0 #ff0,
-0 0 #f00,
-0 0 #0ff;
-opacity: 1;
-transform: translateX(-50%) scale(1);
-}
-100% {
-box-shadow:
-0 -40px #ff0,
-30px -30px #f00,
-40px 0 #0ff,
-30px 30px #0f0,
-0 40px #00f,
--30px 30px #f0f,
--40px 0 #fff,
--30px -30px #ff0;
-opacity: 0;
-transform: translateX(-50%) scale(0.5);
-}
-}
-
-/* Animation pétales de cerisier */
-.sakura {
-position: absolute;
-width: 100px;
-height: 10px;
-background: #FDC1C5; /* Rose sakura */
-border-radius: 50%;
-pointer-events: none;
-animation: sakuraFall 3s linear forwards;
-z-index: 10;
-}
-
-@keyframes sakuraFall {
-0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-}
-
-
-/* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION tél */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-
-.level-hiraganas {
-max-width: none;
-width: 100vw; /* pleine largeur de l’écran */
-padding: 0 2em;
-box-sizing: border-box;
-}
-
-.hiraganas-grid {
-display: flex;
-flex-wrap: wrap;
-justify-content: space-evenly; /* étale les cartes */
-gap: 15px; /* RÉDUIT de 40px à 15px */
-}
-
-.hiragana-card {
-/* transform: scale(1.1); ← à retirer si ça pose problème */
-flex: 1 1 auto; /* permet aux cartes de s'adapter à la largeur */
-min-width: 80px; /* largeur minimale */
-text-align: center;
-transition: all 0.3s ease;
-position: relative;
-padding: 10px;
-background: #FFFFFF;
-border-radius: 8px;
-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-.hiragana-char {
-font-size: 4em;
-margin-bottom: 10px;
-}
-
-.stars-container {
-display: flex;
-justify-content: center;
-gap: 2px;
-}
-
-
-.star {
-width: 28px;
-height: 28px;
-}
-}
-
-
-/* SYSTÈME D'ÉTOILES POUR LES HIRAGANAS DU NIVEAU - VERSION Ipad */
-
-@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-
-.level-hiraganas {
-max-width: none;
-width: 100vw; /* pleine largeur */
-padding: 0 2em;
-box-sizing: border-box;
-}
-
-.hiraganas-grid {
-width: 100%;
-box-sizing: border-box;
-display: flex;
-flex-wrap: wrap;
-justify-content: space-evenly; /* meilleur équilibrage */
-gap: 20px;
-}
-
-.hiragana-card {
-flex: 1 1 120px;
-max-width: 140px;
-text-align: center;
-transition: all 0.3s ease;
-position: relative;
-padding: 10px;
-background: #FFFFFF;
-border-radius: 8px;
-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-.hiragana-char {
-font-size: 6em;
-margin-bottom: 10px;
-}
-
-.stars-container {
-gap: 2px;
-}
-
-.star {
-width: 14px;
-height: 14px;
-}
-}
-
-
-
-/* ZONE DE QUIZ - OPTIMISÉE POUR L'ESPACE */
-.quiz-container {
-flex: 1;
-display: flex;
-flex-direction: column;
-justify-content: space-between;
-min-height: 0;
-padding-bottom: 2em;
-}
-
-.question {
-font-size: 3.5em;
-font-weight: bold;
-margin: 0.5em 0;
-height: 1.2em;
-display: flex;
-align-items: center;
-justify-content: center;
-color: #8B6F47;
-text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
-}
-
-.answers {
-display: flex;
-flex-wrap: wrap;
-justify-content: center;
-gap: 0.8em;
-margin-bottom: 1em;
-}
-
-
-/* ZONE DE QUIZ - OPTIMISÉE POUR L'ESPACE ---- version téléphone */
-
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-.quiz-container {
-flex: 1;
-display: flex;
-flex-direction: column;
-justify-content: flex-start;
-min-height: 0;
-padding-bottom: 2em;
-}
-
-.question {
-font-size: 10em;
-font-weight: bold;
-margin: 0.5em 0;
-height: 1.2em;
-display: flex;
-align-items: center;
-justify-content: center;
-text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
-}
-
-.answers {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-gap: 0.8em;
-margin-bottom: 1em;
-width: 100%;
-box-sizing: border-box;
-padding: 0 1em;
-}
-.sakura {
-width: 20px;
-height: 20px;
-
-}
-
-}
-
-
-
-
-
-
-
-/* STYLES BOUTONS ARCADE - INTÉGRÉS */
-
-/* Styles boutons bois/domino */
-/* Styles boutons bois/domino */
-.arcade-button {
-position: relative;
-background: #F5E8C7; /* Ivoire/bois clair */
-background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
-border: 2px solid #8B6F47; /* Marron clair */
-border-radius: 10px;
-padding: 0.8em 1.5em;
-color: #8B6F47;
-font-size: 1.4em;
-line-height: 0.6;
-white-space: normal;
-font-weight: bold;
-cursor: pointer;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-transition: all 0.15s ease;
-text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
-overflow: hidden;
-min-width: 120px;
-text-align: center;
-}
-
-.arcade-button::before {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-height: 50%;
-background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-border-top-left-radius: 10px;
-border-top-right-radius: 10px;
-pointer-events: none;
-}
-
-.arcade-button:hover {
-transform: translateY(-2px) scale(1.02);
-box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-border-color: #7A5C3A; /* Marron clair légèrement plus foncé */
-}
-
-.arcade-button:active {
-transform: translateY(2px) scale(0.98);
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
-}
-
-.arcade-button:disabled {
-cursor: not-allowed;
-opacity: 0.8;
-}
-
-.arcade-button.clicked {
-opacity: 1 !important;
-cursor: default;
-}
-
-.arcade-button.clicked-glow {
-text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
-animation: glowPulse 1s ease-in-out infinite;
-}
-
-.arcade-button.correct {
-background: rgba(168, 213, 186, 0.5) !important; /* Voile vert semi-transparent */
-color: #8B6F47;
-border-color: #A8D5BA;
-background-image: none !important;
-animation: correctGlow 0.6s ease-in-out;
-opacity: 1 !important;
-}
-
-.arcade-button.correct::before {
-display: none; /* Supprime le pseudo-élément */
-}
-
-.arcade-button.incorrect {
-background: rgba(253, 193, 197, 0.5) !important; /* Voile rose semi-transparent */
-color: #8B6F47;
-border-color: #FDC1C5;
-background-image: none !important;
-animation: incorrectShake 0.6s ease-in-out;
-opacity: 1 !important;
-}
-
-.arcade-button.incorrect::before {
-display: none; /* Supprime le pseudo-élément */
-}
-
-@keyframes glowPulse {
-0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
-50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
-}
-
-@keyframes correctGlow {
-0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
-50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
-100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
-}
-
-@keyframes incorrectShake {
-0% { transform: translateX(0); }
-10% { transform: translateX(-8px); }
-20% { transform: translateX(8px); }
-30% { transform: translateX(-6px); }
-40% { transform: translateX(6px); }
-50% { transform: translateX(-4px); }
-60% { transform: translateX(4px); }
-70% { transform: translateX(-2px); }
-80% { transform: translateX(2px); }
-90% { transform: translateX(-1px); }
-100% { transform: translateX(0); }
-}
-
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
-button, a, input, textarea {
--webkit-tap-highlight-color: transparent;
-}
-
-.arcade-button {
-font-size: 4em;
-aspect-ratio: 1 / 0.6;
-width: 100%;
-box-sizing: border-box;
-padding: 0;
-display: flex;
-align-items: center;
-justify-content: center;
-text-align: center;
-}
-}
-
-/* zone de résultats */
-/* Zone de résultats */
-.result {
-animation: fadeIn 0.4s ease-in;
-font-size: 1.3em;
-line-height: 1.4em;
-margin: 0.5em 0 0.2em 0;
-min-height: 4.5em;
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-text-align: center;
-color: #8B6F47;
-}
-
-.result-line.highlight {
-color: #8B6F47;
-}
-
-@keyframes fadeIn {
-from { opacity: 0; transform: translateY(10px); }
-to { opacity: 1; transform: translateY(0); }
-}
-
-#continueBtn {
-visibility: hidden;
-margin: 0.5em auto;
-display: block; /* Assurer que le bouton est un block pour le centrage */
-width: fit-content; /* Ajuster la largeur au contenu */
-}
-
-#boutonInstaller {
-margin: 0.5em auto;
-height: 3em;
-display: none;
-}
-
-@media screen and (max-width: 768px),
-screen and (-webkit-min-device-pixel-ratio: 2),
-screen and (min-resolution: 192dpi) {
-.result {
-margin-top: 5em;
-text-align: center;
-word-break: break-word;
-white-space: normal;
-display: block;
-min-height: auto;
-}
-
-.result > * {
-width: 100%;
-}
-
-.result-line {
-font-size: 4em;
-width: 100%;
-text-align: center;
-}
-
-.result-line.highlight {
-margin-top: 1.2em;
-font-size: 3em;
-}
-.result-line.highlight {
-line-height: 1.2; /* ou 1.3 si vous voulez encore plus d'espace */
-margin-top: 0.5em; /* optionnel : ajoute un peu d'espace au-dessus */
-}
-#continueBtn {
-margin-top: 1em;
-margin-bottom: 1em;
-height: 3em;
-}
-
-#boutonInstaller {
-margin-top: 1em;
-margin-bottom: 1em;
-height: 3em;
-}
-}
-
-
-/* zone de résultats -------- mobiles */
-
-@media screen and (max-width: 768px),
-screen and (-webkit-min-device-pixel-ratio: 2),
-screen and (min-resolution: 192dpi) {
-
-.result {
-margin-top: 5em;
-}
-
-.result > * {
-width: 100%;
-}
-
-.result {
-text-align: center;
-word-break: break-word;
-white-space: normal;
-display: block;       /* <<< ça remplace le display:flex */
-min-height: auto;     /* <<< on relâche la contrainte de hauteur */
-
-}
-
-.result-line {
-font-size: 4em;
-width: 100%;
-text-align: center;
-}
-
-.result-line.highlight {
-margin-top: 1.2em;
-font-size: 3em;
-}
-.result-line.highlight {
-line-height: 1.2; /* ou 1.3 si vous voulez encore plus d'espace */
-margin-top: 0.5em; /* optionnel : ajoute un peu d'espace au-dessus */
-}
-#continueBtn {
-margin-top: 2em;
-margin-bottom: 2em;
-height: 3em;
-width: 100%; /* ← Ajoutez cette ligne */
-}
-visibility: hidden;
-}
-#boutonInstaller {
-margin-top: 1em;
-margin-bottom: 1em;
-height: 3em;
-}
-
-.sakura {
-width: 20px;
-height: 20px;
-
-}
-}
-
-
-
-}
-
-
-
-
-
-
-
-
-/* Ajuster l'animation incorrectShake pour un démarrage immédiat
-@keyframes incorrectShake {
-0% { transform: translateX(0); }
-10% { transform: translateX(-8px); }
-20% { transform: translateX(8px); }
-30% { transform: translateX(-6px); }
-40% { transform: translateX(6px); }
-50% { transform: translateX(-4px); }
-60% { transform: translateX(4px); }
-70% { transform: translateX(-2px); }
-80% { transform: translateX(2px); }
-90% { transform: translateX(-1px); }
-100% { transform: translateX(0); }
-}
-*/
-/* RESPONSIVE - OPTIMISATION POUR PETITS ÉCRANS */
-@media (max-width: 768px) {
-
-.hiraganas-grid {
-gap: 15px;
-}
-.hiragana-char {
-font-size: 1.8em;
-}
-.question {
-font-size: 2.8em;
-}
-.arcade-button {
-padding: 0.6em 1.2em;
-font-size: 1em;
-}
-
-}
-
-@media (max-height: 700px) {
-
-.hiragana-char {
-font-size: 1.6em;
-margin-bottom: 4px;
-}
-.question {
-font-size: 2.5em;
-margin: 0.3em 0;
-}
-.answers {
-gap: 0.6em;
-margin-bottom: 0.8em;
-}
-.arcade-button {
-padding: 0.6em 1.2em;
-}
-
-}
-
-@media (max-height: 600px) {
-.hiragana-char {
-font-size: 1.4em;
-}
-.stars-container {
-gap: 1px;
-}
-.star {
-width: 10px;
-height: 10px;
-}
-.question {
-font-size: 2.2em;
-}
-.progress-marker {
-font-size: 1.6em;
-}
-.side-emoji {
-font-size: 1.4em;
-}
-}
-
-@keyframes confettiFall {
-0% { transform: translateY(0); }
-100% { transform: translateY(110vh) rotate(720deg); }
-}
-
-body.shake {
-animation: screenShake 0.4s ease-in-out;
-}
-
-@keyframes screenShake {
-0% { transform: translate(0px, 0px); }
-25% { transform: translate(4px, -4px); }
-50% { transform: translate(-4px, 4px); }
-75% { transform: translate(4px, 4px); }
-100% { transform: translate(0px, 0px); }
-}
-
-
-/* BARRE DE PROGRESSION GRADIENT - REDIMMENSIONNEE POUR TEL */
-
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-#progressBarContainer {
-max-width: 80%;
-margin: 1.5em auto 0.5em auto;
-gap: 1em;
-}
-
-.progress-bar-track {
-height: 32px; /* au lieu de 16px */
-border-radius: 12px;
-}
-
-.progress-marker {
-font-size: 4.5em; /* au lieu de 2em */
-top: 30%; /* pour recentrer verticalement */
-}
-
-.side-emoji {
-font-size: 2.5em; /* au lieu de 1.6em */
-}
-
-.level {
-font-size: 2.5em; /* au lieu de 1.1em */
-margin: 0.4em 0;
-}
-}
-
-@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-#progressBarContainer {
-max-width: 80%;
-margin: 1.5em auto 0.5em auto;
-gap: 1em;
-}
-
-.progress-bar-track {
-height: 32px; /* au lieu de 16px */
-border-radius: 12px;
-}
-
-.progress-marker {
-font-size: 4.5em; /* au lieu de 2em */
-top: 30%; /* pour recentrer verticalement */
-}
-
-.side-emoji {
-font-size: 2.5em; /* au lieu de 1.6em */
-}
-
-.level {
-font-size: 1.5em; /* au lieu de 1.1em */
-margin: 0.1em 0;
-}
-}
-
+  <link rel="icon" href="data:,">
+  <base target="_top">
+  <style>
+    html {
+      touch-action: pan-x pan-y;
+      -ms-touch-action: pan-x pan-y;
+    }
+
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #F8F1E9;
+      font-family: 'Noto Sans JP', sans-serif;
+      color: #8B6F47;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 0.5em 1em 1em 1em;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+      opacity: 0.1;
+      z-index: -1;
+    }
+
+    h1 {
+      margin: 0.5em 0;
+      font-size: 1.8em;
+      text-align: center;
+      color: #8B6F47;
+      text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
+    }
+
+    @media screen and (max-width: 400px),
+    screen and (-webkit-min-device-pixel-ratio: 2),
+    screen and (min-resolution: 192dpi) {
+      h1 {
+        font-size: 3em;
+        margin: 0.3em 0;
+      }
+    }
+
+    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+      h1 {
+        font-size: 2.2em;
+        margin: 0.15em 0;
+      }
+    }
+
+    #progressBarContainer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5em;
+      margin: 1em auto 0.3em auto;
+      max-width: 40ch;
+      width: 100%;
+    }
+
+    .progress-bar-track {
+      position: relative;
+      height: 16px;
+      background: linear-gradient(to right, #E0F7FA, #355E3B);
+      border-radius: 6px;
+      flex: 1;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-marker {
+      position: absolute;
+      top: 45%;
+      left: 0;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      transition: left 1.5s ease;
+      color: #636E72;
+    }
+
+    .side-emoji {
+      font-size: 1.6em;
+      line-height: 1;
+      color: #636E72;
+    }
+
+    @keyframes pulse {
+      0% { transform: translate(-50%, -50%) scale(1); }
+      100% { transform: translate(-50%, -50%) scale(1.2); }
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+      #progressBarContainer {
+        max-width: 80%;
+        margin: 1.5em auto 0.5em auto;
+        gap: 1em;
+      }
+
+      .progress-bar-track {
+        height: 32px;
+        border-radius: 12px;
+      }
+
+      .progress-marker {
+        font-size: 4.5em;
+        top: 45%;
+        transform: translate(-50%, -50%);
+      }
+
+      .side-emoji {
+        font-size: 2.5em;
+      }
+    }
+
+    .level-hiraganas {
+      margin: 1em auto;
+      max-width: 800px;
+      flex-shrink: 0;
+    }
+
+    .hiraganas-grid {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 0.5em;
+    }
+
+    .hiragana-card {
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 10px;
+      background: #FFFFFF;
+      border-radius: 8px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .hiragana-card.completed {
+      background: #DDE6D5;
+      animation: completedPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes completedPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .hiragana-char {
+      font-size: 2.2em;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #8B6F47;
+      text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
+    }
+
+    .hiragana-card.completed .hiragana-char {
+      color: #A8D5BA;
+      text-shadow: 0 0 5px rgba(168, 213, 186, 0.5);
+      animation: starGlow 2s ease-in-out infinite;
+    }
+
+    .stars-container {
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .star {
+      width: 12px;
+      height: 12px;
+      background: #E8ECEF;
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      transition: all 0.3s ease;
+    }
+
+    .star.filled {
+      background: #FDC1C5;
+    }
+
+    .star.new-star {
+      animation: starFill 0.5s ease-in-out;
+    }
+
+    .hiragana-card.completed .star.filled {
+      background: #A8D5BA;
+      animation: starGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes starFill {
+      0% { transform: scale(0) rotate(180deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    @keyframes starGlow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.3); }
+    }
+
+    .firework {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0.5em;
+      height: 0.5em;
+      background: transparent;
+      pointer-events: none;
+      animation: fireworkExplosion 700ms ease-out forwards;
+      z-index: 10;
+    }
+
+    @keyframes fireworkExplosion {
+      0% {
+        box-shadow: 0 0 #ff0, 0 0 #f00, 0 0 #0ff;
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+      }
+      100% {
+        box-shadow: 0 -40px #ff0, 30px -30px #f00, 40px 0 #0ff, 30px 30px #0f0, 0 40px #00f, -30px 30px #f0f, -40px 0 #fff, -30px -30px #ff0;
+        opacity: 0;
+        transform: translateX(-50%) scale(0.5);
+      }
+    }
+
+    .sakura {
+      position: absolute;
+      width: 100px;
+      height: 10px;
+      background: #FDC1C5;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: sakuraFall 3s linear forwards;
+      z-index: 10;
+    }
+
+    @keyframes sakuraFall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+      .level-hiraganas {
+        max-width: none;
+        width: 100vw;
+        padding: 0 2em;
+        box-sizing: border-box;
+      }
+
+      .hiraganas-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        gap: 15px;
+      }
+
+      .hiragana-card {
+        flex: 1 1 auto;
+        min-width: 80px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        padding: 10px;
+        background: #FFFFFF;
+        border-radius: 8px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+      }
+
+      .hiragana-char {
+        font-size: 4em;
+        margin-bottom: 10px;
+      }
+
+      .stars-container {
+        display: flex;
+        justify-content: center;
+        gap: 2px;
+      }
+
+      .star {
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+      .level-hiraganas {
+        max-width: none;
+        width: 100vw;
+        padding: 0 2em;
+        box-sizing: border-box;
+      }
+
+      .hiraganas-grid {
+        width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        gap: 20px;
+      }
+
+      .hiragana-card {
+        flex: 1 1 120px;
+        max-width: 140px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        padding: 10px;
+        background: #FFFFFF;
+        border-radius: 8px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+      }
+
+      .hiragana-char {
+        font-size: 6em;
+        margin-bottom: 10px;
+      }
+
+      .stars-container {
+        gap: 2px;
+      }
+
+      .star {
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    .quiz-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 0;
+      padding-bottom: 2em;
+    }
+
+    .question {
+      font-size: 3.5em;
+      font-weight: bold;
+      margin: 0.5em 0;
+      height: 1.2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8B6F47;
+      text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
+    }
+
+    .answers {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8em;
+      margin-bottom: 1em;
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+      .quiz-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        min-height: 0;
+        padding-bottom: 2em;
+      }
+
+      .question {
+        font-size: 10em;
+        font-weight: bold;
+        margin: 0.5em 0;
+        height: 1.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
+      }
+
+      .answers {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.8em;
+        margin-bottom: 1em;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 1em;
+      }
+
+      .sakura {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    .arcade-button {
+      position: relative;
+      background: #F5E8C7;
+      background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
+      border: 2px solid #8B6F47;
+      border-radius: 10px;
+      padding: 0.8em 1.5em;
+      color: #8B6F47;
+      font-size: 1.4em;
+      line-height: 0.6;
+      white-space: normal;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+      transition: all 0.15s ease;
+      text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
+      overflow: hidden;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .arcade-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      pointer-events: none;
+    }
+
+    .arcade-button:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+      border-color: #7A5C3A;
+    }
+
+    .arcade-button:active {
+      transform: translateY(2px) scale(0.98);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    }
+
+    .arcade-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+
+    .arcade-button.clicked {
+      opacity: 1 !important;
+      cursor: default;
+    }
+
+    .arcade-button.clicked-glow {
+      text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
+      animation: glowPulse 1s ease-in-out infinite;
+    }
+
+    .arcade-button.correct {
+      background: rgba(168, 213, 186, 0.5) !important;
+      color: #8B6F47;
+      border-color: #A8D5BA;
+      background-image: none !important;
+      animation: correctGlow 0.6s ease-in-out;
+      opacity: 1 !important;
+    }
+
+    .arcade-button.correct::before {
+      display: none;
+    }
+
+    .arcade-button.incorrect {
+      background: rgba(253, 193, 197, 0.5) !important;
+      color: #8B6F47;
+      border-color: #FDC1C5;
+      background-image: none !important;
+      animation: incorrectShake 0.6s ease-in-out;
+      opacity: 1 !important;
+    }
+
+    .arcade-button.incorrect::before {
+      display: none;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
+      50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
+    }
+
+    @keyframes correctGlow {
+      0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+      50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
+      100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+    }
+
+    @keyframes incorrectShake {
+      0% { transform: translateX(0); }
+      10% { transform: translateX(-8px); }
+      20% { transform: translateX(8px); }
+      30% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      50% { transform: translateX(-4px); }
+      60% { transform: translateX(4px); }
+      70% { transform: translateX(-2px); }
+      80% { transform: translateX(2px); }
+      90% { transform: translateX(-1px); }
+      100% { transform: translateX(0); }
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+      button, a, input, textarea {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .arcade-button {
+        font-size: 4em;
+        aspect-ratio: 1 / 0.6;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+    }
+
+    .result {
+      animation: fadeIn 0.4s ease-in;
+      font-size: 1.3em;
+      line-height: 1.4em;
+      margin: 0.5em 0 0.2em 0;
+      min-height: 4.5em;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: #8B6F47;
+    }
+
+    .result-line.highlight {
+      color: #8B6F47;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #continueBtn {
+      visibility: hidden;
+      margin: 0.5em auto;
+      display: block;
+      width: fit-content;
+    }
+
+    #boutonInstaller {
+      margin: 0.5em auto;
+      height: 3em;
+      display: none;
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+      .result {
+        margin-top: 5em;
+        text-align: center;
+        word-break: break-word;
+        white-space: normal;
+        display: block;
+        min-height: auto;
+      }
+
+      .result > * {
+        width: 100%;
+      }
+
+      .result-line {
+        font-size: 4em;
+        width: 100%;
+        text-align: center;
+      }
+
+      .result-line.highlight {
+        margin-top: 1.2em;
+        font-size: 3em;
+      }
+
+      .result-line.highlight {
+        line-height: 1.2;
+        margin-top: 0.5em;
+      }
+
+      #continueBtn {
+        margin-top: 1em;
+        margin-bottom: 1em;
+        height: 3em;
+      }
+
+      #boutonInstaller {
+        margin-top: 1em;
+        margin-bottom: 1em;
+        height: 3em;
+      }
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+      .result {
+        margin-top: 5em;
+      }
+
+      .result > * {
+        width: 100%;
+      }
+
+      .result {
+        text-align: center;
+        word-break: break-word;
+        white-space: normal;
+        display: block;
+        min-height: auto;
+      }
+
+      .result-line {
+        font-size: 4em;
+        width: 100%;
+        text-align: center;
+      }
+
+      .result-line.highlight {
+        margin-top: 1.2em;
+        font-size: 3em;
+      }
+
+      .result-line.highlight {
+        line-height: 1.2;
+        margin-top: 0.5em;
+      }
+
+      #continueBtn {
+        margin-top: 2em;
+        margin-bottom: 2em;
+        height: 3em;
+        width: 100%;
+      }
+
+      visibility: hidden;
+    }
+
+    #boutonInstaller {
+      margin-top: 1em;
+      margin-bottom: 1em;
+      height: 3em;
+    }
+
+    .sakura {
+      width: 20px;
+      height: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .hiraganas-grid {
+        gap: 15px;
+      }
+
+      .hiragana-char {
+        font-size: 1.8em;
+      }
+
+      .question {
+        font-size: 2.8em;
+      }
+
+      .arcade-button {
+        padding: 0.6em 1.2em;
+        font-size: 1em;
+      }
+    }
+
+    @media (max-height: 700px) {
+      .hiragana-char {
+        font-size: 1.6em;
+        margin-bottom: 4px;
+      }
+
+      .question {
+        font-size: 2.5em;
+        margin: 0.3em 0;
+      }
+
+      .answers {
+        gap: 0.6em;
+        margin-bottom: 0.8em;
+      }
+
+      .arcade-button {
+        padding: 0.6em 1.2em;
+      }
+    }
+
+    @media (max-height: 600px) {
+      .hiragana-char {
+        font-size: 1.4em;
+      }
+
+      .stars-container {
+        gap: 1px;
+      }
+
+      .star {
+        width: 10px;
+        height: 10px;
+      }
+
+      .question {
+        font-size: 2.2em;
+      }
+
+      .progress-marker {
+        font-size: 1.6em;
+      }
+
+      .side-emoji {
+        font-size: 1.4em;
+      }
+    }
+
+    @keyframes confettiFall {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(110vh) rotate(720deg); }
+    }
+
+    body.shake {
+      animation: screenShake 0.4s ease-in-out;
+    }
+
+    @keyframes screenShake {
+      0% { transform: translate(0px, 0px); }
+      25% { transform: translate(4px, -4px); }
+      50% { transform: translate(-4px, 4px); }
+      75% { transform: translate(4px, 4px); }
+      100% { transform: translate(0px, 0px); }
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+      #progressBarContainer {
+        max-width: 80%;
+        margin: 1.5em auto 0.5em auto;
+        gap: 1em;
+      }
+
+      .progress-bar-track {
+        height: 32px;
+        border-radius: 12px;
+      }
+
+      .progress-marker {
+        font-size: 4.5em;
+        top: 30%;
+      }
+
+      .side-emoji {
+        font-size: 2.5em;
+      }
+
+      .level {
+        font-size: 2.5em;
+        margin: 0.4em 0;
+      }
+    }
+
+    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+      #progressBarContainer {
+        max-width: 80%;
+        margin: 1.5em auto 0.5em auto;
+        gap: 1em;
+      }
+
+      .progress-bar-track {
+        height: 32px;
+        border-radius: 12px;
+      }
+
+      .progress-marker {
+        font-size: 4.5em;
+        top: 30%;
+      }
+
+      .side-emoji {
+        font-size: 2.5em;
+      }
+
+      .level {
+        font-size: 1.5em;
+        margin: 0.1em 0;
+      }
+    }
+
+    /* Styles pour le menu hamburger */
+    .hamburger {
+      position: fixed;
+      background: #F5E8C7;
+      background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
+      border: 2px solid #8B6F47;
+      border-radius: 10px;
+      color: #8B6F47;
+      font-size: 24px;
+      padding: 10px;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: all 0.15s ease;
+    }
+
+    .hamburger:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 8px rgba(168, 213, 186, 0.6);
+      border-color: #7A5C3A;
+    }
+
+    .hamburger:active {
+      transform: translateY(2px) scale(0.98);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .hamburger {
+        bottom: 20px;
+        right: 20px;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .hamburger {
+        top: 20px;
+        left: 20px;
+      }
+    }
+
+    .menu {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(248, 241, 233, 0.9); /* Voile blanc cassé (papier washi) */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      opacity: 0;
+      z-index: 999;
+    }
+
+    .menu.active {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .menu .arcade-button {
+      width: 200px;
+    }
+
+    @media (max-width: 768px) {
+      .menu .arcade-button {
+        width: 80%;
+        font-size: 2em;
+      }
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .coming-soon {
+      font-size: 1.5em;
+      color: #8B6F47;
+      margin-top: 1em;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .coming-soon {
+        font-size: 2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Bouton hamburger -->
+  <button class="hamburger" onclick="toggleMenu()">☰</button>
+
+  <!-- Menu -->
+  <nav class="menu" id="menu">
+    <button class="arcade-button" onclick="showSection('quiz')">Quiz Hiragana</button>
+    <button class="arcade-button" onclick="showSection('mode2')">Mode Katakana</button>
+    <button class="arcade-button" onclick="showSection('options')">Options</button>
+    <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
+  </nav>
+
+  <!-- Section Quiz (contenu actuel) -->
+  <div id="quiz" class="section active">
+    <h1>🌿⛩️ Welcome to Hira-Kata-Quiz ⛩️🌸</h1>
+    <div id="progressBarContainer"></div>
+    <div class="level" id="levelDisplay">Niveau actuel : 1</div>
+    <div class="level-hiraganas">
+      <div class="hiraganas-grid" id="hiraganaCards"></div>
+    </div>
+    <div class="quiz-container">
+      <div class="question" id="question">load...</div>
+      <div>
+        <div class="answers" id="choices1"></div>
+        <div class="answers" id="choices2"></div>
+      </div>
+      <div>
+        <div class="result" id="result"></div>
+        <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j’ai capté 🌱</button>
+        <button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Mode Katakana -->
+  <div id="mode2" class="section">
+    <h1>Mode Katakana</h1>
+    <p class="coming-soon">Coming soon</p>
+  </div>
+
+  <!-- Section Options -->
+  <div id="options" class="section">
+    <h1>Options</h1>
+    <p class="coming-soon">Coming soon</p>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('menu');
+      menu.classList.toggle('active');
+    }
+
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(sectionId).classList.add('active');
+      toggleMenu();
+    }
+  </script>
+</body>
+</html>
 
 </style>
 </head>
@@ -1933,3 +2019,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
 </body>
 </html>
+
