@@ -859,23 +859,24 @@
       }
     }
 
-    .menu {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(248, 241, 233, 0.9); /* Voile blanc cassé (papier washi) */
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
-      transform: translateX(100%);
-      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-      opacity: 0;
-      z-index: 999;
-    }
+.menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(248, 241, 233, 0.95); /* Voile blanc cassé légèrement transparent */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px !important; /* Espacement minimal entre boutons */
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  opacity: 0;
+  z-index: 999;
+  padding: 0 !important; /* Annuler padding hérité */
+}
 
     .menu.active {
       transform: translateX(0);
@@ -889,8 +890,9 @@
 /* Remplacer la media query pour .menu .arcade-button */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   .menu .arcade-button {
-  
-    width: 600px;
+    width: 600px !important; /* Utiliser 100% comme #continueBtn */
+    min-width: 200px !important; /* Minimum pour éviter trop fin */
+    max-width: 90% !important; /* Limiter à 90% pour ne pas dépasser */
     font-size: 2.8em !important; /* Conserver texte grand */
     padding: 0.1em 1em !important; /* Conserver padding minimal */
     line-height: 1 !important; /* Interligne compact */
@@ -2017,6 +2019,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
