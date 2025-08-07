@@ -835,12 +835,14 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
-    @media (max-width: 768px) {
-      .hamburger {
-        bottom: 20px;
-        right: 20px;
-      }
-    }
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+  .hamburger {
+    bottom: 20px;
+    right: 20px;
+    top: auto; /* Supprime toute position en haut */
+  }
+}
+    
 
     @media (min-width: 769px) {
       .hamburger {
@@ -876,12 +878,12 @@
       width: 200px;
     }
 
-    @media (max-width: 768px) {
-      .menu .arcade-button {
-        width: 80%;
-        font-size: 2em;
-      }
-    }
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+  .menu .arcade-button {
+    width: 90%; /* Presque toute la largeur de l'écran */
+    font-size: 2em;
+  }
+}
 
     .section {
       display: none;
@@ -1993,3 +1995,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
