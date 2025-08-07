@@ -967,6 +967,7 @@
       toggleMenu();
     }
   </script>
+<script>
 let HiraganaList = [];
 let current = {};
 let selections = { first: null, second: null };
@@ -1988,6 +1989,9 @@ initGame();
 // S'assurer que les voix sont bien chargées
 speechSynthesis.onvoiceschanged = () => {
 console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
-};  
+};
+
+</script>
+  
 </body>
 </html>
