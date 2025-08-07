@@ -837,14 +837,14 @@
 
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   .hamburger {
-    bottom: 20px;
-    right: 20px;
-    top: auto; /* Supprime toute position en haut */
-    width: 50px; /* Taille fixe pour éviter d'occuper tout l'écran */
-    height: 50px; /* Taille carrée pour l'icône */
+    bottom: 20px !important;
+    right: 20px !important;
+    top: auto !important; /* Supprime toute position en haut */
+    width: 50px;
+    height: 50px;
     padding: 10px;
     font-size: 24px;
-    display: block; /* Annule tout display: flex hérité */
+    display: block;
     box-sizing: border-box;
   }
 }
@@ -886,8 +886,10 @@
 
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   .menu .arcade-button {
-    width: 90%; /* Presque toute la largeur de l'écran */
-    font-size: 2em;
+    width: 90%; /* Conserver la largeur presque totale */
+    font-size: 1.5em; /* Réduire la taille de la police pour moins de hauteur */
+    padding: 0.5em 1em; /* Réduire le padding pour compacter verticalement */
+    line-height: 1.2; /* Ajuster l'interligne pour éviter un texte trop espacé */
   }
 }
 
@@ -2001,5 +2003,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
