@@ -888,10 +888,10 @@
 
 /* Remplacer la media query pour .menu .arcade-button */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   .menu .arcade-button {
-    width: 100% !important; /* Utiliser 100% comme #continueBtn */
-    min-width: 600px !important; /* Minimum pour éviter trop fin */
-    max-width: 90% !important; /* Limiter à 90% pour ne pas dépasser */
+  
+    width: 600px;
     font-size: 2.8em !important; /* Conserver texte grand */
     padding: 0.1em 1em !important; /* Conserver padding minimal */
     line-height: 1 !important; /* Interligne compact */
@@ -2016,6 +2016,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
