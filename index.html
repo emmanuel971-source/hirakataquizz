@@ -809,23 +809,20 @@
     }
 
 /* Styles pour le menu hamburger */
-   .menu {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(248, 241, 233, 0.95);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  transform: translateX(100%);
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  opacity: 0;
-  z-index: 999;
-}
+    .hamburger {
+      position: fixed;
+      background: #F5E8C7;
+      background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
+      border: 2px solid #8B6F47;
+      border-radius: 10px;
+      color: #8B6F47;
+      font-size: 24px;
+      padding: 10px;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: all 0.15s ease;
+    }
 
     .hamburger:hover {
       transform: translateY(-2px) scale(1.02);
@@ -833,27 +830,17 @@
       border-color: #7A5C3A;
     }
 
-.menu.active {
-  transform: translateX(0);
-  opacity: 1;
-}
+    .hamburger:active {
+      transform: translateY(2px) scale(0.98);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
 
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
-  button.hamburger {
-    position: fixed !important;
-    bottom: 20px !important;
-    right: 20px !important;
-    left: auto !important;
-    top: auto !important;
-    width: 50px;
-    height: 50px;
-    padding: 10px;
-    font-size: 24px;
-    display: block;
-    box-sizing: border-box;
-  }
-}
-    
+    @media (max-width: 768px) {
+      .hamburger {
+        bottom: 20px;
+        right: 20px;
+      }
+    }
 
     @media (min-width: 769px) {
       .hamburger {
@@ -862,51 +849,39 @@
       }
     }
 
-. {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(248, 241, 233, 0.95); /* Voile blanc cassé légèrement transparent */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 8px; /* Espacement réduit entre les boutons */
-  transform: translateX(100%);
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  opacity: 0;
-  z-index: 999;
-}
+    .menu {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(248, 241, 233, 0.9); /* Voile blanc cassé (papier washi) */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      opacity: 0;
+      z-index: 999;
+    }
 
-    ..active {
+    .menu.active {
       transform: translateX(0);
       opacity: 1;
     }
 
-    . .arcade-button {
+    .menu .arcade-button {
       width: 200px;
     }
 
-/* Remplacer la media query pour .menu .arcade-button */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
-  .menu .arcade-button {
-  
-    width: 600px;
-    font-size: 2.8em !important; /* Conserver texte grand */
-    padding: 0.1em 1em !important; /* Conserver padding minimal */
-    line-height: 1 !important; /* Interligne compact */
-    min-height: 0 !important; /* Annuler hauteur minimale */
-    max-height: 2.5em !important; /* Conserver hauteur maximale */
-    background: #F5E8C7 !important; /* Forcer le fond */
-    color: #8B6F47 !important; /* Forcer la couleur du texte */
-    text-shadow: 0 0 8px rgba(139, 111, 71, 0.5) !important; /* Conserver l’effet */
-    box-sizing: border-box !important; /* Inclure padding */
-    margin: 0 auto !important; /* Centrer si besoin */
-    display: block !important; /* Forcer affichage en bloc */
-  }
-}
+    @media (max-width: 768px) {
+      .menu .arcade-button {
+        width: 80%;
+        font-size: 2em;
+      }
+    }
 
     .section {
       display: none;
@@ -977,7 +952,6 @@
     <h1>Options</h1>
     <p class="coming-soon">Coming soon</p>
   </div>
-
   <script>
     function toggleMenu() {
       const menu = document.getElementById('menu');
@@ -2018,6 +1992,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
