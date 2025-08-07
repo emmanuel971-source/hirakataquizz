@@ -966,33 +966,6 @@
       document.getElementById(sectionId).classList.add('active');
       toggleMenu();
     }
-  </script>
-</body>
-</html>
-
-</style>
-</head>
-<body>
-<h1>🌿⛩️ Welcome to Hira-Kata-Quiz ⛩️🌸</h1>
-<div id="progressBarContainer"></div>
-<div class="level" id="levelDisplay">Niveau actuel : 1</div>
-<div class="level-hiraganas">
-<div class="hiraganas-grid" id="hiraganaCards"></div>
-</div>
-<div class="quiz-container">
-<div class="question" id="question">load...</div>
-<div>
-<div class="answers" id="choices1"></div>
-<div class="answers" id="choices2"></div>
-</div>
-<div>
-<div class="result" id="result"></div>
-<button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j’ai capté 🌱</button>
-<button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
-</div>
-</div>
-
-<script>
 let HiraganaList = [];
 let current = {};
 let selections = { first: null, second: null };
@@ -2015,8 +1988,8 @@ initGame();
 speechSynthesis.onvoiceschanged = () => {
 console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
-
-</script>
+    
+  </script>
+  
 </body>
 </html>
-
