@@ -809,20 +809,23 @@
     }
 
 /* Styles pour le menu hamburger */
-    .hamburger {
-      position: fixed;
-      background: #F5E8C7;
-      background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
-      border: 2px solid #8B6F47;
-      border-radius: 10px;
-      color: #8B6F47;
-      font-size: 24px;
-      padding: 10px;
-      cursor: pointer;
-      z-index: 1000;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      transition: all 0.15s ease;
-    }
+   .menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(248, 241, 233, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  opacity: 0;
+  z-index: 999;
+}
 
     .hamburger:hover {
       transform: translateY(-2px) scale(1.02);
@@ -830,10 +833,10 @@
       border-color: #7A5C3A;
     }
 
-    .hamburger:active {
-      transform: translateY(2px) scale(0.98);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
+.menu.active {
+  transform: translateX(0);
+  opacity: 1;
+}
 
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   button.hamburger {
@@ -2015,6 +2018,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
