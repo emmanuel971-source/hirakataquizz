@@ -1,10 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <link rel="icon" href="data:,">
 <base target="_top">
 <style>
+    
+html {
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
+}
+
+* {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+    
 body {
 background: #F8F1E9; /* Blanc cassé, papier washi */
 font-family: 'Noto Sans JP', sans-serif;
@@ -20,7 +32,6 @@ flex-direction: column;
 }
 
 
-    
 body::before {
 content: '';
 position: absolute;
@@ -636,8 +647,8 @@ margin-top: 1.2em;
 font-size: 3em;
 }
 .result-line.highlight {
-    line-height: 1.2; /* ou 1.3 si vous voulez encore plus d'espace */
-    margin-top: 0.5em; /* optionnel : ajoute un peu d'espace au-dessus */
+line-height: 1.2; /* ou 1.3 si vous voulez encore plus d'espace */
+margin-top: 0.5em; /* optionnel : ajoute un peu d'espace au-dessus */
 }
 #continueBtn {
 margin-top: 1em;
@@ -687,8 +698,8 @@ margin-top: 1.2em;
 font-size: 3em;
 }
 .result-line.highlight {
-    line-height: 1.2; /* ou 1.3 si vous voulez encore plus d'espace */
-    margin-top: 0.5em; /* optionnel : ajoute un peu d'espace au-dessus */
+line-height: 1.2; /* ou 1.3 si vous voulez encore plus d'espace */
+margin-top: 0.5em; /* optionnel : ajoute un peu d'espace au-dessus */
 }
 #continueBtn {
 margin-top: 2em;
@@ -909,37 +920,7 @@ let previousCharacter = null;
 function logError(msg) {
 console.warn(msg);
 }
-// Empêcher le zoom sur double-clic avec les événements touch
-let lastTouchTime = 0;
-let touchCount = 0;
 
-document.addEventListener('touchstart', function(e) {
-  const now = Date.now();
-  if (now - lastTouchTime < 500) {
-    touchCount++;
-    if (touchCount >= 2) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  } else {
-    touchCount = 1;
-  }
-  lastTouchTime = now;
-}, { passive: false });
-
-document.addEventListener('touchend', function(e) {
-  const now = Date.now();
-  if (now - lastTouchTime < 300) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-}, { passive: false });
-
-// Garder aussi l'événement dblclick en backup
-document.addEventListener('dblclick', function(e) {
-  e.preventDefault();
-  e.stopPropagation();
-}, { passive: false });
 
 function testFeu() {
 const container = document.querySelector('.quiz-container');
@@ -1781,18 +1762,18 @@ document.getElementById("result").innerHTML = `
 
 // 🔊 Jouer le fichier MP3 correspondant au Hiragana
 if (current && current.Hiragana) {
-  const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
-  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-  console.log("🎧 Lecture du son :", audioUrl);
+const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
+const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+console.log("🎧 Lecture du son :", audioUrl);
 
-  const audio = new Audio(audioUrl);
-  audio.play().catch(e => console.warn("Erreur audio :", e));
+const audio = new Audio(audioUrl);
+audio.play().catch(e => console.warn("Erreur audio :", e));
 } else {
-  console.warn("❗ Aucun Hiragana à prononcer.");
+console.warn("❗ Aucun Hiragana à prononcer.");
 }
 
 
-    
+
 if (score === 1) {
 document.getElementById("result").innerHTML += "<br><small style='color: #4CAF50;'></small>";
 setTimeout(nextQuestion, 1500);
@@ -1944,21 +1925,11 @@ easing: "ease-in-out"
 window.onload = () => {
 initGame();
 };
-    // S'assurer que les voix sont bien chargées
+// S'assurer que les voix sont bien chargées
 speechSynthesis.onvoiceschanged = () => {
-  console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
+console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
