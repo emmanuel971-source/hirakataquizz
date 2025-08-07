@@ -808,41 +808,32 @@
       }
     }
 
-    /* Styles pour le menu hamburger */
-.hamburger {
-  position: fixed;
-  background: rgba(245, 232, 199, 0.7) !important; /* Fond clair voilé */
-  background-image: none !important; /* Supprimer texture arcade */
-  border: none !important; /* Supprimer bordures arcade */
-  border-radius: 5px; /* Légère arrondi pour effet carte */
-  color: rgba(139, 111, 71, 0.3) !important; /* Barres atténuées par défaut */
-  font-size: 24px;
-  padding: 10px;
-  cursor: pointer;
-  z-index: 1000;
-  box-shadow: none !important; /* Supprimer ombres */
-  transition: all 0.15s ease, color 0.3s ease; /* Ajouter transition pour la couleur */
-  font-weight: normal; /* Base pour bold au hover */
-  text-align: center; /* Centrer l’icône */
-  width: 50px; /* Taille cohérente */
-  height: 50px;
-  box-sizing: border-box;
-}
+/* Styles pour le menu hamburger */
+    .hamburger {
+      position: fixed;
+      background: #F5E8C7;
+      background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
+      border: 2px solid #8B6F47;
+      border-radius: 10px;
+      color: #8B6F47;
+      font-size: 24px;
+      padding: 10px;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: all 0.15s ease;
+    }
 
-.hamburger:hover {
-  color: rgba(139, 111, 71, 1) !important; /* Barres normales au survol */
-  font-weight: bold !important; /* Barres épaisses au survol */
-  transform: translateY(-2px) scale(1.02); /* Conserver effet hover */
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 8px rgba(168, 213, 186, 0.6); /* Conserver ombre */
-  border: none !important; /* Pas de bordure au hover */
-}
+    .hamburger:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 8px rgba(168, 213, 186, 0.6);
+      border-color: #7A5C3A;
+    }
 
-.hamburger:active {
-  transform: translateY(2px) scale(0.98);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  color: rgba(139, 111, 71, 1) !important; /* Barres normales à l’activation */
-  font-weight: bold !important; /* Barres épaisses à l’activation */
-}
+    .hamburger:active {
+      transform: translateY(2px) scale(0.98);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
 
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   button.hamburger {
@@ -851,20 +842,12 @@
     right: 20px !important;
     left: auto !important;
     top: auto !important;
-    width: 60px; /* Réduire pour mobile */
-    height: 60px;
-    padding: 5px; /* Réduire padding */
-    font-size: 60px; /* Réduire taille icône */
+    width: 50px;
+    height: 50px;
+    padding: 10px;
+    font-size: 24px;
     display: block;
     box-sizing: border-box;
-    background: rgba(245, 232, 199, 0.7) !important; /* Fond clair voilé */
-    color: rgba(139, 111, 71, 0.3) !important; /* Barres atténuées par défaut */
-    border: none !important; /* Supprimer bordures */
-    border-radius: 5px; /* Légère arrondi */
-    text-align: center; /* Centrer icône */
-    box-shadow: none !important; /* Supprimer ombres */
-    transition: none; /* Supprimer transitions inutiles sur mobile */
-    font-weight: normal; /* Base, pas de bold par défaut */
   }
 }
     
@@ -876,7 +859,7 @@
       }
     }
 
-.menu {
+. {
   position: fixed;
   top: 0;
   right: 0;
@@ -894,12 +877,12 @@
   z-index: 999;
 }
 
-    .menu.active {
+    ..active {
       transform: translateX(0);
       opacity: 1;
     }
 
-    .menu .arcade-button {
+    . .arcade-button {
       width: 200px;
     }
 
@@ -2032,6 +2015,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
