@@ -808,7 +808,7 @@
       }
     }
 
-/* Styles pour le menu hamburger */
+    /* Styles pour le menu hamburger */
     .hamburger {
       position: fixed;
       background: #F5E8C7;
@@ -952,6 +952,7 @@
     <h1>Options</h1>
     <p class="coming-soon">Coming soon</p>
   </div>
+
   <script>
     function toggleMenu() {
       const menu = document.getElementById('menu');
@@ -965,7 +966,8 @@
       document.getElementById(sectionId).classList.add('active');
       toggleMenu();
     }
-let HiraganaList = [];
+  </script>
+  let HiraganaList = [];
 let current = {};
 let selections = { first: null, second: null };
 let targetFields = [];
@@ -1987,23 +1989,5 @@ initGame();
 speechSynthesis.onvoiceschanged = () => {
 console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
-    
-  </script>
-  
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
