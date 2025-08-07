@@ -860,24 +860,23 @@
     }
 
 /* Ajuster la règle générale pour .menu */
-.menu {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(248, 241, 233, 0.95); /* Voile blanc cassé */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: stretch !important; /* Forcer les enfants à prendre toute la largeur */
-  gap: 15px !important; /* Conserver l’espacement demandé */
-  transform: translateX(100%);
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  opacity: 0;
-  z-index: 999;
-  padding: 0 !important; /* Annuler padding hérité */
-}
+   .menu {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(168, 213, 186, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      opacity: 0;
+      z-index: 999;
+    }
 
     .menu.active {
       transform: translateX(0);
@@ -2020,6 +2019,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
