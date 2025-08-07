@@ -859,18 +859,19 @@
       }
     }
 
+/* Ajuster la règle générale pour .menu */
 .menu {
   position: fixed;
   top: 0;
   right: 0;
   width: 100%;
   height: 100%;
-  background: rgba(248, 241, 233, 0.95); /* Voile blanc cassé légèrement transparent */
+  background: rgba(248, 241, 233, 0.95); /* Voile blanc cassé */
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
-  gap: 3px !important; /* Espacement minimal entre boutons */
+  align-items: stretch !important; /* Forcer les enfants à prendre toute la largeur */
+  gap: 15px !important; /* Conserver l’espacement demandé */
   transform: translateX(100%);
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
   opacity: 0;
@@ -884,14 +885,14 @@
     }
 
     .menu .arcade-button {
-      width: 600px;
+      width: 200px;
     }
 
 /* Remplacer la media query pour .menu .arcade-button */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   .menu .arcade-button {
-    width: 600px !important; /* Utiliser 100% comme #continueBtn */
-   
+    width: 100% !important; /* Utiliser 100% comme #continueBtn */
+    min-width: 600px !important; /* Minimum pour éviter trop fin */
     font-size: 2.8em !important; /* Conserver texte grand */
     padding: 0.1em 1em !important; /* Conserver padding minimal */
     line-height: 1 !important; /* Interligne compact */
@@ -905,6 +906,7 @@
     display: block !important; /* Forcer affichage en bloc */
   }
 }
+
 
     .section {
       display: none;
@@ -2018,6 +2020,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
