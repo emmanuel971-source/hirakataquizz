@@ -886,11 +886,12 @@
       width: 200px;
     }
 
+/* Remplacer la media query pour .menu .arcade-button */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   .menu .arcade-button {
-    width: 90vw !important; /* Utiliser viewport width pour uniformité */
+    width: 100% !important; /* Utiliser 100% comme #continueBtn */
     min-width: 200px !important; /* Minimum pour éviter trop fin */
-    max-width: 90vw !important; /* Limiter à 90% de la viewport */
+    max-width: 90% !important; /* Limiter à 90% pour ne pas dépasser */
     font-size: 2.8em !important; /* Conserver texte grand */
     padding: 0.1em 1em !important; /* Conserver padding minimal */
     line-height: 1 !important; /* Interligne compact */
@@ -2015,6 +2016,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
