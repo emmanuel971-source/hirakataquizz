@@ -915,9 +915,16 @@
       opacity: 1;
     }
 
-    .menu .arcade-button {
-      width: 200px;
-    }
+ .menu .arcade-button {
+    width: 300px !important; /* Plus large que les 200px actuels */
+    height: 80px !important; /* Hauteur fixe pour tous */
+    min-height: 80px !important; /* Force la hauteur minimum */
+    max-height: 80px !important; /* Limite la hauteur maximum */
+    line-height: 80px !important; /* Centre le texte verticalement */
+    padding: 0 1.5em !important; /* Padding horizontal seulement */
+    font-size: 1.6em !important; /* Taille de police cohérente */
+    box-sizing: border-box !important;
+  }
 
 
 
@@ -2062,6 +2069,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
