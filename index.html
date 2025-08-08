@@ -887,23 +887,7 @@
       width: 200px;
     }
 
-/* Remplacer la media query pour .menu .arcade-button */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
-  .menu .arcade-button {
-    width: 600px !important; /* Utiliser 100% comme #continueBtn */
-   font-size: 2.8em !important; /* Conserver texte grand */
-    padding: 0.1em 1em !important; /* Conserver padding minimal */
-    line-height: 1 !important; /* Interligne compact */
-    min-height: 0 !important; /* Annuler hauteur minimale */
-    max-height: 2.5em !important; /* Conserver hauteur maximale */
-    background: #F5E8C7 !important; /* Forcer le fond */
-    color: #8B6F47 !important; /* Forcer la couleur du texte */
-    text-shadow: 0 0 8px rgba(139, 111, 71, 0.5) !important; /* Conserver l’effet */
-    box-sizing: border-box !important; /* Inclure padding */
-    margin: 0 auto !important; /* Centrer si besoin */
-    display: block !important; /* Forcer affichage en bloc */
-  }
-}
+
 
 /* ✅ SOLUTION CORRIGÉE */
 @media screen and (max-width: 768px) {
@@ -2034,6 +2018,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
