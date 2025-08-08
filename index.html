@@ -891,19 +891,20 @@
 
 /* ✅ SOLUTION CORRIGÉE */
 @media screen and (max-width: 768px) {
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   .menu .arcade-button {
-    width: min(90vw, 400px) !important; /* Responsive avec limite */
-    max-width: 100% !important; /* Empêche débordement */
-    font-size: clamp(1.5rem, 4vw, 2.5rem) !important; /* Taille adaptive */
-    padding: 0.5em 1em !important;
-    line-height: 1.2 !important;
+    width: 90vw !important; /* ← Change juste ça ! */
+    font-size: 2.8em !important;
+    padding: 0.1em 1em !important;
+    line-height: 1 !important;
+    min-height: 0 !important;
+    max-height: 2.5em !important;
     background: #F5E8C7 !important;
     color: #8B6F47 !important;
     text-shadow: 0 0 8px rgba(139, 111, 71, 0.5) !important;
     box-sizing: border-box !important;
-    margin: 10px auto !important;
+    margin: 0 auto !important;
     display: block !important;
-    border-radius: 8px !important;
   }
 }
     .section {
@@ -2018,6 +2019,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
