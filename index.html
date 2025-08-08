@@ -905,7 +905,23 @@
   }
 }
 
-
+/* ✅ SOLUTION CORRIGÉE */
+@media screen and (max-width: 768px) {
+  .menu .arcade-button {
+    width: min(90vw, 400px) !important; /* Responsive avec limite */
+    max-width: 100% !important; /* Empêche débordement */
+    font-size: clamp(1.5rem, 4vw, 2.5rem) !important; /* Taille adaptive */
+    padding: 0.5em 1em !important;
+    line-height: 1.2 !important;
+    background: #F5E8C7 !important;
+    color: #8B6F47 !important;
+    text-shadow: 0 0 8px rgba(139, 111, 71, 0.5) !important;
+    box-sizing: border-box !important;
+    margin: 10px auto !important;
+    display: block !important;
+    border-radius: 8px !important;
+  }
+}
     .section {
       display: none;
     }
@@ -2018,6 +2034,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
