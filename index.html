@@ -392,15 +392,16 @@
         text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
       }
 
-      .answers {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.8em;
-        margin-bottom: 1em;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 0 1em;
-      }
+     .answers {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* centre horizontalement */
+    gap: 0.8em;
+    margin-bottom: 1em;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 1em;
+  }
 
       .sakura {
         width: 20px;
@@ -2069,6 +2070,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
