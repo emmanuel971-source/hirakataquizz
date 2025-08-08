@@ -808,56 +808,88 @@
       }
     }
 
-    /* Styles pour le menu hamburger */
-    .hamburger {
-      position: fixed;
-      background: #F5E8C7;
-      background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
-      border: 2px solid #8B6F47;
-      border-radius: 10px;
-      color: #8B6F47;
-      font-size: 24px;
-      padding: 10px;
-      cursor: pointer;
-      z-index: 1000;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      transition: all 0.15s ease;
-    }
+/* ✅ NOUVEAU STYLE HAMBURGER - Style carte hiragana */
+.hamburger {
+  position: fixed;
+  background: #FFFFFF; /* Fond blanc comme les cartes */
+  border: none; /* Supprime la bordure */
+  border-radius: 8px; /* Bords arrondis comme les cartes */
+  color: #8B6F47;
+  padding: 12px;
+  cursor: pointer;
+  z-index: 1000;
+  /* Ombre identique aux cartes hiragana */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-    .hamburger:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 8px rgba(168, 213, 186, 0.6);
-      border-color: #7A5C3A;
-    }
+/* Icône hamburger avec 3 barres */
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 20px;
+  height: 16px;
+}
 
-    .hamburger:active {
-      transform: translateY(2px) scale(0.98);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
+.hamburger-bar {
+  width: 100%;
+  height: 3px;
+  background: rgba(139, 111, 71, 0.3); /* Marron voilé/discret */
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
 
-   /* Remplacer la media query pour .hamburger */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+/* Desktop - hover révèle les barres */
+@media (min-width: 769px) {
   .hamburger {
-    position: fixed !important; /* Renforcer la spécificité */
-    bottom: 20px !important;
-    right: 20px !important;
-    left: auto !important; /* Supprimer toute position à gauche */
-    top: auto !important; /* Supprimer toute position en haut */
-    width: 50px;
-    height: 50px;
-    padding: 10px;
-    font-size: 24px;
-    display: block;
-    box-sizing: border-box;
+    top: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .hamburger:hover .hamburger-bar {
+    background: #8B6F47; /* Marron normal au survol */
+  }
+
+  .hamburger:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
   }
 }
 
-    @media (min-width: 769px) {
-      .hamburger {
-        top: 20px;
-        left: 20px;
-      }
-    }
+/* Mobile - 2x plus gros */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+  .hamburger {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+    width: 88px !important; /* 2x plus gros */
+    height: 88px !important;
+    padding: 20px;
+    display: flex;
+    box-sizing: border-box;
+  }
+
+  .hamburger-icon {
+    width: 36px;
+    height: 28px;
+    gap: 6px;
+  }
+
+  .hamburger-bar {
+    height: 4px;
+    background: rgba(139, 111, 71, 0.4); /* Légèrement plus visible sur mobile */
+  }
+}
+
+
 
 /* Ajuster la règle générale pour .menu */
    .menu {
@@ -936,8 +968,15 @@
   </style>
 </head>
 <body>
-  <!-- Bouton hamburger -->
-  <button class="hamburger" onclick="toggleMenu()">☰</button>
+  <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">☰</button>  -->
+<!-- Bouton hamburger -->
+<button class="hamburger" onclick="toggleMenu()">
+  <div class="hamburger-icon">
+    <div class="hamburger-bar"></div>
+    <div class="hamburger-bar"></div>
+    <div class="hamburger-bar"></div>
+  </div>
+</button>
 
   <!-- Menu -->
   <nav class="menu" id="menu">
@@ -2023,6 +2062,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
