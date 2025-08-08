@@ -889,22 +889,20 @@
 
 
 
-/* ✅ SOLUTION CORRIGÉE */
-@media screen and (max-width: 768px) {
+/* Garde ton code Firefox intact */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   .menu .arcade-button {
-    width: 90vw !important; /* ← Change juste ça ! */
+    width: 600px !important;
     font-size: 2.8em !important;
     padding: 0.1em 1em !important;
-    line-height: 1 !important;
-    min-height: 0 !important;
-    max-height: 2.5em !important;
-    background: #F5E8C7 !important;
-    color: #8B6F47 !important;
-    text-shadow: 0 0 8px rgba(139, 111, 71, 0.5) !important;
-    box-sizing: border-box !important;
-    margin: 0 auto !important;
-    display: block !important;
+    /* ... reste identique ... */
+  }
+  
+  /* Correction spécifique Chrome */
+  @supports (-webkit-appearance: none) {
+    .menu .arcade-button {
+      width: min(80vw, 500px) !important; /* Plus conservateur */
+    }
   }
 }
     .section {
@@ -2019,6 +2017,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
