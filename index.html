@@ -895,13 +895,19 @@
     width: 600px !important;
     font-size: 2.8em !important;
     padding: 0.1em 1em !important;
-    /* ... reste identique ... */
+    line-height: 120px !important; /* ← Centre le texte */
+    height: 120px !important; /* ← Hauteur fixe pour TOUS */
+    max-height: 120px !important; /* ← Remplace l'ancien 2.5em */
   }
   
   /* Correction spécifique Chrome */
   @supports (-webkit-appearance: none) {
     .menu .arcade-button {
       width: min(80vw, 500px) !important; /* Plus conservateur */
+      height: 120px !important; /* ← Hauteur fixe */
+      max-height: 120px !important; /* ← Remplace l'ancien max-height */
+      line-height: 120px !important; /* ← Centre le texte verticalement */
+      padding: 0 1em !important; /* ← Supprime padding vertical */
     }
   }
 }
@@ -2017,6 +2023,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
