@@ -1187,7 +1187,7 @@
       menu.classList.toggle('active');
     }
 
- function showSection(sectionId) {
+function showSection(sectionId) {
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
@@ -1196,7 +1196,11 @@
   // Démarrer le mode révisions si c'est le mode sélectionné
   if (sectionId === 'mode2') {
     revisionMode.isActive = true;
-    startRevisionQuestion();
+    // Petit délai pour s'assurer que la section est visible
+    setTimeout(() => {
+      initRevisionKeyboard();
+      startRevisionQuestion();
+    }, 100);
   } else {
     revisionMode.isActive = false;
   }
@@ -2347,8 +2351,133 @@ function startRevisionQuestion() {
   console.log("Question:", revisionMode.currentQuestion, "Réponse attendue:", revisionMode.fullCorrect);
 }  
 
+function updateRevisionFeedback() {
+  // Reset toutes les classes
+  for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
+    const charElement = document.getElementById(`revision-char-${i}`);
+    if (charElement) {
+      charElement.classList.remove("pulsing");
+    }
+  }
 
+  let currentSegment = -1;
 
+  for (let seg = 0; seg < revisionMode.romajiSegments.length; seg++) {
+    const romEnd = revisionMode.cumulativeRomaji[seg];
+    const romStart = (seg > 0 ? revisionMode.cumulativeRomaji[seg - 1] : 0);
+    const typedLen = Math.min(revisionMode.input.length, romEnd) - romStart;
+    const typedSegment = revisionMode.input.substring(romStart, romStart + typedLen);
+    const expected = revisionMode.romajiSegments[seg];
+    
+    let className = "";
+    if (typedLen > 0) {
+      if (expected.startsWith(typedSegment)) {
+        className = "char-correct";
+      } else {
+        className = "char-incorrect";
+      }
+    }
+
+    // Appliquer la classe à tous les spans du segment
+    const charStart = (seg > 0 ? revisionMode.cumulativeChars[seg - 1] : 0);
+    const charEnd = revisionMode.cumulativeChars[seg];
+    for (let c = charStart; c < charEnd; c++) {
+      const span = document.getElementById(`revision-char-${c}`);
+      if (span) {
+        span.className = className;
+      }
+    }
+
+    // Déterminer le segment en cours pour la pulsation
+    if (romStart <= revisionMode.input.length && revisionMode.input.length < romEnd) {
+      currentSegment = seg;
+    }
+  }
+
+  // Ajouter la pulsation au segment en cours
+  if (currentSegment >= 0) {
+    const charStart = (currentSegment > 0 ? revisionMode.cumulativeChars[currentSegment - 1] : 0);
+    const charEnd = revisionMode.cumulativeChars[currentSegment];
+    for (let c = charStart; c < charEnd; c++) {
+      const charElement = document.getElementById(`revision-char-${c}`);
+      if (charElement) {
+        charElement.classList.add("pulsing");
+      }
+    }
+  }
+}
+// Initialiser les événements du clavier de révision
+function initRevisionKeyboard() {
+  const revisionKeys = document.querySelectorAll('.revision-key');
+  
+  revisionKeys.forEach(key => {
+    // Supprimer les anciens event listeners pour éviter les doublons
+    key.replaceWith(key.cloneNode(true));
+  });
+  
+  // Récupérer les nouvelles références après clonage
+  const newRevisionKeys = document.querySelectorAll('.revision-key');
+  
+  newRevisionKeys.forEach(key => {
+    key.addEventListener("click", () => {
+      if (!revisionMode.isActive) return;
+      
+      if (key.id === "revision-back") {
+        // Touche retour
+        if (revisionMode.input.length > 0) {
+          revisionMode.input = revisionMode.input.slice(0, -1);
+        }
+      } else {
+        // Touche normale
+        revisionMode.input += key.textContent;
+      }
+      
+      // Mettre à jour l'affichage
+      document.getElementById("revision-input-display").textContent = revisionMode.input;
+      updateRevisionFeedback();
+      
+      // Vérifier si la réponse est complète
+      const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1];
+      
+      if (revisionMode.input.length === totalLength) {
+        if (revisionMode.input === revisionMode.fullCorrect) {
+          // Bonne réponse
+          document.getElementById("revision-message").textContent = "🌸 Parfait ! 🌸";
+          document.getElementById("revision-message").style.color = "#28a745";
+          playMarioCoin(); // Utiliser le son existant
+          setTimeout(() => {
+            startRevisionQuestion(); // Nouvelle question
+          }, 1500);
+        } else {
+          // Mauvaise réponse
+          document.getElementById("revision-message").textContent = 
+            `❌ Mauvaise réponse. Correct : ${revisionMode.fullCorrect}`;
+          document.getElementById("revision-message").style.color = "#dc3545";
+          playFail(); // Utiliser le son existant
+          setTimeout(() => {
+            startRevisionQuestion(); // Nouvelle question
+          }, 3000);
+        }
+      } else if (revisionMode.input.length > totalLength) {
+        // Trop de caractères
+        document.getElementById("revision-message").textContent = 
+          `❌ Trop long ! Correct : ${revisionMode.fullCorrect}`;
+        document.getElementById("revision-message").style.color = "#dc3545";
+        playFail();
+        revisionMode.input = "";
+        document.getElementById("revision-input-display").textContent = "";
+        setTimeout(() => {
+          startRevisionQuestion(); // Nouvelle question
+        }, 3000);
+      }
+    });
+  });
+}
+
+// Appeler l'initialisation au chargement de la page
+window.addEventListener('load', () => {
+  initRevisionKeyboard();
+});
 // Démarrage du jeu
 window.onload = () => {
 initGame();
@@ -2362,6 +2491,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
