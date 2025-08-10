@@ -973,6 +973,129 @@
         font-size: 2em;
       }
     }
+
+/* Styles pour le mode révisions */
+#revision-question {
+  font-size: 3em;
+  margin-bottom: 20px;
+  color: #8B6F47;
+  text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
+}
+
+.char-correct {
+  background-color: #d4edda;
+  border-radius: 5px;
+  padding: 2px 4px;
+}
+
+.char-incorrect {
+  background-color: #f8e7e6;
+  border-radius: 5px;
+  padding: 2px 4px;
+}
+
+.pulsing {
+  animation: revisionPulse 0.8s infinite;
+}
+
+@keyframes revisionPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+#revision-input-display {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+  min-height: 30px;
+  padding: 10px;
+  border: 2px solid #8B6F47;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
+  background: #FFFFFF;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.revision-keyboard {
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.revision-key {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #8B6F47;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: bold;
+  font-size: 1.1em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Couleurs des touches selon les lignes */
+.revision-key:nth-child(-n+5) { background-color: #d1e7ff; color: black; }
+.revision-key:nth-child(6), .revision-key:nth-child(7) { background-color: #fff3cd; color: black; }
+.revision-key:nth-child(8) { background-color: #d1e7ff; color: black; }
+.revision-key:nth-child(9), .revision-key:nth-child(10) { background-color: #f8e7e6; color: black; }
+.revision-key:nth-child(n+11):nth-child(-n+15) { background-color: #d4edda; color: black; }
+.revision-key:nth-child(n+16):nth-child(-n+20) { background-color: #ffe4b5; color: black; }
+.revision-key:nth-child(n+21):nth-child(-n+24) { background-color: #dee2e6; color: black; }
+.revision-key:nth-child(25) { background-color: #ffffff; color: black; }
+
+.revision-key:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.revision-key:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+#revision-message {
+  margin-top: 20px;
+  font-size: 1.2em;
+  color: #8B6F47;
+  min-height: 1.5em;
+}
+
+/* Responsive pour mobile */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+  #revision-question {
+    font-size: 6em;
+  }
+  
+  #revision-input-display {
+    font-size: 2.5em;
+    width: 90%;
+    padding: 15px;
+  }
+  
+  .revision-keyboard {
+    grid-template-columns: repeat(5, 80px);
+    gap: 10px;
+  }
+  
+  .revision-key {
+    width: 80px;
+    height: 80px;
+    font-size: 1.5em;
+  }
+  
+  #revision-message {
+    font-size: 2em;
+  }
+}    
+
+    
   </style>
 </head>
 <body>
@@ -1017,10 +1140,40 @@
   </div>
 
   <!-- Section Mode Katakana -->
-  <div id="mode2" class="section">
-    <h1>Mode Katakana</h1>
-    <p class="coming-soon">Coming soon</p>
+<!-- Section Mode révisions -->
+<div id="mode2" class="section">
+  <h1>🎌 Mode Révisions 🎌</h1>
+  <div id="revision-question"></div>
+  <div id="revision-input-display"></div>
+  <div class="revision-keyboard">
+    <div class="revision-key">a</div>
+    <div class="revision-key">i</div>
+    <div class="revision-key">u</div>
+    <div class="revision-key">e</div>
+    <div class="revision-key">o</div>
+    <div class="revision-key">k</div>
+    <div class="revision-key">g</div>
+    <div class="revision-key">y</div>
+    <div class="revision-key">h</div>
+    <div class="revision-key">f</div>
+    <div class="revision-key">t</div>
+    <div class="revision-key">ts</div>
+    <div class="revision-key">d</div>
+    <div class="revision-key">b</div>
+    <div class="revision-key">p</div>
+    <div class="revision-key">s</div>
+    <div class="revision-key">sh</div>
+    <div class="revision-key">z</div>
+    <div class="revision-key">j</div>
+    <div class="revision-key">ch</div>
+    <div class="revision-key">m</div>
+    <div class="revision-key">n</div>
+    <div class="revision-key">r</div>
+    <div class="revision-key">w</div>
+    <div class="revision-key" id="revision-back">←</div>
   </div>
+  <div id="revision-message"></div>
+</div>
 
   <!-- Section Options -->
   <div id="options" class="section">
@@ -2070,6 +2223,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
