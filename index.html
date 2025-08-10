@@ -1232,46 +1232,90 @@ let revisionMode = {
   isActive: false
 };
 
-// Fonction pour générer la table romaji à partir des données Google Sheet
+// Fonction pour générer la table romaji à partir des données Google Sheet (VERSION CORRIGÉE)
 function generateRevisionRomajiTable(hiraganaList) {
   const table = {};
+  let validItems = 0;
+  let invalidItems = 0;
   
-  hiraganaList.forEach(item => {
+  hiraganaList.forEach((item, index) => {
     const hiragana = item.Hiragana;
     const romaji = item.Romaji;
     
-    if (hiragana && romaji) {
+    // ✅ VÉRIFICATIONS ROBUSTES
+    if (!hiragana || !romaji) {
+      console.warn(`⚠️ Item ${index} ignoré - données manquantes:`, {hiragana, romaji});
+      invalidItems++;
+      return;
+    }
+    
+    // Convertir en string si ce n'est pas déjà le cas
+    const hiraganaStr = String(hiragana).trim();
+    const romajiStr = String(romaji).trim();
+    
+    if (hiraganaStr === '' || romajiStr === '' || romajiStr === 'undefined' || romajiStr === 'null') {
+      console.warn(`⚠️ Item ${index} ignoré - données vides:`, {hiragana: hiraganaStr, romaji: romajiStr});
+      invalidItems++;
+      return;
+    }
+    
+    try {
       // Analyser le romaji pour créer les segments
-      const segments = analyzeRomajiSegments(romaji);
-      table[hiragana] = {
+      const segments = analyzeRomajiSegments(romajiStr);
+      table[hiraganaStr] = {
         romaji: segments.segments,
         charCounts: segments.charCounts,
-        originalRomaji: romaji // garder l'original pour debug
+        originalRomaji: romajiStr,
+        niveau: item.Niveau,
+        validation: item.Validation
       };
+      validItems++;
+    } catch (error) {
+      console.error(`❌ Erreur lors de l'analyse de l'item ${index}:`, {hiragana: hiraganaStr, romaji: romajiStr}, error);
+      invalidItems++;
     }
   });
   
+  console.log(`📊 Génération table romaji: ${validItems} items valides, ${invalidItems} items ignorés`);
   return table;
 }
 
-// Fonction pour analyser et segmenter le romaji
-function analyzeRomajiSegments(romajiString) {
-  // Nettoyer le romaji (supprimer espaces, etc.)
-  const cleanRomaji = romajiString.toLowerCase().trim();
+// Fonction pour analyser et segmenter le romaji (VERSION CORRIGÉE)
+function analyzeRomajiSegments(romajiInput) {
+  // ✅ VÉRIFICATION ET CONVERSION SÉCURISÉE
+  if (!romajiInput) {
+    throw new Error("Romaji vide ou null");
+  }
   
-  // Pour les mots composés, on peut essayer de détecter les segments
-  // mais pour commencer, on va traiter chaque mot/kana comme un seul segment
+  // Convertir en string et nettoyer
+  let romajiString;
+  try {
+    romajiString = String(romajiInput).toLowerCase().trim();
+  } catch (error) {
+    throw new Error(`Impossible de convertir le romaji en string: ${romajiInput}`);
+  }
+  
+  if (romajiString === '' || romajiString === 'undefined' || romajiString === 'null') {
+    throw new Error(`Romaji invalide après nettoyage: "${romajiString}"`);
+  }
+  
+  // Nettoyer davantage (supprimer caractères spéciaux, espaces multiples, etc.)
+  romajiString = romajiString.replace(/[^a-z]/g, ''); // Garder seulement les lettres
+  
+  if (romajiString === '') {
+    throw new Error(`Romaji vide après nettoyage des caractères spéciaux`);
+  }
   
   // Si c'est un seul caractère hiragana/katakana, c'est simple
-  if (cleanRomaji.length <= 4) {
+  if (romajiString.length <= 4) {
     return {
-      segments: [cleanRomaji],
+      segments: [romajiString],
       charCounts: [1]
     };
   }
   
-  // Pour les mots plus longs, on va essayer de segmenter intelligemment
-  const segments = smartSegmentRomaji(cleanRomaji);
+  // Pour les mots plus longs, segmenter intelligemment
+  const segments = smartSegmentRomaji(romajiString);
   
   return {
     segments: segments,
@@ -1279,8 +1323,13 @@ function analyzeRomajiSegments(romajiString) {
   };
 }
 
-// Fonction pour segmenter intelligemment le romaji
+// Fonction pour segmenter intelligemment le romaji (INCHANGÉE mais ajout de vérifications)
 function smartSegmentRomaji(romaji) {
+  if (!romaji || typeof romaji !== 'string') {
+    console.warn("smartSegmentRomaji: romaji invalide", romaji);
+    return [romaji || ''];
+  }
+  
   // Syllabes communes en japonais
   const commonSyllables = [
     'tsu', 'shi', 'chi', 'sha', 'sho', 'shu', 'cha', 'cho', 'chu',
@@ -1319,7 +1368,7 @@ function smartSegmentRomaji(romaji) {
     }
   }
   
-  return segments;
+  return segments.length > 0 ? segments : [romaji]; // Fallback de sécurité
 }
 
   
@@ -2542,6 +2591,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
