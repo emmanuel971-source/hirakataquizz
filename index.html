@@ -1280,7 +1280,47 @@ function generateRevisionRomajiTable(hiraganaList) {
   console.log(`📊 Génération table romaji: ${validItems} items valides, ${invalidItems} items ignorés`);
   return table;
 }
-
+function generateRevisionKatakanaTable(hiraganaList) {
+  const table = {};
+  let validItems = 0;
+  let invalidItems = 0;
+  
+  hiraganaList.forEach((item, index) => {
+    const katakana = item.Katakana; // Assumant colonne "Katakana" dans ta Sheet
+    const romaji = item.Romaji;
+    
+    if (!katakana || !romaji) {
+      console.warn(`⚠️ Item ${index} ignoré pour Katakana - données manquantes:`, {katakana, romaji});
+      invalidItems++;
+      return;
+    }
+    
+    const katakanaStr = String(katakana).trim();
+    const romajiStr = String(romaji).trim();
+    
+    if (katakanaStr === '' || romajiStr === '' || romajiStr === 'undefined' || romajiStr === 'null') {
+      invalidItems++;
+      return;
+    }
+    
+    try {
+      const segments = analyzeRomajiSegments(romajiStr);
+      table[katakanaStr] = {
+        romaji: segments.segments,
+        charCounts: segments.charCounts,
+        originalRomaji: romajiStr,
+        niveau: item.Niveau,
+        validation: item.Validation
+      };
+      validItems++;
+    } catch (error) {
+      invalidItems++;
+    }
+  });
+  
+  console.log(`📊 Génération table katakana: ${validItems} items valides, ${invalidItems} items ignorés`);
+  return table;
+}
 // Fonction pour analyser et segmenter le romaji (VERSION CORRIGÉE)
 function analyzeRomajiSegments(romajiInput) {
   if (!romajiInput) {
@@ -2015,9 +2055,11 @@ async function initGame() {
 
   HiraganaList = data;
   
-  // ✨ NOUVEAU : Générer la table romaji à partir des données réelles
   revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
+  revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList); // Nouvelle table
+  
   console.log("📚 Table romaji générée:", Object.keys(revisionRomajiTable).length, "entrées");
+  console.log("📚 Table katakana générée:", Object.keys(revisionKatakanaTable).length, "entrées");
   
   niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
@@ -2364,29 +2406,36 @@ easing: "ease-in-out"
 }
 
 function startRevisionQuestion() {
-  // Récupérer TOUS les items des niveaux atteints (pas seulement hiragana de base)
-  const availableItems = HiraganaList.filter(h => 
+  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38]; // Niveaux où seuls Hiragana sont proposés (ajuste ici)
+  
+  // Items Hiragana disponibles (tous niveaux <= niveauActif)
+  const hiraganaItems = HiraganaList.filter(h => 
     parseInt(h.Niveau) <= niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
-    h.Hiragana && h.Romaji // S'assurer qu'on a les données nécessaires
+    h.Hiragana && h.Romaji
   );
   
-  console.log(`🎯 Items disponibles pour révision:`, availableItems.length);
+  // Items Katakana disponibles (seulement pour niveaux non exclus)
+  const katakanaItems = HiraganaList.filter(h => 
+    parseInt(h.Niveau) <= niveauActif && 
+    !excludedKatakanaLevels.includes(parseInt(h.Niveau)) && 
+    revisionKatakanaTable[h.Katakana] &&
+    h.Katakana && h.Romaji
+  );
+  
+  // Fusion des items disponibles
+  const availableItems = [...hiraganaItems.map(item => ({...item, type: 'hiragana', key: item.Hiragana})), 
+                          ...katakanaItems.map(item => ({...item, type: 'katakana', key: item.Katakana}))];
+  
+  console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
   
   if (availableItems.length === 0) {
     document.getElementById("revision-message").textContent = "Aucun item disponible pour ce niveau";
-    console.warn("Aucun item disponible. HiraganaList:", HiraganaList.length, "Niveau:", niveauActif);
     return;
   }
   
-  // Sélection pondérée basée sur le pourcentage de réussite (favoriser les plus faibles)
-  const weights = availableItems.map(h => {
-    const validation = parseInt(h.Validation || 0);
-    // Plus la validation est faible, plus le poids est élevé
-    return Math.max(0.1, 5 - validation + 0.5);
-  });
-  
-  // Sélection aléatoire pondérée
+  // Sélection pondérée basée sur Validation
+  const weights = availableItems.map(h => Math.max(0.1, 5 - parseInt(h.Validation || 0) + 0.5));
   const totalWeight = weights.reduce((a, b) => a + b, 0);
   let random = Math.random() * totalWeight;
   let selectedItem = availableItems[0];
@@ -2399,13 +2448,14 @@ function startRevisionQuestion() {
     }
   }
   
-  // Configurer la question
-  revisionMode.currentQuestion = selectedItem.Hiragana;
-  const tableEntry = revisionRomajiTable[selectedItem.Hiragana];
+  // Configurer la question en fonction du type (Hiragana ou Katakana)
+  revisionMode.currentQuestion = selectedItem.key; // Hiragana ou Katakana
+  const table = selectedItem.type === 'hiragana' ? revisionRomajiTable : revisionKatakanaTable;
+  const tableEntry = table[selectedItem.key];
   revisionMode.romajiSegments = tableEntry.romaji;
   revisionMode.charCounts = tableEntry.charCounts;
   revisionMode.fullCorrect = revisionMode.romajiSegments.join("");
-  revisionMode.currentItem = selectedItem; // Garder référence pour les stats
+  revisionMode.currentItem = selectedItem; // Pour stats
   
   // Calculer les positions cumulatives
   let cumRom = 0;
@@ -2576,6 +2626,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
