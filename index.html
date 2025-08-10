@@ -2484,10 +2484,8 @@ function updateRevisionFeedback() {
     for (let c = charStart; c < charEnd; c++) {
       const span = document.getElementById(`revision-char-${c}`);
       if (span) {
-        span.classList.remove('char-correct', 'char-incorrect');
-        if (className) {
-          span.classList.add(className);
-        }
+    
+        span.className = className;
       }
     }
 
@@ -2595,6 +2593,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
