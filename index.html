@@ -1283,95 +1283,76 @@ function generateRevisionRomajiTable(hiraganaList) {
 
 // Fonction pour analyser et segmenter le romaji (VERSION CORRIGÉE)
 function analyzeRomajiSegments(romajiInput) {
-  // ✅ VÉRIFICATION ET CONVERSION SÉCURISÉE
   if (!romajiInput) {
     throw new Error("Romaji vide ou null");
   }
   
-  // Convertir en string et nettoyer
-  let romajiString;
-  try {
-    romajiString = String(romajiInput).toLowerCase().trim();
-  } catch (error) {
-    throw new Error(`Impossible de convertir le romaji en string: ${romajiInput}`);
-  }
-  
-  if (romajiString === '' || romajiString === 'undefined' || romajiString === 'null') {
-    throw new Error(`Romaji invalide après nettoyage: "${romajiString}"`);
-  }
-  
-  // Nettoyer davantage (supprimer caractères spéciaux, espaces multiples, etc.)
-  romajiString = romajiString.replace(/[^a-z]/g, ''); // Garder seulement les lettres
-  
+  let romajiString = String(romajiInput).toLowerCase().trim();
+  romajiString = romajiString.replace(/[^a-z]/g, '');
+
   if (romajiString === '') {
     throw new Error(`Romaji vide après nettoyage des caractères spéciaux`);
   }
-  
-  // Si c'est un seul caractère hiragana/katakana, c'est simple
-  if (romajiString.length <= 4) {
-    return {
-      segments: [romajiString],
-      charCounts: [1]
-    };
-  }
-  
-  // Pour les mots plus longs, segmenter intelligemment
+
+  // Segmenter intelligemment
   const segments = smartSegmentRomaji(romajiString);
   
   return {
     segments: segments,
-    charCounts: segments.map(() => 1) // chaque segment = 1 caractère pour l'instant
+    charCounts: segments.map(() => 1) // Chaque segment = 1 caractère visuel
   };
 }
-
+  
 // Fonction pour segmenter intelligemment le romaji (INCHANGÉE mais ajout de vérifications)
 function smartSegmentRomaji(romaji) {
   if (!romaji || typeof romaji !== 'string') {
     console.warn("smartSegmentRomaji: romaji invalide", romaji);
     return [romaji || ''];
   }
-  
-  // Syllabes communes en japonais
-  const commonSyllables = [
-    'tsu', 'shi', 'chi', 'sha', 'sho', 'shu', 'cha', 'cho', 'chu',
-    'nya', 'nyo', 'nyu', 'hya', 'hyo', 'hyu', 'mya', 'myo', 'myu',
-    'rya', 'ryo', 'ryu', 'gya', 'gyo', 'gyu', 'bya', 'byo', 'byu',
-    'pya', 'pyo', 'pyu', 'kya', 'kyo', 'kyu', 'ja', 'ji', 'ju', 'jo'
-  ];
-  
+
   const segments = [];
   let remaining = romaji;
-  
+
+  // Liste de paires consonne-voyelle courantes
+  const consonantVowelPairs = [
+    'ka', 'ki', 'ku', 'ke', 'ko',
+    'sa', 'shi', 'su', 'se', 'so',
+    'ta', 'chi', 'tsu', 'te', 'to',
+    'na', 'ni', 'nu', 'ne', 'no',
+    'ha', 'hi', 'fu', 'he', 'ho',
+    'ma', 'mi', 'mu', 'me', 'mo',
+    'ya', 'yu', 'yo',
+    'ra', 'ri', 'ru', 're', 'ro',
+    'wa', 'wo'
+  ];
+
   while (remaining.length > 0) {
     let found = false;
-    
-    // Essayer les syllabes communes d'abord (plus longues en premier)
-    for (const syllable of commonSyllables.sort((a, b) => b.length - a.length)) {
-      if (remaining.startsWith(syllable)) {
-        segments.push(syllable);
-        remaining = remaining.slice(syllable.length);
+
+    // Essayer les paires consonne-voyelle
+    for (const pair of consonantVowelPairs.sort((a, b) => b.length - a.length)) {
+      if (remaining.startsWith(pair)) {
+        segments.push(pair);
+        remaining = remaining.slice(pair.length);
         found = true;
         break;
       }
     }
-    
-    // Si aucune syllabe commune trouvée, prendre les voyelles seules ou consonne+voyelle
+
+    // Si rien trouvé, prendre une voyelle seule ou un caractère
     if (!found) {
-      if (remaining.length >= 2) {
-        // Prendre 2 caractères par défaut (consonne + voyelle)
-        segments.push(remaining.slice(0, 2));
-        remaining = remaining.slice(2);
+      if (remaining.length >= 1) {
+        segments.push(remaining[0]); // Prendre un caractère à la fois
+        remaining = remaining.slice(1);
       } else {
-        // Prendre le dernier caractère
-        segments.push(remaining);
-        remaining = '';
+        break;
       }
     }
   }
-  
-  return segments.length > 0 ? segments : [romaji]; // Fallback de sécurité
-}
 
+  return segments.length > 0 ? segments : [romaji];
+}
+  
   
 function logError(msg) {
 console.warn(msg);
@@ -2451,7 +2432,6 @@ function startRevisionQuestion() {
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
   console.log(`🎯 Segments:`, revisionMode.romajiSegments);
 }
-
 function updateRevisionFeedback() {
   // Reset toutes les classes
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
@@ -2508,6 +2488,8 @@ function updateRevisionFeedback() {
     }
   }
 }
+
+  
   
 // Initialiser les événements du clavier de révision
 function initRevisionKeyboard() {
@@ -2594,6 +2576,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
