@@ -1187,13 +1187,22 @@
       menu.classList.toggle('active');
     }
 
-    function showSection(sectionId) {
-      document.querySelectorAll('.section').forEach(section => {
-        section.classList.remove('active');
-      });
-      document.getElementById(sectionId).classList.add('active');
-      toggleMenu();
-    }
+ function showSection(sectionId) {
+  document.querySelectorAll('.section').forEach(section => {
+    section.classList.remove('active');
+  });
+  document.getElementById(sectionId).classList.add('active');
+  
+  // Démarrer le mode révisions si c'est le mode sélectionné
+  if (sectionId === 'mode2') {
+    revisionMode.isActive = true;
+    startRevisionQuestion();
+  } else {
+    revisionMode.isActive = false;
+  }
+  
+  toggleMenu();
+}
   </script>
 <script>
 let HiraganaList = [];
@@ -1206,6 +1215,73 @@ let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
+
+// Variables pour le mode révisions
+let revisionMode = {
+  currentQuestion: "",
+  input: "",
+  romajiSegments: [],
+  charCounts: [],
+  fullCorrect: "",
+  cumulativeRomaji: [],
+  cumulativeChars: [],
+  isActive: false
+};
+
+// Table de correspondance romaji (version simplifiée pour commencer)
+const revisionRomajiTable = {
+  // Hiragana de base (on utilisera d'abord les hiragana de votre jeu)
+  "あ": {romaji: ["a"], charCounts: [1]},
+  "い": {romaji: ["i"], charCounts: [1]},
+  "う": {romaji: ["u"], charCounts: [1]},
+  "え": {romaji: ["e"], charCounts: [1]},
+  "お": {romaji: ["o"], charCounts: [1]},
+  "か": {romaji: ["ka"], charCounts: [1]},
+  "き": {romaji: ["ki"], charCounts: [1]},
+  "く": {romaji: ["ku"], charCounts: [1]},
+  "け": {romaji: ["ke"], charCounts: [1]},
+  "こ": {romaji: ["ko"], charCounts: [1]},
+  "さ": {romaji: ["sa"], charCounts: [1]},
+  "し": {romaji: ["shi"], charCounts: [1]},
+  "す": {romaji: ["su"], charCounts: [1]},
+  "せ": {romaji: ["se"], charCounts: [1]},
+  "そ": {romaji: ["so"], charCounts: [1]},
+  "た": {romaji: ["ta"], charCounts: [1]},
+  "ち": {romaji: ["chi"], charCounts: [1]},
+  "つ": {romaji: ["tsu"], charCounts: [1]},
+  "て": {romaji: ["te"], charCounts: [1]},
+  "と": {romaji: ["to"], charCounts: [1]},
+  "な": {romaji: ["na"], charCounts: [1]},
+  "に": {romaji: ["ni"], charCounts: [1]},
+  "ぬ": {romaji: ["nu"], charCounts: [1]},
+  "ね": {romaji: ["ne"], charCounts: [1]},
+  "の": {romaji: ["no"], charCounts: [1]},
+  "は": {romaji: ["ha"], charCounts: [1]},
+  "ひ": {romaji: ["hi"], charCounts: [1]},
+  "ふ": {romaji: ["fu"], charCounts: [1]},
+  "へ": {romaji: ["he"], charCounts: [1]},
+  "ほ": {romaji: ["ho"], charCounts: [1]},
+  "ま": {romaji: ["ma"], charCounts: [1]},
+  "み": {romaji: ["mi"], charCounts: [1]},
+  "む": {romaji: ["mu"], charCounts: [1]},
+  "め": {romaji: ["me"], charCounts: [1]},
+  "も": {romaji: ["mo"], charCounts: [1]},
+  "や": {romaji: ["ya"], charCounts: [1]},
+  "ゆ": {romaji: ["yu"], charCounts: [1]},
+  "よ": {romaji: ["yo"], charCounts: [1]},
+  "ら": {romaji: ["ra"], charCounts: [1]},
+  "り": {romaji: ["ri"], charCounts: [1]},
+  "る": {romaji: ["ru"], charCounts: [1]},
+  "れ": {romaji: ["re"], charCounts: [1]},
+  "ろ": {romaji: ["ro"], charCounts: [1]},
+  "わ": {romaji: ["wa"], charCounts: [1]},
+  "ゐ": {romaji: ["wi"], charCounts: [1]},
+  "ゑ": {romaji: ["we"], charCounts: [1]},
+  "を": {romaji: ["wo"], charCounts: [1]},
+  "ん": {romaji: ["n"], charCounts: [1]}
+};
+
+  
 function logError(msg) {
 console.warn(msg);
 }
@@ -2207,6 +2283,69 @@ easing: "ease-in-out"
 }
 }
 
+function startRevisionQuestion() {
+  // Récupérer les hiragana des niveaux atteints par le joueur
+  const availableHiragana = HiraganaList.filter(h => 
+    parseInt(h.Niveau) <= niveauActif && 
+    revisionRomajiTable[h.Hiragana]
+  );
+  
+  if (availableHiragana.length === 0) {
+    document.getElementById("revision-message").textContent = "Aucun hiragana disponible pour ce niveau";
+    return;
+  }
+  
+  // Sélection pondérée basée sur le pourcentage de réussite
+  const weights = availableHiragana.map(h => {
+    const validation = parseInt(h.Validation || 0);
+    // Plus la validation est faible, plus le poids est élevé
+    return Math.max(0.1, 5 - validation + 0.5);
+  });
+  
+  // Sélection aléatoire pondérée
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+  let random = Math.random() * totalWeight;
+  let selectedHiragana = availableHiragana[0];
+  
+  for (let i = 0; i < availableHiragana.length; i++) {
+    random -= weights[i];
+    if (random <= 0) {
+      selectedHiragana = availableHiragana[i];
+      break;
+    }
+  }
+  
+  // Configurer la question
+  revisionMode.currentQuestion = selectedHiragana.Hiragana;
+  const tableEntry = revisionRomajiTable[selectedHiragana.Hiragana];
+  revisionMode.romajiSegments = tableEntry.romaji;
+  revisionMode.charCounts = tableEntry.charCounts;
+  revisionMode.fullCorrect = revisionMode.romajiSegments.join("");
+  
+  // Calculer les positions cumulatives
+  let cumRom = 0;
+  revisionMode.cumulativeRomaji = revisionMode.romajiSegments.map(segment => {
+    cumRom += segment.length;
+    return cumRom;
+  });
+  
+  let cumChar = 0;
+  revisionMode.cumulativeChars = revisionMode.charCounts.map(count => {
+    cumChar += count;
+    return cumChar;
+  });
+  
+  // Réinitialiser l'interface
+  revisionMode.input = "";
+  document.getElementById("revision-question").innerHTML = 
+    revisionMode.currentQuestion.split("").map((char, index) => 
+      `<span id="revision-char-${index}">${char}</span>`
+    ).join("");
+  document.getElementById("revision-input-display").textContent = "";
+  document.getElementById("revision-message").textContent = "";
+  
+  console.log("Question:", revisionMode.currentQuestion, "Réponse attendue:", revisionMode.fullCorrect);
+}  
 
 
 
@@ -2223,6 +2362,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
