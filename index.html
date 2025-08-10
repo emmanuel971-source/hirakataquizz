@@ -2469,24 +2469,24 @@ function updateRevisionFeedback() {
     const romEnd = revisionMode.cumulativeRomaji[seg];
     const charStart = seg > 0 ? revisionMode.cumulativeChars[seg - 1] : 0;
     const charEnd = revisionMode.cumulativeChars[seg];
-    const expected = revisionMode.romajiSegments[seg];
-    const typedLen = Math.min(revisionMode.input.length - romStart, expected.length);
+    const typedLen = Math.min(revisionMode.input.length - romStart, romEnd - romStart);
     const typedSegment = revisionMode.input.substring(romStart, romStart + typedLen);
+    const expected = revisionMode.romajiSegments[seg];
+    let className = "";
 
-    // Appliquer les couleurs pour chaque caractère du segment
+    if (typedLen > 0) {
+      if (expected.startsWith(typedSegment)) {
+        className = "char-correct";
+      } else {
+        className = "char-incorrect";
+      }
+    }
+
+    // Appliquer la classe à tous les spans du segment
     for (let c = charStart; c < charEnd; c++) {
       const span = document.getElementById(`revision-char-${c}`);
       if (span) {
-        const inputIndex = romStart + (c - charStart); // Index dans la saisie globale
-        if (inputIndex < revisionMode.input.length) {
-          const userChar = revisionMode.input[inputIndex];
-          const expectedChar = revisionMode.fullCorrect[inputIndex]; // Comparaison caractère par caractère
-          if (userChar === expectedChar) {
-            span.classList.add("char-correct");
-          } else {
-            span.classList.add("char-incorrect");
-          }
-        }
+        span.className = className; // Appliquer directement la classe
       }
     }
 
@@ -2508,6 +2508,7 @@ function updateRevisionFeedback() {
     }
   }
 }
+  
 // Initialiser les événements du clavier de révision
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
@@ -2593,6 +2594,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
