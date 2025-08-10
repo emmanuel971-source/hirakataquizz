@@ -2489,10 +2489,14 @@ function updateRevisionFeedback() {
       }
     }
 
-    // Déterminer le segment en cours pour la pulsation
-    if (romStart <= revisionMode.input.length && revisionMode.input.length < romEnd) {
-      currentSegment = seg;
-    }
+   // Déterminer le segment en cours pour la pulsation
+if (revisionMode.input.length >= romStart && revisionMode.input.length <= romEnd) {
+  currentSegment = seg;
+  // Si on est en cours de frappe dans ce segment, ne pas passer au suivant
+  if (revisionMode.input.length < romEnd) {
+    break;
+  }
+}
   }
 
   // Ajouter la pulsation au segment en cours
@@ -2593,6 +2597,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
