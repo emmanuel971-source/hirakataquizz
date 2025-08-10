@@ -2485,9 +2485,9 @@ function updateRevisionFeedback() {
       const span = document.getElementById(`revision-char-${c}`);
       if (span) {
         span.classList.remove('char-correct', 'char-incorrect');
-if (className) {
-  span.classList.add(className);
-}
+        if (className) {
+          span.classList.add(className);
+        }
       }
     }
 
@@ -2509,6 +2509,7 @@ if (className) {
     }
   }
 }
+  
 // Initialiser les événements du clavier de révision
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
@@ -2594,6 +2595,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
