@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -2456,52 +2457,48 @@ function updateRevisionFeedback() {
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
     const charElement = document.getElementById(`revision-char-${i}`);
     if (charElement) {
-      charElement.classList.remove("pulsing");
+      charElement.classList.remove("char-correct", "char-incorrect", "pulsing");
     }
   }
 
   let currentSegment = -1;
 
+  // Parcourir chaque segment
   for (let seg = 0; seg < revisionMode.romajiSegments.length; seg++) {
+    const romStart = seg > 0 ? revisionMode.cumulativeRomaji[seg - 1] : 0;
     const romEnd = revisionMode.cumulativeRomaji[seg];
-    const romStart = (seg > 0 ? revisionMode.cumulativeRomaji[seg - 1] : 0);
-    const typedLen = Math.min(revisionMode.input.length, romEnd) - romStart;
-    const typedSegment = revisionMode.input.substring(romStart, romStart + typedLen);
-    const expected = revisionMode.romajiSegments[seg];
-    
-    let className = "";
-    if (typedLen > 0) {
-      if (expected.startsWith(typedSegment)) {
-        className = "char-correct";
-      } else {
-        className = "char-incorrect";
-      }
-    }
-
-    // Appliquer la classe à tous les spans du segment
-    const charStart = (seg > 0 ? revisionMode.cumulativeChars[seg - 1] : 0);
+    const charStart = seg > 0 ? revisionMode.cumulativeChars[seg - 1] : 0;
     const charEnd = revisionMode.cumulativeChars[seg];
+    const expected = revisionMode.romajiSegments[seg];
+    const typedLen = Math.min(revisionMode.input.length - romStart, expected.length);
+    const typedSegment = revisionMode.input.substring(romStart, romStart + typedLen);
+
+    // Appliquer les couleurs pour chaque caractère du segment
     for (let c = charStart; c < charEnd; c++) {
       const span = document.getElementById(`revision-char-${c}`);
       if (span) {
-    
-        span.className = className;
+        const inputIndex = romStart + (c - charStart); // Index dans la saisie globale
+        if (inputIndex < revisionMode.input.length) {
+          const userChar = revisionMode.input[inputIndex];
+          const expectedChar = revisionMode.fullCorrect[inputIndex]; // Comparaison caractère par caractère
+          if (userChar === expectedChar) {
+            span.classList.add("char-correct");
+          } else {
+            span.classList.add("char-incorrect");
+          }
+        }
       }
     }
 
-   // Déterminer le segment en cours pour la pulsation
-if (revisionMode.input.length >= romStart && revisionMode.input.length <= romEnd) {
-  currentSegment = seg;
-  // Si on est en cours de frappe dans ce segment, ne pas passer au suivant
-  if (revisionMode.input.length < romEnd) {
-    break;
-  }
-}
+    // Déterminer le segment en cours pour la pulsation
+    if (romStart <= revisionMode.input.length && revisionMode.input.length < romEnd) {
+      currentSegment = seg;
+    }
   }
 
   // Ajouter la pulsation au segment en cours
   if (currentSegment >= 0) {
-    const charStart = (currentSegment > 0 ? revisionMode.cumulativeChars[currentSegment - 1] : 0);
+    const charStart = currentSegment > 0 ? revisionMode.cumulativeChars[currentSegment - 1] : 0;
     const charEnd = revisionMode.cumulativeChars[currentSegment];
     for (let c = charStart; c < charEnd; c++) {
       const charElement = document.getElementById(`revision-char-${c}`);
@@ -2511,7 +2508,6 @@ if (revisionMode.input.length >= romStart && revisionMode.input.length <= romEnd
     }
   }
 }
-  
 // Initialiser les événements du clavier de révision
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
@@ -2597,8 +2593,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
-
-
 
 
 
