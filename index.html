@@ -1994,15 +1994,7 @@ async function initGame() {
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   nextQuestion();
 }
-
-HiraganaList = data;
-niveauActif = determineNiveauActif(HiraganaList);
-document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-updateLevelProgress(HiraganaList, niveauActif);
-renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-nextQuestion();
-
-
+  
 function nextQuestion() {
 document.getElementById("result").innerText = "";
 document.getElementById("continueBtn").style.visibility = "hidden";
@@ -2550,6 +2542,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
