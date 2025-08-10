@@ -1096,16 +1096,50 @@
   }
 }    
 
-/* Gradation des couleurs */
-.char-correct-1 { color: #90ee90; font-weight: bold; } /* Vert très clair */
-.char-correct-2 { color: #6b8e23; font-weight: bold; } /* Vert soutenu */
-.char-correct-3 { color: #228b22; font-weight: bold; } /* Vert foncé */
-.char-correct-4 { color: #006400; font-weight: bold; } /* Vert très foncé */
+/* Cartes */
+.char-card {
+  display: inline-block;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 15px; /* Bords arrondis */
+  border: 1px solid #ccc;
+  min-width: 40px;
+  text-align: center;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
 
-.char-incorrect-1 { color: #ffb6c1; } /* Rose très clair */
-.char-incorrect-2 { color: #ff69b4; } /* Rose soutenu */
-.char-incorrect-3 { color: #db7093; } /* Rose foncé */
-.char-incorrect-4 { color: #c71585; } /* Rose très foncé */
+/* Gradation pastels verts (correct) */
+.char-correct-1 { background-color: #e8f5e9; } /* Vert très clair pastel */
+.char-correct-2 { background-color: #c8e6c9; } /* Vert clair pastel */
+.char-correct-3 { background-color: #a5d6a7; } /* Vert moyen pastel */
+.char-correct-4 { background-color: #81c784; } /* Vert soutenu pastel */
+
+/* Gradation pastels roses (incorrect) */
+.char-incorrect-1 { background-color: #ffebee; } /* Rose très clair pastel */
+.char-incorrect-2 { background-color: #ffcdd2; } /* Rose clair pastel */
+.char-incorrect-3 { background-color: #ef9a9a; } /* Rose moyen pastel */
+.char-incorrect-4 { background-color: #e57373; } /* Rose soutenu pastel */
+
+/* Effet de validation (pulsation lente avec ombre et scintillement) */
+.validated {
+  animation: pulse-validated 1.5s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); /* Ombre verte douce */
+}
+@keyframes pulse-validated {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; } /* Zoom in/out subtil */
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Pulsation existante (pour segment en cours) */
+.pulsing {
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
 
 /* Animation "pop" */
 .pop-animation {
@@ -2507,10 +2541,12 @@ function startRevisionQuestion() {
   
   // Réinitialiser l'interface
   revisionMode.input = "";
-  document.getElementById("revision-question").innerHTML = 
-    revisionMode.currentQuestion.split("").map((char, index) => 
-      `<span id="revision-char-${index}">${char}</span>`
-    ).join("");
+ document.getElementById("revision-question").innerHTML = 
+  revisionMode.currentQuestion.split("").map((char, index) => 
+    `<div class="char-card" id="revision-card-${index}">
+      <span id="revision-char-${index}">${char}</span>
+    </div>`
+  ).join("");
   document.getElementById("revision-input-display").textContent = "";
   document.getElementById("revision-message").textContent = "";
   
@@ -2521,13 +2557,17 @@ function startRevisionQuestion() {
 function updateRevisionFeedback() {
   // Reset toutes les classes
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
+    const cardElement = document.getElementById(`revision-card-${i}`);
     const charElement = document.getElementById(`revision-char-${i}`);
-    if (charElement) {
-      charElement.classList.remove(
+    if (cardElement) {
+      cardElement.classList.remove(
         "char-correct-1", "char-correct-2", "char-correct-3", "char-correct-4",
         "char-incorrect-1", "char-incorrect-2", "char-incorrect-3", "char-incorrect-4",
-        "pulsing", "pop-animation"
+        "validated"
       );
+    }
+    if (charElement) {
+      charElement.classList.remove("pulsing", "pop-animation");
     }
   }
 
@@ -2547,36 +2587,41 @@ function updateRevisionFeedback() {
 
     if (typedLen > 0) {
       if (expected.startsWith(typedSegment)) {
-        // Gradation verte basée sur la position dans la saisie
-        const level = Math.min(4, typedLen); // Jusqu'à 4 niveaux de gradation
+        // Gradation basée sur la position dans la saisie
+        const level = Math.min(4, typedLen);
         className = `char-correct-${level}`;
       } else {
-        const level = Math.min(4, typedLen); // Gradation rose pour erreur
+        const level = Math.min(4, typedLen);
         className = `char-incorrect-${level}`;
       }
     }
 
-    // Appliquer la classe aux spans du segment
+    // Appliquer la classe à la carte (fond)
     for (let c = charStart; c < charEnd; c++) {
+      const card = document.getElementById(`revision-card-${c}`);
       const span = document.getElementById(`revision-char-${c}`);
-      if (span) {
-        span.className = className;
+      if (card) {
+        card.className = `char-card ${className}`;
         // Ajouter animation "pop" et son si on valide un nouveau caractère
-        if (inputLength > romStart && c === charStart && !span.classList.contains("pop-animation")) {
-          span.classList.add("pop-animation");
+        if (inputLength > romStart && c === charStart && !card.classList.contains("pop-animation")) {
+          card.classList.add("pop-animation");
           playPopSound();
-          setTimeout(() => span.classList.remove("pop-animation"), 300); // Durée de l'animation
+          setTimeout(() => card.classList.remove("pop-animation"), 300);
+        }
+        // Ajouter effet de validation si le segment est entièrement validé
+        if (typedLen === expected.length && expected === typedSegment) {
+          card.classList.add("validated");
         }
       }
     }
 
-    // Déterminer le segment en cours pour la pulsation
+    // Déterminer le segment en cours pour la pulsation (sur le texte)
     if (romStart <= inputLength && inputLength < romEnd) {
       currentSegment = seg;
     }
   }
 
-  // Ajouter la pulsation au segment en cours
+  // Ajouter la pulsation au segment en cours (sur le texte pour ne pas interférer avec la carte)
   if (currentSegment >= 0) {
     const charStart = currentSegment > 0 ? revisionMode.cumulativeChars[currentSegment - 1] : 0;
     const charEnd = revisionMode.cumulativeChars[currentSegment];
@@ -2589,7 +2634,6 @@ function updateRevisionFeedback() {
   }
 }
   
-
   
   
 // Initialiser les événements du clavier de révision
@@ -2677,6 +2721,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
