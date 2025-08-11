@@ -1082,24 +1082,22 @@
   margin: 25px auto;
 }
 
-.revision-keyboard {
-  grid-template-columns: repeat(5, 1fr);
-  width: 950%;
-  padding: 0 10px;
-  position: fixed;
-  bottom: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-  gap: 8px;
-}
-
-.revision-key {
-  width: 95%;
-  aspect-ratio: 1; /* Ratio 1:1 standard pour Firefox */
-  height: auto;
-  min-width: 50px;
-  font-size: clamp(1em, 4vw, 1.5em);
-}
+  .revision-keyboard {
+    grid-template-columns: repeat(5, 1fr);
+    width: 95%;
+    padding: 0 10px;
+    position: fixed; /* Position fixe pour le placer précisément */
+    bottom: 100px; /* 100px du bas de l'écran */
+    left: 50%;
+    transform: translateX(-50%); /* Centre horizontalement */
+  }
+  
+  .revision-key {
+    width: 95%;
+    height: auto; /* Hauteur automatique */
+    aspect-ratio: 1; /* Ratio 1:1 pour des touches carrées */
+    min-width: 50px;
+  }
 
 /* Règle spécifique pour Chrome/Safari/WebKit */
 @supports (-webkit-appearance: none) {
@@ -2812,6 +2810,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
