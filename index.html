@@ -1082,24 +1082,25 @@
   margin: 25px auto; /* Espace vertical et centrage horizontal */
 }
   
-  .revision-keyboard {
-    grid-template-columns: repeat(5, 1fr);
-    width: 100%;
-    padding: 0 10px;
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  
-  .revision-key {
-    width: 100%;
-    height: calc((100vw - 80px) / 5); /* Calcule la hauteur basée sur la largeur */
-    max-height: 70px; /* Limite la hauteur maximale */
-    min-height: 45px; /* Hauteur minimale */
-    min-width: 50px;
-    font-size: clamp(1em, 4vw, 1.5em); /* Taille de police responsive */
-  }
+.revision-keyboard {
+  grid-template-columns: repeat(5, 1fr);
+  width: 95%;
+  padding: 0 10px;
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Pas de margin sur le clavier en position fixed */
+}
+
+.revision-key {
+  width: 100%;
+  height: calc((100vw - 20px) / 5); /* Ajusté pour le padding total (10px * 2) */
+  max-height: 70px;
+  min-height: 45px;
+  min-width: 50px;
+  font-size: clamp(1em, 4vw, 1.5em);
+}
   
 #revision-message {
   font-size: 2em;
@@ -2797,6 +2798,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
