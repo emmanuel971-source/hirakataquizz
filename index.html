@@ -1072,39 +1072,50 @@
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
 #revision-question {
   font-size: 8em;
-  margin: 20px 0; /* Espace en haut et en bas */
+  margin: 20px 0;
 }
 
 #revision-input-display {
   font-size: 3em;
   width: 90%;
   padding: 15px;
-  margin: 25px auto; /* Espace vertical et centrage horizontal */
+  margin: 25px auto;
 }
-  
+
 .revision-keyboard {
   grid-template-columns: repeat(5, 1fr);
-  width: 95%;
+  width: 100%;
   padding: 0 10px;
   position: fixed;
   bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
-  /* Pas de margin sur le clavier en position fixed */
+  gap: 8px; /* Important : assurez-vous que le gap est défini */
 }
 
 .revision-key {
   width: 100%;
-  height: calc((100vw - 20px) / 5); /* Ajusté pour le padding total (10px * 2) */
+  aspect-ratio: 1 / 1; /* Ratio 1:1 */
+  height: auto; /* Laisse aspect-ratio gérer la hauteur */
   max-height: 70px;
   min-height: 45px;
   min-width: 50px;
   font-size: clamp(1em, 4vw, 1.5em);
-}
   
+  /* Fallback pour les navigateurs qui ne supportent pas aspect-ratio */
+  height: calc((100vw - 20px - 32px) / 5); /* 20px padding + 32px pour les gaps (8px * 4) */
+}
+
+/* Support spécifique pour aspect-ratio */
+@supports (aspect-ratio: 1) {
+  .revision-key {
+    height: auto;
+  }
+}
+
 #revision-message {
   font-size: 2em;
-  margin: 20px 0; /* Espace en haut et en bas */
+  margin: 20px 0;
 }
 }    
 
@@ -2798,6 +2809,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
