@@ -2605,10 +2605,10 @@ function updateRevisionFeedback() {
           playPopSound();
           setTimeout(() => card.classList.remove("pop-animation"), 300);
         }
-        // Passer au niveau final (-4) et retirer pulsing si segment validé
-        if (typedLen === segmentLength && expected === typedSegment) {
+        // Passer au niveau final (-4) uniquement si le segment est entièrement et correctement saisi
+        if (inputLength >= romEnd && expected === revisionMode.input.substring(romStart, romEnd)) {
           card.classList.remove("pulsing");
-          card.className = `char-card ${expected.startsWith(typedSegment) ? "char-correct-4" : "char-incorrect-4"}`;
+          card.className = `char-card ${expected === typedSegment ? "char-correct-4" : "char-incorrect-4"}`;
         }
       }
     }
@@ -2719,6 +2719,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
