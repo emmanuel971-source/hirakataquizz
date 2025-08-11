@@ -1042,40 +1042,14 @@
 }
 
 /* Couleurs des touches selon les lignes */
-.revision-key:nth-child(-n+5) {
-  background-color: #d1e7ff;
-  color: black;
-}
-.revision-key:nth-child(6),
-.revision-key:nth-child(7) {
-  background-color: #fff3cd;
-  color: black;
-}
-.revision-key:nth-child(8) {
-  background-color: #d1e7ff;
-  color: black;
-}
-.revision-key:nth-child(9),
-.revision-key:nth-child(10) {
-  background-color: #f8e7e6;
-  color: black;
-}
-.revision-key:nth-child(n+11):nth-child(-n+15) {
-  background-color: #d4edda;
-  color: black;
-}
-.revision-key:nth-child(n+16):nth-child(-n+20) {
-  background-color: #ffe4b5;
-  color: black;
-}
-.revision-key:nth-child(n+21):nth-child(-n+24) {
-  background-color: #dee2e6;
-  color: black;
-}
-.revision-key:nth-child(25) {
-  background-color: #ffffff;
-  color: black;
-}
+.revision-key:nth-child(-n+5) { background-color: #d1e7ff; color: black; }
+.revision-key:nth-child(6), .revision-key:nth-child(7) { background-color: #fff3cd; color: black; }
+.revision-key:nth-child(8) { background-color: #d1e7ff; color: black; }
+.revision-key:nth-child(9), .revision-key:nth-child(10) { background-color: #f8e7e6; color: black; }
+.revision-key:nth-child(n+11):nth-child(-n+15) { background-color: #d4edda; color: black; }
+.revision-key:nth-child(n+16):nth-child(-n+20) { background-color: #ffe4b5; color: black; }
+.revision-key:nth-child(n+21):nth-child(-n+24) { background-color: #dee2e6; color: black; }
+.revision-key:nth-child(25) { background-color: #ffffff; color: black; }
 
 .revision-key:hover {
   transform: translateY(-2px);
@@ -1095,108 +1069,110 @@
 }
 
 /* Responsive pour mobile */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #revision-question {
     font-size: 6em;
   }
-
+  
   #revision-input-display {
     font-size: 2.5em;
     width: 90%;
     padding: 15px;
   }
-
+  
   .revision-keyboard {
     grid-template-columns: repeat(5, 80px);
     gap: 10px;
   }
-
+  
   .revision-key {
     width: 80px;
     height: 80px;
     font-size: 1.5em;
   }
-
+  
   #revision-message {
     font-size: 2em;
   }
-}
+}    
 
-/* Cartes */
+/* ✨ NOUVEAUX STYLES POUR LES CARTES - Identiques au mode apprentissage */
 .char-card {
-  display: inline-block;
-  padding: 10px;
+  display: inline-flex;
+  padding: 15px;
   margin: 5px;
-  border-radius: 5px; /* Rayon plus petit, style cartes à jouer */
-  border: 1px solid #ccc;
-  min-width: 40px;
+  border-radius: 8px; /* Même rayon que les cartes hiragana */
+  min-width: 60px;
+  min-height: 60px;
   text-align: center;
-  background-color: #ffffff; /* Couleur de départ blanche */
-  transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+  font-size: 2.2em;
+  font-weight: bold;
+  color: #8B6F47;
+  text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
+  
+  /* ✅ MÊME STYLE QUE LES CARTES HIRAGANA */
+  background: #FFFFFF;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s ease; /* Transition plus fluide */
+  
+  align-items: center;
+  justify-content: center;
 }
 
-/* Gradation pastels très doux verts (correct) */
-.char-correct-1 {
-  background-color: #f5fff5; /* Vert ultra-clair, à peine visible */
+/* 🎨 GRADATIONS ULTRA-SUBTILES (couleurs beaucoup plus douces) */
+.char-correct-1 { 
+  background: #f9fdf9; /* Vert ultra-discret, à peine visible */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 2px rgba(139, 195, 74, 0.1);
 }
-.char-correct-2 {
-  background-color: #e0f2e0; /* Vert très pâle */
+.char-correct-2 { 
+  background: #f5faf5; /* Vert très pâle */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 3px rgba(139, 195, 74, 0.15);
 }
-.char-correct-3 {
-  background-color: #c8e6c9; /* Vert légèrement plus marqué */
+.char-correct-3 { 
+  background: #f0f8f0; /* Vert léger */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(139, 195, 74, 0.2);
 }
-.char-correct-4 {
-  background-color: #a5d6a7; /* Vert pâle final pour validé */
-}
-
-/* Gradation pastels roses sakura (incorrect) */
-.char-incorrect-1 {
-  background-color: #fff0f0; /* Rose ultra-clair, à peine visible */
-}
-.char-incorrect-2 {
-  background-color: #ffe0e0; /* Rose très pâle */
-}
-.char-incorrect-3 {
-  background-color: #ffcdd2; /* Rose sakura léger */
-}
-.char-incorrect-4 {
-  background-color: #fad3d7; /* Rose sakura final pour faux */
+.char-correct-4 { 
+  background: #ebf5eb; /* Vert final très soft */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 5px rgba(139, 195, 74, 0.25);
 }
 
-/* Pulsation pour la carte en cours (zoom in/out) */
+/* 🌸 GRADATIONS ROSES SAKURA ULTRA-SUBTILES */
+.char-incorrect-1 { 
+  background: #fdfafa; /* Rose ultra-discret */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 2px rgba(253, 193, 197, 0.1);
+}
+.char-incorrect-2 { 
+  background: #fcf5f5; /* Rose très pâle */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 3px rgba(253, 193, 197, 0.15);
+}
+.char-incorrect-3 { 
+  background: #faf0f1; /* Rose léger */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(253, 193, 197, 0.2);
+}
+.char-incorrect-4 { 
+  background: #f8ebec; /* Rose final très soft */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 5px rgba(253, 193, 197, 0.25);
+}
+
+/* 💫 PULSATION AMÉLIORÉE - Plus fluide et prononcée */
 .pulsing {
-  animation: pulseCurrent 1.5s infinite ease-in-out;
-}
-@keyframes pulseCurrent {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 #ccc;
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 5px #ccc;
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 #ccc;
-  }
+  animation: pulse-revision 1.8s infinite ease-in-out;
 }
 
-/* Animation "pop" pour la validation */
-.pop-animation {
-  animation: pop 0.3s ease-out;
-}
-@keyframes pop {
-  0% {
-    transform: scale(1);
+@keyframes pulse-revision {
+  0% { 
+    transform: scale(1); 
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
   }
-  50% {
-    transform: scale(1.2);
+  50% { 
+    transform: scale(1.08); /* Plus prononcé que 1.05 */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 8px rgba(139, 111, 71, 0.3);
   }
-  100% {
-    transform: scale(1);
-  }
-}
+  100% { 
+    transform: scale(1); 
+    box-shadow: 0 6px 12px rgba(0,
+
 
   </style>
 </head>
@@ -2809,6 +2785,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
