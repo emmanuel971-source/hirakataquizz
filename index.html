@@ -1007,7 +1007,7 @@
 
 #revision-input-display {
   font-size: 1.5em;
-  margin-bottom: 20px;
+  margin: 0 auto 20px auto;
   min-height: 30px;
   padding: 10px;
   border: 2px solid #8B6F47;
@@ -1069,7 +1069,7 @@
 }
 
 /* Responsive pour mobile */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   #revision-question {
     font-size: 6em;
   }
@@ -1081,14 +1081,14 @@
   }
   
   .revision-keyboard {
-    grid-template-columns: repeat(5, 80px);
-    gap: 10px;
+    grid-template-columns: repeat(5, 1fr);
+    width: 100%;
+    padding: 0 10px;
   }
   
   .revision-key {
-    width: 80px;
-    height: 80px;
-    font-size: 1.5em;
+    width: 100%;
+    min-width: 50px;
   }
   
   #revision-message {
@@ -2785,6 +2785,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
