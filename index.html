@@ -1084,33 +1084,36 @@
 
 .revision-keyboard {
   grid-template-columns: repeat(5, 1fr);
-  width: 100%;
+  width: 950%;
   padding: 0 10px;
   position: fixed;
   bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
-  gap: 8px; /* Important : assurez-vous que le gap est défini */
+  gap: 8px;
 }
 
 .revision-key {
-  width: 100%;
-  aspect-ratio: 1 / 1; /* Ratio 1:1 */
-  height: auto; /* Laisse aspect-ratio gérer la hauteur */
-  max-height: 70px;
-  min-height: 45px;
+  width: 95%;
+  aspect-ratio: 1; /* Ratio 1:1 standard pour Firefox */
+  height: auto;
   min-width: 50px;
   font-size: clamp(1em, 4vw, 1.5em);
-  
-  /* Fallback pour les navigateurs qui ne supportent pas aspect-ratio */
-  height: calc((100vw - 20px - 32px) / 5); /* 20px padding + 32px pour les gaps (8px * 4) */
 }
 
-/* Support spécifique pour aspect-ratio */
-@supports (aspect-ratio: 1) {
+/* Règle spécifique pour Chrome/Safari/WebKit */
+@supports (-webkit-appearance: none) {
   .revision-key {
-    height: auto;
+    height: 80px !important; /* Hauteur fixe pour Chrome */
+    max-height: 80px !important;
+    aspect-ratio: none !important; /* Désactive aspect-ratio */
   }
+}
+
+#revision-message {
+  font-size: 2em;
+  margin: 20px 0;
+}
 }
 
 #revision-message {
@@ -2809,6 +2812,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
