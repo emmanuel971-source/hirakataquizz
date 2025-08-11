@@ -1042,14 +1042,40 @@
 }
 
 /* Couleurs des touches selon les lignes */
-.revision-key:nth-child(-n+5) { background-color: #d1e7ff; color: black; }
-.revision-key:nth-child(6), .revision-key:nth-child(7) { background-color: #fff3cd; color: black; }
-.revision-key:nth-child(8) { background-color: #d1e7ff; color: black; }
-.revision-key:nth-child(9), .revision-key:nth-child(10) { background-color: #f8e7e6; color: black; }
-.revision-key:nth-child(n+11):nth-child(-n+15) { background-color: #d4edda; color: black; }
-.revision-key:nth-child(n+16):nth-child(-n+20) { background-color: #ffe4b5; color: black; }
-.revision-key:nth-child(n+21):nth-child(-n+24) { background-color: #dee2e6; color: black; }
-.revision-key:nth-child(25) { background-color: #ffffff; color: black; }
+.revision-key:nth-child(-n+5) {
+  background-color: #d1e7ff;
+  color: black;
+}
+.revision-key:nth-child(6),
+.revision-key:nth-child(7) {
+  background-color: #fff3cd;
+  color: black;
+}
+.revision-key:nth-child(8) {
+  background-color: #d1e7ff;
+  color: black;
+}
+.revision-key:nth-child(9),
+.revision-key:nth-child(10) {
+  background-color: #f8e7e6;
+  color: black;
+}
+.revision-key:nth-child(n+11):nth-child(-n+15) {
+  background-color: #d4edda;
+  color: black;
+}
+.revision-key:nth-child(n+16):nth-child(-n+20) {
+  background-color: #ffe4b5;
+  color: black;
+}
+.revision-key:nth-child(n+21):nth-child(-n+24) {
+  background-color: #dee2e6;
+  color: black;
+}
+.revision-key:nth-child(25) {
+  background-color: #ffffff;
+  color: black;
+}
 
 .revision-key:hover {
   transform: translateY(-2px);
@@ -1069,32 +1095,32 @@
 }
 
 /* Responsive pour mobile */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+@media screen and (max-width: 768px) {
   #revision-question {
     font-size: 6em;
   }
-  
+
   #revision-input-display {
     font-size: 2.5em;
     width: 90%;
     padding: 15px;
   }
-  
+
   .revision-keyboard {
     grid-template-columns: repeat(5, 80px);
     gap: 10px;
   }
-  
+
   .revision-key {
     width: 80px;
     height: 80px;
     font-size: 1.5em;
   }
-  
+
   #revision-message {
     font-size: 2em;
   }
-}    
+}
 
 /* Cartes */
 .char-card {
@@ -1110,25 +1136,50 @@
 }
 
 /* Gradation pastels très doux verts (correct) */
-.char-correct-1 { background-color: #f5fff5; } /* Vert ultra-clair, à peine visible */
-.char-correct-2 { background-color: #e0f2e0; } /* Vert très pâle */
-.char-correct-3 { background-color: #c8e6c9; } /* Vert légèrement plus marqué */
-.char-correct-4 { background-color: #a5d6a7; } /* Vert pâle final pour validé */
+.char-correct-1 {
+  background-color: #f5fff5; /* Vert ultra-clair, à peine visible */
+}
+.char-correct-2 {
+  background-color: #e0f2e0; /* Vert très pâle */
+}
+.char-correct-3 {
+  background-color: #c8e6c9; /* Vert légèrement plus marqué */
+}
+.char-correct-4 {
+  background-color: #a5d6a7; /* Vert pâle final pour validé */
+}
 
 /* Gradation pastels roses sakura (incorrect) */
-.char-incorrect-1 { background-color: #fff0f0; } /* Rose ultra-clair, à peine visible */
-.char-incorrect-2 { background-color: #ffe0e0; } /* Rose très pâle */
-.char-incorrect-3 { background-color: #ffcdd2; } /* Rose sakura léger */
-.char-incorrect-4 { background-color: #fad3d7; } /* Rose sakura final pour faux */
+.char-incorrect-1 {
+  background-color: #fff0f0; /* Rose ultra-clair, à peine visible */
+}
+.char-incorrect-2 {
+  background-color: #ffe0e0; /* Rose très pâle */
+}
+.char-incorrect-3 {
+  background-color: #ffcdd2; /* Rose sakura léger */
+}
+.char-incorrect-4 {
+  background-color: #fad3d7; /* Rose sakura final pour faux */
+}
 
 /* Pulsation pour la carte en cours (zoom in/out) */
 .pulsing {
-  animation: pulse-current 1.5s infinite ease-in-out;
+  animation: pulseCurrent 1.5s infinite ease-in-out;
 }
-@keyframes pulse-current {
-  0% { transform: scale(1); box-shadow: 0 0 0 #ccc; }
-  50% { transform: scale(1.05); box-shadow: 0 0 5px #ccc; }
-  100% { transform: scale(1); box-shadow: 0 0 0 #ccc; }
+@keyframes pulseCurrent {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 #ccc;
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 5px #ccc;
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 #ccc;
+  }
 }
 
 /* Animation "pop" pour la validation */
@@ -1136,10 +1187,17 @@
   animation: pop 0.3s ease-out;
 }
 @keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}   
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
   </style>
 </head>
 <body>
@@ -2751,6 +2809,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
