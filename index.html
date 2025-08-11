@@ -1101,47 +1101,37 @@
   display: inline-block;
   padding: 10px;
   margin: 5px;
-  border-radius: 15px; /* Bords arrondis */
+  border-radius: 5px; /* Rayon plus petit, style cartes à jouer */
   border: 1px solid #ccc;
   min-width: 40px;
   text-align: center;
-  transition: background-color 0.3s, box-shadow 0.3s;
+  background-color: #ffffff; /* Couleur de départ blanche */
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
 }
 
-/* Gradation pastels verts (correct) */
-.char-correct-1 { background-color: #e8f5e9; } /* Vert très clair pastel */
-.char-correct-2 { background-color: #c8e6c9; } /* Vert clair pastel */
-.char-correct-3 { background-color: #a5d6a7; } /* Vert moyen pastel */
-.char-correct-4 { background-color: #81c784; } /* Vert soutenu pastel */
+/* Gradation pastels très doux verts (correct) */
+.char-correct-1 { background-color: #f5fff5; } /* Vert ultra-clair, à peine visible */
+.char-correct-2 { background-color: #e0f2e0; } /* Vert très pâle */
+.char-correct-3 { background-color: #c8e6c9; } /* Vert légèrement plus marqué */
+.char-correct-4 { background-color: #a5d6a7; } /* Vert pâle final pour validé */
 
-/* Gradation pastels roses (incorrect) */
-.char-incorrect-1 { background-color: #ffebee; } /* Rose très clair pastel */
-.char-incorrect-2 { background-color: #ffcdd2; } /* Rose clair pastel */
-.char-incorrect-3 { background-color: #ef9a9a; } /* Rose moyen pastel */
-.char-incorrect-4 { background-color: #e57373; } /* Rose soutenu pastel */
+/* Gradation pastels roses sakura (incorrect) */
+.char-incorrect-1 { background-color: #fff0f0; } /* Rose ultra-clair, à peine visible */
+.char-incorrect-2 { background-color: #ffe0e0; } /* Rose très pâle */
+.char-incorrect-3 { background-color: #ffcdd2; } /* Rose sakura léger */
+.char-incorrect-4 { background-color: #fad3d7; } /* Rose sakura final pour faux */
 
-/* Effet de validation (pulsation lente avec ombre et scintillement) */
-.validated {
-  animation: pulse-validated 1.5s infinite ease-in-out;
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); /* Ombre verte douce */
-}
-@keyframes pulse-validated {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.8; } /* Zoom in/out subtil */
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* Pulsation existante (pour segment en cours) */
+/* Pulsation pour la carte en cours (zoom in/out) */
 .pulsing {
-  animation: pulse 1s infinite;
+  animation: pulse-current 1.5s infinite ease-in-out;
 }
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+@keyframes pulse-current {
+  0% { transform: scale(1); box-shadow: 0 0 0 #ccc; }
+  50% { transform: scale(1.05); box-shadow: 0 0 5px #ccc; }
+  100% { transform: scale(1); box-shadow: 0 0 0 #ccc; }
 }
 
-/* Animation "pop" */
+/* Animation "pop" pour la validation */
 .pop-animation {
   animation: pop 0.3s ease-out;
 }
@@ -1149,7 +1139,7 @@
   0% { transform: scale(1); }
   50% { transform: scale(1.2); }
   100% { transform: scale(1); }
-}    
+}   
   </style>
 </head>
 <body>
@@ -2563,11 +2553,11 @@ function updateRevisionFeedback() {
       cardElement.classList.remove(
         "char-correct-1", "char-correct-2", "char-correct-3", "char-correct-4",
         "char-incorrect-1", "char-incorrect-2", "char-incorrect-3", "char-incorrect-4",
-        "validated"
+        "pulsing", "pop-animation"
       );
     }
     if (charElement) {
-      charElement.classList.remove("pulsing", "pop-animation");
+      charElement.classList.remove("pulsing");
     }
   }
 
@@ -2608,32 +2598,33 @@ function updateRevisionFeedback() {
           playPopSound();
           setTimeout(() => card.classList.remove("pop-animation"), 300);
         }
-        // Ajouter effet de validation si le segment est entièrement validé
+        // Passer au niveau final (-4) et retirer pulsing si segment validé
         if (typedLen === expected.length && expected === typedSegment) {
-          card.classList.add("validated");
+          card.classList.remove("pulsing");
+          card.className = `char-card ${expected.startsWith(typedSegment) ? "char-correct-4" : "char-incorrect-4"}`;
         }
       }
     }
 
-    // Déterminer le segment en cours pour la pulsation (sur le texte)
+    // Déterminer le segment en cours pour la pulsation
     if (romStart <= inputLength && inputLength < romEnd) {
       currentSegment = seg;
     }
   }
 
-  // Ajouter la pulsation au segment en cours (sur le texte pour ne pas interférer avec la carte)
+  // Ajouter la pulsation à la carte en cours
   if (currentSegment >= 0) {
     const charStart = currentSegment > 0 ? revisionMode.cumulativeChars[currentSegment - 1] : 0;
     const charEnd = revisionMode.cumulativeChars[currentSegment];
     for (let c = charStart; c < charEnd; c++) {
-      const charElement = document.getElementById(`revision-char-${c}`);
-      if (charElement) {
-        charElement.classList.add("pulsing");
+      const cardElement = document.getElementById(`revision-card-${c}`);
+      if (cardElement) {
+        cardElement.classList.add("pulsing");
       }
     }
   }
 }
-  
+    
   
   
 // Initialiser les événements du clavier de révision
@@ -2721,6 +2712,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
