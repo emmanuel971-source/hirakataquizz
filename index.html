@@ -1007,7 +1007,7 @@
 
 #revision-input-display {
   font-size: 1.5em;
-  margin: 0 auto 20px auto;
+  margin-bottom: 20px;
   min-height: 30px;
   padding: 10px;
   border: 2px solid #8B6F47;
@@ -1069,48 +1069,31 @@
 }
 
 /* Responsive pour mobile */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
-#revision-question {
-  font-size: 8em;
-  margin: 20px 0;
-}
-
-#revision-input-display {
-  font-size: 3em;
-  width: 90%;
-  padding: 15px;
-  margin: 25px auto;
-}
-
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+  #revision-question {
+    font-size: 6em;
+  }
+  
+  #revision-input-display {
+    font-size: 2.5em;
+    width: 90%;
+    padding: 15px;
+  }
+  
   .revision-keyboard {
-    grid-template-columns: repeat(5, 1fr);
-    width: 95%;
-    padding: 0 10px;
-    position: fixed; /* Position fixe pour le placer précisément */
-    bottom: 100px; /* 100px du bas de l'écran */
-    left: 50%;
-    transform: translateX(-50%); /* Centre horizontalement */
+    grid-template-columns: repeat(5, 80px);
+    gap: 10px;
   }
   
   .revision-key {
-    width: 95%;
-    height: auto; /* Hauteur automatique */
-    aspect-ratio: 1; /* Ratio 1:1 pour des touches carrées */
-    min-width: 50px;
+    width: 80px;
+    height: 80px;
+    font-size: 1.5em;
   }
-
-}
-
-#revision-message {
-  font-size: 2em;
-  margin: 20px 0;
-}
-}
-
-#revision-message {
-  font-size: 2em;
-  margin: 20px 0;
-}
+  
+  #revision-message {
+    font-size: 2em;
+  }
 }    
 
 /* ✨ NOUVEAUX STYLES POUR LES CARTES - Identiques au mode apprentissage */
@@ -1122,7 +1105,7 @@
   min-width: 60px;
   min-height: 60px;
   text-align: center;
-  font-size: 1.2em;
+  font-size: 2.2em;
   font-weight: bold;
   color: #8B6F47;
   text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
@@ -1190,7 +1173,7 @@
     transform: scale(1); 
     box-shadow: 0 6px 12px rgba(0,
 
-
+    
   </style>
 </head>
 <body>
@@ -2803,6 +2786,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
