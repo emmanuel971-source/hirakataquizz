@@ -2550,7 +2550,6 @@ function startRevisionQuestion() {
   console.log(`🎯 Segments:`, revisionMode.romajiSegments);
 }
   
-
 function updateRevisionFeedback() {
   // Reset toutes les classes
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
@@ -2578,7 +2577,7 @@ function updateRevisionFeedback() {
     const charStart = seg > 0 ? revisionMode.cumulativeChars[seg - 1] : 0;
     const charEnd = revisionMode.cumulativeChars[seg];
     const segmentLength = romEnd - romStart; // Longueur du segment courant
-    const typedLen = Math.min(inputLength - romStart, segmentLength); // Progression dans le segment
+    const typedLen = Math.max(0, Math.min(inputLength - romStart, segmentLength)); // Évite les valeurs négatives
     const typedSegment = revisionMode.input.substring(romStart, romStart + typedLen);
     const expected = revisionMode.romajiSegments[seg];
     let className = "";
@@ -2633,8 +2632,9 @@ function updateRevisionFeedback() {
       }
     }
   }
-}  
-    
+}
+
+      
   
   
 // Initialiser les événements du clavier de révision
@@ -2722,6 +2722,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
