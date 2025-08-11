@@ -2531,14 +2531,20 @@ function startRevisionQuestion() {
   
   // Réinitialiser l'interface
   revisionMode.input = "";
- document.getElementById("revision-question").innerHTML = 
-  revisionMode.currentQuestion.split("").map((char, index) => 
-    `<div class="char-card" id="revision-card-${index}">
-      <span id="revision-char-${index}">${char}</span>
-    </div>`
-  ).join("");
+  document.getElementById("revision-question").innerHTML = 
+    revisionMode.currentQuestion.split("").map((char, index) => 
+      `<div class="char-card" id="revision-card-${index}">
+        <span id="revision-char-${index}">${char}</span>
+      </div>`
+    ).join("");
   document.getElementById("revision-input-display").textContent = "";
   document.getElementById("revision-message").textContent = "";
+  
+  // Ajouter pulsation initiale à la première carte
+  const firstCard = document.getElementById(`revision-card-0`);
+  if (firstCard) {
+    firstCard.classList.add("pulsing");
+  }
   
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
   console.log(`🎯 Segments:`, revisionMode.romajiSegments);
@@ -2570,14 +2576,15 @@ function updateRevisionFeedback() {
     const romEnd = revisionMode.cumulativeRomaji[seg];
     const charStart = seg > 0 ? revisionMode.cumulativeChars[seg - 1] : 0;
     const charEnd = revisionMode.cumulativeChars[seg];
-    const typedLen = Math.min(inputLength - romStart, romEnd - romStart);
+    const segmentLength = romEnd - romStart; // Longueur du segment courant
+    const typedLen = Math.min(inputLength - romStart, segmentLength); // Progression dans le segment
     const typedSegment = revisionMode.input.substring(romStart, romStart + typedLen);
     const expected = revisionMode.romajiSegments[seg];
     let className = "";
 
     if (typedLen > 0) {
       if (expected.startsWith(typedSegment)) {
-        // Gradation basée sur la position dans la saisie
+        // Gradation basée sur la progression dans le segment
         const level = Math.min(4, typedLen);
         className = `char-correct-${level}`;
       } else {
@@ -2599,7 +2606,7 @@ function updateRevisionFeedback() {
           setTimeout(() => card.classList.remove("pop-animation"), 300);
         }
         // Passer au niveau final (-4) et retirer pulsing si segment validé
-        if (typedLen === expected.length && expected === typedSegment) {
+        if (typedLen === segmentLength && expected === typedSegment) {
           card.classList.remove("pulsing");
           card.className = `char-card ${expected.startsWith(typedSegment) ? "char-correct-4" : "char-incorrect-4"}`;
         }
@@ -2712,6 +2719,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
