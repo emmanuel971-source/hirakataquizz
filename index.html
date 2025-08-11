@@ -2550,6 +2550,7 @@ function startRevisionQuestion() {
   console.log(`🎯 Segments:`, revisionMode.romajiSegments);
 }
   
+
 function updateRevisionFeedback() {
   // Reset toutes les classes
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
@@ -2582,6 +2583,8 @@ function updateRevisionFeedback() {
     const expected = revisionMode.romajiSegments[seg];
     let className = "";
 
+    console.log(`Segment ${seg}: romStart=${romStart}, romEnd=${romEnd}, typedLen=${typedLen}, typedSegment="${typedSegment}", expected="${expected}"`);
+
     if (typedLen > 0) {
       if (expected.startsWith(typedSegment)) {
         // Gradation basée sur la progression dans le segment
@@ -2605,8 +2608,8 @@ function updateRevisionFeedback() {
           playPopSound();
           setTimeout(() => card.classList.remove("pop-animation"), 300);
         }
-        // Passer au niveau final (-4) uniquement si le segment est entièrement et correctement saisi
-        if (inputLength >= romEnd && expected === revisionMode.input.substring(romStart, romEnd)) {
+        // Passer au niveau final (-4) uniquement si la saisie couvre exactement le segment courant
+        if (inputLength >= romEnd && typedSegment === expected) {
           card.classList.remove("pulsing");
           card.className = `char-card ${expected === typedSegment ? "char-correct-4" : "char-incorrect-4"}`;
         }
@@ -2630,7 +2633,7 @@ function updateRevisionFeedback() {
       }
     }
   }
-}
+}  
     
   
   
@@ -2719,6 +2722,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
