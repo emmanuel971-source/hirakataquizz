@@ -1078,14 +1078,25 @@
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #revision-question {
     font-size: 6em;
+    margin-top: 40px; /* Pousse la carte plus bas */
   }
   
   #revision-input-display {
     font-size: 3em;
     width: 90%;
     padding: 15px;
+    position: fixed; /* Position fixe pour le placer précisément */
+    bottom: calc(100px + 10px + (90vw - 10px) / 5); /* 10px au-dessus du clavier */
+    left: 50%;
+    transform: translateX(-50%);
   }
   
+  #revision-message {
+    font-size: 4em; /* Beaucoup plus grand pour la réponse ! */
+    margin: 20px 0;
+    font-weight: bold; /* Pour une meilleure visibilité */
+  }
+   
    .revision-keyboard {
     grid-template-columns: repeat(5, 1fr);
     width: 90%;
@@ -1101,13 +1112,11 @@
     height: auto;
     aspect-ratio: 1;
     min-width: 50px;
-    font-size: clamp(2.5em, 8vw, 5em); /* Encore plus grand ! */
+    font-size: clamp(2.5em, 8vw, 5em);
     font-weight: bold;
     line-height: 1;
   }
-
-
-}    
+}
 
 /* ✨ NOUVEAUX STYLES POUR LES CARTES - Identiques au mode apprentissage */
 .char-card {
@@ -2799,6 +2808,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
