@@ -1007,8 +1007,8 @@
 
 #revision-input-display {
   font-size: 2em;
-  margin: 0 auto 10px auto; /* Centre horizontalement et garde 20px en bas */
-  min-height: 30px;
+  margin: 0 auto 10px auto; /* Centre horizontalement et garde 10px en bas */
+  height: 50px; /* Hauteur fixe */
   padding: 10px;
   border: 2px solid #8B6F47;
   border-radius: 8px;
@@ -1016,8 +1016,12 @@
   text-align: center;
   background: #FFFFFF;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex; /* Utilise flexbox pour centrer le contenu verticalement */
+  align-items: center; /* Centre verticalement le texte */
+  justify-content: center; /* Centre horizontalement le texte */
+  overflow: hidden; /* Empêche le contenu de déborder */
 }
-
+    
 .revision-keyboard {
   display: grid;
   grid-template-columns: repeat(5, 60px);
@@ -2788,6 +2792,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
