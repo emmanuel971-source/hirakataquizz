@@ -1081,16 +1081,15 @@
     margin-top: 40px; /* Pousse la carte plus bas */
   }
   
-  #revision-input-display {
-    font-size: 3em;
+#revision-input-display {
+    font-size: 4em;
     width: 90%;
     padding: 15px;
     position: fixed;
-    bottom: calc(100vh - (100vh - 100px - 80px) + 10px); /* 10px au-dessus du haut du clavier */
-    /* Ou plus simplement : */
-    bottom: calc(100vh - 100px - 80px - 10px); /* Position par rapport au haut du clavier */
+    bottom: env(safe-area-inset-bottom, 0) + 10px; /* 10px au-dessus du clavier */
     left: 50%;
     transform: translateX(-50%);
+    z-index: 1000; /* S'assurer que l'élément est au-dessus */
   }
   
   #revision-message {
@@ -2810,6 +2809,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
