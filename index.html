@@ -1088,19 +1088,22 @@
   
   .revision-keyboard {
     grid-template-columns: repeat(5, 1fr);
-    width: 100%;
-    padding: 0 10px;
-    position: fixed; /* Position fixe pour le placer précisément */
-    bottom: 100px; /* 100px du bas de l'écran */
+    width: 90%; /* Réduit à 90% de la largeur */
+    padding: 0 5px; /* Padding réduit proportionnellement */
+    position: fixed;
+    bottom: 100px;
     left: 50%;
-    transform: translateX(-50%); /* Centre horizontalement */
+    transform: translateX(-50%);
   }
   
   .revision-key {
     width: 100%;
-    height: auto; /* Hauteur automatique */
-    aspect-ratio: 1; /* Ratio 1:1 pour des touches carrées */
+    height: auto;
+    aspect-ratio: 1;
     min-width: 50px;
+    font-size: clamp(0.8em, 3vw, 2em); /* Taille de police adaptative plus généreuse */
+    font-weight: bold; /* Assure une bonne lisibilité */
+    line-height: 1; /* Optimise l'espacement vertical du texte */
   }
 
 
@@ -2796,6 +2799,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
