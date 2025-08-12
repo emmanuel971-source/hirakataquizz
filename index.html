@@ -1086,15 +1086,34 @@
     padding: 15px;
   }
   
-  .revision-keyboard {
-    grid-template-columns: repeat(5, 80px);
-    gap: 10px;
+.revision-keyboard {
+    grid-template-columns: repeat(5, 1fr); /* Utilise des colonnes proportionnelles */
+    gap: 6px; /* Réduit l'espacement pour les petits écrans */
+    width: 100%; /* Prend toute la largeur disponible */
+    max-width: 350px; /* Limite la largeur pour éviter un étirement excessif */
+    margin: 0 auto 10px auto; /* Centre le clavier et réduit la marge inférieure */
   }
-  
+
   .revision-key {
-    width: 80px;
-    height: 80px;
-    font-size: 1.5em;
+    width: 100%; /* Touches prennent toute la largeur de la colonne */
+    height: 0; /* Hauteur calculée via aspect-ratio */
+    aspect-ratio: 1 / 1; /* Maintient des touches carrées */
+    font-size: 1.5em; /* Augmente la taille de la police pour mobile */
+    box-sizing: border-box; /* Inclut bordure et padding dans les dimensions */
+    padding: 0; /* Supprime le padding pour un meilleur contrôle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent; /* Évite l'effet de surbrillance au toucher */
+  }
+
+  .revision-key:hover {
+    transform: none; /* Désactive l'effet de survol sur mobile */
+  }
+
+  .revision-key:active {
+    transform: scale(0.95); /* Effet de pression plus adapté au tactile */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
   
   #revision-message {
@@ -2792,6 +2811,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
