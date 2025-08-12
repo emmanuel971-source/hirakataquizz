@@ -1085,8 +1085,10 @@
     font-size: 3em;
     width: 90%;
     padding: 15px;
-    position: fixed; /* Position fixe pour le placer précisément */
-    bottom: calc(100px + 10px + (90vw - 10px) / 5); /* 10px au-dessus du clavier */
+    position: fixed;
+    bottom: calc(100vh - (100vh - 100px - 80px) + 10px); /* 10px au-dessus du haut du clavier */
+    /* Ou plus simplement : */
+    bottom: calc(100vh - 100px - 80px - 10px); /* Position par rapport au haut du clavier */
     left: 50%;
     transform: translateX(-50%);
   }
@@ -2808,6 +2810,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
