@@ -1196,26 +1196,20 @@
     transform: scale(1); 
     box-shadow: 0 6px 12px rgba(0,
 
-.titre-revision-simple {
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 30px;
-    color: #333;
-    line-height: 1.2;
-    white-space: nowrap;
-    width: 95%;
-    margin-left: auto;
-    margin-right: auto;
-    font-size: 8vw; /* 8% de la largeur de l'écran */
-    max-font-size: 4rem; /* Limite sur grand écran */
-    min-font-size: 1.5rem; /* Limite sur petit écran */
+/* Style de base pour le titre mode révision*/
+#mode2 .title {
+  font-size: 32px; /* Taille fixe pour les écrans normaux */
+  text-align: center;
+  margin: 10px 0;
+  font-weight: bold; /* Pour imiter l'apparence d'un h1 */
 }
 
-/* Pour les très petits écrans */
+/* Media query pour les écrans mobiles (jusqu'à 768px) */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-    .titre-revision-simple {
-        font-size: 10vw;
-    }
+  #mode2 .title {
+    font-size: 24px; /* Taille réduite pour les mobiles */
+    line-height: 1.2; /* Améliore la lisibilité */
+  }
 }
     
   </style>
@@ -1264,7 +1258,7 @@
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-     <div class="titre-revision-simple">🎌 Mode Révisions 🎌</div>
+  <div class="title">🎌 Mode Révisions 🎌</div>
   <div id="revision-question"></div>
    <div id="revision-message"></div>
   <div id="revision-input-display"></div>
@@ -2833,6 +2827,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
