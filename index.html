@@ -65,6 +65,31 @@
       }
     }
 
+    h2 {
+      margin: 0.5em 0;
+      font-size: 3em;
+      text-align: center;
+      color: #8B6F47;
+      text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
+    }
+
+    @media screen and (max-width: 400px),
+    screen and (-webkit-min-device-pixel-ratio: 2),
+    screen and (min-resolution: 192dpi) {
+      h2 {
+        font-size: 5em;
+        margin: 0.3em 0;
+      }
+    }
+
+    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+      h2 {
+        font-size: 4em;
+        margin: 0.15em 0;
+      }
+    }
+
+    
     #progressBarContainer {
       display: flex;
       align-items: center;
@@ -1262,7 +1287,7 @@
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-  <div class="title">🎌 Mode Révisions 🎌</div>
+  <h2>🎌 Mode Révisions 🎌</h2>
   <div id="revision-question"></div>
    <div id="revision-message"></div>
   <div id="revision-input-display"></div>
@@ -2831,6 +2856,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
