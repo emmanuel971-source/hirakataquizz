@@ -1196,17 +1196,18 @@
     transform: scale(1); 
     box-shadow: 0 6px 12px rgba(0,
 
-    .titre-revision-auto {
+.titre-revision-auto {
     font-weight: bold;
     text-align: center;
     margin-bottom: 30px;
     color: #333;
     line-height: 1.2;
-    white-space: nowrap; /* Force une seule ligne */
+    white-space: nowrap;
     width: 95%;
     margin-left: auto;
     margin-right: auto;
-    font-size: 2rem; /* Taille de départ */
+    font-size: 3rem; /* Taille plus visible par défaut */
+    min-font-size: 1.5rem; /* Taille minimum */
 }
     
   </style>
@@ -2810,18 +2811,22 @@ window.addEventListener('load', () => {
 });
 function adjustFontSize(element) {
     const container = element.parentElement;
-    const targetWidth = container.offsetWidth * 0.95; // 95% de la largeur
+    const targetWidth = container.offsetWidth * 0.95;
+    
+    // Si le conteneur n'a pas de largeur, attendre un peu
+    if (targetWidth === 0) {
+        setTimeout(() => adjustFontSize(element), 100);
+        return;
+    }
     
     let fontSize = Math.min(container.offsetWidth / 10, 60);
     element.style.fontSize = fontSize + 'px';
     
-    // Réduire si trop large
     while (element.scrollWidth > targetWidth && fontSize > 10) {
         fontSize--;
         element.style.fontSize = fontSize + 'px';
     }
     
-    // Augmenter si trop petit (pour maximiser l'utilisation)
     while (element.scrollWidth < targetWidth && fontSize < 120) {
         fontSize++;
         element.style.fontSize = fontSize + 'px';
@@ -2833,13 +2838,17 @@ function adjustFontSize(element) {
     }
 }
 
-// Ajuster au chargement et redimensionnement
+function adjustAllTitles() {
+    document.querySelectorAll('.titre-revision-auto').forEach(adjustFontSize);
+}
+
+// Essayer plusieurs fois pour être sûr
 window.addEventListener('load', () => {
-    document.querySelectorAll('.titre-revision-auto').forEach(adjustFontSize);
+    setTimeout(adjustAllTitles, 50);   // Premier essai rapide
+    setTimeout(adjustAllTitles, 200);  // Deuxième essai plus tardif
 });
-window.addEventListener('resize', () => {
-    document.querySelectorAll('.titre-revision-auto').forEach(adjustFontSize);
-});
+
+window.addEventListener('resize', adjustAllTitles);
   
   // Démarrage du jeu
 window.onload = () => {
@@ -2854,6 +2863,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
