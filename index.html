@@ -2808,19 +2808,20 @@ function initRevisionKeyboard() {
 window.addEventListener('load', () => {
   initRevisionKeyboard();
 });
-// Version simplifiée sans ResizeObserver
 function adjustFontSize(element) {
     const container = element.parentElement;
-    const targetWidth = container.offsetWidth * 0.95;
+    const targetWidth = container.offsetWidth * 0.95; // 95% de la largeur
     
     let fontSize = Math.min(container.offsetWidth / 10, 60);
     element.style.fontSize = fontSize + 'px';
     
+    // Réduire si trop large
     while (element.scrollWidth > targetWidth && fontSize > 10) {
         fontSize--;
         element.style.fontSize = fontSize + 'px';
     }
     
+    // Augmenter si trop petit (pour maximiser l'utilisation)
     while (element.scrollWidth < targetWidth && fontSize < 120) {
         fontSize++;
         element.style.fontSize = fontSize + 'px';
@@ -2832,13 +2833,13 @@ function adjustFontSize(element) {
     }
 }
 
-// Plus simple : juste au chargement et redimensionnement
-function adjustAllTitles() {
+// Ajuster au chargement et redimensionnement
+window.addEventListener('load', () => {
     document.querySelectorAll('.titre-revision-auto').forEach(adjustFontSize);
-}
-
-window.addEventListener('load', adjustAllTitles);
-window.addEventListener('resize', adjustAllTitles);
+});
+window.addEventListener('resize', () => {
+    document.querySelectorAll('.titre-revision-auto').forEach(adjustFontSize);
+});
   
   // Démarrage du jeu
 window.onload = () => {
@@ -2853,6 +2854,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
