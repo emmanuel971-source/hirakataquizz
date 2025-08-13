@@ -1196,6 +1196,18 @@
     transform: scale(1); 
     box-shadow: 0 6px 12px rgba(0,
 
+    .titre-revision-auto {
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    line-height: 1.2;
+    white-space: nowrap; /* Force une seule ligne */
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 2rem; /* Taille de départ */
+}
     
   </style>
 </head>
@@ -1243,7 +1255,7 @@
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-  <h1>🎌 Mode Révisions 🎌</h1>
+    <div class="titre-revision-auto">🎌 Mode Révisions 🎌</div>
   <div id="revision-question"></div>
    <div id="revision-message"></div>
   <div id="revision-input-display"></div>
@@ -2796,7 +2808,39 @@ function initRevisionKeyboard() {
 window.addEventListener('load', () => {
   initRevisionKeyboard();
 });
-// Démarrage du jeu
+// Version simplifiée sans ResizeObserver
+function adjustFontSize(element) {
+    const container = element.parentElement;
+    const targetWidth = container.offsetWidth * 0.95;
+    
+    let fontSize = Math.min(container.offsetWidth / 10, 60);
+    element.style.fontSize = fontSize + 'px';
+    
+    while (element.scrollWidth > targetWidth && fontSize > 10) {
+        fontSize--;
+        element.style.fontSize = fontSize + 'px';
+    }
+    
+    while (element.scrollWidth < targetWidth && fontSize < 120) {
+        fontSize++;
+        element.style.fontSize = fontSize + 'px';
+        if (element.scrollWidth > targetWidth) {
+            fontSize--;
+            element.style.fontSize = fontSize + 'px';
+            break;
+        }
+    }
+}
+
+// Plus simple : juste au chargement et redimensionnement
+function adjustAllTitles() {
+    document.querySelectorAll('.titre-revision-auto').forEach(adjustFontSize);
+}
+
+window.addEventListener('load', adjustAllTitles);
+window.addEventListener('resize', adjustAllTitles);
+  
+  // Démarrage du jeu
 window.onload = () => {
 initGame();
 };
@@ -2809,6 +2853,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
