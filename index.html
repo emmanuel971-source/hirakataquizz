@@ -1118,7 +1118,7 @@
   }
   
   #revision-message {
-    font-size: 4em; /* Beaucoup plus grand pour la réponse ! */
+    font-size: 3em; /* Beaucoup plus grand pour la réponse ! */
     margin: 20px 0;
     font-weight: bold; /* Pour une meilleure visibilité */
   }
@@ -2802,40 +2802,57 @@ function initRevisionKeyboard() {
       const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1];
       
       if (revisionMode.input.length === totalLength) {
-        if (revisionMode.input === revisionMode.fullCorrect) {
-          // Bonne réponse
-          document.getElementById("revision-message").textContent = "🌸 Parfait ! 🌸";
-          document.getElementById("revision-message").style.color = "#28a745";
-          playMarioCoin(); // Utiliser le son existant
-          setTimeout(() => {
-            startRevisionQuestion(); // Nouvelle question
-          }, 1500);
+  if (revisionMode.input === revisionMode.fullCorrect) {
+    // Bonne réponse
+    document.getElementById("revision-message").textContent = "🌸 Parfait ! 🌸";
+    document.getElementById("revision-message").style.color = "#28a745";
+    playMarioCoin();
+    // Ajouter un effet de sakura pour célébrer
+    triggerSakuraFall(document.querySelector("#mode2"));
+    // Jouer le fichier MP3 correspondant au caractère
+    const audioFile = `${encodeURIComponent(revisionMode.currentQuestion)}.mp3`;
+    const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+    console.log("🎧 Lecture du son :", audioUrl);
+    const audio = new Audio(audioUrl);
+    audio.play().catch(e => console.warn("Erreur audio :", e));
+    // Mettre à jour les stats via l'API
+    callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 1 })
+      .then(response => {
+        if (response.error) {
+          console.warn('Erreur sauvegarde:', response.error);
         } else {
-          // Mauvaise réponse
-          document.getElementById("revision-message").textContent = 
-            `❌ Mauvaise réponse. Correct : ${revisionMode.fullCorrect}`;
-          document.getElementById("revision-message").style.color = "#dc3545";
-          playFail(); // Utiliser le son existant
-          setTimeout(() => {
-            startRevisionQuestion(); // Nouvelle question
-          }, 3000);
+          console.log('✅ Score sauvegardé pour révision');
+          // Mettre à jour la validation localement
+          const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+          if (hiraganaIndex !== -1) {
+            const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+            HiraganaList[hiraganaIndex].Validation = Math.min(5, currentValidation + 1).toString();
+          }
         }
-      } else if (revisionMode.input.length > totalLength) {
-        // Trop de caractères
-        document.getElementById("revision-message").textContent = 
-          `❌ Trop long ! Correct : ${revisionMode.fullCorrect}`;
-        document.getElementById("revision-message").style.color = "#dc3545";
-        playFail();
-        revisionMode.input = "";
-        document.getElementById("revision-input-display").textContent = "";
-        setTimeout(() => {
-          startRevisionQuestion(); // Nouvelle question
-        }, 3000);
-      }
-    });
-  });
+      });
+    setTimeout(() => {
+      startRevisionQuestion();
+    }, 2000);
+  } else {
+    // Mauvaise réponse
+    document.getElementById("revision-message").textContent = 
+      `❌ ERREUR : ${revisionMode.fullCorrect}`;
+    document.getElementById("revision-message").style.color = "#dc3545";
+    document.body.classList.add("shake");
+    playFail();
+    // Jouer le fichier MP3 correspondant au caractère
+    const audioFile = `${encodeURIComponent(revisionMode.currentQuestion)}.mp3`;
+    const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+    console.log("🎧 Lecture du son :", audioUrl);
+    const audio = new Audio(audioUrl);
+    audio.play().catch(e => console.warn("Erreur audio :", e));
+    callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 });
+    setTimeout(() => {
+      document.body.classList.remove("shake");
+      startRevisionQuestion();
+    }, 3000);
+  }
 }
-
 // Appeler l'initialisation au chargement de la page
 window.addEventListener('load', () => {
   initRevisionKeyboard();
@@ -2856,6 +2873,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
