@@ -1196,7 +1196,7 @@
     transform: scale(1); 
     box-shadow: 0 6px 12px rgba(0,
 
-.titre-revision-auto {
+.titre-revision-simple {
     font-weight: bold;
     text-align: center;
     margin-bottom: 30px;
@@ -1206,8 +1206,16 @@
     width: 95%;
     margin-left: auto;
     margin-right: auto;
-    font-size: 3rem; /* Taille plus visible par défaut */
-    min-font-size: 1.5rem; /* Taille minimum */
+    font-size: 8vw; /* 8% de la largeur de l'écran */
+    max-font-size: 4rem; /* Limite sur grand écran */
+    min-font-size: 1.5rem; /* Limite sur petit écran */
+}
+
+/* Pour les très petits écrans */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+    .titre-revision-simple {
+        font-size: 10vw;
+    }
 }
     
   </style>
@@ -1256,7 +1264,7 @@
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-    <div class="titre-revision-auto">🎌 Mode Révisions 🎌</div>
+     <div class="titre-revision-simple">🎌 Mode Révisions 🎌</div>
   <div id="revision-question"></div>
    <div id="revision-message"></div>
   <div id="revision-input-display"></div>
@@ -2809,33 +2817,8 @@ function initRevisionKeyboard() {
 window.addEventListener('load', () => {
   initRevisionKeyboard();
 });
-function adjustFontSize(element) {
-    const container = element.parentElement;
-    const containerWidth = container.offsetWidth;
-    
-    if (containerWidth === 0) {
-        setTimeout(() => adjustFontSize(element), 100);
-        return;
-    }
-    
-    // Estimation directe basée sur la largeur du conteneur
-    // Pour du texte comme "🎌 Mode Révisions 🎌" (environ 18 caractères)
-    let fontSize = containerWidth * 0.95 / 12; // Diviser par ~12 caractères effectifs
-    
-    element.style.fontSize = fontSize + 'px';
-    
-    // Ajustement fin
-    const targetWidth = containerWidth * 0.95;
-    let iterations = 0;
-    
-    while (element.scrollWidth > targetWidth && fontSize > 10 && iterations < 20) {
-        fontSize -= fontSize * 0.05; // Réduire de 5% à chaque fois
-        element.style.fontSize = fontSize + 'px';
-        iterations++;
-    }
-    
-    console.log(`Taille finale: ${Math.round(fontSize)}px pour largeur ${containerWidth}px`);
-}
+
+  
   
   // Démarrage du jeu
 window.onload = () => {
@@ -2850,6 +2833,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
