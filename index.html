@@ -2811,44 +2811,31 @@ window.addEventListener('load', () => {
 });
 function adjustFontSize(element) {
     const container = element.parentElement;
-    const targetWidth = container.offsetWidth * 0.95;
+    const containerWidth = container.offsetWidth;
     
-    // Si le conteneur n'a pas de largeur, attendre un peu
-    if (targetWidth === 0) {
+    if (containerWidth === 0) {
         setTimeout(() => adjustFontSize(element), 100);
         return;
     }
     
-    let fontSize = Math.min(container.offsetWidth / 10, 60);
+    // Estimation directe basée sur la largeur du conteneur
+    // Pour du texte comme "🎌 Mode Révisions 🎌" (environ 18 caractères)
+    let fontSize = containerWidth * 0.95 / 12; // Diviser par ~12 caractères effectifs
+    
     element.style.fontSize = fontSize + 'px';
     
-    while (element.scrollWidth > targetWidth && fontSize > 10) {
-        fontSize--;
+    // Ajustement fin
+    const targetWidth = containerWidth * 0.95;
+    let iterations = 0;
+    
+    while (element.scrollWidth > targetWidth && fontSize > 10 && iterations < 20) {
+        fontSize -= fontSize * 0.05; // Réduire de 5% à chaque fois
         element.style.fontSize = fontSize + 'px';
+        iterations++;
     }
     
-    while (element.scrollWidth < targetWidth && fontSize < 120) {
-        fontSize++;
-        element.style.fontSize = fontSize + 'px';
-        if (element.scrollWidth > targetWidth) {
-            fontSize--;
-            element.style.fontSize = fontSize + 'px';
-            break;
-        }
-    }
+    console.log(`Taille finale: ${Math.round(fontSize)}px pour largeur ${containerWidth}px`);
 }
-
-function adjustAllTitles() {
-    document.querySelectorAll('.titre-revision-auto').forEach(adjustFontSize);
-}
-
-// Essayer plusieurs fois pour être sûr
-window.addEventListener('load', () => {
-    setTimeout(adjustAllTitles, 50);   // Premier essai rapide
-    setTimeout(adjustAllTitles, 200);  // Deuxième essai plus tardif
-});
-
-window.addEventListener('resize', adjustAllTitles);
   
   // Démarrage du jeu
 window.onload = () => {
@@ -2863,6 +2850,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
