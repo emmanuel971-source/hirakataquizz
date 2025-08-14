@@ -1275,6 +1275,19 @@ body.shake {
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
   }
 }
+
+#revision-stats {
+  color: #666; /* Équivalent à text-gray-600 */
+  margin-top: 8px; /* Équivalent à mt-2 */
+  font-size: 16px; /* Taille par défaut pour desktop */
+}
+
+/* Écrans mobiles (moins de 640px) */
+@media screen and (max-width: 640px), screen and (-webkit-min-device-pixel-ratio: 2) {
+  #revision-stats {
+    font-size: 18px; /* Plus grand sur mobile */
+  }
+}    
     
   </style>
 </head>
@@ -1325,7 +1338,7 @@ body.shake {
   <h2>🎌 Mode Révisions 🎌</h2>
   <div id="revision-question"></div>
    <div id="revision-message"></div>
-  <div id="revision-stats" class="text-gray-600 mt-2"></div>
+  <div id="revision-stats" class="text-gray-600 mt-2 text-lg sm:text-base">
   <div id="revision-input-display"></div>
     <div class="revision-keyboard">
     <div class="revision-key">a</div>
@@ -2975,8 +2988,6 @@ function initRevisionKeyboard() {
                 console.log('✅ Score sauvegardé pour révision');
                 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
                 if (hiraganaIndex !== -1) {
-                  const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-                  HiraganaList[hiraganaIndex].Validation = Math.min(5, currentValidation + 1).toString();
                   HiraganaList[hiraganaIndex].Reussites = parseInt(HiraganaList[hiraganaIndex].Reussites || 0) + 1;
                   HiraganaList[hiraganaIndex].Tentatives = parseInt(HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
                 }
@@ -3073,6 +3084,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
