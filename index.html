@@ -1896,30 +1896,27 @@ logError('Erreur Level Up: ' + error.message);
 }
 }
 // Son pour réponses correctes : Clochette zen
-function playZenBell() {
-const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            // Fréquences cristallines
-            const frequencies = [1047, 1319, 1568, 1760]; // C6, E6, G6, A6
-            oscillator.frequency.setValueAtTime(
-                frequencies[Math.floor(Math.random() * frequencies.length)], 
-                audioContext.currentTime
-            );
-            oscillator.type = 'sine';
-            
-            // Enveloppe rapide comme une goutte
-            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-            gainNode.gain.linearRampToValueAtTime(globalVolume * 0.3, audioContext.currentTime + 0.01);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
-}
+function playZenBellOld() {
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
 
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+      oscillator.start();
+      setTimeout(() => {
+        oscillator.frequency.setValueAtTime(660, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+      }, 200);
+      oscillator.stop(audioCtx.currentTime + 1);
+      console.log('🎶 Ancien son joué : Clochette zen (880 Hz -> 660 Hz, 1s)');
+      document.getElementById('status').textContent = 'Ancien son joué : Clochette zen';
+    }
 // Son pour réponses incorrectes : Bip atténué
 function playSoftError() {
   const oscillator = audioCtx.createOscillator();
@@ -3029,6 +3026,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
