@@ -1325,6 +1325,7 @@ body.shake {
   <h2>🎌 Mode Révisions 🎌</h2>
   <div id="revision-question"></div>
    <div id="revision-message"></div>
+  <div id="revision-stats" class="text-gray-600 mt-2"></div>
   <div id="revision-input-display"></div>
     <div class="revision-keyboard">
     <div class="revision-key">a</div>
@@ -2657,16 +2658,16 @@ function startRevisionQuestion() {
   const niveauActif = determineNiveauActif(HiraganaList);
   console.log('Niveau actif:', niveauActif);
   
-  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38]; // Niveaux où seuls Hiragana sont proposés
+  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   
-  // Items Hiragana disponibles (tous niveaux <= niveauActif)
+  // Items Hiragana disponibles
   const hiraganaItems = HiraganaList.filter(h => 
     parseInt(h.Niveau || 1) <= niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
     h.Hiragana && h.Romaji
   );
   
-  // Items Katakana disponibles (seulement pour niveaux non exclus)
+  // Items Katakana disponibles
   const katakanaItems = HiraganaList.filter(h => 
     parseInt(h.Niveau || 1) <= niveauActif && 
     !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
@@ -2692,25 +2693,31 @@ function startRevisionQuestion() {
     console.warn('Erreur : Aucun item disponible pour le niveau', niveauActif);
     document.getElementById("revision-message").textContent = "Aucun item disponible pour ce niveau";
     document.getElementById("revision-message").style.color = "#dc3545";
+    document.getElementById("revision-stats").textContent = "";
     return;
   }
   
-  // Calculer le pourcentage de réussite et les poids
+  // Calculer le pourcentage global
+  const itemsUpToLevel = HiraganaList.filter(h => parseInt(h.Niveau || 1) <= niveauActif);
+  const totalTentatives = itemsUpToLevel.reduce((sum, h) => sum + parseInt(h.Tentatives || 0), 0);
+  const totalReussites = itemsUpToLevel.reduce((sum, h) => sum + parseInt(h.Reussites || 0), 0);
+  const globalPercentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100).toFixed(1) : 0;
+  
+  // Calculer les poids pour la sélection
   const weights = availableItems.map(h => {
     const tentatives = parseInt(h.Tentatives || 0);
-    const reussites = parseInt(h.Réussites || 0);
+    const reussites = parseInt(h.Reussites || 0);
     const pourcentage = tentatives > 0 ? (reussites / tentatives) * 100 : 0;
-    const palier = Math.round(pourcentage / 10) * 10; // Arrondir au palier de 10%
-    const poids = 30 * Math.pow(0.966, palier); // Poids décroissant
-    return poids;
+    const palier = Math.round(pourcentage / 10) * 10;
+    return 30 * Math.pow(0.966, palier);
   });
   console.log('Poids des items:', weights.map((w, i) => ({
     ID: availableItems[i].ID,
     Key: availableItems[i].key,
     Niveau: availableItems[i].Niveau,
     Tentatives: availableItems[i].Tentatives || 0,
-    Réussites: availableItems[i].Réussites || 0,
-    Pourcentage: availableItems[i].Tentatives > 0 ? ((availableItems[i].Réussites / availableItems[i].Tentatives) * 100).toFixed(1) + '%' : '0%',
+    Reussites: availableItems[i].Reussites || 0,
+    Pourcentage: availableItems[i].Tentatives > 0 ? ((availableItems[i].Reussites / availableItems[i].Tentatives) * 100).toFixed(1) + '%' : '0%',
     Poids: w.toFixed(2)
   })));
   
@@ -2726,7 +2733,7 @@ function startRevisionQuestion() {
       random -= weights[i];
       if (random <= 0) {
         if (revisionMode.previousItem && revisionMode.previousItem.ID === availableItems[i].ID && availableItems.length > 1) {
-          break; // Éviter la répétition si possible
+          break;
         }
         selectedItem = availableItems[i];
         break;
@@ -2735,23 +2742,31 @@ function startRevisionQuestion() {
     attempts++;
   }
   
-  // Si aucune sélection après maxAttempts, choisir un item différent de previousItem
+  // Fallback si aucune sélection
   if (!selectedItem) {
     const filteredItems = availableItems.filter(item => !revisionMode.previousItem || item.ID !== revisionMode.previousItem.ID);
     selectedItem = filteredItems[Math.floor(Math.random() * filteredItems.length)] || availableItems[0];
   }
   
-  // Stocker l'item sélectionné comme précédent
+  // Calculer le pourcentage de l’item sélectionné
+  const itemTentatives = parseInt(selectedItem.Tentatives || 0);
+  const itemReussites = parseInt(selectedItem.Reussites || 0);
+  const itemPercentage = itemTentatives > 0 ? (itemReussites / itemTentatives * 100).toFixed(1) : 0;
+  
+  // Afficher les pourcentages
+  document.getElementById("revision-stats").textContent = `Item : ${itemPercentage}% | Global : ${globalPercentage}%`;
+  
+  // Stocker l’item sélectionné
   revisionMode.previousItem = selectedItem;
   
-  // Configurer la question en fonction du type (Hiragana ou Katakana)
-  revisionMode.currentQuestion = selectedItem.key; // Hiragana ou Katakana
+  // Configurer la question
+  revisionMode.currentQuestion = selectedItem.key;
   const table = selectedItem.type === 'hiragana' ? revisionRomajiTable : revisionKatakanaTable;
   const tableEntry = table[selectedItem.key];
   revisionMode.romajiSegments = tableEntry.romaji;
   revisionMode.charCounts = tableEntry.charCounts;
   revisionMode.fullCorrect = revisionMode.romajiSegments.join("");
-  revisionMode.currentItem = selectedItem; // Pour stats
+  revisionMode.currentItem = selectedItem;
   
   // Calculer les positions cumulatives
   let cumRom = 0;
@@ -2766,7 +2781,7 @@ function startRevisionQuestion() {
     return cumChar;
   });
   
-  // Réinitialiser l'interface
+  // Réinitialiser l’interface
   revisionMode.input = "";
   document.getElementById("revision-question").innerHTML = 
     revisionMode.currentQuestion.split("").map((char, index) => 
@@ -2777,7 +2792,7 @@ function startRevisionQuestion() {
   document.getElementById("revision-input-display").textContent = "";
   document.getElementById("revision-message").textContent = "";
   
-  // Ajouter pulsation initiale à la première carte
+  // Ajouter pulsation
   const firstCard = document.getElementById(`revision-card-0`);
   if (firstCard) {
     firstCard.classList.add("pulsing");
@@ -2785,8 +2800,9 @@ function startRevisionQuestion() {
   
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
   console.log(`🎯 Segments:`, revisionMode.romajiSegments);
+  console.log(`📊 Pourcentage item: ${itemPercentage}% | Pourcentage global: ${globalPercentage}%`);
 }
-
+  
   
 function updateRevisionFeedback() {
   // Reset toutes les classes
@@ -2942,6 +2958,7 @@ function initRevisionKeyboard() {
           // Bonne réponse
           document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🌸 Parfait !${katakanaDisplay} 🌸`;
           document.getElementById("revision-message").style.color = "#28a745";
+          document.getElementById("revision-stats").textContent = ""; // Réinitialiser les stats
           playZenBell(); // Clochette zen
           // Jouer le fichier MP3 correspondant au caractère Hiragana
           const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
@@ -2960,6 +2977,8 @@ function initRevisionKeyboard() {
                 if (hiraganaIndex !== -1) {
                   const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
                   HiraganaList[hiraganaIndex].Validation = Math.min(5, currentValidation + 1).toString();
+                  HiraganaList[hiraganaIndex].Reussites = parseInt(HiraganaList[hiraganaIndex].Reussites || 0) + 1;
+                  HiraganaList[hiraganaIndex].Tentatives = parseInt(HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
                 }
               }
             });
@@ -2972,6 +2991,7 @@ function initRevisionKeyboard() {
             ? "Faux" 
             : `❌ ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
           document.getElementById("revision-message").style.color = "#dc3545";
+          document.getElementById("revision-stats").textContent = ""; // Réinitialiser les stats
           playSoftError(); // Bip atténué
           // Jouer le fichier MP3 correspondant au caractère Hiragana
           const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
@@ -2979,7 +2999,18 @@ function initRevisionKeyboard() {
           console.log("🎧 Lecture du son :", audioUrl);
           const audio = new Audio(audioUrl);
           audio.play().catch(e => console.warn('Erreur audio:', e));
-          callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 });
+          callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 })
+            .then(response => {
+              if (response.error) {
+                console.warn('Erreur sauvegarde:', response.error);
+              } else {
+                console.log('✅ Tentative sauvegardée pour révision');
+                const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+                if (hiraganaIndex !== -1) {
+                  HiraganaList[hiraganaIndex].Tentatives = parseInt(HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
+                }
+              }
+            });
           setTimeout(() => {
             startRevisionQuestion();
           }, 3000);
@@ -2990,6 +3021,7 @@ function initRevisionKeyboard() {
           ? "Faux" 
           : `❌ Trop long ! Correct : ${revisionMode.fullCorrect}${katakanaDisplay}`;
         document.getElementById("revision-message").style.color = "#dc3545";
+        document.getElementById("revision-stats").textContent = ""; // Réinitialiser les stats
         playSoftError(); // Bip atténué
         // Jouer le fichier MP3 correspondant au caractère Hiragana
         const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
@@ -2997,7 +3029,18 @@ function initRevisionKeyboard() {
         console.log("🎧 Lecture du son :", audioUrl);
         const audio = new Audio(audioUrl);
         audio.play().catch(e => console.warn('Erreur audio:', e));
-        callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 });
+        callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 })
+          .then(response => {
+            if (response.error) {
+              console.warn('Erreur sauvegarde:', response.error);
+            } else {
+              console.log('✅ Tentative sauvegardée pour révision');
+              const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+              if (hiraganaIndex !== -1) {
+                HiraganaList[hiraganaIndex].Tentatives = parseInt(HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
+              }
+            }
+          });
         revisionMode.input = "";
         document.getElementById("revision-input-display").textContent = "";
         setTimeout(() => {
@@ -3007,6 +3050,7 @@ function initRevisionKeyboard() {
     });
   });
 }
+  
   
       
 // Appeler l'initialisation au chargement de la page
@@ -3029,6 +3073,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
