@@ -2691,22 +2691,54 @@ function startRevisionQuestion() {
     return;
   }
   
-  // Sélection pondérée basée sur Validation
+  // Calculer le pourcentage de réussite et les poids
   const weights = availableItems.map(h => {
-    const validation = parseInt(h.Validation || 0);
-    return Math.max(0.1, 5 - validation + 0.5); // Poids entre 0.1 et 5.5
+    const tentatives = parseInt(h.Tentatives || 0);
+    const reussites = parseInt(h.Réussites || 0);
+    const pourcentage = tentatives > 0 ? (reussites / tentatives) * 100 : 0;
+    const palier = Math.round(pourcentage / 10) * 10; // Arrondir au palier de 10%
+    const poids = 30 * Math.pow(0.966, palier); // Poids décroissant
+    return poids;
   });
-  const totalWeight = weights.reduce((a, b) => a + b, 0);
-  let random = Math.random() * totalWeight;
-  let selectedItem = availableItems[0];
+  console.log('Poids des items:', weights.map((w, i) => ({
+    ID: availableItems[i].ID,
+    Key: availableItems[i].key,
+    Niveau: availableItems[i].Niveau,
+    Tentatives: availableItems[i].Tentatives || 0,
+    Réussites: availableItems[i].Réussites || 0,
+    Pourcentage: availableItems[i].Tentatives > 0 ? ((availableItems[i].Réussites / availableItems[i].Tentatives) * 100).toFixed(1) + '%' : '0%',
+    Poids: w.toFixed(2)
+  })));
   
-  for (let i = 0; i < availableItems.length; i++) {
-    random -= weights[i];
-    if (random <= 0) {
-      selectedItem = availableItems[i];
-      break;
+  let selectedItem = null;
+  let attempts = 0;
+  const maxAttempts = 5;
+  
+  // Sélection pondérée avec évitement des répétitions
+  while (!selectedItem && attempts < maxAttempts) {
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let random = Math.random() * totalWeight;
+    for (let i = 0; i < availableItems.length; i++) {
+      random -= weights[i];
+      if (random <= 0) {
+        if (revisionMode.previousItem && revisionMode.previousItem.ID === availableItems[i].ID && availableItems.length > 1) {
+          break; // Éviter la répétition si possible
+        }
+        selectedItem = availableItems[i];
+        break;
+      }
     }
+    attempts++;
   }
+  
+  // Si aucune sélection après maxAttempts, choisir un item différent de previousItem
+  if (!selectedItem) {
+    const filteredItems = availableItems.filter(item => !revisionMode.previousItem || item.ID !== revisionMode.previousItem.ID);
+    selectedItem = filteredItems[Math.floor(Math.random() * filteredItems.length)] || availableItems[0];
+  }
+  
+  // Stocker l'item sélectionné comme précédent
+  revisionMode.previousItem = selectedItem;
   
   // Configurer la question en fonction du type (Hiragana ou Katakana)
   revisionMode.currentQuestion = selectedItem.key; // Hiragana ou Katakana
@@ -2993,6 +3025,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
