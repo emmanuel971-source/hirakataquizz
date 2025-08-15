@@ -1365,6 +1365,11 @@ let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
 
+let statsCache = {
+  items: {}, // { [hiragana/katakana]: { tentatives, reussites, pourcentage } }
+  globalPourcentage: 0
+};
+  
 // Variables pour le mode révisions
 let revisionMode = {
   currentQuestion: "",
@@ -2238,24 +2243,25 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyunFkM7h0FV_xu1GRa
 
 // Fonction pour appeler l'API
 async function callAPI(action, data = null) {
-try {
-if (action === 'updateStats') {
-// Utiliser GET pour éviter CORS
-const params = new URLSearchParams({
-action,
-id: data.id,
-scorePoints: data.scorePoints
-});
-const response = await fetch(`${WEB_APP_URL}?${params}`);
-return await response.json();
-} else {
-const response = await fetch(`${WEB_APP_URL}?action=${action}`);
-return await response.json();
-}
-} catch (error) {
-logError('Erreur API: ' + error.message);
-return { error: error.message };
-}
+  try {
+    if (action === 'updateStats') {
+      const params = new URLSearchParams({
+        action,
+        id: data.id,
+        scorePoints: data.scorePoints,
+        tentatives: data.tentatives,
+        reussites: data.reussites
+      });
+      await fetch(`${WEB_APP_URL}?${params}`, { mode: 'no-core' }); // Asynchrone, sans attendre la réponse
+      return { success: true };
+    } else {
+      const response = await fetch(`${WEB_APP_URL}?action=${action}`);
+      return await response.json();
+    }
+  } catch (error) {
+    logError('Erreur API: ' + error.message);
+    return { error: error.message };
+  }
 }
 
 // Variable globale pour la table romaji
@@ -2270,13 +2276,25 @@ async function initGame() {
   }
 
   HiraganaList = data;
-  
   revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
-  revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList); // Nouvelle table
-  
-  console.log("📚 Table romaji générée:", Object.keys(revisionRomajiTable).length, "entrées");
-  console.log("📚 Table katakana générée:", Object.keys(revisionKatakanaTable).length, "entrées");
-  
+  revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
+
+  // Initialiser statsCache
+  statsCache.items = {};
+  let totalTentatives = 0, totalReussites = 0;
+  HiraganaList.forEach(item => {
+    const key = item.Hiragana || item.Katakana;
+    const tentatives = parseInt(item.Tentatives || 0);
+    const reussites = parseInt(item.Reussites || 0);
+    const pourcentage = tentatives > 0 ? (reussites / tentatives) * 100 : 0;
+    statsCache.items[key] = { tentatives, reussites, pourcentage };
+    totalTentatives += tentatives;
+    totalReussites += reussites;
+  });
+  statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives) * 100 : 0;
+
+  console.log("📊 Stats initialisées:", statsCache);
+
   niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
@@ -2623,55 +2641,38 @@ easing: "ease-in-out"
 
 function startRevisionQuestion() {
   const niveauActif = determineNiveauActif(HiraganaList);
-  console.log('Niveau actif:', niveauActif);
-  
-  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38]; // Niveaux où seuls Hiragana sont proposés
-  
-  // Items Hiragana disponibles (tous niveaux <= niveauActif)
+  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
     parseInt(h.Niveau || 1) <= niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
     h.Hiragana && h.Romaji
   );
-  
-  // Items Katakana disponibles (seulement pour niveaux non exclus)
   const katakanaItems = HiraganaList.filter(h => 
     parseInt(h.Niveau || 1) <= niveauActif && 
     !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
     revisionKatakanaTable[h.Katakana] &&
     h.Katakana && h.Romaji
   );
-  
-  // Fusion des items disponibles
   const availableItems = [
     ...hiraganaItems.map(item => ({ ...item, type: 'hiragana', key: item.Hiragana })), 
     ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: item.Katakana }))
   ];
-  
-  // Logs de débogage
-  console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
-  console.log('Items par niveau:', availableItems.reduce((acc, item) => {
-    const niveau = parseInt(item.Niveau || 1);
-    acc[niveau] = (acc[niveau] || 0) + 1;
-    return acc;
-  }, {}));
-  
+
   if (availableItems.length === 0) {
-    console.warn('Erreur : Aucun item disponible pour le niveau', niveauActif);
     document.getElementById("revision-message").textContent = "Aucun item disponible pour ce niveau";
     document.getElementById("revision-message").style.color = "#dc3545";
     return;
   }
-  
-  // Sélection pondérée basée sur Validation
-  const weights = availableItems.map(h => {
-    const validation = parseInt(h.Validation || 0);
-    return Math.max(0.1, 5 - validation + 0.5); // Poids entre 0.1 et 5.5
+
+  // Pondération basée sur l'inverse du pourcentage
+  const weights = availableItems.map(item => {
+    const stats = statsCache.items[item.key] || { pourcentage: 0 };
+    return stats.pourcentage === 0 ? 10 : 100 / (stats.pourcentage || 1); // Poids élevé si aucune tentative
   });
   const totalWeight = weights.reduce((a, b) => a + b, 0);
   let random = Math.random() * totalWeight;
   let selectedItem = availableItems[0];
-  
+
   for (let i = 0; i < availableItems.length; i++) {
     random -= weights[i];
     if (random <= 0) {
@@ -2679,30 +2680,26 @@ function startRevisionQuestion() {
       break;
     }
   }
-  
-  // Configurer la question en fonction du type (Hiragana ou Katakana)
-  revisionMode.currentQuestion = selectedItem.key; // Hiragana ou Katakana
+
+  revisionMode.currentQuestion = selectedItem.key;
   const table = selectedItem.type === 'hiragana' ? revisionRomajiTable : revisionKatakanaTable;
   const tableEntry = table[selectedItem.key];
   revisionMode.romajiSegments = tableEntry.romaji;
   revisionMode.charCounts = tableEntry.charCounts;
   revisionMode.fullCorrect = revisionMode.romajiSegments.join("");
-  revisionMode.currentItem = selectedItem; // Pour stats
-  
-  // Calculer les positions cumulatives
+  revisionMode.currentItem = selectedItem;
+
   let cumRom = 0;
   revisionMode.cumulativeRomaji = revisionMode.romajiSegments.map(segment => {
     cumRom += segment.length;
     return cumRom;
   });
-  
   let cumChar = 0;
   revisionMode.cumulativeChars = revisionMode.charCounts.map(count => {
     cumChar += count;
     return cumChar;
   });
-  
-  // Réinitialiser l'interface
+
   revisionMode.input = "";
   document.getElementById("revision-question").innerHTML = 
     revisionMode.currentQuestion.split("").map((char, index) => 
@@ -2712,15 +2709,11 @@ function startRevisionQuestion() {
     ).join("");
   document.getElementById("revision-input-display").textContent = "";
   document.getElementById("revision-message").textContent = "";
-  
-  // Ajouter pulsation initiale à la première carte
+
   const firstCard = document.getElementById(`revision-card-0`);
-  if (firstCard) {
-    firstCard.classList.add("pulsing");
-  }
-  
+  if (firstCard) firstCard.classList.add("pulsing");
+
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
-  console.log(`🎯 Segments:`, revisionMode.romajiSegments);
 }
   
 function updateRevisionFeedback() {
@@ -2830,114 +2823,85 @@ function updateRevisionFeedback() {
 // Initialiser les événements du clavier de révision
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
-  
-  // Supprimer les anciens event listeners pour éviter les doublons
-  revisionKeys.forEach(key => {
-    key.replaceWith(key.cloneNode(true));
-  });
-  
-  // Récupérer les nouvelles références après clonage
+  revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true)));
   const newRevisionKeys = document.querySelectorAll('.revision-key');
-  
+
   newRevisionKeys.forEach(key => {
     key.addEventListener("click", () => {
       if (!revisionMode.isActive) return;
-      
+
       if (key.id === "revision-back") {
-        // Touche retour
-        if (revisionMode.input.length > 0) {
-          revisionMode.input = revisionMode.input.slice(0, -1);
-        }
+        revisionMode.input = revisionMode.input.slice(0, -1);
       } else {
-        // Touche normale
         revisionMode.input += key.textContent;
       }
-      
-      // Mettre à jour l'affichage
+
       document.getElementById("revision-input-display").textContent = revisionMode.input;
       updateRevisionFeedback();
-      
-      // Vérifier si la réponse est complète
+
       const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1] || 1;
-      
-      // Trouver le caractère Hiragana correspondant à l'ID dans HiraganaList
       const hiraganaItem = HiraganaList.find(h => h.ID == revisionMode.currentItem.ID);
       const hiraganaChar = hiraganaItem ? hiraganaItem.Hiragana : revisionMode.currentQuestion;
-      
-      // Vérifier si le niveau est > 38
       const niveau = parseInt(revisionMode.currentItem.Niveau || 1);
       const isHighLevel = niveau > 38;
-      
-      // Déterminer si l'item a 2 caractères ou plus (pour niveaux <= 38)
       const isMultiChar = revisionMode.romajiSegments.length >= 2;
       const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${revisionMode.currentItem.Katakana})` : '';
-      
-      if (revisionMode.input.length === totalLength) {
-        if (revisionMode.input === revisionMode.fullCorrect) {
-          // Bonne réponse
+
+      if (revisionMode.input.length >= totalLength) {
+        const isCorrect = revisionMode.input === revisionMode.fullCorrect;
+        const key = revisionMode.currentQuestion;
+
+        // Mettre à jour statsCache
+        statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+        statsCache.items[key].tentatives += 1;
+        statsCache.items[key].reussites += isCorrect ? 1 : 0;
+        statsCache.items[key].pourcentage = statsCache.items[key].tentatives > 0 
+          ? (statsCache.items[key].reussites / statsCache.items[key].tentatives) * 100 : 0;
+
+        // Mettre à jour pourcentage global
+        const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+        const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+        statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives) * 100 : 0;
+
+        // Mettre à jour Validation
+        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+        if (hiraganaIndex !== -1) {
+          const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+          HiraganaList[hiraganaIndex].Validation = isCorrect 
+            ? Math.min(5, currentValidation + 1).toString()
+            : Math.max(0, currentValidation - 1).toString();
+        }
+
+        // Appeler API en arrière-plan
+        callAPI('updateStats', { 
+          id: parseInt(revisionMode.currentItem.ID), 
+          scorePoints: isCorrect ? 1 : 0,
+          tentatives: statsCache.items[key].tentatives,
+          reussites: statsCache.items[key].reussites
+        }).catch(error => console.error('Erreur sauvegarde stats:', error));
+
+        // Afficher feedback
+        if (isCorrect) {
           document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🌸 Parfait !${katakanaDisplay} 🌸`;
           document.getElementById("revision-message").style.color = "#28a745";
-          playZenBell(); // Clochette zen
-          // Jouer le fichier MP3 correspondant au caractère Hiragana
-          const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
-          const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-          console.log("🎧 Lecture du son :", audioUrl);
-          const audio = new Audio(audioUrl);
-          audio.play().catch(e => console.warn('Erreur audio:', e));
-          // Mettre à jour les stats via l'API
-          callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 1 })
-            .then(response => {
-              if (response.error) {
-                console.warn('Erreur sauvegarde:', response.error);
-              } else {
-                console.log('✅ Score sauvegardé pour révision');
-                const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
-                if (hiraganaIndex !== -1) {
-                  const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-                  HiraganaList[hiraganaIndex].Validation = Math.min(5, currentValidation + 1).toString();
-                }
-              }
-            });
-          setTimeout(() => {
-            startRevisionQuestion();
-          }, 2000);
+          playZenBell();
         } else {
-          // Mauvaise réponse
           document.getElementById("revision-message").textContent = isHighLevel 
             ? "Faux" 
             : `❌ ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
           document.getElementById("revision-message").style.color = "#dc3545";
-          playSoftError(); // Bip atténué
-          // Jouer le fichier MP3 correspondant au caractère Hiragana
-          const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
-          const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-          console.log("🎧 Lecture du son :", audioUrl);
-          const audio = new Audio(audioUrl);
-          audio.play().catch(e => console.warn('Erreur audio:', e));
-          callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 });
-          setTimeout(() => {
-            startRevisionQuestion();
-          }, 3000);
+          playSoftError();
         }
-      } else if (revisionMode.input.length > totalLength) {
-        // Trop de caractères
-        document.getElementById("revision-message").textContent = isHighLevel 
-          ? "Faux" 
-          : `❌ Trop long ! Correct : ${revisionMode.fullCorrect}${katakanaDisplay}`;
-        document.getElementById("revision-message").style.color = "#dc3545";
-        playSoftError(); // Bip atténué
-        // Jouer le fichier MP3 correspondant au caractère Hiragana
+
+        // Jouer son MP3
         const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
         const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-        console.log("🎧 Lecture du son :", audioUrl);
         const audio = new Audio(audioUrl);
         audio.play().catch(e => console.warn('Erreur audio:', e));
-        callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 });
-        revisionMode.input = "";
-        document.getElementById("revision-input-display").textContent = "";
+
         setTimeout(() => {
           startRevisionQuestion();
-        }, 3000);
+        }, isCorrect ? 2000 : 3000);
       }
     });
   });
@@ -2962,6 +2926,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
