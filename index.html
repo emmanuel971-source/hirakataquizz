@@ -1859,6 +1859,43 @@ logError('Erreur Level Up: ' + error.message);
 }
 }
 
+// Son pour réponses correctes : Clochette zen
+function playZenBell() {
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+  gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+  oscillator.start();
+  setTimeout(() => {
+    oscillator.frequency.setValueAtTime(660, audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+  }, 200);
+  oscillator.stop(audioCtx.currentTime + 1);
+}
+
+// Son pour réponses incorrectes : Bip atténué
+function playSoftError() {
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+
+  oscillator.type = 'triangle';
+  oscillator.frequency.setValueAtTime(220, audioCtx.currentTime);
+  gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+  oscillator.start();
+  oscillator.stop(audioCtx.currentTime + 0.4);
+}
+  
 function drawStar(ctx, x, y, radius, rotation = 0) {
 const points = 5;
 const outerRadius = radius;
@@ -2771,8 +2808,8 @@ function updateRevisionFeedback() {
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
   
+  // Supprimer les anciens event listeners pour éviter les doublons
   revisionKeys.forEach(key => {
-    // Supprimer les anciens event listeners pour éviter les doublons
     key.replaceWith(key.cloneNode(true));
   });
   
@@ -2798,25 +2835,56 @@ function initRevisionKeyboard() {
       updateRevisionFeedback();
       
       // Vérifier si la réponse est complète
-      const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1];
+      const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1] || 1;
+      
+      // Trouver le caractère Hiragana correspondant à l'ID dans HiraganaList
+      const hiraganaItem = HiraganaList.find(h => h.ID == revisionMode.currentItem.ID);
+      const hiraganaChar = hiraganaItem ? hiraganaItem.Hiragana : revisionMode.currentQuestion;
       
       if (revisionMode.input.length === totalLength) {
         if (revisionMode.input === revisionMode.fullCorrect) {
           // Bonne réponse
           document.getElementById("revision-message").textContent = "🌸 Parfait ! 🌸";
           document.getElementById("revision-message").style.color = "#28a745";
-          playMarioCoin(); // Utiliser le son existant
+          playZenBell(); // Clochette zen
+          // Jouer le fichier MP3 correspondant au caractère Hiragana
+          const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
+          const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+          console.log("🎧 Lecture du son :", audioUrl);
+          const audio = new Audio(audioUrl);
+          audio.play().catch(e => console.warn('Erreur audio:', e));
+          // Mettre à jour les stats via l'API
+          callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 1 })
+            .then(response => {
+              if (response.error) {
+                console.warn('Erreur sauvegarde:', response.error);
+              } else {
+                console.log('✅ Score sauvegardé pour révision');
+                const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+                if (hiraganaIndex !== -1) {
+                  const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+                  HiraganaList[hiraganaIndex].Validation = Math.min(5, currentValidation + 1).toString();
+                }
+              }
+            });
           setTimeout(() => {
-            startRevisionQuestion(); // Nouvelle question
-          }, 1500);
+            startRevisionQuestion();
+          }, 2000);
         } else {
           // Mauvaise réponse
           document.getElementById("revision-message").textContent = 
             `❌ ERREUR : ${revisionMode.fullCorrect}`;
           document.getElementById("revision-message").style.color = "#dc3545";
-          playFail(); // Utiliser le son existant
+          playSoftError(); // Bip atténué
+          // Jouer le fichier MP3 correspondant au caractère Hiragana
+          const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
+          const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+          console.log("🎧 Lecture du son :", audioUrl);
+          const audio = new Audio(audioUrl);
+          audio.play().catch(e => console.warn('Erreur audio:', e));
+          callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 });
           setTimeout(() => {
-            startRevisionQuestion(); // Nouvelle question
+            startRevisionQuestion();
           }, 3000);
         }
       } else if (revisionMode.input.length > totalLength) {
@@ -2824,17 +2892,23 @@ function initRevisionKeyboard() {
         document.getElementById("revision-message").textContent = 
           `❌ Trop long ! Correct : ${revisionMode.fullCorrect}`;
         document.getElementById("revision-message").style.color = "#dc3545";
-        playFail();
+        playSoftError(); // Bip atténué
+        // Jouer le fichier MP3 correspondant au caractère Hiragana
+        const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
+        const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+        console.log("🎧 Lecture du son :", audioUrl);
+        const audio = new Audio(audioUrl);
+        audio.play().catch(e => console.warn('Erreur audio:', e));
+        callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 });
         revisionMode.input = "";
         document.getElementById("revision-input-display").textContent = "";
         setTimeout(() => {
-          startRevisionQuestion(); // Nouvelle question
+          startRevisionQuestion();
         }, 3000);
       }
     });
   });
 }
-
 // Appeler l'initialisation au chargement de la page
 window.addEventListener('load', () => {
   initRevisionKeyboard();
@@ -2855,3 +2929,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
