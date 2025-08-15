@@ -2667,46 +2667,43 @@ easing: "ease-in-out"
 }
 }
 function startRevisionQuestion() {
-  // Forcer la synchronisation avec la sheet pour garantir les données actuelles
-  console.log('🔍 Appel à callAPI avec action:', 'getHiraganaList', 'params:', {});
-  callAPI('getHiraganaList', {})
+  // Charger les stats une seule fois au démarrage de la session
+  console.log('🔍 Chargement initial des stats avec action:', 'getHiraganas', 'params:', {});
+  callAPI('getHiraganas', {})
     .then(data => {
-      console.log('🔍 Réponse brute de getHiraganaList:', data);
+      console.log('🔍 Réponse brute des stats:', data);
 
       // Vérifier et valider la structure de data
       if (!Array.isArray(data)) {
-        if (data && data.error === 'Action non reconnue') {
-          console.warn('⚠️ Action getHiraganaList non reconnue, utilisation de HiraganaList existant');
-        } else {
-          console.error('🔴 Erreur : data n\'est pas un tableau', typeof data, data);
-          document.getElementById("revision-message").textContent = "Erreur : Données invalides depuis la sheet";
-          document.getElementById("revision-message").style.color = "#dc3545";
-          return;
-        }
-      } else {
-        HiraganaList = data;
-        console.log('🔍 HiraganaList rechargé depuis la sheet:', HiraganaList.map(h => ({
-          ID: h.ID,
-          Hiragana: h.Hiragana,
-          Tentatives: h.Tentatives,
-          Reussites: h.Reussites
-        })));
+        console.error('🔴 Erreur : data n\'est pas un tableau', typeof data, data);
+        document.getElementById("revision-message").textContent = "Erreur : Données invalides depuis la sheet";
+        document.getElementById("revision-message").style.color = "#dc3545";
+        return;
       }
 
-      const niveauActif = determineNiveauActif(HiraganaList);
+      // Stocker les stats dans revisionMode
+      revisionMode.stats = data;
+      console.log('🔍 Stats chargées:', revisionMode.stats.map(h => ({
+        ID: h.ID,
+        Hiragana: h.Hiragana,
+        Tentatives: h.Tentatives,
+        Reussites: h.Reussites
+      })));
+
+      const niveauActif = determineNiveauActif(revisionMode.stats);
       console.log('Niveau actif:', niveauActif);
 
       const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
 
       // Items Hiragana disponibles
-      const hiraganaItems = HiraganaList.filter(h => 
+      const hiraganaItems = revisionMode.stats.filter(h => 
         parseInt(h.Niveau || 1) <= niveauActif && 
         revisionRomajiTable[h.Hiragana] &&
         h.Hiragana && h.Romaji
       );
 
       // Items Katakana disponibles
-      const katakanaItems = HiraganaList.filter(h => 
+      const katakanaItems = revisionMode.stats.filter(h => 
         parseInt(h.Niveau || 1) <= niveauActif && 
         !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
         revisionKatakanaTable[h.Katakana] &&
@@ -2734,19 +2731,21 @@ function startRevisionQuestion() {
         return;
       }
 
-      // Calculer le pourcentage global
-      const itemsUpToLevel = HiraganaList.filter(h => parseInt(h.Niveau || 1) <= niveauActif);
+      // Calculer le pourcentage global sur tous les items jusqu'au niveau
+      const itemsUpToLevel = revisionMode.stats.filter(h => parseInt(h.Niveau || 1) <= niveauActif);
       const totalTentatives = itemsUpToLevel.reduce((sum, h) => sum + parseInt(h.Tentatives?.toString().trim() || '0'), 0);
       const totalReussites = itemsUpToLevel.reduce((sum, h) => sum + parseInt(h.Reussites?.toString().trim() || '0'), 0);
       const globalPercentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100).toFixed(1) : 0;
 
       // Calculer les poids pour la sélection
       const weights = availableItems.map(h => {
-        const tentatives = parseInt(h.Tentatives?.toString().trim() || '0');
-        const reussites = parseInt(h.Reussites?.toString().trim() || '0');
+        const tentativesKey = Object.keys(h).find(key => key.toLowerCase() === 'tentatives') || 'Tentatives';
+        const reussitesKey = Object.keys(h).find(key => key.toLowerCase() === 'reussites' || key.toLowerCase() === 'réussites') || 'Reussites';
+        const tentatives = parseInt(h[tentativesKey]?.toString().trim() || '0');
+        const reussites = parseInt(h[reussitesKey]?.toString().trim() || '0');
         const pourcentage = tentatives > 0 ? (reussites / tentatives) * 100 : 0;
         const palier = Math.round(pourcentage / 10) * 10;
-        return 30 * Math.pow(0.966, palier);
+        return 30 * Math.pow(0.966, palier); // Poids plus élevé pour les pourcentages faibles
       });
       console.log('Poids des items:', weights.map((w, i) => ({
         ID: availableItems[i].ID,
@@ -2860,7 +2859,7 @@ function startRevisionQuestion() {
       console.log(`📊 Pourcentage item: ${itemPercentage}% | Pourcentage global: ${globalPercentage}%`);
     })
     .catch(error => {
-      console.error('🔴 Erreur lors du rechargement de HiraganaList:', error);
+      console.error('🔴 Erreur lors du chargement initial des stats:', error);
       document.getElementById("revision-message").textContent = "Erreur de synchronisation avec la sheet";
       document.getElementById("revision-message").style.color = "#dc3545";
     });
@@ -3148,6 +3147,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
