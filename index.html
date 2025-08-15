@@ -2666,7 +2666,6 @@ easing: "ease-in-out"
 });
 }
 }
-
 function startRevisionQuestion() {
   const niveauActif = determineNiveauActif(HiraganaList);
   console.log('Niveau actif:', niveauActif);
@@ -2762,9 +2761,12 @@ function startRevisionQuestion() {
   }
   
   // Calculer le pourcentage de l’item sélectionné
-  const itemTentatives = parseInt(selectedItem.Tentatives || 0);
-  const itemReussites = parseInt(selectedItem.Reussites || 0);
-  const itemPercentage = itemTentatives > 0 ? (itemReussites / itemTentatives * 100).toFixed(1) : 0;
+  const itemTentatives = parseInt(selectedItem.Tentatives || '0');
+  const itemReussites = parseInt(selectedItem.Reussites || '0');
+  const itemPercentage = itemTentatives > 0 ? ((itemReussites / itemTentatives) * 100).toFixed(1) : 0;
+  
+  // Log pour déboguer le pourcentage de l’item
+  console.log(`📊 Item sélectionné: ID=${selectedItem.ID}, Hiragana=${selectedItem.Hiragana}, Tentatives=${itemTentatives}, Réussites=${itemReussites}, Pourcentage=${itemPercentage}%`);
   
   // Afficher les pourcentages
   document.getElementById("revision-stats").textContent = `Item : ${itemPercentage}% | Global : ${globalPercentage}%`;
@@ -2812,7 +2814,6 @@ function startRevisionQuestion() {
   }
   
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
-  console.log(`🎯 Segments:`, revisionMode.romajiSegments);
   console.log(`📊 Pourcentage item: ${itemPercentage}% | Pourcentage global: ${globalPercentage}%`);
 }
   
@@ -2979,8 +2980,12 @@ function initRevisionKeyboard() {
           console.log("🎧 Lecture du son :", audioUrl);
           const audio = new Audio(audioUrl);
           audio.play().catch(e => console.warn('Erreur audio:', e));
-          // Mettre à jour les stats via l'API
-          callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 1 })
+          // Mettre à jour les stats via l'API (mode révision, pas de Validation)
+          callAPI('updateStats', { 
+            id: parseInt(revisionMode.currentItem.ID), 
+            scorePoints: 1,
+            mode: 'revision' // Indiquer explicitement le mode
+          })
             .then(response => {
               if (response.error) {
                 console.warn('Erreur sauvegarde:', response.error);
@@ -2990,6 +2995,7 @@ function initRevisionKeyboard() {
                 if (hiraganaIndex !== -1) {
                   HiraganaList[hiraganaIndex].Reussites = parseInt(HiraganaList[hiraganaIndex].Reussites || 0) + 1;
                   HiraganaList[hiraganaIndex].Tentatives = parseInt(HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
+                  console.log(`📊 Mise à jour locale: ID=${HiraganaList[hiraganaIndex].ID}, Tentatives=${HiraganaList[hiraganaIndex].Tentatives}, Réussites=${HiraganaList[hiraganaIndex].Reussites}, Validation=${HiraganaList[hiraganaIndex].Validation}`);
                 }
               }
             });
@@ -3010,7 +3016,11 @@ function initRevisionKeyboard() {
           console.log("🎧 Lecture du son :", audioUrl);
           const audio = new Audio(audioUrl);
           audio.play().catch(e => console.warn('Erreur audio:', e));
-          callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 })
+          callAPI('updateStats', { 
+            id: parseInt(revisionMode.currentItem.ID), 
+            scorePoints: 0,
+            mode: 'revision' // Indiquer explicitement le mode
+          })
             .then(response => {
               if (response.error) {
                 console.warn('Erreur sauvegarde:', response.error);
@@ -3019,6 +3029,7 @@ function initRevisionKeyboard() {
                 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
                 if (hiraganaIndex !== -1) {
                   HiraganaList[hiraganaIndex].Tentatives = parseInt(HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
+                  console.log(`📊 Mise à jour locale: ID=${HiraganaList[hiraganaIndex].ID}, Tentatives=${HiraganaList[hiraganaIndex].Tentatives}, Réussites=${HiraganaList[hiraganaIndex].Reussites}, Validation=${HiraganaList[hiraganaIndex].Validation}`);
                 }
               }
             });
@@ -3040,7 +3051,11 @@ function initRevisionKeyboard() {
         console.log("🎧 Lecture du son :", audioUrl);
         const audio = new Audio(audioUrl);
         audio.play().catch(e => console.warn('Erreur audio:', e));
-        callAPI('updateStats', { id: parseInt(revisionMode.currentItem.ID), scorePoints: 0 })
+        callAPI('updateStats', { 
+          id: parseInt(revisionMode.currentItem.ID), 
+          scorePoints: 0,
+          mode: 'revision' // Indiquer explicitement le mode
+        })
           .then(response => {
             if (response.error) {
               console.warn('Erreur sauvegarde:', response.error);
@@ -3049,6 +3064,7 @@ function initRevisionKeyboard() {
               const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
               if (hiraganaIndex !== -1) {
                 HiraganaList[hiraganaIndex].Tentatives = parseInt(HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
+                console.log(`📊 Mise à jour locale: ID=${HiraganaList[hiraganaIndex].ID}, Tentatives=${HiraganaList[hiraganaIndex].Tentatives}, Réussites=${HiraganaList[hiraganaIndex].Reussites}, Validation=${HiraganaList[hiraganaIndex].Validation}`);
               }
             }
           });
@@ -3084,6 +3100,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
