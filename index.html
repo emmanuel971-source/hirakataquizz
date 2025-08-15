@@ -1376,7 +1376,10 @@ let revisionMode = {
   cumulativeChars: [],
   isActive: false
 };
+// Initialisation du contexte audio (à placer au début du script, une seule fois)
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+  
 // Fonction pour générer la table romaji à partir des données Google Sheet (VERSION CORRIGÉE)
 function generateRevisionRomajiTable(hiraganaList) {
   const table = {};
@@ -2929,4 +2932,5 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
