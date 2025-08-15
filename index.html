@@ -2668,25 +2668,30 @@ easing: "ease-in-out"
 }
 function startRevisionQuestion() {
   // Forcer la synchronisation avec la sheet pour garantir les données actuelles
+  console.log('🔍 Appel à callAPI avec action:', 'getHiraganaList', 'params:', {});
   callAPI('getHiraganaList', {})
     .then(data => {
       console.log('🔍 Réponse brute de getHiraganaList:', data);
 
       // Vérifier et valider la structure de data
       if (!Array.isArray(data)) {
-        console.error('🔴 Erreur : data n\'est pas un tableau', typeof data, data);
-        document.getElementById("revision-message").textContent = "Erreur : Données invalides depuis la sheet";
-        document.getElementById("revision-message").style.color = "#dc3545";
-        return;
+        if (data && data.error === 'Action non reconnue') {
+          console.warn('⚠️ Action getHiraganaList non reconnue, utilisation de HiraganaList existant');
+        } else {
+          console.error('🔴 Erreur : data n\'est pas un tableau', typeof data, data);
+          document.getElementById("revision-message").textContent = "Erreur : Données invalides depuis la sheet";
+          document.getElementById("revision-message").style.color = "#dc3545";
+          return;
+        }
+      } else {
+        HiraganaList = data;
+        console.log('🔍 HiraganaList rechargé depuis la sheet:', HiraganaList.map(h => ({
+          ID: h.ID,
+          Hiragana: h.Hiragana,
+          Tentatives: h.Tentatives,
+          Reussites: h.Reussites
+        })));
       }
-
-      HiraganaList = data;
-      console.log('🔍 HiraganaList rechargé depuis la sheet:', HiraganaList.map(h => ({
-        ID: h.ID,
-        Hiragana: h.Hiragana,
-        Tentatives: h.Tentatives,
-        Reussites: h.Reussites
-      })));
 
       const niveauActif = determineNiveauActif(HiraganaList);
       console.log('Niveau actif:', niveauActif);
@@ -3139,6 +3144,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
