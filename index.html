@@ -2250,13 +2250,16 @@ async function callAPI(action, data = null) {
         id: data.id,
         scorePoints: data.scorePoints,
         tentatives: data.tentatives,
-        reussites: data.reussites
+        reussites: data.reussites // Sans accent, car le serveur semble l'accepter ainsi
       });
-      await fetch(`${WEB_APP_URL}?${params}`, { mode: 'no-cors' }); // Correction ici
+      await fetch(`${WEB_APP_URL}?${params}`, { mode: 'no-cors' });
       return { success: true };
     } else {
+      console.log(`🔍 Appel à callAPI avec action: ${action}`);
       const response = await fetch(`${WEB_APP_URL}?action=${action}`);
-      return await response.json();
+      const result = await response.json();
+      console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
+      return result;
     }
   } catch (error) {
     logError('Erreur API: ' + error.message);
@@ -2276,9 +2279,9 @@ async function initGame() {
   }
 
   HiraganaList = data;
-  
-  // Log des données brutes pour diagnostic
-  console.log('📥 Données brutes de l\'API:', JSON.stringify(data, null, 2));
+
+  // Log des données brutes pour vérifier les clés
+  console.log('📥 Données brutes de l\'API (getHiraganas):', JSON.stringify(data.slice(0, 3), null, 2));
 
   revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
   revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
@@ -2287,14 +2290,22 @@ async function initGame() {
   statsCache.items = {};
   let totalTentatives = 0, totalReussites = 0;
   HiraganaList.forEach(item => {
-    // Utiliser une clé unique basée sur Hiragana ou Katakana selon le type
+    // Trouver dynamiquement les clés pour Tentatives et Réussites
+    const keys = Object.keys(item).map(k => k.toLowerCase());
+    const tentativesKey = keys.find(k => k.includes('tentatives')) || 'Tentatives';
+    const reussitesKey = keys.find(k => k.includes('réussites') || k.includes('reussites')) || 'Reussites';
+
+    // Log des clés détectées pour cet item
+    console.log(`🔍 Item "${item.Hiragana || item.Katakana}": Clés détectées:`, { tentativesKey, reussitesKey });
+
     const key = item.Hiragana || item.Katakana;
     if (!key) {
       console.warn(`⚠️ Item sans Hiragana ni Katakana:`, item);
       return;
     }
-    const tentatives = parseInt(item.Tentatives || 0, 10);
-    const reussites = parseInt(item.Reussites || 0, 10);
+
+    const tentatives = parseInt(item[tentativesKey] || 0, 10);
+    const reussites = parseInt(item[reussitesKey] || 0, 10);
     const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
     statsCache.items[key] = { tentatives, reussites, pourcentage };
     totalTentatives += tentatives;
@@ -2317,7 +2328,7 @@ async function initGame() {
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   nextQuestion();
-}  
+}
 function nextQuestion() {
 document.getElementById("result").innerText = "";
 document.getElementById("continueBtn").style.visibility = "hidden";
@@ -2867,6 +2878,11 @@ function initRevisionKeyboard() {
         const isCorrect = revisionMode.input === revisionMode.fullCorrect;
         const key = revisionMode.currentQuestion;
 
+        // Trouver les clés dynamiques
+        const keys = Object.keys(revisionMode.currentItem).map(k => k.toLowerCase());
+        const tentativesKey = keys.find(k => k.includes('tentatives')) || 'Tentatives';
+        const reussitesKey = keys.find(k => k.includes('réussites') || k.includes('reussites')) || 'Reussites';
+
         // Mettre à jour statsCache
         statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
         statsCache.items[key].tentatives += 1;
@@ -2879,8 +2895,8 @@ function initRevisionKeyboard() {
         const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
         statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-        // Afficher les stats mises à jour dans la console
-        console.log(`📊 Mise à jour pour "${key}": ${statsCache.items[key].pourcentage.toFixed(2)}% (Tentatives: ${statsCache.items[key].tentatives}, Réussites: ${statsCache.items[key].reussites})`);
+        // Log des stats mises à jour
+        console.log(`📊 Mise à jour pour "${key}": Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
         // Mettre à jour Validation
@@ -2946,6 +2962,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
