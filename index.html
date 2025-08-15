@@ -2252,7 +2252,7 @@ async function callAPI(action, data = null) {
         tentatives: data.tentatives,
         reussites: data.reussites
       });
-      await fetch(`${WEB_APP_URL}?${params}`, { mode: 'no-core' }); // Asynchrone, sans attendre la réponse
+      await fetch(`${WEB_APP_URL}?${params}`, { mode: 'no-cors' }); // Correction ici
       return { success: true };
     } else {
       const response = await fetch(`${WEB_APP_URL}?action=${action}`);
@@ -2926,6 +2926,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
