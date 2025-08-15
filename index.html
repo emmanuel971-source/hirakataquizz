@@ -2785,18 +2785,23 @@ function startRevisionQuestion() {
         selectedItem = filteredItems[Math.floor(Math.random() * filteredItems.length)] || availableItems[0];
       }
 
+      // Détecter dynamiquement les noms de colonnes
+      const tentativesKey = Object.keys(selectedItem).find(key => key.toLowerCase() === 'tentatives') || 'Tentatives';
+      const reussitesKey = Object.keys(selectedItem).find(key => key.toLowerCase() === 'reussites' || key.toLowerCase() === 'réussites') || 'Reussites';
+      console.log('🔍 Clés détectées:', { tentativesKey, reussitesKey });
+
       // Calculer le pourcentage de l’item sélectionné
       console.log('🔍 Débogage item sélectionné:', {
         ID: selectedItem.ID,
         Hiragana: selectedItem.Hiragana,
-        TentativesRaw: selectedItem.Tentatives,
-        ReussitesRaw: selectedItem.Reussites,
-        TentativesType: typeof selectedItem.Tentatives,
-        ReussitesType: typeof selectedItem.Reussites
+        TentativesRaw: selectedItem[tentativesKey],
+        ReussitesRaw: selectedItem[reussitesKey],
+        TentativesType: typeof selectedItem[tentativesKey],
+        ReussitesType: typeof selectedItem[reussitesKey]
       });
 
-      const itemTentatives = parseInt(selectedItem.Tentatives?.toString().trim() || '0');
-      const itemReussites = parseInt(selectedItem.Reussites?.toString().trim() || '0');
+      const itemTentatives = parseInt(selectedItem[tentativesKey]?.toString().trim() || '0');
+      const itemReussites = parseInt(selectedItem[reussitesKey]?.toString().trim() || '0');
       const itemPercentage = itemTentatives > 0 ? ((itemReussites / itemTentatives) * 100).toFixed(1) : 0;
 
       console.log('🔍 Après parsing:', {
@@ -2860,7 +2865,6 @@ function startRevisionQuestion() {
       document.getElementById("revision-message").style.color = "#dc3545";
     });
 }
-  
   
 function updateRevisionFeedback() {
   // Reset toutes les classes
@@ -3144,6 +3148,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
