@@ -2276,6 +2276,10 @@ async function initGame() {
   }
 
   HiraganaList = data;
+  
+  // Log des données brutes pour diagnostic
+  console.log('📥 Données brutes de l\'API:', JSON.stringify(data, null, 2));
+
   revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
   revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
 
@@ -2283,21 +2287,29 @@ async function initGame() {
   statsCache.items = {};
   let totalTentatives = 0, totalReussites = 0;
   HiraganaList.forEach(item => {
+    // Utiliser une clé unique basée sur Hiragana ou Katakana selon le type
     const key = item.Hiragana || item.Katakana;
-    const tentatives = parseInt(item.Tentatives || 0);
-    const reussites = parseInt(item.Reussites || 0);
-    const pourcentage = tentatives > 0 ? (reussites / tentatives) * 100 : 0;
+    if (!key) {
+      console.warn(`⚠️ Item sans Hiragana ni Katakana:`, item);
+      return;
+    }
+    const tentatives = parseInt(item.Tentatives || 0, 10);
+    const reussites = parseInt(item.Reussites || 0, 10);
+    const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
     statsCache.items[key] = { tentatives, reussites, pourcentage };
     totalTentatives += tentatives;
     totalReussites += reussites;
+
+    // Log pour chaque item
+    console.log(`📊 Item "${key}": Tentatives=${tentatives}, Réussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
   });
   statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-  // Afficher les stats dans la console
-  console.log('📊 Pourcentage global de réussite:', statsCache.globalPourcentage.toFixed(2) + '%');
-  console.log('📈 Pourcentages par item:', 
+  // Afficher les stats globales
+  console.log('📈 Pourcentage global de réussite:', statsCache.globalPourcentage.toFixed(2) + '%');
+  console.log('📊 Stats par item:', 
     Object.fromEntries(
-      Object.entries(statsCache.items).map(([key, stats]) => [key, stats.pourcentage.toFixed(2) + '%'])
+      Object.entries(statsCache.items).map(([key, stats]) => [key, `${stats.pourcentage.toFixed(2)}%`])
     ));
 
   niveauActif = determineNiveauActif(HiraganaList);
@@ -2305,8 +2317,7 @@ async function initGame() {
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   nextQuestion();
-}
-  
+}  
 function nextQuestion() {
 document.getElementById("result").innerText = "";
 document.getElementById("continueBtn").style.visibility = "hidden";
@@ -2935,6 +2946,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
