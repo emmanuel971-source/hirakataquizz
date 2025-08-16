@@ -2250,23 +2250,29 @@ async function callAPI(action, data = null) {
         id: data.id,
         scorePoints: data.scorePoints,
         tentatives: data.tentatives,
-        reussites: data.reussites // Sans accent, car le serveur semble l'accepter ainsi
+        reussites: data.reussites
       });
-      await fetch(`${WEB_APP_URL}?${params}`, { mode: 'no-cors' });
+      const url = `${WEB_APP_URL}?${params}`;
+      console.log(`🔍 Appel updateStats: ${url}`);
+      await fetch(url, { mode: 'no-cors' });
       return { success: true };
     } else {
-      console.log(`🔍 Appel à callAPI avec action: ${action}`);
-      const response = await fetch(`${WEB_APP_URL}?action=${action}`);
+      const url = `${WEB_APP_URL}?action=${action}`;
+      console.log(`🔍 Appel API: ${action} -> ${url}`);
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       const result = await response.json();
       console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
       return result;
     }
   } catch (error) {
-    logError('Erreur API: ' + error.message);
+    logError(`Erreur API (${action}): ${error.message}`);
+    console.error(`⚠️ Détails erreur:`, error);
     return { error: error.message };
   }
 }
-
 // Variable globale pour la table romaji
 let revisionRomajiTable = {};
 
@@ -2276,16 +2282,19 @@ async function initGame() {
   if (data.error) {
     logError('Erreur lors du chargement: ' + data.error);
     console.warn('⚠️ Utilisation de HiraganaList par défaut ou vide');
-    HiraganaList = HiraganaList || []; // Garde les données existantes ou vide
+    HiraganaList = HiraganaList || [];
   } else {
     HiraganaList = data;
   }
 
-  // Log des données brutes
+  // Log des données brutes pour vérifier les clés
   console.log('📥 Données brutes de l\'API (getHiraganas):', JSON.stringify(HiraganaList.slice(0, 3), null, 2));
 
   revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
   revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
+  
+  console.log("📚 Table romaji générée:", Object.keys(revisionRomajiTable).length, "entrées");
+  console.log("📚 Table katakana générée:", Object.keys(revisionKatakanaTable).length, "entrées");
 
   // Initialiser statsCache
   statsCache.items = {};
@@ -2960,6 +2969,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
