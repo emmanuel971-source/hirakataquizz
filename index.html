@@ -2275,13 +2275,14 @@ async function initGame() {
   const data = await callAPI('getHiraganas');
   if (data.error) {
     logError('Erreur lors du chargement: ' + data.error);
-    return;
+    console.warn('⚠️ Utilisation de HiraganaList par défaut ou vide');
+    HiraganaList = HiraganaList || []; // Garde les données existantes ou vide
+  } else {
+    HiraganaList = data;
   }
 
-  HiraganaList = data;
-
-  // Log des données brutes pour vérifier les clés
-  console.log('📥 Données brutes de l\'API (getHiraganas):', JSON.stringify(data.slice(0, 3), null, 2));
+  // Log des données brutes
+  console.log('📥 Données brutes de l\'API (getHiraganas):', JSON.stringify(HiraganaList.slice(0, 3), null, 2));
 
   revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
   revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
@@ -2290,12 +2291,11 @@ async function initGame() {
   statsCache.items = {};
   let totalTentatives = 0, totalReussites = 0;
   HiraganaList.forEach(item => {
-    // Trouver dynamiquement les clés pour Tentatives et Réussites
+    // Trouver les clés dynamiquement
     const keys = Object.keys(item).map(k => k.toLowerCase());
     const tentativesKey = keys.find(k => k.includes('tentatives')) || 'Tentatives';
-    const reussitesKey = keys.find(k => k.includes('réussites') || k.includes('reussites')) || 'Reussites';
+    const reussitesKey = keys.find(k => k.includes('réussites') || k.includes('reussites')) || 'Réussites';
 
-    // Log des clés détectées pour cet item
     console.log(`🔍 Item "${item.Hiragana || item.Katakana}": Clés détectées:`, { tentativesKey, reussitesKey });
 
     const key = item.Hiragana || item.Katakana;
@@ -2311,12 +2311,10 @@ async function initGame() {
     totalTentatives += tentatives;
     totalReussites += reussites;
 
-    // Log pour chaque item
     console.log(`📊 Item "${key}": Tentatives=${tentatives}, Réussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
   });
   statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-  // Afficher les stats globales
   console.log('📈 Pourcentage global de réussite:', statsCache.globalPourcentage.toFixed(2) + '%');
   console.log('📊 Stats par item:', 
     Object.fromEntries(
@@ -2962,6 +2960,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
