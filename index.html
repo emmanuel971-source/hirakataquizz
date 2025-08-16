@@ -2863,13 +2863,13 @@ function updateRevisionFeedback() {
   
   
 // Initialiser les événements du clavier de révision
-function initRevisionKeyboard() {
+async function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
   revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true)));
   const newRevisionKeys = document.querySelectorAll('.revision-key');
 
   newRevisionKeys.forEach(key => {
-    key.addEventListener("click", () => {
+    key.addEventListener("click", async () => {
       if (!revisionMode.isActive) return;
 
       if (key.id === "revision-back") {
@@ -2909,22 +2909,44 @@ function initRevisionKeyboard() {
         console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-        // Mettre à jour Validation
-        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
-        if (hiraganaIndex !== -1) {
-          const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-          HiraganaList[hiraganaIndex].Validation = isCorrect 
-            ? Math.min(5, currentValidation + 1).toString()
-            : Math.max(0, currentValidation - 1).toString();
-        }
+        // Utiliser la valeur actuelle de Validation pour l'affichage des étoiles
+        const currentValidation = parseInt(hiraganaItem?.Validation || 0);
+        updateStarsForHiragana(parseInt(revisionMode.currentItem.ID), currentValidation);
 
-        // Appeler API en arrière-plan
-        callAPI('updateStats', { 
+        // Appeler API pour mettre à jour Tentatives et Réussites
+        await callAPI('updateStats', { 
           id: parseInt(revisionMode.currentItem.ID), 
           scorePoints: isCorrect ? 1 : 0,
-          tentatives: statsCache.items[key].tentatives,
-          reussites: statsCache.items[key].reussites
+          tentatives: parseInt(statsCache.items[key].tentatives),
+          reussites: parseInt(statsCache.items[key].reussites)
         }).catch(error => console.error('Erreur sauvegarde stats:', error));
+
+        // Compenser la modification de Validation
+        if (isCorrect) {
+          // Bonne réponse : +1 sur Validation, compenser avec -1
+          await callAPI('updateStats', { 
+            id: parseInt(revisionMode.currentItem.ID), 
+            scorePoints: 0.5, // Applique -1 à Validation
+            tentatives: 0, // Ne pas incrémenter Tentatives
+            reussites: 0 // Ne pas modifier Réussites
+          }).catch(error => console.error('Erreur compensation Validation:', error));
+          console.log('🔄 Compensation Validation (+1 annulé par -1) pour ID', key);
+        } else {
+          // Mauvaise réponse : -2 sur Validation, compenser avec +1 deux fois
+          await callAPI('updateStats', { 
+            id: parseInt(revisionMode.currentItem.ID), 
+            scorePoints: 1, // Applique +1 à Validation
+            tentatives: 0, // Ne pas incrémenter Tentatives
+            reussites: 0 // Ne pas modifier Réussites
+          }).catch(error => console.error('Erreur compensation Validation (1/2):', error));
+          await callAPI('updateStats', { 
+            id: parseInt(revisionMode.currentItem.ID), 
+            scorePoints: 1, // Applique +1 à Validation
+            tentatives: 0, // Ne pas incrémenter Tentatives
+            reussites: 0 // Ne pas modifier Réussites
+          }).catch(error => console.error('Erreur compensation Validation (2/2):', error));
+          console.log('🔄 Compensation Validation (-2 annulé par +1 +1) pour ID', key);
+        }
 
         // Afficher feedback
         if (isCorrect) {
@@ -2972,3 +2994,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
