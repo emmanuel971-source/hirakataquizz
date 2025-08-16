@@ -2301,15 +2301,14 @@ async function initGame() {
   let totalTentatives = 0, totalReussites = 0;
   HiraganaList.forEach(item => {
     // Log des clés disponibles pour cet item
-    console.log(`🔍 Clés de l\'item "${item.Hiragana || item.Katakana}":`, Object.keys(item));
+    console.log(`🔍 Clés de l\'item ID ${item.ID}:`, Object.keys(item));
 
-    const key = item.Hiragana || item.Katakana;
+    const key = item.ID; // Utiliser l'ID comme clé
     if (!key) {
-      console.warn(`⚠️ Item sans Hiragana ni Katakana:`, item);
+      console.warn(`⚠️ Item sans ID:`, item);
       return;
     }
 
-    // Utiliser les clés exactes avec majuscules et accent
     const tentatives = parseInt(item.Tentatives || 0, 10);
     const reussites = parseInt(item['Réussites'] || 0, 10);
     const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
@@ -2317,14 +2316,17 @@ async function initGame() {
     totalTentatives += tentatives;
     totalReussites += reussites;
 
-    console.log(`📊 Item "${key}": Tentatives=${tentatives}, Réussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
+    console.log(`📊 Item ID ${key} (${item.Hiragana || item.Katakana}): Tentatives=${tentatives}, Réussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
   });
   statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
   console.log('📈 Pourcentage global de réussite:', statsCache.globalPourcentage.toFixed(2) + '%');
   console.log('📊 Stats par item:', 
     Object.fromEntries(
-      Object.entries(statsCache.items).map(([key, stats]) => [key, `${stats.pourcentage.toFixed(2)}%`])
+      Object.entries(statsCache.items).map(([key, stats]) => {
+        const item = HiraganaList.find(i => i.ID == key);
+        return [item ? `${item.Hiragana || item.Katakana} (ID ${key})` : key, `${stats.pourcentage.toFixed(2)}%`];
+      })
     ));
 
   niveauActif = determineNiveauActif(HiraganaList);
@@ -2689,6 +2691,14 @@ function startRevisionQuestion() {
     ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: item.Katakana }))
   ];
 
+  // Log pour vérifier les items disponibles
+  console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
+  console.log(`🔍 Exemple d'items:`, availableItems.slice(0, 3).map(item => ({
+    id: item.ID,
+    key: item.key,
+    pourcentage: (statsCache.items[item.ID]?.pourcentage || 0).toFixed(2) + '%'
+  })));
+
   if (availableItems.length === 0) {
     document.getElementById("revision-message").textContent = "Aucun item disponible pour ce niveau";
     document.getElementById("revision-message").style.color = "#dc3545";
@@ -2697,9 +2707,8 @@ function startRevisionQuestion() {
 
   // Pondération basée sur l'inverse du pourcentage
   const weights = availableItems.map(item => {
-    const key = item.Hiragana || item.Katakana;
-    const stats = statsCache.items[key] || { pourcentage: 0 };
-    return stats.pourcentage === 0 ? 10 : 100 / (stats.pourcentage || 1);
+    const stats = statsCache.items[item.ID] || { pourcentage: 0 };
+    return stats.pourcentage === 0 ? 20 : 100 / (stats.pourcentage || 1);
   });
   const totalWeight = weights.reduce((a, b) => a + b, 0);
   let random = Math.random() * totalWeight;
@@ -2746,7 +2755,7 @@ function startRevisionQuestion() {
   if (firstCard) firstCard.classList.add("pulsing");
 
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
-  console.log(`📊 Pourcentage item: ${(statsCache.items[selectedItem.key]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[selectedItem.ID]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
 }
   
 function updateRevisionFeedback() {
@@ -2882,7 +2891,7 @@ function initRevisionKeyboard() {
 
       if (revisionMode.input.length >= totalLength) {
         const isCorrect = revisionMode.input === revisionMode.fullCorrect;
-        const key = revisionMode.currentQuestion;
+        const key = revisionMode.currentItem.ID; // Utiliser l'ID comme clé
 
         // Mettre à jour statsCache
         statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
@@ -2897,7 +2906,7 @@ function initRevisionKeyboard() {
         statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
         // Log des stats mises à jour
-        console.log(`📊 Mise à jour pour "${key}": Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
+        console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
         // Mettre à jour Validation
@@ -2963,6 +2972,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
