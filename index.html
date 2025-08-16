@@ -2909,33 +2909,34 @@ function initRevisionKeyboard() {
         console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-   // Trouver l'index pour les autres mises à jour (mais pas Validation en mode révision)
+       // Récupérer la Validation AVANT les appels API
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
-// Pour les révisions, on ne modifie PAS la Validation localement
-// (elle sera mise à jour puis compensée par l'API automatiquement)
+const currentValidationBeforeAPI = hiraganaIndex !== -1 ? 
+  parseInt(HiraganaList[hiraganaIndex].Validation || 0) : 0;
 
-  // Appeler API en arrière-plan avec compensation pour Validation
-const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+// Premier appel API (normal) - met à jour Tentatives, Réussites ET Validation
 const scorePoints = isCorrect ? 1 : 0;
-
 callAPI('updateStats', { 
   id: parseInt(revisionMode.currentItem.ID), 
-  scorePoints: scorePoints,
-  tentatives: statsCache.items[key].tentatives,
-  reussites: statsCache.items[key].reussites
+  scorePoints: scorePoints
 }).then(() => {
-  // Compensation immédiate pour annuler l'impact sur Validation
-  let compensationScore = 0;
-  if (scorePoints === 1) compensationScore = -1; // Annuler le +1
-  else if (scorePoints === 0) compensationScore = 2; // Annuler le -2
+  // Deuxième appel pour remettre Validation à sa valeur d'origine
+  let compensationScore;
+  if (scorePoints === 1) {
+    // Le serveur a fait +1, on fait -1 pour revenir à l'origine
+    compensationScore = -1;
+  } else {
+    // Le serveur a fait -2, on fait +2 pour revenir à l'origine  
+    compensationScore = 2;
+  }
   
-  // Appel de compensation en arrière-plan
   return callAPI('updateStats', { 
     id: parseInt(revisionMode.currentItem.ID), 
-    scorePoints: compensationScore 
+    scorePoints: compensationScore
   });
 }).catch(error => console.error('Erreur sauvegarde/compensation stats:', error));
-        
+
+// Ne PAS modifier HiraganaList.Validation localement - laisser l'API gérer
         // Afficher feedback
         if (isCorrect) {
           document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🌸 Parfait !${katakanaDisplay} 🌸`;
