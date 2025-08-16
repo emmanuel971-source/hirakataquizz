@@ -2244,18 +2244,16 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyunFkM7h0FV_xu1GRa
 // Fonction pour appeler l'API
 async function callAPI(action, data = null) {
   try {
-    if (action === 'updateStats' || action === 'updateRevisionStats') {
+    if (action === 'updateStats') {
       const params = new URLSearchParams({
-        action: 'updateStats', // Toujours utiliser updateStats dans l'API
+        action,
         id: data.id,
+        scorePoints: data.scorePoints,
         tentatives: data.tentatives,
         reussites: data.reussites
       });
-      if (action === 'updateStats' && data.scorePoints !== undefined) {
-        params.append('scorePoints', data.scorePoints);
-      }
       const url = `${WEB_APP_URL}?${params}`;
-      console.log(`🔍 Appel ${action}: ${url}`);
+      console.log(`🔍 Appel updateStats: ${url}`);
       await fetch(url, { mode: 'no-cors' });
       return { success: true };
     } else {
@@ -2871,7 +2869,7 @@ function initRevisionKeyboard() {
   const newRevisionKeys = document.querySelectorAll('.revision-key');
 
   newRevisionKeys.forEach(key => {
-    key.addEventListener("click", async () => {
+    key.addEventListener("click", () => {
       if (!revisionMode.isActive) return;
 
       if (key.id === "revision-back") {
@@ -2911,23 +2909,22 @@ function initRevisionKeyboard() {
         console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-        // Utiliser la valeur actuelle de Validation pour l'affichage des étoiles
-        const currentValidation = parseInt(hiraganaItem?.Validation || 0);
-        updateStarsForHiragana(parseInt(revisionMode.currentItem.ID), currentValidation);
+        // Mettre à jour Validation
+        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+        if (hiraganaIndex !== -1) {
+          const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+          HiraganaList[hiraganaIndex].Validation = isCorrect 
+            ? Math.min(5, currentValidation + 1).toString()
+            : Math.max(0, currentValidation - 1).toString();
+        }
 
-        // Appeler API avec updateRevisionStats pour éviter de modifier Validation
-        await callAPI('updateRevisionStats', { 
+        // Appeler API en arrière-plan
+        callAPI('updateStats', { 
           id: parseInt(revisionMode.currentItem.ID), 
+          scorePoints: isCorrect ? 1 : 0,
           tentatives: statsCache.items[key].tentatives,
           reussites: statsCache.items[key].reussites
         }).catch(error => console.error('Erreur sauvegarde stats:', error));
-
-        // Recharger HiraganaList pour restaurer Validation
-        const data = await callAPI('getHiraganas');
-        if (!data.error) {
-          HiraganaList = data;
-          console.log('📥 Données rechargées après réponse en mode révision pour restaurer Validation');
-        }
 
         // Afficher feedback
         if (isCorrect) {
@@ -2975,18 +2972,3 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
