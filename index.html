@@ -2909,9 +2909,12 @@ function initRevisionKeyboard() {
         console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-  
+   // Trouver l'index pour les autres mises à jour (mais pas Validation en mode révision)
+const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+// Pour les révisions, on ne modifie PAS la Validation localement
+// (elle sera mise à jour puis compensée par l'API automatiquement)
 
-   // Appeler API en arrière-plan avec compensation pour Validation
+  // Appeler API en arrière-plan avec compensation pour Validation
 const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
 const scorePoints = isCorrect ? 1 : 0;
 
@@ -2932,7 +2935,7 @@ callAPI('updateStats', {
     scorePoints: compensationScore 
   });
 }).catch(error => console.error('Erreur sauvegarde/compensation stats:', error));
-
+        
         // Afficher feedback
         if (isCorrect) {
           document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🌸 Parfait !${katakanaDisplay} 🌸`;
@@ -2979,4 +2982,3 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
-
