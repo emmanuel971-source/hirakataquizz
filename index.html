@@ -1356,13 +1356,13 @@ function showSection(sectionId) {
   });
   document.getElementById(sectionId).classList.add('active');
   
-  // Démarrer le mode révisions si c'est le mode sélectionné
+ // Démarrer le mode révisions si c'est le mode sélectionné
   if (sectionId === 'mode2') {
     revisionMode.isActive = true;
     // Petit délai pour s'assurer que la section est visible
     setTimeout(() => {
       initRevisionKeyboard();
-      );
+      startRevisionQuestion();
     }, 100);
   } else {
     revisionMode.isActive = false;
@@ -3014,6 +3014,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
