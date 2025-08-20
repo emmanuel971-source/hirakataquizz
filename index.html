@@ -2708,7 +2708,6 @@ easing: "ease-in-out"
 });
 }
 }
-
 function startRevisionQuestion() {
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
@@ -2728,7 +2727,6 @@ function startRevisionQuestion() {
     ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: item.Katakana }))
   ];
 
-  // Log pour vérifier les items disponibles
   console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
   console.log(`🔍 Exemple d'items:`, availableItems.slice(0, 3).map(item => ({
     id: item.ID,
@@ -2738,30 +2736,55 @@ function startRevisionQuestion() {
 
   if (availableItems.length === 0) {
     document.getElementById("revision-message").textContent = 
-    niveauActif < 4 ? 
-    "Mode révision disponible à partir du niveau 4" : 
-    "Aucun item disponible pour révision";
+      niveauActif < 4 ? 
+      "Mode révision disponible à partir du niveau 4" : 
+      "Aucun item disponible pour révision";
     document.getElementById("revision-message").style.color = "#dc3545";
-  return;
+    return;
   }
 
-  // Pondération basée sur l'inverse du pourcentage
-  const weights = availableItems.map(item => {
-    const stats = statsCache.items[item.ID] || { pourcentage: 0 };
-    return stats.pourcentage === 0 ? 20 : 100 / (stats.pourcentage || 1);
-  });
-  const totalWeight = weights.reduce((a, b) => a + b, 0);
-  let random = Math.random() * totalWeight;
-  let selectedItem = availableItems[0];
+  // Tampon des 3 derniers tirages
+  const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]');
+  const validItems = availableItems.filter(item => !recentItems.includes(item.ID));
 
-  for (let i = 0; i < availableItems.length; i++) {
-    random -= weights[i];
-    if (random <= 0) {
-      selectedItem = availableItems[i];
-      break;
+  // Si moins de 4 items disponibles après filtrage, on relâche la contrainte pour éviter un blocage
+  const itemsToUse = validItems.length >= 4 ? validItems : availableItems;
+
+  let selectedItem;
+  const RANDOM_RATIO = 0.2; // 1/5 pour tirage aléatoire pur
+
+  if (Math.random() < RANDOM_RATIO) {
+    // Tirage aléatoire pur
+    selectedItem = itemsToUse[Math.floor(Math.random() * itemsToUse.length)];
+  } else {
+    // Tirage pondéré avec bias marqué sur les faiblesses
+    const weights = itemsToUse.map(item => {
+      const stats = statsCache.items[item.ID] || { pourcentage: 0 };
+      const pourcentage = stats.pourcentage;
+      // Poids quadratique avec cap à 50 pour éviter biais trop extrême
+      return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
+    });
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let random = Math.random() * totalWeight;
+    for (let i = 0; i < itemsToUse.length; i++) {
+      random -= weights[i];
+      if (random <= 0) {
+        selectedItem = itemsToUse[i];
+        break;
+      }
     }
   }
 
+  // Mettre à jour le tampon
+  recentItems.push(selectedItem.ID);
+  if (recentItems.length > 3) recentItems.shift(); // Garder seulement les 3 derniers
+  localStorage.setItem('recentRevisionItems', JSON.stringify(recentItems));
+
+  // Log pour vérification
+  console.log(`🎯 Question sélectionnée: "${selectedItem.key}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
+  console.log(`🔍 Tampon récent:`, recentItems);
+
+  // Configurer la question
   revisionMode.currentQuestion = selectedItem.key;
   const table = selectedItem.type === 'hiragana' ? revisionRomajiTable : revisionKatakanaTable;
   const tableEntry = table[selectedItem.key];
@@ -3014,6 +3037,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
