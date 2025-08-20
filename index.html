@@ -1268,7 +1268,7 @@
   <!-- Menu -->
   <nav class="menu" id="menu">
     <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
-    <button class="arcade-button" onclick="showSection('mode2')">Mode révisions</button>
+    <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
     <button class="arcade-button" onclick="showSection('options')">Options</button>
     <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
   </nav>
@@ -1345,6 +1345,12 @@
     }
 
 function showSection(sectionId) {
+    // Vérifier si on essaie d'accéder au mode révision
+  if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
+    // Optionnel : afficher un message d'erreur
+    console.log('Mode révision non disponible');
+    return;
+  }
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
@@ -1356,7 +1362,7 @@ function showSection(sectionId) {
     // Petit délai pour s'assurer que la section est visible
     setTimeout(() => {
       initRevisionKeyboard();
-      startRevisionQuestion();
+      );
     }, 100);
   } else {
     revisionMode.isActive = false;
@@ -1573,7 +1579,24 @@ function smartSegmentRomaji(romaji) {
 function logError(msg) {
 console.warn(msg);
 }
-
+function updateRevisionButtonState() {
+  const revisionButton = document.getElementById('revision-button');
+  if (!revisionButton) return;
+  
+  if (isRevisionModeAvailable()) {
+    revisionButton.classList.remove('disabled');
+    revisionButton.onclick = () => showSection('mode2');
+    revisionButton.title = '';
+  } else {
+    revisionButton.classList.add('disabled');
+    revisionButton.onclick = (e) => {
+      e.preventDefault();
+      // Optionnel : afficher un message
+      console.log('Mode révision disponible à partir du niveau 4');
+    };
+    revisionButton.title = 'Disponible à partir du niveau 4';
+  }
+}
 
 function testFeu() {
 const container = document.querySelector('.quiz-container');
@@ -2345,7 +2368,8 @@ async function initGame() {
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  nextQuestion();
+  updateRevisionButtonState();
+  nextQuestion();  
 }
 function nextQuestion() {
 document.getElementById("result").innerText = "";
@@ -2364,6 +2388,7 @@ niveauActif = nouveauNiveau;
 document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
 renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
 updateLevelProgress(HiraganaList, niveauActif);
+updateRevisionButtonState();  
 nextQuestion();
 return;
 }
@@ -2688,12 +2713,12 @@ function startRevisionQuestion() {
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) <= niveauActif && 
+    parseInt(h.Niveau || 1) < niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
     h.Hiragana && h.Romaji
   );
   const katakanaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) <= niveauActif && 
+    parseInt(h.Niveau || 1) < niveauActif && 
     !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
     revisionKatakanaTable[h.Katakana] &&
     h.Katakana && h.Romaji
@@ -2712,9 +2737,12 @@ function startRevisionQuestion() {
   })));
 
   if (availableItems.length === 0) {
-    document.getElementById("revision-message").textContent = "Aucun item disponible pour ce niveau";
+    document.getElementById("revision-message").textContent = 
+    niveauActif < 4 ? 
+    "Mode révision disponible à partir du niveau 4" : 
+    "Aucun item disponible pour révision";
     document.getElementById("revision-message").style.color = "#dc3545";
-    return;
+  return;
   }
 
   // Pondération basée sur l'inverse du pourcentage
@@ -2769,7 +2797,9 @@ function startRevisionQuestion() {
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
   console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[selectedItem.ID]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
 }
-  
+function isRevisionModeAvailable() {
+  return niveauActif >= 4;
+}  
 function updateRevisionFeedback() {
   // Reset toutes les classes
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
@@ -2984,6 +3014,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
