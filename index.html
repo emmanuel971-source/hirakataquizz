@@ -834,7 +834,7 @@
       }
     }
 
-/* ✅ NOUVEAU STYLE HAMBURGER - Style carte hiragana */
+/* ? NOUVEAU STYLE HAMBURGER - Style carte hiragana */
 .hamburger {
   position: fixed;
   background: #FFFFFF; /* Fond blanc comme les cartes */
@@ -952,6 +952,18 @@
     box-sizing: border-box !important;
   }
 
+.arcade-button.disabled {
+  background: #E0E0E0 !important;
+  color: #999999 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  border-color: #CCCCCC !important;
+}
+
+.arcade-button.disabled:hover {
+  transform: none !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
 
 
 /* Garde ton code Firefox intact */
@@ -960,19 +972,19 @@
     width: 600px !important;
     font-size: 2.8em !important;
     padding: 0.1em 1em !important;
-    line-height: 120px !important; /* ← Centre le texte */
-    height: 120px !important; /* ← Hauteur fixe pour TOUS */
-    max-height: 120px !important; /* ← Remplace l'ancien 2.5em */
+    line-height: 120px !important; /* ? Centre le texte */
+    height: 120px !important; /* ? Hauteur fixe pour TOUS */
+    max-height: 120px !important; /* ? Remplace l'ancien 2.5em */
   }
   
   /* Correction spécifique Chrome */
   @supports (-webkit-appearance: none) {
     .menu .arcade-button {
       width: min(80vw, 500px) !important; /* Plus conservateur */
-      height: 120px !important; /* ← Hauteur fixe */
-      max-height: 120px !important; /* ← Remplace l'ancien max-height */
-      line-height: 120px !important; /* ← Centre le texte verticalement */
-      padding: 0 1em !important; /* ← Supprime padding vertical */
+      height: 120px !important; /* ? Hauteur fixe */
+      max-height: 120px !important; /* ? Remplace l'ancien max-height */
+      line-height: 120px !important; /* ? Centre le texte verticalement */
+      padding: 0 1em !important; /* ? Supprime padding vertical */
     }
   }
 }
@@ -1143,7 +1155,7 @@
   }
 }
 
-/* ✨ NOUVEAUX STYLES POUR LES CARTES - Identiques au mode apprentissage */
+/* ? NOUVEAUX STYLES POUR LES CARTES - Identiques au mode apprentissage */
 .char-card {
   display: inline-flex;
   padding: 15px;
@@ -1157,7 +1169,7 @@
   color: #8B6F47;
   text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
   
-  /* ✅ MÊME STYLE QUE LES CARTES HIRAGANA */
+  /* ? MÊME STYLE QUE LES CARTES HIRAGANA */
   background: #FFFFFF;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
   transition: all 0.4s ease; /* Transition plus fluide */
@@ -1166,7 +1178,7 @@
   justify-content: center;
 }
 
-/* 🎨 GRADATIONS ULTRA-SUBTILES (couleurs beaucoup plus douces) */
+/* ?? GRADATIONS ULTRA-SUBTILES (couleurs beaucoup plus douces) */
 .char-correct-1 { 
   background: #f9fdf9; /* Vert ultra-discret, à peine visible */
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 2px rgba(139, 195, 74, 0.1);
@@ -1184,7 +1196,7 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 5px rgba(139, 195, 74, 0.25);
 }
 
-/* 🌸 GRADATIONS ROSES SAKURA ULTRA-SUBTILES */
+/* ?? GRADATIONS ROSES SAKURA ULTRA-SUBTILES */
 .char-incorrect-1 { 
   background: #fdfafa; /* Rose ultra-discret */
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 2px rgba(253, 193, 197, 0.1);
@@ -1202,7 +1214,7 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 5px rgba(253, 193, 197, 0.25);
 }
 
-/* 💫 PULSATION AMÉLIORÉE - Plus fluide et prononcée */
+/* ?? PULSATION AMÉLIORÉE - Plus fluide et prononcée */
 .pulsing {
   animation: pulse-revision 1.8s infinite ease-in-out;
 }
@@ -1243,7 +1255,7 @@
   </style>
 </head>
 <body>
-  <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">☰</button>  -->
+  <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">?</button>  -->
 <!-- Bouton hamburger -->
 <button class="hamburger" onclick="toggleMenu()">
   <div class="hamburger-icon">
@@ -1256,14 +1268,14 @@
   <!-- Menu -->
   <nav class="menu" id="menu">
     <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
-    <button class="arcade-button" onclick="showSection('mode2')">Mode révisions</button>
+    <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
     <button class="arcade-button" onclick="showSection('options')">Options</button>
     <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
   </nav>
 
   <!-- Section Quiz (contenu actuel) -->
   <div id="quiz" class="section active">
-    <h1>🌿⛩️ Welcome to Hira-Kata-Quiz ⛩️🌸</h1>
+    <h1>???? Welcome to Hira-Kata-Quiz ????</h1>
     <div id="progressBarContainer"></div>
     <div class="level" id="levelDisplay">Niveau actuel : 1</div>
     <div class="level-hiraganas">
@@ -1277,7 +1289,7 @@
       </div>
       <div>
         <div class="result" id="result"></div>
-        <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j’ai capté 🌱</button>
+        <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">?? OK... j’ai capté ??</button>
         <button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
       </div>
     </div>
@@ -1286,7 +1298,7 @@
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-  <h2>🎌 Mode Révisions 🎌</h2>
+  <h2>?? Mode Révisions ??</h2>
   <div id="revision-question"></div>
    <div id="revision-message"></div>
   <div id="revision-input-display"></div>
@@ -1315,7 +1327,7 @@
     <div class="revision-key">n</div>
     <div class="revision-key">r</div>
     <div class="revision-key">w</div>
-    <div class="revision-key" id="revision-back">←</div>
+    <div class="revision-key" id="revision-back">?</div>
   </div>
  
 </div>
@@ -1333,6 +1345,12 @@
     }
 
 function showSection(sectionId) {
+// Vérifier si on essaie d'accéder au mode révision
+  if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
+    // Optionnel : afficher un message d'erreur
+    console.log('Mode révision non disponible');
+    return;
+  }
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
@@ -1395,9 +1413,9 @@ function generateRevisionRomajiTable(hiraganaList) {
     const hiragana = item.Hiragana;
     const romaji = item.Romaji;
     
-    // ✅ VÉRIFICATIONS ROBUSTES
+    // ? VÉRIFICATIONS ROBUSTES
     if (!hiragana || !romaji) {
-      console.warn(`⚠️ Item ${index} ignoré - données manquantes:`, {hiragana, romaji});
+      console.warn(`?? Item ${index} ignoré - données manquantes:`, {hiragana, romaji});
       invalidItems++;
       return;
     }
@@ -1407,7 +1425,7 @@ function generateRevisionRomajiTable(hiraganaList) {
     const romajiStr = String(romaji).trim();
     
     if (hiraganaStr === '' || romajiStr === '' || romajiStr === 'undefined' || romajiStr === 'null') {
-      console.warn(`⚠️ Item ${index} ignoré - données vides:`, {hiragana: hiraganaStr, romaji: romajiStr});
+      console.warn(`?? Item ${index} ignoré - données vides:`, {hiragana: hiraganaStr, romaji: romajiStr});
       invalidItems++;
       return;
     }
@@ -1424,12 +1442,12 @@ function generateRevisionRomajiTable(hiraganaList) {
       };
       validItems++;
     } catch (error) {
-      console.error(`❌ Erreur lors de l'analyse de l'item ${index}:`, {hiragana: hiraganaStr, romaji: romajiStr}, error);
+      console.error(`? Erreur lors de l'analyse de l'item ${index}:`, {hiragana: hiraganaStr, romaji: romajiStr}, error);
       invalidItems++;
     }
   });
   
-  console.log(`📊 Génération table romaji: ${validItems} items valides, ${invalidItems} items ignorés`);
+  console.log(`?? Génération table romaji: ${validItems} items valides, ${invalidItems} items ignorés`);
   return table;
 }
 function generateRevisionKatakanaTable(hiraganaList) {
@@ -1442,7 +1460,7 @@ function generateRevisionKatakanaTable(hiraganaList) {
     const romaji = item.Romaji;
     
     if (!katakana || !romaji) {
-      console.warn(`⚠️ Item ${index} ignoré pour Katakana - données manquantes:`, {katakana, romaji});
+      console.warn(`?? Item ${index} ignoré pour Katakana - données manquantes:`, {katakana, romaji});
       invalidItems++;
       return;
     }
@@ -1470,7 +1488,7 @@ function generateRevisionKatakanaTable(hiraganaList) {
     }
   });
   
-  console.log(`📊 Génération table katakana: ${validItems} items valides, ${invalidItems} items ignorés`);
+  console.log(`?? Génération table katakana: ${validItems} items valides, ${invalidItems} items ignorés`);
   return table;
 }
 // Fonction pour analyser et segmenter le romaji (VERSION CORRIGÉE)
@@ -1588,7 +1606,7 @@ setTimeout(() => sakura.remove(), 4000);
 }
 
 
-// 🎯 GESTIONNAIRE DE PARTICULES OPTIMISÉ
+// ?? GESTIONNAIRE DE PARTICULES OPTIMISÉ
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30; // Limite stricte
 
@@ -1610,7 +1628,7 @@ return false;
 }
 return true;
 });
-console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
+console.log(`?? Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
 }
 
 // Nettoyage automatique toutes les 3 secondes
@@ -1634,6 +1652,26 @@ console.error("Erreur lors de l'initialisation audio:", error.message);
 function getValidatedCountForLevel(level) {
 return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Validation) >= 5).length;
 }
+
+function updateRevisionButtonState() {
+  const revisionButton = document.getElementById('revision-button');
+  if (!revisionButton) return;
+  
+  if (isRevisionModeAvailable()) {
+    revisionButton.classList.remove('disabled');
+    revisionButton.onclick = () => showSection('mode2');
+    revisionButton.title = '';
+  } else {
+    revisionButton.classList.add('disabled');
+    revisionButton.onclick = (e) => {
+      e.preventDefault();
+      // Optionnel : afficher un message
+      console.log('Mode révision disponible à partir du niveau 4');
+    };
+    revisionButton.title = 'Disponible à partir du niveau 4';
+  }
+}
+
 function playPopSound() {
   initAudio();
   try {
@@ -1890,7 +1928,7 @@ function playZenBell() {
   
   oscillator.start(audioCtx.currentTime);
   oscillator.stop(audioCtx.currentTime + 0.3);
-  console.log('🎶 Son joué : Goutte cristalline (fréquence aléatoire, 0.3s)');
+  console.log('?? Son joué : Goutte cristalline (fréquence aléatoire, 0.3s)');
 }
 // Son pour réponses incorrectes : Bip atténué
 function playSoftError() {
@@ -1994,7 +2032,7 @@ triggerLevelUpAnimation(container);
 for (let salvo = 0; salvo < numSalvos; salvo++) {
 setTimeout(() => {
 if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-console.warn(`⚠️ Salvo ${salvo} annulée - limite atteinte`);
+console.warn(`?? Salvo ${salvo} annulée - limite atteinte`);
 return;
 }
 
@@ -2003,7 +2041,7 @@ const biasMagnitude = (Math.random() * 0.2 - 0.1) * biasDirection;
 
 for (let i = 0; i < numParticles; i++) {
 if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-console.warn(`🛑 Particule ${i} du salvo ${salvo} ignorée - limite atteinte`);
+console.warn(`?? Particule ${i} du salvo ${salvo} ignorée - limite atteinte`);
 break;
 }
 
@@ -2115,7 +2153,7 @@ return false;
 }
 return true;
 });
-console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
+console.log(`?? Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
 }
 
 setInterval(cleanupOldParticles, 3000);
@@ -2196,11 +2234,11 @@ if (!container) return;
 container.innerHTML = "";
 
 const leftEmoji = document.createElement("span");
-leftEmoji.textContent = "🌱";
+leftEmoji.textContent = "??";
 leftEmoji.className = "side-emoji";
 
 const rightEmoji = document.createElement("span");
-rightEmoji.textContent = "🌳";
+rightEmoji.textContent = "??";
 rightEmoji.className = "side-emoji";
 
 const barTrack = document.createElement("div");
@@ -2208,7 +2246,7 @@ barTrack.className = "progress-bar-track";
 
 const marker = document.createElement("div");
 marker.className = "progress-marker";
-marker.innerText = "🐼";  /*  🐼 🐱💩🤡🐶🐯🐱 */
+marker.innerText = "??";  /*  ?? ???????????? */
 
 const pct = maxLevel > 1 ? ((currentLevel - 1) / (maxLevel - 1)) * 100 : 0;
 marker.style.left = `${Math.min(100, Math.max(0, pct))}%`;
@@ -2253,23 +2291,23 @@ async function callAPI(action, data = null) {
         reussites: data.reussites
       });
       const url = `${WEB_APP_URL}?${params}`;
-      console.log(`🔍 Appel updateStats: ${url}`);
+      console.log(`?? Appel updateStats: ${url}`);
       await fetch(url, { mode: 'no-cors' });
       return { success: true };
     } else {
       const url = `${WEB_APP_URL}?action=${action}`;
-      console.log(`🔍 Appel API: ${action} -> ${url}`);
+      console.log(`?? Appel API: ${action} -> ${url}`);
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const result = await response.json();
-      console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
+      console.log(`?? Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
       return result;
     }
   } catch (error) {
     logError(`Erreur API (${action}): ${error.message}`);
-    console.error(`⚠️ Détails erreur:`, error);
+    console.error(`?? Détails erreur:`, error);
     return { error: error.message };
   }
 }
@@ -2281,31 +2319,31 @@ async function initGame() {
   const data = await callAPI('getHiraganas');
   if (data.error) {
     logError('Erreur lors du chargement: ' + data.error);
-    console.warn('⚠️ Utilisation de HiraganaList par défaut ou vide');
+    console.warn('?? Utilisation de HiraganaList par défaut ou vide');
     HiraganaList = HiraganaList || [];
   } else {
     HiraganaList = data;
   }
 
   // Log des données brutes pour vérifier les clés
-  console.log('📥 Données brutes de l\'API (getHiraganas):', JSON.stringify(HiraganaList.slice(0, 3), null, 2));
+  console.log('?? Données brutes de l\'API (getHiraganas):', JSON.stringify(HiraganaList.slice(0, 3), null, 2));
 
   revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
   revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
   
-  console.log("📚 Table romaji générée:", Object.keys(revisionRomajiTable).length, "entrées");
-  console.log("📚 Table katakana générée:", Object.keys(revisionKatakanaTable).length, "entrées");
+  console.log("?? Table romaji générée:", Object.keys(revisionRomajiTable).length, "entrées");
+  console.log("?? Table katakana générée:", Object.keys(revisionKatakanaTable).length, "entrées");
 
   // Initialiser statsCache
   statsCache.items = {};
   let totalTentatives = 0, totalReussites = 0;
   HiraganaList.forEach(item => {
     // Log des clés disponibles pour cet item
-    console.log(`🔍 Clés de l\'item ID ${item.ID}:`, Object.keys(item));
+    console.log(`?? Clés de l\'item ID ${item.ID}:`, Object.keys(item));
 
     const key = item.ID; // Utiliser l'ID comme clé
     if (!key) {
-      console.warn(`⚠️ Item sans ID:`, item);
+      console.warn(`?? Item sans ID:`, item);
       return;
     }
 
@@ -2316,12 +2354,12 @@ async function initGame() {
     totalTentatives += tentatives;
     totalReussites += reussites;
 
-    console.log(`📊 Item ID ${key} (${item.Hiragana || item.Katakana}): Tentatives=${tentatives}, Réussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
+    console.log(`?? Item ID ${key} (${item.Hiragana || item.Katakana}): Tentatives=${tentatives}, Réussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
   });
   statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-  console.log('📈 Pourcentage global de réussite:', statsCache.globalPourcentage.toFixed(2) + '%');
-  console.log('📊 Stats par item:', 
+  console.log('?? Pourcentage global de réussite:', statsCache.globalPourcentage.toFixed(2) + '%');
+  console.log('?? Stats par item:', 
     Object.fromEntries(
       Object.entries(statsCache.items).map(([key, stats]) => {
         const item = HiraganaList.find(i => i.ID == key);
@@ -2334,6 +2372,7 @@ async function initGame() {
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   nextQuestion();
+  updateRevisionButtonState();
 }
 function nextQuestion() {
 document.getElementById("result").innerText = "";
@@ -2352,6 +2391,7 @@ niveauActif = nouveauNiveau;
 document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
 renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
 updateLevelProgress(HiraganaList, niveauActif);
+updateRevisionButtonState();
 nextQuestion();
 return;
 }
@@ -2490,19 +2530,19 @@ HiraganaList[hiraganaIndex].Validation = newValidation.toString();
 
 let emoji = "", resultText = "";
 if (score === 1) {
-const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"];
+const emojisOK = ["??", "??", "??", "??", "??", "??", "??", "??"];
 emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
+resultText = isFinalValidation ? "Validé ! ??" : "Parfait !";
 if (!isFinalValidation) {
 playMarioCoin();
 }
 } else if (score === 0.5) {
-const emojisMid = ["🪨", "🌿", "🪵", "🍃", "🌳", "🎋"];
+const emojisMid = ["??", "??", "??", "??", "??", "??"];
 emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
 resultText = "Presque...";
 playSuccess90s();
 } else {
-const emojisBad = ["🙈", "🙊", "🪨", "🌊", "🍂", "🍁"];
+const emojisBad = ["??", "??", "??", "??", "??", "??"];
 emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
 resultText = "Pas tout à fait...";
 playFail();
@@ -2511,19 +2551,19 @@ playFail();
 document.getElementById("result").innerHTML = `
 <div class="result-line">${emoji} ${resultText} ${emoji}</div>
 <div class="result-line highlight">
-👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
+?? Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
 
-// 🔊 Jouer le fichier MP3 correspondant au Hiragana
+// ?? Jouer le fichier MP3 correspondant au Hiragana
 if (current && current.Hiragana) {
 const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
 const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-console.log("🎧 Lecture du son :", audioUrl);
+console.log("?? Lecture du son :", audioUrl);
 
 const audio = new Audio(audioUrl);
 audio.play().catch(e => console.warn("Erreur audio :", e));
 } else {
-console.warn("❗ Aucun Hiragana à prononcer.");
+console.warn("? Aucun Hiragana à prononcer.");
 }
 
 
@@ -2540,7 +2580,7 @@ callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
 if (response.error) {
 console.warn('Erreur sauvegarde:', response.error);
 } else {
-console.log('✅ Score sauvegardé en arrière-plan');
+console.log('? Score sauvegardé en arrière-plan');
 }
 })
 .catch(error => {
@@ -2641,7 +2681,7 @@ msgWrapper.style.pointerEvents = "none";
 document.body.appendChild(msgWrapper);
 
 const msg = document.createElement("div");
-msg.innerText = "レベルアップ！";
+msg.innerText = "??????!";
 msg.style.display = "inline-block";
 msg.style.fontSize = "5em";
 msg.style.fontWeight = "bold";
@@ -2671,17 +2711,20 @@ easing: "ease-in-out"
 });
 }
 }
+function isRevisionModeAvailable() {
+  return niveauActif >= 4;
+}
 
 function startRevisionQuestion() {
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) <= niveauActif && 
+    parseInt(h.Niveau || 1) < niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
     h.Hiragana && h.Romaji
   );
   const katakanaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) <= niveauActif && 
+    parseInt(h.Niveau || 1) < niveauActif && 
     !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
     revisionKatakanaTable[h.Katakana] &&
     h.Katakana && h.Romaji
@@ -2691,37 +2734,64 @@ function startRevisionQuestion() {
     ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: item.Katakana }))
   ];
 
-  // Log pour vérifier les items disponibles
-  console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
-  console.log(`🔍 Exemple d'items:`, availableItems.slice(0, 3).map(item => ({
+  console.log(`?? Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
+  console.log(`?? Exemple d'items:`, availableItems.slice(0, 3).map(item => ({
     id: item.ID,
     key: item.key,
     pourcentage: (statsCache.items[item.ID]?.pourcentage || 0).toFixed(2) + '%'
   })));
 
   if (availableItems.length === 0) {
-    document.getElementById("revision-message").textContent = "Aucun item disponible pour ce niveau";
+    document.getElementById("revision-message").textContent = 
+      niveauActif < 4 ? 
+      "Mode révision disponible à partir du niveau 4" : 
+      "Aucun item disponible pour révision";
     document.getElementById("revision-message").style.color = "#dc3545";
     return;
   }
 
-  // Pondération basée sur l'inverse du pourcentage
-  const weights = availableItems.map(item => {
-    const stats = statsCache.items[item.ID] || { pourcentage: 0 };
-    return stats.pourcentage === 0 ? 20 : 100 / (stats.pourcentage || 1);
-  });
-  const totalWeight = weights.reduce((a, b) => a + b, 0);
-  let random = Math.random() * totalWeight;
-  let selectedItem = availableItems[0];
+  // Tampon des 3 derniers tirages
+  const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]');
+  const validItems = availableItems.filter(item => !recentItems.includes(item.ID));
 
-  for (let i = 0; i < availableItems.length; i++) {
-    random -= weights[i];
-    if (random <= 0) {
-      selectedItem = availableItems[i];
-      break;
+  // Si moins de 4 items disponibles après filtrage, on relâche la contrainte pour éviter un blocage
+  const itemsToUse = validItems.length >= 4 ? validItems : availableItems;
+
+  let selectedItem;
+  const RANDOM_RATIO = 0.2; // 1/5 pour tirage aléatoire pur
+
+  if (Math.random() < RANDOM_RATIO) {
+    // Tirage aléatoire pur
+    selectedItem = itemsToUse[Math.floor(Math.random() * itemsToUse.length)];
+  } else {
+    // Tirage pondéré avec bias marqué sur les faiblesses
+    const weights = itemsToUse.map(item => {
+      const stats = statsCache.items[item.ID] || { pourcentage: 0 };
+      const pourcentage = stats.pourcentage;
+      // Poids quadratique avec cap à 50 pour éviter biais trop extrême
+      return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
+    });
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let random = Math.random() * totalWeight;
+    for (let i = 0; i < itemsToUse.length; i++) {
+      random -= weights[i];
+      if (random <= 0) {
+        selectedItem = itemsToUse[i];
+        break;
+      }
     }
   }
 
+  // Mettre à jour le tampon
+  recentItems.push(selectedItem.ID);
+  if (recentItems.length > 3) recentItems.shift(); // Garder seulement les 3 derniers
+  localStorage.setItem('recentRevisionItems', JSON.stringify(recentItems));
+
+  // Log pour vérification
+  console.log(`?? Question sélectionnée: "${selectedItem.key}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
+  console.log(`?? Tampon récent:`, recentItems);
+
+  // Configurer la question
   revisionMode.currentQuestion = selectedItem.key;
   const table = selectedItem.type === 'hiragana' ? revisionRomajiTable : revisionKatakanaTable;
   const tableEntry = table[selectedItem.key];
@@ -2754,8 +2824,8 @@ function startRevisionQuestion() {
   const firstCard = document.getElementById(`revision-card-0`);
   if (firstCard) firstCard.classList.add("pulsing");
 
-  console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
-  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[selectedItem.ID]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+  console.log(`?? Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
+  console.log(`?? Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[selectedItem.ID]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
 }
   
 function updateRevisionFeedback() {
@@ -2906,8 +2976,8 @@ function initRevisionKeyboard() {
         statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
         // Log des stats mises à jour
-        console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
-        console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
+        console.log(`?? Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
+        console.log('?? Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
         // Mettre à jour Validation
         const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
@@ -2928,13 +2998,13 @@ function initRevisionKeyboard() {
 
         // Afficher feedback
         if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🌸 Parfait !${katakanaDisplay} 🌸`;
+          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `?? Parfait !${katakanaDisplay} ??`;
           document.getElementById("revision-message").style.color = "#28a745";
           playZenBell();
         } else {
           document.getElementById("revision-message").textContent = isHighLevel 
             ? "Faux" 
-            : `❌ ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
+            : `? ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
           document.getElementById("revision-message").style.color = "#dc3545";
           playSoftError();
         }
@@ -2965,7 +3035,7 @@ initGame();
 };
 // S'assurer que les voix sont bien chargées
 speechSynthesis.onvoiceschanged = () => {
-console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
+console.log("?? Voix disponibles :", speechSynthesis.getVoices());
 };
 
 </script>
