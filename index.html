@@ -1275,7 +1275,7 @@
 
   <!-- Section Quiz (contenu actuel) -->
   <div id="quiz" class="section active">
-    <h1>???? Welcome to Hira-Kata-Quiz ????</h1>
+    <h1>🌿⛩️ Welcome to Hira-Kata-Quiz ⛩️🌸</h1>
     <div id="progressBarContainer"></div>
     <div class="level" id="levelDisplay">Niveau actuel : 1</div>
     <div class="level-hiraganas">
@@ -1289,8 +1289,7 @@
       </div>
       <div>
         <div class="result" id="result"></div>
-        <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">?? OK... j’ai capté ??</button>
-        <button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
+      <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j’ai capté 🌱</button>        <button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
       </div>
     </div>
   </div>
@@ -1298,7 +1297,7 @@
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-  <h2>?? Mode Révisions ??</h2>
+    <h2>🎌 Mode Révisions 🎌</h2>
   <div id="revision-question"></div>
    <div id="revision-message"></div>
   <div id="revision-input-display"></div>
@@ -1415,7 +1414,7 @@ function generateRevisionRomajiTable(hiraganaList) {
     
     // ? VÉRIFICATIONS ROBUSTES
     if (!hiragana || !romaji) {
-      console.warn(`?? Item ${index} ignoré - données manquantes:`, {hiragana, romaji});
+      console.warn(`⚠️ Item ${index} ignoré - données manquantes:`, {hiragana, romaji});
       invalidItems++;
       return;
     }
@@ -1425,7 +1424,7 @@ function generateRevisionRomajiTable(hiraganaList) {
     const romajiStr = String(romaji).trim();
     
     if (hiraganaStr === '' || romajiStr === '' || romajiStr === 'undefined' || romajiStr === 'null') {
-      console.warn(`?? Item ${index} ignoré - données vides:`, {hiragana: hiraganaStr, romaji: romajiStr});
+      console.warn(`⚠️ Item ${index} ignoré - données vides:`, {hiragana: hiraganaStr, romaji: romajiStr});
       invalidItems++;
       return;
     }
@@ -1442,12 +1441,12 @@ function generateRevisionRomajiTable(hiraganaList) {
       };
       validItems++;
     } catch (error) {
-      console.error(`? Erreur lors de l'analyse de l'item ${index}:`, {hiragana: hiraganaStr, romaji: romajiStr}, error);
+      console.error(`❌ Erreur lors de l'analyse de l'item ${index}:`, {hiragana: hiraganaStr, romaji: romajiStr}, error);
       invalidItems++;
     }
   });
   
-  console.log(`?? Génération table romaji: ${validItems} items valides, ${invalidItems} items ignorés`);
+  console.log(`📊 Génération table romaji: ${validItems} items valides, ${invalidItems} items ignorés`);
   return table;
 }
 function generateRevisionKatakanaTable(hiraganaList) {
@@ -1460,7 +1459,7 @@ function generateRevisionKatakanaTable(hiraganaList) {
     const romaji = item.Romaji;
     
     if (!katakana || !romaji) {
-      console.warn(`?? Item ${index} ignoré pour Katakana - données manquantes:`, {katakana, romaji});
+      console.warn(`⚠️ Item ${index} ignoré pour Katakana - données manquantes:`, {katakana, romaji});
       invalidItems++;
       return;
     }
@@ -1488,7 +1487,7 @@ function generateRevisionKatakanaTable(hiraganaList) {
     }
   });
   
-  console.log(`?? Génération table katakana: ${validItems} items valides, ${invalidItems} items ignorés`);
+  console.log(`📊 Génération table katakana: ${validItems} items valides, ${invalidItems} items ignorés`);
   return table;
 }
 // Fonction pour analyser et segmenter le romaji (VERSION CORRIGÉE)
@@ -1628,7 +1627,7 @@ return false;
 }
 return true;
 });
-console.log(`?? Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
+console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
 }
 
 // Nettoyage automatique toutes les 3 secondes
@@ -1928,7 +1927,7 @@ function playZenBell() {
   
   oscillator.start(audioCtx.currentTime);
   oscillator.stop(audioCtx.currentTime + 0.3);
-  console.log('?? Son joué : Goutte cristalline (fréquence aléatoire, 0.3s)');
+  console.log('🎶 Son joué : Goutte cristalline (fréquence aléatoire, 0.3s)');
 }
 // Son pour réponses incorrectes : Bip atténué
 function playSoftError() {
@@ -2032,7 +2031,7 @@ triggerLevelUpAnimation(container);
 for (let salvo = 0; salvo < numSalvos; salvo++) {
 setTimeout(() => {
 if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-console.warn(`?? Salvo ${salvo} annulée - limite atteinte`);
+console.warn(`⚠️ Salvo ${salvo} annulée - limite atteinte`);
 return;
 }
 
@@ -2041,7 +2040,7 @@ const biasMagnitude = (Math.random() * 0.2 - 0.1) * biasDirection;
 
 for (let i = 0; i < numParticles; i++) {
 if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-console.warn(`?? Particule ${i} du salvo ${salvo} ignorée - limite atteinte`);
+console.warn(`🛑 Particule ${i} du salvo ${salvo} ignorée - limite atteinte`);
 break;
 }
 
@@ -2234,11 +2233,11 @@ if (!container) return;
 container.innerHTML = "";
 
 const leftEmoji = document.createElement("span");
-leftEmoji.textContent = "??";
+leftEmoji.textContent = "🌱";
 leftEmoji.className = "side-emoji";
 
 const rightEmoji = document.createElement("span");
-rightEmoji.textContent = "??";
+rightEmoji.textContent = "🌳";
 rightEmoji.className = "side-emoji";
 
 const barTrack = document.createElement("div");
@@ -2246,7 +2245,7 @@ barTrack.className = "progress-bar-track";
 
 const marker = document.createElement("div");
 marker.className = "progress-marker";
-marker.innerText = "??";  /*  ?? ???????????? */
+marker.innerText = "🐼";  /*  🐼 🐱💩🤡🐶🐯🐱 */
 
 const pct = maxLevel > 1 ? ((currentLevel - 1) / (maxLevel - 1)) * 100 : 0;
 marker.style.left = `${Math.min(100, Math.max(0, pct))}%`;
@@ -2530,19 +2529,19 @@ HiraganaList[hiraganaIndex].Validation = newValidation.toString();
 
 let emoji = "", resultText = "";
 if (score === 1) {
-const emojisOK = ["??", "??", "??", "??", "??", "??", "??", "??"];
+const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"];
 emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-resultText = isFinalValidation ? "Validé ! ??" : "Parfait !";
+resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
 if (!isFinalValidation) {
 playMarioCoin();
 }
 } else if (score === 0.5) {
-const emojisMid = ["??", "??", "??", "??", "??", "??"];
+const emojisMid = ["🪨", "🌿", "🪵", "🍃", "🌳", "🎋"];
 emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
 resultText = "Presque...";
 playSuccess90s();
 } else {
-const emojisBad = ["??", "??", "??", "??", "??", "??"];
+const emojisBad = ["🙈", "🙊", "🪨", "🌊", "🍂", "🍁"];
 emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
 resultText = "Pas tout à fait...";
 playFail();
@@ -2551,8 +2550,9 @@ playFail();
 document.getElementById("result").innerHTML = `
 <div class="result-line">${emoji} ${resultText} ${emoji}</div>
 <div class="result-line highlight">
-?? Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
+👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
+
 
 // ?? Jouer le fichier MP3 correspondant au Hiragana
 if (current && current.Hiragana) {
@@ -2681,7 +2681,7 @@ msgWrapper.style.pointerEvents = "none";
 document.body.appendChild(msgWrapper);
 
 const msg = document.createElement("div");
-msg.innerText = "??????!";
+msg.innerText = "レベルアップ！";
 msg.style.display = "inline-block";
 msg.style.fontSize = "5em";
 msg.style.fontWeight = "bold";
@@ -2998,13 +2998,13 @@ function initRevisionKeyboard() {
 
         // Afficher feedback
         if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `?? Parfait !${katakanaDisplay} ??`;
+          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🌸 Parfait !${katakanaDisplay} 🌸`;
           document.getElementById("revision-message").style.color = "#28a745";
           playZenBell();
         } else {
           document.getElementById("revision-message").textContent = isHighLevel 
             ? "Faux" 
-            : `? ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
+            : `❌ ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
           document.getElementById("revision-message").style.color = "#dc3545";
           playSoftError();
         }
@@ -3042,3 +3042,4 @@ console.log("?? Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
