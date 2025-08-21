@@ -2746,13 +2746,13 @@ function startRevisionQuestion() {
   const itemsToUse = validItems.length >= 4 ? validItems : availableItems;
 
   let selectedItem;
-  if (Math.random() < 0.2) {
+  if (Math.random() < 0.5) {
   // 🎲 Tirage aléatoire pur, MAIS limité aux items avec Validation <= 10
   const randomPool = itemsToUse.filter(item => parseInt(item.Validation || 0) <= 10);
   
   if (randomPool.length > 0) {
     selectedItem = randomPool[Math.floor(Math.random() * randomPool.length)];
-    console.log("🎲 Mode aléatoire (20%) → Validation <= 10");
+    console.log("🎲 Mode aléatoire (50%) → Validation <= 10");
   } else {
     // Pas d'item aléatoire valide, utiliser le mode pondéré
     console.log("⚠️ Aucun item aléatoire disponible (Validation <= 10), passage au mode pondéré");
@@ -3045,6 +3045,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
