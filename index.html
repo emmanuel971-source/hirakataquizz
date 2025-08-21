@@ -2423,79 +2423,63 @@ async function initGame() {
 }
 }
 function nextQuestion() {
-  const niveauMax = getMaxLevel(HiraganaList);
-  let niveauActif = determineNiveauActif(HiraganaList);
+document.getElementById("result").innerText = "";
+document.getElementById("continueBtn").style.visibility = "hidden";
+selections = { first: null, second: null };
+isAnswered = false;
 
-  if (niveauActif > niveauMax) {
-    document.getElementById("question").innerText = "🎉 Félicitations ! Tu as terminé tous les niveaux !";
-    const answersDiv = document.getElementById("choices1");
-const answersDiv2 = document.getElementById("choices2");
-if (!answersDiv || !answersDiv2) {
-  console.warn("⚠️ nextQuestion appelé alors que la zone quiz n'est pas affichée.");
-  return;
+const kanas = HiraganaList.filter(k =>
+parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
+);
+
+if (kanas.length === 0) {
+const nouveauNiveau = determineNiveauActif(HiraganaList);
+if (nouveauNiveau !== niveauActif) {
+niveauActif = nouveauNiveau;
+document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+updateLevelProgress(HiraganaList, niveauActif);
+updateRevisionButtonState();  
+nextQuestion();
+return;
 }
-    if (answersDiv) answersDiv.innerHTML = "";
-    return;
-  }
-
-  let pool = HiraganaList.filter(item => parseInt(item.Niveau || 1) === niveauActif);
-  if (pool.length === 0) {
-    let nouveauNiveau = niveauActif + 1;
-    if (nouveauNiveau > niveauMax) return;
-
-    if (nouveauNiveau !== niveauActif) {
-      niveauActif = nouveauNiveau;
-      document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-      renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-      updateLevelProgress(HiraganaList, niveauActif);
-      updateRevisionButtonState();  
-
-      // 🚨 Vérification groupes
-      if (!canAccessApprentissage()) {
-        alert("🚫 Mode Apprendre bloqué : tu dois d'abord valider tous les groupes précédents en mode Révision.");
-        showSection('menu'); 
-        return;
-      }
-
-      nextQuestion();
-      return;
-    }
-  }
-
-  const questionItem = pool[Math.floor(Math.random() * pool.length)];
-  document.getElementById("question").innerText = questionItem.Hiragana;
-
-  const allRomaji = HiraganaList.map(item => item.Romaji);
-  const distracteurs = allRomaji.filter(r => r !== questionItem.Romaji);
-  for (let i = distracteurs.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [distracteurs[i], distracteurs[j]] = [distracteurs[j], distracteurs[i]];
-  }
-  const options = [questionItem.Romaji, ...distracteurs.slice(0, 3)];
-  for (let i = options.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [options[i], options[j]] = [options[j], options[i]];
-  }
-
-  const answersDiv = document.getElementById("choices1");
-const answersDiv2 = document.getElementById("choices2");
-if (!answersDiv || !answersDiv2) {
-  console.warn("⚠️ nextQuestion appelé alors que la zone quiz n'est pas affichée.");
-  return;
 }
-  if (!answersDiv) {
-    console.warn("⚠️ nextQuestion appelé alors que la zone quiz n’est pas affichée.");
-    return;
-  }
 
-  answersDiv.innerHTML = "";
-  options.forEach(option => {
-    const btn = document.createElement("button");
-    btn.className = "arcade-button";
-    btn.innerText = option;
-    btn.onclick = () => checkAnswer(btn, option, questionItem);
-    answersDiv.appendChild(btn);
-  });
+const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
+
+const currentWeights = finalKanas.map(k => {
+const validation = parseInt(k.Validation || 0);
+return Math.max(0.1, 5 - validation + 0.5);
+});
+
+let selected;
+do {
+const sum = currentWeights.reduce((a, b) => a + b, 0);
+const rand = Math.random() * sum;
+let acc = 0;
+for (let i = 0; i < finalKanas.length; i++) {
+acc += currentWeights[i];
+if (rand < acc) {
+selected = finalKanas[i];
+break;
+}
+}
+} while (selected === previousCharacter && finalKanas.length > 1); // Repeat if same as previous and more than one option exists
+
+current = selected;
+previousCharacter = current; // Update previous character
+
+const modes = [
+{ question: "Hiragana", options1: "Katakana", options2: "Romaji" },
+{ question: "Katakana", options1: "Hiragana", options2: "Romaji" },
+{ question: "Romaji", options1: "Hiragana", options2: "Katakana" }
+];
+const mode = modes[Math.floor(Math.random() * modes.length)];
+targetFields = [mode.options1, mode.options2];
+
+document.getElementById("question").innerText = current[mode.question];
+renderChoices("choices1", generateChoices(mode.options1), "first");
+renderChoices("choices2", generateChoices(mode.options2), "second");
 }
 
 function generateChoices(field) {
@@ -3093,6 +3077,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
