@@ -1267,7 +1267,7 @@
 
   <!-- Menu -->
   <nav class="menu" id="menu">
-    <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
+    <button class="arcade-button" onclick="handleApprendreClick()">Apprendre</button>
     <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
     <button class="arcade-button" onclick="showSection('options')">Options</button>
     <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
@@ -1401,7 +1401,56 @@ let revisionMode = {
 };
 // Initialisation du contexte audio (à placer au début du script, une seule fois)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function handleApprendreClick() {
+  if (!canAccessApprentissage()) {
+    alert("🚫 Tu dois d'abord valider tous les items des groupes précédents en mode Révision (Validation = 10).");
+    return;
+  }
+  showSection('quiz');
+}
 
+// ====== 📚 GESTION DES GROUPES ======
+const groupes = [
+  { id: 1, min: 1,  max: 3  },
+  { id: 2, min: 4,  max: 5  },
+  { id: 3, min: 6,  max: 8  },
+  { id: 4, min: 9,  max: 12 },
+  { id: 5, min: 13, max: 17 },
+  { id: 6, min: 18, max: 22 },
+  { id: 7, min: 23, max: 27 },
+  { id: 8, min: 28, max: 33 },
+  { id: 9, min: 34, max: 39 },
+  { id: 10,min: 40, max: 46 }
+];
+
+function getGroupeFromNiveau(niveau) {
+  const grp = groupes.find(g => niveau >= g.min && niveau <= g.max);
+  return grp ? grp.id : null;
+}
+
+function isGroupeValidé(groupeId) {
+  const g = groupes.find(gr => gr.id === groupeId);
+  if (!g) return false;
+  const items = HiraganaList.filter(item => {
+    const niv = parseInt(item.Niveau || 1);
+    return niv >= g.min && niv <= g.max;
+  });
+  return items.every(item => parseInt(item.Validation || 0) >= 10);
+}
+
+function canAccessApprentissage() {
+  const niveauActif = determineNiveauActif(HiraganaList);
+  const groupeActuel = getGroupeFromNiveau(niveauActif);
+  console.log(`📊 Niveau ${niveauActif} → Groupe ${groupeActuel}`);
+  for (let g = 1; g < groupeActuel; g++) {
+    if (!isGroupeValidé(g)) {
+      console.log(`🚫 Groupe ${g} non validé`);
+      return false;
+    }
+  }
+  return true;
+}
+  
   
 // Fonction pour générer la table romaji à partir des données Google Sheet (VERSION CORRIGÉE)
 function generateRevisionRomajiTable(hiraganaList) {
@@ -2372,64 +2421,64 @@ async function initGame() {
   nextQuestion();  
 }
 function nextQuestion() {
-document.getElementById("result").innerText = "";
-document.getElementById("continueBtn").style.visibility = "hidden";
-selections = { first: null, second: null };
-isAnswered = false;
+  const niveauMax = getMaxLevel(HiraganaList);
+  let niveauActif = determineNiveauActif(HiraganaList);
 
-const kanas = HiraganaList.filter(k =>
-parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
-);
+  // Vérifie si tout est terminé
+  if (niveauActif > niveauMax) {
+    document.getElementById("question").innerText = "🎉 Félicitations ! Tu as terminé tous les niveaux !";
+    document.getElementById("answers").innerHTML = "";
+    return;
+  }
 
-if (kanas.length === 0) {
-const nouveauNiveau = determineNiveauActif(HiraganaList);
-if (nouveauNiveau !== niveauActif) {
-niveauActif = nouveauNiveau;
-document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-updateLevelProgress(HiraganaList, niveauActif);
-updateRevisionButtonState();  
-nextQuestion();
-return;
+  // Détermine le pool d'items disponibles
+  let pool = HiraganaList.filter(item => parseInt(item.Niveau || 1) === niveauActif);
+  if (pool.length === 0) {
+    // si pas d'items, on avance de niveau
+    let nouveauNiveau = niveauActif + 1;
+    if (nouveauNiveau > niveauMax) return;
+
+    // Passage au niveau suivant
+    niveauActif = nouveauNiveau;
+    document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+    renderProgressBar(niveauActif, niveauMax);
+    updateLevelProgress(HiraganaList, niveauActif);
+    updateRevisionButtonState();
+
+    // 🚨 Vérification groupes
+    if (!canAccessApprentissage()) {
+      alert("🚫 Mode Apprendre bloqué : tu dois d'abord valider tous les groupes précédents en mode Révision.");
+      showSection('menu'); // renvoie au menu (à adapter si tu veux une autre action)
+      return;
+    }
+
+    nextQuestion();
+    return;
+  }
+
+  // Tire une question au hasard dans le pool
+  const questionItem = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById("question").innerText = questionItem.Hiragana;
+
+  // Construit les réponses (mélange avec distracteurs)
+  const allRomaji = HiraganaList.map(item => item.Romaji);
+  const distracteurs = allRomaji.filter(r => r !== questionItem.Romaji);
+  shuffleArray(distracteurs);
+  const options = [questionItem.Romaji, ...distracteurs.slice(0, 3)];
+  shuffleArray(options);
+
+  // Affiche les réponses
+  const answersDiv = document.getElementById("answers");
+  answersDiv.innerHTML = "";
+  options.forEach(option => {
+    const btn = document.createElement("button");
+    btn.className = "arcade-button";
+    btn.innerText = option;
+    btn.onclick = () => checkAnswer(btn, option, questionItem);
+    answersDiv.appendChild(btn);
+  });
 }
-}
 
-const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
-
-const currentWeights = finalKanas.map(k => {
-const validation = parseInt(k.Validation || 0);
-return Math.max(0.1, 5 - validation + 0.5);
-});
-
-let selected;
-do {
-const sum = currentWeights.reduce((a, b) => a + b, 0);
-const rand = Math.random() * sum;
-let acc = 0;
-for (let i = 0; i < finalKanas.length; i++) {
-acc += currentWeights[i];
-if (rand < acc) {
-selected = finalKanas[i];
-break;
-}
-}
-} while (selected === previousCharacter && finalKanas.length > 1); // Repeat if same as previous and more than one option exists
-
-current = selected;
-previousCharacter = current; // Update previous character
-
-const modes = [
-{ question: "Hiragana", options1: "Katakana", options2: "Romaji" },
-{ question: "Katakana", options1: "Hiragana", options2: "Romaji" },
-{ question: "Romaji", options1: "Hiragana", options2: "Katakana" }
-];
-const mode = modes[Math.floor(Math.random() * modes.length)];
-targetFields = [mode.options1, mode.options2];
-
-document.getElementById("question").innerText = current[mode.question];
-renderChoices("choices1", generateChoices(mode.options1), "first");
-renderChoices("choices2", generateChoices(mode.options2), "second");
-}
 
 function generateChoices(field) {
 const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau) === niveauActif);
@@ -3026,4 +3075,5 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
