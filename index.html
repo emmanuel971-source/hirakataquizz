@@ -2747,11 +2747,16 @@ function startRevisionQuestion() {
 
   let selectedItem;
   if (Math.random() < 0.2) {
-    // 🎲 Tirage aléatoire pur, MAIS limité aux items avec Validation <= 10
-    const randomPool = itemsToUse.filter(item => parseInt(item.Validation || 0) <= 10);
-    const pool = randomPool.length > 0 ? randomPool : itemsToUse; 
-    selectedItem = pool[Math.floor(Math.random() * pool.length)];
+  const randomPool = itemsToUse.filter(item => parseInt(item.Validation || 0) <= 10);
+  
+  if (randomPool.length > 0) {
+    selectedItem = randomPool[Math.floor(Math.random() * randomPool.length)];
     console.log("🎲 Mode aléatoire (20%) → Validation <= 10");
+  } else {
+    // Pas d'item aléatoire valide, utiliser le mode pondéré
+    console.log("⚠️ Aucun item aléatoire disponible, passage au mode pondéré");
+    
+    // [Insérer ici le code du mode pondéré]
   } else {
     // 📊 Tirage pondéré basé sur performances
     const weights = itemsToUse.map(item => {
@@ -3026,5 +3031,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
