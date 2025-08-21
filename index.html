@@ -1347,18 +1347,17 @@
 function showSection(sectionId) {
   // Vérifier si on essaie d'accéder au mode révision
   if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
-    // Optionnel : afficher un message d'erreur
     console.log('Mode révision non disponible');
     return;
   }
 
-  // Vérifier si on essaie d'accéder au mode Apprendre (quiz) et gérer le blocage
-  if (sectionId === 'quiz') {
+  // Vérifier si on essaie d'accéder au mode Apprendre (hypothèse : mode1)
+  if (sectionId === 'mode1') { // Remplacez 'mode1' par le bon ID si différent
     const currentGroup = getCurrentGroup(niveauActif);
     if (currentGroup > 1) { // Pas de vérification pour Groupe 1
       const prevGroup = currentGroup - 1;
+      console.log('Checking validation for Group', prevGroup); // Debug
       if (!isGroupValidated(prevGroup)) {
-        // Afficher un modal basique pour bloquer
         const modal = document.createElement('div');
         modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center;';
         modal.innerHTML = '<div style="background: #fff; padding: 20px; border-radius: 5px; text-align: center;"><p>Mode Apprendre bloqué ! Revisez le Groupe ' + prevGroup + ' (Niveaux ' + groups[prevGroup].join('-') + ') pour continuer.</p><button onclick="this.parentElement.parentElement.remove()">Continuer</button></div>';
@@ -1367,6 +1366,26 @@ function showSection(sectionId) {
       }
     }
   }
+
+  // Afficher/masquer les sections
+  document.querySelectorAll('.section').forEach(section => {
+    section.classList.remove('active');
+  });
+  document.getElementById(sectionId).classList.add('active');
+
+  // Démarrer le mode révisions si c'est le mode sélectionné
+  if (sectionId === 'mode2') {
+    revisionMode.isActive = true;
+    setTimeout(() => {
+      initRevisionKeyboard();
+      startRevisionQuestion();
+    }, 100);
+  } else {
+    revisionMode.isActive = false;
+  }
+
+  toggleMenu();
+}
 
   // Afficher/masquer les sections
   document.querySelectorAll('.section').forEach(section => {
@@ -1429,6 +1448,7 @@ function getCurrentGroup(niveau) {
 }
 
 function isGroupValidated(groupId) {
+  console.log('Checking group', groupId, 'items:', items); // Log pour debugger
   if (!groups[groupId]) return true; // Groupe inexistant (ex. 0) considéré comme validé
   const levels = groups[groupId];
   const items = HiraganaList.filter(item => levels.includes(parseInt(item.Niveau || 1)));
@@ -3087,6 +3107,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
