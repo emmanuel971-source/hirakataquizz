@@ -1351,8 +1351,8 @@ function showSection(sectionId) {
     return;
   }
 
-  // Vérifier si on essaie d'accéder au mode Apprendre (hypothèse : mode1)
-  if (sectionId === 'mode1') { // Remplacez 'mode1' par le bon ID si différent
+  // Vérifier si on essaie d'accéder au mode Apprendre (quiz)
+  if (sectionId === 'quiz') {
     const currentGroup = getCurrentGroup(niveauActif);
     if (currentGroup > 1) { // Pas de vérification pour Groupe 1
       const prevGroup = currentGroup - 1;
@@ -3107,6 +3107,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
