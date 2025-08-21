@@ -2424,50 +2424,51 @@ function nextQuestion() {
   const niveauMax = getMaxLevel(HiraganaList);
   let niveauActif = determineNiveauActif(HiraganaList);
 
-  // Vérifie si tout est terminé
   if (niveauActif > niveauMax) {
     document.getElementById("question").innerText = "🎉 Félicitations ! Tu as terminé tous les niveaux !";
     document.getElementById("answers").innerHTML = "";
     return;
   }
 
-  // Détermine le pool d'items disponibles
   let pool = HiraganaList.filter(item => parseInt(item.Niveau || 1) === niveauActif);
   if (pool.length === 0) {
-    // si pas d'items, on avance de niveau
     let nouveauNiveau = niveauActif + 1;
     if (nouveauNiveau > niveauMax) return;
 
-    // Passage au niveau suivant
-    niveauActif = nouveauNiveau;
-    document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-    renderProgressBar(niveauActif, niveauMax);
-    updateLevelProgress(HiraganaList, niveauActif);
-    updateRevisionButtonState();
+    if (nouveauNiveau !== niveauActif) {
+      niveauActif = nouveauNiveau;
+      document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+      renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+      updateLevelProgress(HiraganaList, niveauActif);
+      updateRevisionButtonState();  
 
-    // 🚨 Vérification groupes
-    if (!canAccessApprentissage()) {
-      alert("🚫 Mode Apprendre bloqué : tu dois d'abord valider tous les groupes précédents en mode Révision.");
-      showSection('menu'); // renvoie au menu (à adapter si tu veux une autre action)
+      // 🚨 Vérification groupes
+      if (!canAccessApprentissage()) {
+        alert("🚫 Mode Apprendre bloqué : tu dois d'abord valider tous les groupes précédents en mode Révision.");
+        showSection('menu'); 
+        return;
+      }
+
+      nextQuestion();
       return;
     }
-
-    nextQuestion();
-    return;
   }
 
-  // Tire une question au hasard dans le pool
   const questionItem = pool[Math.floor(Math.random() * pool.length)];
   document.getElementById("question").innerText = questionItem.Hiragana;
 
-  // Construit les réponses (mélange avec distracteurs)
   const allRomaji = HiraganaList.map(item => item.Romaji);
   const distracteurs = allRomaji.filter(r => r !== questionItem.Romaji);
-  shuffleArray(distracteurs);
+  for (let i = distracteurs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [distracteurs[i], distracteurs[j]] = [distracteurs[j], distracteurs[i]];
+  }
   const options = [questionItem.Romaji, ...distracteurs.slice(0, 3)];
-  shuffleArray(options);
+  for (let i = options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [options[i], options[j]] = [options[j], options[i]];
+  }
 
-  // Affiche les réponses
   const answersDiv = document.getElementById("answers");
   answersDiv.innerHTML = "";
   options.forEach(option => {
@@ -3075,5 +3076,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
