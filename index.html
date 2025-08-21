@@ -2260,7 +2260,7 @@ let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
 
 for (let n = 1; n <= maxNiveau; n++) {
 const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
-const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5);
+const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Réussites) >= 5);
 if (kanjisValides.length < kanjisNiveau.length) {
 return n;
 }
@@ -3037,3 +3037,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
