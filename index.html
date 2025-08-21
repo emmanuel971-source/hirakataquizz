@@ -2747,6 +2747,7 @@ function startRevisionQuestion() {
 
   let selectedItem;
   if (Math.random() < 0.2) {
+  // 🎲 Tirage aléatoire pur, MAIS limité aux items avec Validation <= 10
   const randomPool = itemsToUse.filter(item => parseInt(item.Validation || 0) <= 10);
   
   if (randomPool.length > 0) {
@@ -2754,10 +2755,8 @@ function startRevisionQuestion() {
     console.log("🎲 Mode aléatoire (20%) → Validation <= 10");
   } else {
     // Pas d'item aléatoire valide, utiliser le mode pondéré
-    console.log("⚠️ Aucun item aléatoire disponible, passage au mode pondéré");
+    console.log("⚠️ Aucun item aléatoire disponible (Validation <= 10), passage au mode pondéré");
     
-    // [Insérer ici le code du mode pondéré]
-  } else {
     // 📊 Tirage pondéré basé sur performances
     const weights = itemsToUse.map(item => {
       const pourcentage = statsCache.items[item.ID]?.pourcentage || 0;
@@ -2772,9 +2771,24 @@ function startRevisionQuestion() {
         break;
       }
     }
-    console.log("📊 Mode pondéré (80%)");
   }
-
+} else {
+  // 📊 Tirage pondéré basé sur performances (80% des cas)
+  const weights = itemsToUse.map(item => {
+    const pourcentage = statsCache.items[item.ID]?.pourcentage || 0;
+    return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
+  });
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+  let random = Math.random() * totalWeight;
+  for (let i = 0; i < itemsToUse.length; i++) {
+    random -= weights[i];
+    if (random <= 0) {
+      selectedItem = itemsToUse[i];
+      break;
+    }
+  }
+  console.log("📊 Mode pondéré (80%)");
+}
   // Mettre à jour le tampon
   recentItems.push(selectedItem.ID);
   if (recentItems.length > 3) recentItems.shift();
@@ -3031,6 +3045,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
