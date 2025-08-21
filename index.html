@@ -1267,7 +1267,7 @@
 
   <!-- Menu -->
   <nav class="menu" id="menu">
-    <button class="arcade-button" onclick="handleApprendreClick()">Apprendre</button>
+    <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
     <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
     <button class="arcade-button" onclick="showSection('options')">Options</button>
     <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
@@ -1401,56 +1401,7 @@ let revisionMode = {
 };
 // Initialisation du contexte audio (à placer au début du script, une seule fois)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function handleApprendreClick() {
-  if (!canAccessApprentissage()) {
-    alert("🚫 Tu dois d'abord valider tous les items des groupes précédents en mode Révision (Validation = 10).");
-    return;
-  }
-  showSection('quiz');
-}
 
-// ====== 📚 GESTION DES GROUPES ======
-const groupes = [
-  { id: 1, min: 1,  max: 3  },
-  { id: 2, min: 4,  max: 5  },
-  { id: 3, min: 6,  max: 8  },
-  { id: 4, min: 9,  max: 12 },
-  { id: 5, min: 13, max: 17 },
-  { id: 6, min: 18, max: 22 },
-  { id: 7, min: 23, max: 27 },
-  { id: 8, min: 28, max: 33 },
-  { id: 9, min: 34, max: 39 },
-  { id: 10,min: 40, max: 46 }
-];
-
-function getGroupeFromNiveau(niveau) {
-  const grp = groupes.find(g => niveau >= g.min && niveau <= g.max);
-  return grp ? grp.id : null;
-}
-
-function isGroupeValidé(groupeId) {
-  const g = groupes.find(gr => gr.id === groupeId);
-  if (!g) return false;
-  const items = HiraganaList.filter(item => {
-    const niv = parseInt(item.Niveau || 1);
-    return niv >= g.min && niv <= g.max;
-  });
-  return items.every(item => parseInt(item.Validation || 0) >= 10);
-}
-
-function canAccessApprentissage() {
-  const niveauActif = determineNiveauActif(HiraganaList);
-  const groupeActuel = getGroupeFromNiveau(niveauActif);
-  console.log(`📊 Niveau ${niveauActif} → Groupe ${groupeActuel}`);
-  for (let g = 1; g < groupeActuel; g++) {
-    if (!isGroupeValidé(g)) {
-      console.log(`🚫 Groupe ${g} non validé`);
-      return false;
-    }
-  }
-  return true;
-}
-  
   
 // Fonction pour générer la table romaji à partir des données Google Sheet (VERSION CORRIGÉE)
 function generateRevisionRomajiTable(hiraganaList) {
@@ -2418,9 +2369,7 @@ async function initGame() {
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   updateRevisionButtonState();
-  if (document.getElementById('quiz').classList.contains('active')) {
-  nextQuestion();
-}
+  nextQuestion();  
 }
 function nextQuestion() {
 document.getElementById("result").innerText = "";
@@ -2779,6 +2728,11 @@ function startRevisionQuestion() {
   ];
 
   console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
+  console.log(`🔍 Exemple d'items:`, availableItems.slice(0, 3).map(item => ({
+    id: item.ID,
+    key: item.key,
+    pourcentage: (statsCache.items[item.ID]?.pourcentage || 0).toFixed(2) + '%'
+  })));
 
   if (availableItems.length === 0) {
     document.getElementById("revision-message").textContent = 
@@ -2793,20 +2747,21 @@ function startRevisionQuestion() {
   const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]');
   const validItems = availableItems.filter(item => !recentItems.includes(item.ID));
 
-  // Si moins de 4 items disponibles après filtrage, on relâche la contrainte
+  // Si moins de 4 items disponibles après filtrage, on relâche la contrainte pour éviter un blocage
   const itemsToUse = validItems.length >= 4 ? validItems : availableItems;
 
   let selectedItem;
-  if (Math.random() < 0.2) {
-    // 🎲 Tirage aléatoire pur, MAIS limité aux items avec Validation <= 10
-    const randomPool = itemsToUse.filter(item => parseInt(item.Validation || 0) <= 10);
-    const pool = randomPool.length > 0 ? randomPool : itemsToUse; 
-    selectedItem = pool[Math.floor(Math.random() * pool.length)];
-    console.log("🎲 Mode aléatoire (20%) → Validation <= 10");
+  const RANDOM_RATIO = 0.2; // 1/5 pour tirage aléatoire pur
+
+  if (Math.random() < RANDOM_RATIO) {
+    // Tirage aléatoire pur
+    selectedItem = itemsToUse[Math.floor(Math.random() * itemsToUse.length)];
   } else {
-    // 📊 Tirage pondéré basé sur performances
+    // Tirage pondéré avec bias marqué sur les faiblesses
     const weights = itemsToUse.map(item => {
-      const pourcentage = statsCache.items[item.ID]?.pourcentage || 0;
+      const stats = statsCache.items[item.ID] || { pourcentage: 0 };
+      const pourcentage = stats.pourcentage;
+      // Poids quadratique avec cap à 50 pour éviter biais trop extrême
       return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
     });
     const totalWeight = weights.reduce((a, b) => a + b, 0);
@@ -2818,13 +2773,16 @@ function startRevisionQuestion() {
         break;
       }
     }
-    console.log("📊 Mode pondéré (80%)");
   }
 
   // Mettre à jour le tampon
   recentItems.push(selectedItem.ID);
-  if (recentItems.length > 3) recentItems.shift();
+  if (recentItems.length > 3) recentItems.shift(); // Garder seulement les 3 derniers
   localStorage.setItem('recentRevisionItems', JSON.stringify(recentItems));
+
+  // Log pour vérification
+  console.log(`🎯 Question sélectionnée: "${selectedItem.key}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
+  console.log(`🔍 Tampon récent:`, recentItems);
 
   // Configurer la question
   revisionMode.currentQuestion = selectedItem.key;
@@ -2858,8 +2816,10 @@ function startRevisionQuestion() {
 
   const firstCard = document.getElementById(`revision-card-0`);
   if (firstCard) firstCard.classList.add("pulsing");
-}
 
+  console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
+  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[selectedItem.ID]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+}
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
 }  
@@ -3077,10 +3037,3 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
-
-
-
-
-
-
-
