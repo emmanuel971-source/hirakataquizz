@@ -1386,26 +1386,7 @@ function showSection(sectionId) {
 
   toggleMenu();
 }
-  // Afficher/masquer les sections
-  document.querySelectorAll('.section').forEach(section => {
-    section.classList.remove('active');
-  });
-  document.getElementById(sectionId).classList.add('active');
 
-  // Démarrer le mode révisions si c'est le mode sélectionné
-  if (sectionId === 'mode2') {
-    revisionMode.isActive = true;
-    // Petit délai pour s'assurer que la section est visible
-    setTimeout(() => {
-      initRevisionKeyboard();
-      startRevisionQuestion();
-    }, 100);
-  } else {
-    revisionMode.isActive = false;
-  }
-
-  toggleMenu();
-}
   </script>
 <script>
 let HiraganaList = [];
@@ -3106,6 +3087,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
