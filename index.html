@@ -2426,7 +2426,8 @@ function nextQuestion() {
 
   if (niveauActif > niveauMax) {
     document.getElementById("question").innerText = "🎉 Félicitations ! Tu as terminé tous les niveaux !";
-    document.getElementById("answers").innerHTML = "";
+    const answersDiv = document.getElementById("answers");
+    if (answersDiv) answersDiv.innerHTML = "";
     return;
   }
 
@@ -2470,6 +2471,11 @@ function nextQuestion() {
   }
 
   const answersDiv = document.getElementById("answers");
+  if (!answersDiv) {
+    console.warn("⚠️ nextQuestion appelé alors que la zone quiz n’est pas affichée.");
+    return;
+  }
+
   answersDiv.innerHTML = "";
   options.forEach(option => {
     const btn = document.createElement("button");
@@ -2479,7 +2485,6 @@ function nextQuestion() {
     answersDiv.appendChild(btn);
   });
 }
-
 
 function generateChoices(field) {
 const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau) === niveauActif);
@@ -3076,6 +3081,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
