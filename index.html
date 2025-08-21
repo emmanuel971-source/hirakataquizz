@@ -2418,7 +2418,9 @@ async function initGame() {
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   updateRevisionButtonState();
-  nextQuestion();  
+  if (document.getElementById('quiz').classList.contains('active')) {
+  nextQuestion();
+}
 }
 function nextQuestion() {
   const niveauMax = getMaxLevel(HiraganaList);
@@ -3081,6 +3083,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
