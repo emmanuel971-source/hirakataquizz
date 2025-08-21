@@ -2428,7 +2428,12 @@ function nextQuestion() {
 
   if (niveauActif > niveauMax) {
     document.getElementById("question").innerText = "🎉 Félicitations ! Tu as terminé tous les niveaux !";
-    const answersDiv = document.getElementById("answers");
+    const answersDiv = document.getElementById("choices1");
+const answersDiv2 = document.getElementById("choices2");
+if (!answersDiv || !answersDiv2) {
+  console.warn("⚠️ nextQuestion appelé alors que la zone quiz n'est pas affichée.");
+  return;
+}
     if (answersDiv) answersDiv.innerHTML = "";
     return;
   }
@@ -2472,7 +2477,12 @@ function nextQuestion() {
     [options[i], options[j]] = [options[j], options[i]];
   }
 
-  const answersDiv = document.getElementById("answers");
+  const answersDiv = document.getElementById("choices1");
+const answersDiv2 = document.getElementById("choices2");
+if (!answersDiv || !answersDiv2) {
+  console.warn("⚠️ nextQuestion appelé alors que la zone quiz n'est pas affichée.");
+  return;
+}
   if (!answersDiv) {
     console.warn("⚠️ nextQuestion appelé alors que la zone quiz n’est pas affichée.");
     return;
@@ -3083,6 +3093,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
