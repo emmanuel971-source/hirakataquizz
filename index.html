@@ -1382,34 +1382,11 @@ let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
-let derniereReponseClient = {}; // { ID: dateString, ... }
+
 let statsCache = {
   items: {}, // { [hiragana/katakana]: { tentatives, reussites, pourcentage } }
   globalPourcentage: 0
 };
-function DernierNiveauValidé() {
-  if (!HiraganaList || HiraganaList.length === 0) {
-    console.warn("⚠️ Aucun élément dans HiraganaList, impossible de déterminer le niveau.");
-    return 0;
-  }
-
-  const itemsAvecDate = HiraganaList.filter(
-    item => item.DerniereReponse && item.DerniereReponse !== ""
-  );
-
-  if (itemsAvecDate.length === 0) {
-    console.log("ℹ️ Aucun item avec date de dernière réponse.");
-    return 0;
-  }
-
-  const maxLevel = Math.max(...itemsAvecDate.map(item => parseInt(item.Niveau) || 0));
-  const dernierValide = Math.max(0, maxLevel - 1);
-
-  console.log(`📊 Dernier Niveau Validé = ${dernierValide} (plus haut niveau avec réponse = ${maxLevel})`);
-
-  return dernierValide;
-}
-
   
 // Variables pour le mode révisions
 let revisionMode = {
@@ -1941,7 +1918,7 @@ function playZenBell() {
   );
   oscillator.type = 'sine';
   
-  // Enveloppe rde comme une goutte
+  // Enveloppe rapide comme une goutte
   gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
   gainNode.gain.linearRampToValueAtTime((typeof globalVolume !== 'undefined' ? globalVolume : 1) * 0.3, audioCtx.currentTime + 0.01);
   gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
@@ -2220,11 +2197,6 @@ card.classList.remove('completed');
 }
 
 previousValidationStates.set(hiraganaId, newValidation);
-
-// 🔎 Calcul et affichage du dernier niveau validé avec les données client actualisées
-const dernierNiveauValide = DernierNiveauValidé();
-console.log(`📊 Dernier Niveau Validé (données client actualisées): ${dernierNiveauValide}`);
-
 }
 });
 }
@@ -2295,13 +2267,14 @@ return n;
 }
 return maxNiveau;
 }
+
 function updateLevelProgress(list, niveau) {
 renderHiraganaCards(list, niveau);
 }
 
 // Initialisation avec Google Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP GOOGLE ***
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwwBgPq_xWGaV6vU9uXe4e1zj3dPG_20FbbG_DUp7GwKuE8opOpqtS6HHYbx9eQUxNrww/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyunFkM7h0FV_xu1GRa4uOiuxeggNSVY1HRCzNungo8QonzHznN0TRNLDOEEOtfQu_8FQ/exec';
 
 // Fonction pour appeler l'API
 async function callAPI(action, data = null) {
@@ -2398,7 +2371,6 @@ async function initGame() {
   updateRevisionButtonState();
   nextQuestion();  
 }
-  
 function nextQuestion() {
 document.getElementById("result").innerText = "";
 document.getElementById("continueBtn").style.visibility = "hidden";
@@ -2551,14 +2523,6 @@ updateStarsForHiragana(parseInt(current.ID), newValidation);
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
 if (hiraganaIndex !== -1) {
 HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-// Mettre à jour la date de dernière réponse côté client
-derniereReponseClient[current.ID] = new Date().toISOString();
-console.log(`📅 Date mise à jour côté client pour ID ${current.ID}: ${derniereReponseClient[current.ID]}`);
-
-// Mettre à jour aussi dans HiraganaList pour que DernierNiveauValidé() l'utilise
-if (hiraganaIndex !== -1) {
-  HiraganaList[hiraganaIndex].DerniereReponse = derniereReponseClient[current.ID];
-}  
 }
 
 let emoji = "", resultText = "";
@@ -2745,15 +2709,15 @@ easing: "ease-in-out"
 }
 }
 function startRevisionQuestion() {
-  const dernierNiveauValide = DernierNiveauValidé();
+  const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) <= dernierNiveauValide && 
+    parseInt(h.Niveau || 1) < niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
     h.Hiragana && h.Romaji
   );
   const katakanaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) <= dernierNiveauValide && 
+    parseInt(h.Niveau || 1) < niveauActif && 
     !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
     revisionKatakanaTable[h.Katakana] &&
     h.Katakana && h.Romaji
@@ -2763,7 +2727,7 @@ function startRevisionQuestion() {
     ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: item.Katakana }))
   ];
 
-  console.log(`🎯 Items disponibles pour révision (basé sur DernierNiveauValidé=${dernierNiveauValide}): Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
+  console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
   console.log(`🔍 Exemple d'items:`, availableItems.slice(0, 3).map(item => ({
     id: item.ID,
     key: item.key,
@@ -2772,9 +2736,9 @@ function startRevisionQuestion() {
 
   if (availableItems.length === 0) {
     document.getElementById("revision-message").textContent = 
-      dernierNiveauValide < 3 ? 
-      "Mode révision disponible à partir du niveau 4 validé" : 
-      "Aucun item disponible pour révision dans les niveaux validés";
+      niveauActif < 4 ? 
+      "Mode révision disponible à partir du niveau 4" : 
+      "Aucun item disponible pour révision";
     document.getElementById("revision-message").style.color = "#dc3545";
     return;
   }
@@ -2857,19 +2821,8 @@ function startRevisionQuestion() {
   console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[selectedItem.ID]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
 }
 function isRevisionModeAvailable() {
-  const dernierNiveauValide = DernierNiveauValidé();
-  const condition1 = niveauActif >= 4;
-  const condition2 = dernierNiveauValide > 3;
-  
-  console.log(`🔍 Mode révision - Niveau actif: ${niveauActif}, Dernier validé: ${dernierNiveauValide}`);
-  console.log(`🔍 Condition 1 (niveauActif >= 4): ${condition1}`);
-  console.log(`🔍 Condition 2 (dernierNiveauValidé > 3): ${condition2}`);
-  
-  const disponible = condition1 || condition2;
-  console.log(`🎯 Mode révision disponible: ${disponible}`);
-  
-  return disponible;
-} 
+  return niveauActif >= 4;
+}  
 function updateRevisionFeedback() {
   // Reset toutes les classes
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
@@ -3084,33 +3037,3 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
