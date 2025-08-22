@@ -1393,15 +1393,15 @@ function DernierNiveauValidé() {
     return 0;
   }
 
-  // ✅ On regarde maintenant "DerniereReponse" (sans accent, comme envoyé par .gs)
-  const itemsAvecDate = HiraganaList.filter(item => item.DerniereReponse && String(item.DerniereReponse).trim() !== "");
+  const itemsAvecDate = HiraganaList.filter(
+    item => item.DerniereReponse && item.DerniereReponse !== ""
+  );
 
   if (itemsAvecDate.length === 0) {
     console.log("ℹ️ Aucun item avec date de dernière réponse.");
     return 0;
   }
 
-  // Niveau max avec une date renseignée
   const maxLevel = Math.max(...itemsAvecDate.map(item => parseInt(item.Niveau) || 0));
   const dernierValide = Math.max(0, maxLevel - 1);
 
@@ -3062,6 +3062,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
