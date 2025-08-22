@@ -2403,6 +2403,30 @@ async function initGame() {
   updateRevisionButtonState();
   nextQuestion();  
 }
+  
+function nextQuestion() {
+document.getElementById("result").innerText = "";
+document.getElementById("continueBtn").style.visibility = "hidden";
+selections = { first: null, second: null };
+isAnswered = false;
+
+const kanas = HiraganaList.filter(k =>
+parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
+);
+
+if (kanas.length === 0) {
+const nouveauNiveau = determineNiveauActif(HiraganaList);
+if (nouveauNiveau !== niveauActif) {
+niveauActif = nouveauNiveau;
+document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+updateLevelProgress(HiraganaList, niveauActif);
+updateRevisionButtonState();  
+nextQuestion();
+return;
+}
+}
+
 const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
 
 const currentWeights = finalKanas.map(k => {
@@ -3065,6 +3089,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
