@@ -2857,8 +2857,19 @@ function startRevisionQuestion() {
   console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[selectedItem.ID]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
 }
 function isRevisionModeAvailable() {
-  return niveauActif >= 4;
-}  
+  const dernierNiveauValide = DernierNiveauValidé();
+  const condition1 = niveauActif >= 4;
+  const condition2 = dernierNiveauValide > 3;
+  
+  console.log(`🔍 Mode révision - Niveau actif: ${niveauActif}, Dernier validé: ${dernierNiveauValide}`);
+  console.log(`🔍 Condition 1 (niveauActif >= 4): ${condition1}`);
+  console.log(`🔍 Condition 2 (dernierNiveauValidé > 3): ${condition2}`);
+  
+  const disponible = condition1 || condition2;
+  console.log(`🎯 Mode révision disponible: ${disponible}`);
+  
+  return disponible;
+} 
 function updateRevisionFeedback() {
   // Reset toutes les classes
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
@@ -3073,6 +3084,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
