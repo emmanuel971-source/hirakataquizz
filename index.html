@@ -2362,10 +2362,9 @@ async function initGame() {
   statsCache.items = {};
   let totalTentatives = 0, totalReussites = 0;
   HiraganaList.forEach(item => {
-    // Log des clés disponibles pour cet item
     console.log(`🔍 Clés de l\'item ID ${item.ID}:`, Object.keys(item));
 
-    const key = item.ID; // Utiliser l'ID comme clé
+    const key = item.ID;
     if (!key) {
       console.warn(`⚠️ Item sans ID:`, item);
       return;
@@ -2391,7 +2390,12 @@ async function initGame() {
       })
     ));
 
-  niveauActif = determineNiveauActif(HiraganaList);
+  // Définir niveauActif basé sur DernierNiveauValidé() + 1
+  const dernierNiveauValide = DernierNiveauValidé();
+  const maxNiveau = Math.max(...HiraganaList.map(k => parseInt(k.Niveau) || 1));
+  niveauActif = Math.min(dernierNiveauValide + 1, maxNiveau);
+  console.log(`📊 Démarrage au niveau ${niveauActif} (DernierNiveauValidé=${dernierNiveauValide}, MaxNiveau=${maxNiveau})`);
+
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
@@ -3083,6 +3087,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
