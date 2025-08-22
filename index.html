@@ -2362,9 +2362,10 @@ async function initGame() {
   statsCache.items = {};
   let totalTentatives = 0, totalReussites = 0;
   HiraganaList.forEach(item => {
+    // Log des clés disponibles pour cet item
     console.log(`🔍 Clés de l\'item ID ${item.ID}:`, Object.keys(item));
 
-    const key = item.ID;
+    const key = item.ID; // Utiliser l'ID comme clé
     if (!key) {
       console.warn(`⚠️ Item sans ID:`, item);
       return;
@@ -2390,16 +2391,10 @@ async function initGame() {
       })
     ));
 
-  // Nouvelle constante pour le démarrage uniquement
-  const dernierNiveauValide = DernierNiveauValidé();
-  const maxNiveau = Math.max(...HiraganaList.map(k => parseInt(k.Niveau) || 1));
-  const niveauDeDemarrage = Math.min(dernierNiveauValide + 1, maxNiveau);
-  console.log(`🚀 Initialisation jeu : niveauDeDemarrage=${niveauDeDemarrage}, DernierNiveauValidé=${dernierNiveauValide}, MaxNiveau=${maxNiveau}, niveauActif=${niveauActif}`);
-
-  // Utiliser niveauDeDemarrage uniquement pour l'affichage initial
-  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauDeDemarrage}`;
-  updateLevelProgress(HiraganaList, niveauDeDemarrage);
-  renderProgressBar(niveauDeDemarrage, getMaxLevel(HiraganaList));
+  niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   updateRevisionButtonState();
   nextQuestion();  
 }
@@ -3089,6 +3084,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
