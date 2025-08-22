@@ -2220,8 +2220,11 @@ card.classList.remove('completed');
 }
 
 previousValidationStates.set(hiraganaId, newValidation);
-// 🔎 Vérification du dernier niveau validé
-DernierNiveauValidé();
+
+// 🔎 Affichage du dernier niveau validé après chaque réponse
+const dernierNiveauValide = DernierNiveauValidé();
+console.log(`📊 Dernier Niveau Validé après cette réponse: ${dernierNiveauValide}`);
+
 }
 });
 }
@@ -3062,6 +3065,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
