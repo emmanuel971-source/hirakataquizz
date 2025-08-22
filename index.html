@@ -2728,6 +2728,11 @@ function startRevisionQuestion() {
   ];
 
   console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
+  console.log(`🔍 Exemple d'items:`, availableItems.slice(0, 3).map(item => ({
+    id: item.ID,
+    key: item.key,
+    pourcentage: (statsCache.items[item.ID]?.pourcentage || 0).toFixed(2) + '%'
+  })));
 
   if (availableItems.length === 0) {
     document.getElementById("revision-message").textContent = 
@@ -2742,38 +2747,21 @@ function startRevisionQuestion() {
   const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]');
   const validItems = availableItems.filter(item => !recentItems.includes(item.ID));
 
-  // Si moins de 4 items disponibles après filtrage, on relâche la contrainte
+  // Si moins de 4 items disponibles après filtrage, on relâche la contrainte pour éviter un blocage
   const itemsToUse = validItems.length >= 4 ? validItems : availableItems;
 
   let selectedItem;
-  if (Math.random() < 0.5) {
-  // 🎲 Tirage aléatoire pur, MAIS limité aux items avec Validation <= 10
-  const randomPool = itemsToUse.filter(item => parseInt(item.Validation || 0) <= 10);
-  if (Math.random() < 0.5) {
-  // 🎲 Tirage aléatoire pur, MAIS limité aux items avec Validation <= 10
-  console.log("Items dans itemsToUse:", itemsToUse.map(item => ({ ID: item.ID, Validation: item.Validation })));
-  const randomPool = itemsToUse.filter(item => parseInt(item.Validation || 0) <= 10);
-  console.log("Items dans randomPool:", randomPool.map(item => ({ ID: item.ID, Validation: item.Validation })));
-  
-  if (randomPool.length > 0) {
-    selectedItem = randomPool[Math.floor(Math.random() * randomPool.length)];
-    console.log("🎲 Mode aléatoire (50%) → Validation <= 10, Sélectionné:", selectedItem.ID, "Validation:", selectedItem.Validation);
+  const RANDOM_RATIO = 0.2; // 1/5 pour tirage aléatoire pur
+
+  if (Math.random() < RANDOM_RATIO) {
+    // Tirage aléatoire pur
+    selectedItem = itemsToUse[Math.floor(Math.random() * itemsToUse.length)];
   } else {
-    console.log("⚠️ Aucun item aléatoire disponible (Validation <= 10), passage au mode pondéré");
-    // ... logique de sélection pondérée ...
-    console.log("Mode pondéré, item sélectionné:", selectedItem.ID, "Validation:", selectedItem.Validation);
-  }
-}
-  if (randomPool.length > 0) {
-    selectedItem = randomPool[Math.floor(Math.random() * randomPool.length)];
-    console.log("🎲 Mode aléatoire (50%) → Validation <= 10");
-  } else {
-    // Pas d'item aléatoire valide, utiliser le mode pondéré
-    console.log("⚠️ Aucun item aléatoire disponible (Validation <= 10), passage au mode pondéré");
-    
-    // 📊 Tirage pondéré basé sur performances
+    // Tirage pondéré avec bias marqué sur les faiblesses
     const weights = itemsToUse.map(item => {
-      const pourcentage = statsCache.items[item.ID]?.pourcentage || 0;
+      const stats = statsCache.items[item.ID] || { pourcentage: 0 };
+      const pourcentage = stats.pourcentage;
+      // Poids quadratique avec cap à 50 pour éviter biais trop extrême
       return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
     });
     const totalWeight = weights.reduce((a, b) => a + b, 0);
@@ -2786,27 +2774,15 @@ function startRevisionQuestion() {
       }
     }
   }
-} else {
-  // 📊 Tirage pondéré basé sur performances (50% des cas)
-  const weights = itemsToUse.map(item => {
-    const pourcentage = statsCache.items[item.ID]?.pourcentage || 0;
-    return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
-  });
-  const totalWeight = weights.reduce((a, b) => a + b, 0);
-  let random = Math.random() * totalWeight;
-  for (let i = 0; i < itemsToUse.length; i++) {
-    random -= weights[i];
-    if (random <= 0) {
-      selectedItem = itemsToUse[i];
-      break;
-    }
-  }
-  console.log("📊 Mode pondéré (50%)");
-}
+
   // Mettre à jour le tampon
   recentItems.push(selectedItem.ID);
-  if (recentItems.length > 3) recentItems.shift();
+  if (recentItems.length > 3) recentItems.shift(); // Garder seulement les 3 derniers
   localStorage.setItem('recentRevisionItems', JSON.stringify(recentItems));
+
+  // Log pour vérification
+  console.log(`🎯 Question sélectionnée: "${selectedItem.key}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
+  console.log(`🔍 Tampon récent:`, recentItems);
 
   // Configurer la question
   revisionMode.currentQuestion = selectedItem.key;
@@ -2840,8 +2816,10 @@ function startRevisionQuestion() {
 
   const firstCard = document.getElementById(`revision-card-0`);
   if (firstCard) firstCard.classList.add("pulsing");
-}
 
+  console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
+  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[selectedItem.ID]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+}
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
 }  
@@ -3059,6 +3037,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
