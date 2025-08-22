@@ -1941,7 +1941,7 @@ function playZenBell() {
   );
   oscillator.type = 'sine';
   
-  // Enveloppe rapide comme une goutte
+  // Enveloppe rde comme une goutte
   gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
   gainNode.gain.linearRampToValueAtTime((typeof globalVolume !== 'undefined' ? globalVolume : 1) * 0.3, audioCtx.currentTime + 0.01);
   gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
@@ -3062,6 +3062,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
