@@ -1393,24 +1393,23 @@ function DernierNiveauValidé() {
     return 0;
   }
 
-  // On filtre uniquement les items ayant une "Dernière réponse" non vide
-  const itemsAvecDate = HiraganaList.filter(item => item["Dernière réponse"] && String(item["Dernière réponse"]).trim() !== "");
+  // ✅ On regarde maintenant "DerniereReponse" (sans accent, comme envoyé par .gs)
+  const itemsAvecDate = HiraganaList.filter(item => item.DerniereReponse && String(item.DerniereReponse).trim() !== "");
 
   if (itemsAvecDate.length === 0) {
     console.log("ℹ️ Aucun item avec date de dernière réponse.");
     return 0;
   }
 
-  // Chercher le niveau le plus haut avec une date renseignée
+  // Niveau max avec une date renseignée
   const maxLevel = Math.max(...itemsAvecDate.map(item => parseInt(item.Niveau) || 0));
-
-  // On applique ton "-1"
   const dernierValide = Math.max(0, maxLevel - 1);
 
-  console.log(`📊 Dernier Niveau Validé = ${dernierValide} (car le plus haut niveau avec une réponse est ${maxLevel})`);
+  console.log(`📊 Dernier Niveau Validé = ${dernierValide} (plus haut niveau avec réponse = ${maxLevel})`);
 
   return dernierValide;
 }
+
   
 // Variables pour le mode révisions
 let revisionMode = {
@@ -3063,6 +3062,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
