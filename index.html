@@ -1387,6 +1387,30 @@ let statsCache = {
   items: {}, // { [hiragana/katakana]: { tentatives, reussites, pourcentage } }
   globalPourcentage: 0
 };
+function DernierNiveauValidé() {
+  if (!HiraganaList || HiraganaList.length === 0) {
+    console.warn("⚠️ Aucun élément dans HiraganaList, impossible de déterminer le niveau.");
+    return 0;
+  }
+
+  // On filtre uniquement les items ayant une "Dernière réponse" non vide
+  const itemsAvecDate = HiraganaList.filter(item => item["Dernière réponse"] && String(item["Dernière réponse"]).trim() !== "");
+
+  if (itemsAvecDate.length === 0) {
+    console.log("ℹ️ Aucun item avec date de dernière réponse.");
+    return 0;
+  }
+
+  // Chercher le niveau le plus haut avec une date renseignée
+  const maxLevel = Math.max(...itemsAvecDate.map(item => parseInt(item.Niveau) || 0));
+
+  // On applique ton "-1"
+  const dernierValide = Math.max(0, maxLevel - 1);
+
+  console.log(`📊 Dernier Niveau Validé = ${dernierValide} (car le plus haut niveau avec une réponse est ${maxLevel})`);
+
+  return dernierValide;
+}
   
 // Variables pour le mode révisions
 let revisionMode = {
@@ -2197,6 +2221,8 @@ card.classList.remove('completed');
 }
 
 previousValidationStates.set(hiraganaId, newValidation);
+// 🔎 Vérification du dernier niveau validé
+DernierNiveauValidé();
 }
 });
 }
@@ -3037,6 +3063,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
