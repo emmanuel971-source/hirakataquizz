@@ -2283,19 +2283,19 @@ container.appendChild(rightEmoji);
 }
 
 function determineNiveauActif(list) {
-if (!list || list.length === 0) return 1;
-let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
+  if (!list || list.length === 0) {
+    console.warn("⚠️ Liste vide, démarrage au niveau 1");
+    return 1;
+  }
 
-for (let n = 1; n <= maxNiveau; n++) {
-const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
-const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5);
-if (kanjisValides.length < kanjisNiveau.length) {
-return n;
-}
-}
-return maxNiveau;
-}
+  const dernierNiveauValide = DernierNiveauValidé();
+  const maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
+  const niveauSuivant = Math.min(dernierNiveauValide + 1, maxNiveau);
 
+  console.log(`📊 Démarrage au niveau ${niveauSuivant} (DernierNiveauValidé=${dernierNiveauValide}, MaxNiveau=${maxNiveau})`);
+
+  return niveauSuivant;
+}
 function updateLevelProgress(list, niveau) {
 renderHiraganaCards(list, niveau);
 }
@@ -3084,6 +3084,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
