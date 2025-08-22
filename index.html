@@ -2390,41 +2390,19 @@ async function initGame() {
       })
     ));
 
-  // Définir niveauActif basé sur DernierNiveauValidé() + 1
+  // Nouvelle constante pour le démarrage uniquement
   const dernierNiveauValide = DernierNiveauValidé();
   const maxNiveau = Math.max(...HiraganaList.map(k => parseInt(k.Niveau) || 1));
-  niveauActif = Math.min(dernierNiveauValide + 1, maxNiveau);
-  console.log(`📊 Démarrage au niveau ${niveauActif} (DernierNiveauValidé=${dernierNiveauValide}, MaxNiveau=${maxNiveau})`);
+  const niveauDeDemarrage = Math.min(dernierNiveauValide + 1, maxNiveau);
+  console.log(`🚀 Initialisation jeu : niveauDeDemarrage=${niveauDeDemarrage}, DernierNiveauValidé=${dernierNiveauValide}, MaxNiveau=${maxNiveau}, niveauActif=${niveauActif}`);
 
-  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-  updateLevelProgress(HiraganaList, niveauActif);
-  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  // Utiliser niveauDeDemarrage uniquement pour l'affichage initial
+  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauDeDemarrage}`;
+  updateLevelProgress(HiraganaList, niveauDeDemarrage);
+  renderProgressBar(niveauDeDemarrage, getMaxLevel(HiraganaList));
   updateRevisionButtonState();
   nextQuestion();  
 }
-function nextQuestion() {
-document.getElementById("result").innerText = "";
-document.getElementById("continueBtn").style.visibility = "hidden";
-selections = { first: null, second: null };
-isAnswered = false;
-
-const kanas = HiraganaList.filter(k =>
-parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
-);
-
-if (kanas.length === 0) {
-const nouveauNiveau = determineNiveauActif(HiraganaList);
-if (nouveauNiveau !== niveauActif) {
-niveauActif = nouveauNiveau;
-document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-updateLevelProgress(HiraganaList, niveauActif);
-updateRevisionButtonState();  
-nextQuestion();
-return;
-}
-}
-
 const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
 
 const currentWeights = finalKanas.map(k => {
@@ -3087,6 +3065,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
