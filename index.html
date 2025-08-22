@@ -2749,7 +2749,21 @@ function startRevisionQuestion() {
   if (Math.random() < 0.5) {
   // 🎲 Tirage aléatoire pur, MAIS limité aux items avec Validation <= 10
   const randomPool = itemsToUse.filter(item => parseInt(item.Validation || 0) <= 10);
+  if (Math.random() < 0.5) {
+  // 🎲 Tirage aléatoire pur, MAIS limité aux items avec Validation <= 10
+  console.log("Items dans itemsToUse:", itemsToUse.map(item => ({ ID: item.ID, Validation: item.Validation })));
+  const randomPool = itemsToUse.filter(item => parseInt(item.Validation || 0) <= 10);
+  console.log("Items dans randomPool:", randomPool.map(item => ({ ID: item.ID, Validation: item.Validation })));
   
+  if (randomPool.length > 0) {
+    selectedItem = randomPool[Math.floor(Math.random() * randomPool.length)];
+    console.log("🎲 Mode aléatoire (50%) → Validation <= 10, Sélectionné:", selectedItem.ID, "Validation:", selectedItem.Validation);
+  } else {
+    console.log("⚠️ Aucun item aléatoire disponible (Validation <= 10), passage au mode pondéré");
+    // ... logique de sélection pondérée ...
+    console.log("Mode pondéré, item sélectionné:", selectedItem.ID, "Validation:", selectedItem.Validation);
+  }
+}
   if (randomPool.length > 0) {
     selectedItem = randomPool[Math.floor(Math.random() * randomPool.length)];
     console.log("🎲 Mode aléatoire (50%) → Validation <= 10");
@@ -2773,7 +2787,7 @@ function startRevisionQuestion() {
     }
   }
 } else {
-  // 📊 Tirage pondéré basé sur performances (80% des cas)
+  // 📊 Tirage pondéré basé sur performances (50% des cas)
   const weights = itemsToUse.map(item => {
     const pourcentage = statsCache.items[item.ID]?.pourcentage || 0;
     return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
@@ -2787,7 +2801,7 @@ function startRevisionQuestion() {
       break;
     }
   }
-  console.log("📊 Mode pondéré (80%)");
+  console.log("📊 Mode pondéré (50%)");
 }
   // Mettre à jour le tampon
   recentItems.push(selectedItem.ID);
@@ -3045,6 +3059,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
