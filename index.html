@@ -2772,8 +2772,8 @@ function startRevisionQuestion() {
 
   if (availableItems.length === 0) {
     document.getElementById("revision-message").textContent = 
-      niveauActif < 4 ? 
-      "Mode révision disponible à partir du niveau 4" : 
+   /*   niveauActif < 4 ?  */
+   /*   "Mode révision disponible à partir du niveau 4" : */
       "Aucun item disponible pour révision";
     document.getElementById("revision-message").style.color = "#dc3545";
     return;
@@ -3084,6 +3084,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
