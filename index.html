@@ -1382,7 +1382,7 @@ let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
-
+let derniereReponseClient = {}; // { ID: dateString, ... }
 let statsCache = {
   items: {}, // { [hiragana/katakana]: { tentatives, reussites, pourcentage } }
   globalPourcentage: 0
@@ -2221,9 +2221,9 @@ card.classList.remove('completed');
 
 previousValidationStates.set(hiraganaId, newValidation);
 
-// 🔎 Affichage du dernier niveau validé après chaque réponse
+// 🔎 Calcul et affichage du dernier niveau validé avec les données client actualisées
 const dernierNiveauValide = DernierNiveauValidé();
-console.log(`📊 Dernier Niveau Validé après cette réponse: ${dernierNiveauValide}`);
+console.log(`📊 Dernier Niveau Validé (données client actualisées): ${dernierNiveauValide}`);
 
 }
 });
@@ -2551,6 +2551,14 @@ updateStarsForHiragana(parseInt(current.ID), newValidation);
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
 if (hiraganaIndex !== -1) {
 HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+// Mettre à jour la date de dernière réponse côté client
+derniereReponseClient[current.ID] = new Date().toISOString();
+console.log(`📅 Date mise à jour côté client pour ID ${current.ID}: ${derniereReponseClient[current.ID]}`);
+
+// Mettre à jour aussi dans HiraganaList pour que DernierNiveauValidé() l'utilise
+if (hiraganaIndex !== -1) {
+  HiraganaList[hiraganaIndex].DerniereReponse = derniereReponseClient[current.ID];
+}  
 }
 
 let emoji = "", resultText = "";
@@ -3065,6 +3073,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
