@@ -2745,15 +2745,15 @@ easing: "ease-in-out"
 }
 }
 function startRevisionQuestion() {
-  const niveauActif = determineNiveauActif(HiraganaList);
+  const dernierNiveauValide = DernierNiveauValidé();
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) < niveauActif && 
+    parseInt(h.Niveau || 1) <= dernierNiveauValide && 
     revisionRomajiTable[h.Hiragana] &&
     h.Hiragana && h.Romaji
   );
   const katakanaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) < niveauActif && 
+    parseInt(h.Niveau || 1) <= dernierNiveauValide && 
     !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
     revisionKatakanaTable[h.Katakana] &&
     h.Katakana && h.Romaji
@@ -2763,7 +2763,7 @@ function startRevisionQuestion() {
     ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: item.Katakana }))
   ];
 
-  console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
+  console.log(`🎯 Items disponibles pour révision (basé sur DernierNiveauValidé=${dernierNiveauValide}): Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
   console.log(`🔍 Exemple d'items:`, availableItems.slice(0, 3).map(item => ({
     id: item.ID,
     key: item.key,
@@ -2772,9 +2772,9 @@ function startRevisionQuestion() {
 
   if (availableItems.length === 0) {
     document.getElementById("revision-message").textContent = 
-   /*   niveauActif < 4 ?  */
-   /*   "Mode révision disponible à partir du niveau 4" : */
-      "Aucun item disponible pour révision";
+      dernierNiveauValide < 3 ? 
+      "Mode révision disponible à partir du niveau 4 validé" : 
+      "Aucun item disponible pour révision dans les niveaux validés";
     document.getElementById("revision-message").style.color = "#dc3545";
     return;
   }
@@ -3084,6 +3084,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
