@@ -2717,6 +2717,7 @@ easing: "ease-in-out"
 });
 }
 }
+
 function startRevisionQuestion() {
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
@@ -2747,15 +2748,15 @@ function startRevisionQuestion() {
     return;
   }
 
-  // Tampon des 3 derniers tirages
-  const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]');
+  // Tampon des 3 derniers tirages - convertir en numbers
+  const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]').map(id => parseInt(id));
 
   let selectedItem;
   const RANDOM_RATIO = 0.2; // 20% pour tirage aléatoire pur
 
   if (Math.random() < RANDOM_RATIO) {
     // 🎲 TIRAGE ALÉATOIRE PUR (20%) - Filtré seulement par le tampon
-    const randomItems = availableItems.filter(item => !recentItems.includes(item.ID));
+    const randomItems = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
     const finalRandomItems = randomItems.length >= 4 ? randomItems : availableItems;
     
     selectedItem = finalRandomItems[Math.floor(Math.random() * finalRandomItems.length)];
@@ -2766,51 +2767,60 @@ function startRevisionQuestion() {
     
   } else {
     // ⚖️ TIRAGE PONDÉRÉ (80%) - Filtré par Validation ≤ 10 + tampon
-    const weightedItems = availableItems.filter(item => 
-      (validationCache[item.ID] || 0) <= 10 && !recentItems.includes(item.ID)
-    );
-    const finalWeightedItems = weightedItems.length >= 4 ? weightedItems : 
-      availableItems.filter(item => (validationCache[item.ID] || 0) <= 10);
-
-    if (finalWeightedItems.length === 0) {
-      // Fallback si aucun item ne respecte Validation ≤ 10
-      const fallbackItems = availableItems.filter(item => !recentItems.includes(item.ID));
-      selectedItem = fallbackItems.length > 0 ? 
-        fallbackItems[Math.floor(Math.random() * fallbackItems.length)] : 
-        availableItems[Math.floor(Math.random() * availableItems.length)];
-      console.log(`⚠️ FALLBACK - Aucun item Validation ≤ 10 disponible`);
+    const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) <= 10);
+    const weightedItems = validationFilteredItems.filter(item => !recentItems.includes(parseInt(item.ID)));
+    
+    let finalWeightedItems;
+    
+    if (weightedItems.length >= 4) {
+      // Cas idéal : assez d'items respectant validation ≤ 10 ET hors tampon
+      finalWeightedItems = weightedItems;
+    } else if (weightedItems.length > 0) {
+      // Peu d'items mais au moins quelques-uns : on les garde
+      finalWeightedItems = weightedItems;
     } else {
-      // Tirage pondéré classique
-      const weights = finalWeightedItems.map(item => {
-        const stats = statsCache.items[item.ID] || { pourcentage: 0 };
-        const pourcentage = stats.pourcentage;
-        return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
-      });
-      const totalWeight = weights.reduce((a, b) => a + b, 0);
-      let random = Math.random() * totalWeight;
-      for (let i = 0; i < finalWeightedItems.length; i++) {
-        random -= weights[i];
-        if (random <= 0) {
-          selectedItem = finalWeightedItems[i];
-          break;
-        }
+      // Aucun item respectant les deux contraintes
+      // PRIORITÉ : éviter le tampon (libérer contrainte validation ≤ 10)
+      const itemsHorsTampon = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
+      if (itemsHorsTampon.length > 0) {
+        finalWeightedItems = itemsHorsTampon;
+        console.log(`⚠️ FALLBACK 1 - Libération contrainte Validation ≤ 10 pour éviter tampon`);
+      } else {
+        // Dernier recours : prendre tous les items (même dans le tampon)
+        finalWeightedItems = availableItems;
+        console.log(`⚠️ FALLBACK 2 - Tous les items utilisés (tampon ignoré)`);
+      }
+    }
+
+    // Tirage pondéré sur les items finaux
+    const weights = finalWeightedItems.map(item => {
+      const stats = statsCache.items[parseInt(item.ID)] || { pourcentage: 0 };
+      const pourcentage = stats.pourcentage;
+      return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
+    });
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let random = Math.random() * totalWeight;
+    for (let i = 0; i < finalWeightedItems.length; i++) {
+      random -= weights[i];
+      if (random <= 0) {
+        selectedItem = finalWeightedItems[i];
+        break;
       }
     }
     
     console.log(`⚖️ TIRAGE PONDÉRÉ (80%)`);
     console.log(`📋 Items disponibles (Validation ≤ 10 + tampon): ${finalWeightedItems.length}/${availableItems.length}`);
     console.log(`🔍 Items respectant Validation ≤ 10:`, 
-      availableItems.filter(item => (validationCache[item.ID] || 0) <= 10)
-        .map(item => `${item.key}(ID:${item.ID},Val:${validationCache[item.ID] || 0})`)
+      validationFilteredItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0})`)
         .join(', '));
     console.log(`🚫 Items exclus par tampon:`, recentItems.join(', '));
     console.log(`✅ Items finaux pour pondération:`, 
-      finalWeightedItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[item.ID] || 0},${(statsCache.items[item.ID]?.pourcentage || 0).toFixed(1)}%)`)
+      finalWeightedItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0},${(statsCache.items[parseInt(item.ID)]?.pourcentage || 0).toFixed(1)}%)`)
         .join(', '));
   }
 
-  // Mettre à jour le tampon
-  recentItems.push(selectedItem.ID);
+  // Mettre à jour le tampon - s'assurer que c'est un number
+  recentItems.push(parseInt(selectedItem.ID));
   if (recentItems.length > 3) recentItems.shift(); // Garder seulement les 3 derniers
   localStorage.setItem('recentRevisionItems', JSON.stringify(recentItems));
 
@@ -2852,8 +2862,8 @@ function startRevisionQuestion() {
   if (firstCard) firstCard.classList.add("pulsing");
 
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
-  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[selectedItem.ID]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
-}
+  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+}  
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
 }  
@@ -3081,6 +3091,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
