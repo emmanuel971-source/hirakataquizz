@@ -1373,30 +1373,29 @@
 function showSection(sectionId) {
   // Vérification spéciale pour le mode quiz (Apprendre)
   if (sectionId === 'quiz') {
-    const currentGroupeId = getCurrentGroupe(); // Basé sur niveauActif (Validation = 5)
-    const groupeDebloque = determineGroupeDebloque(HiraganaList); // Basé sur Validation = 10
+    const currentGroupeId = getCurrentGroupe();
+    const groupeDebloque = determineGroupeDebloque(HiraganaList);
     
-    // Si le groupe actuel n'est pas débloqué par le mode révision
     if (currentGroupeId > groupeDebloque) {
       showBlockingOverlay();
-      return;
+      return; // Ne pas afficher la section
     }
   }
-    // Vérifier si on essaie d'accéder au mode révision
+  
+  // Vérifier si on essaie d'accéder au mode révision
   if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
-    // Optionnel : afficher un message d'erreur
     console.log('Mode révision non disponible');
     return;
   }
+  
+  // Le reste du code inchangé...
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
   document.getElementById(sectionId).classList.add('active');
   
- // Démarrer le mode révisions si c'est le mode sélectionné
   if (sectionId === 'mode2') {
     revisionMode.isActive = true;
-    // Petit délai pour s'assurer que la section est visible
     setTimeout(() => {
       initRevisionKeyboard();
       startRevisionQuestion();
@@ -1479,6 +1478,12 @@ function isGroupeCompleted(groupeId) {
   return itemsGroupe.length > 0 && itemsValides.length === itemsGroupe.length;
 }
 function showBlockingOverlay() {
+  // Éviter les doublons
+  const existingOverlay = document.getElementById('blocking-overlay');
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+  
   const currentGroupeId = getCurrentGroupe();
   const itemsGroupe = HiraganaList.filter(item => 
     GROUPES[currentGroupeId].niveaux.includes(parseInt(item.Niveau))
@@ -1498,14 +1503,40 @@ function showBlockingOverlay() {
   `;
   document.body.appendChild(overlay);
 }
+function showUnlockMessage() {
+  // Éviter les doublons
+  const existingOverlay = document.getElementById('unlock-overlay');
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'unlock-overlay';
+  overlay.innerHTML = `
+    <div class="blocking-content">
+      <h2>🎉 Bravo !</h2>
+      <p>Le mode Apprendre est débloqué pour les niveaux suivants</p>
+      <button class="arcade-button" onclick="closeUnlockMessage()">OK</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
 
+function closeUnlockMessage() {
+  const overlay = document.getElementById('unlock-overlay');
+  if (overlay) {
+    overlay.remove();
+  }
+  showSection('quiz'); // Retourner au mode Apprendre
+}
 function closeBlockingOverlay() {
   const overlay = document.getElementById('blocking-overlay');
   if (overlay) {
     overlay.remove();
   }
-  showSection('quiz'); // Retourner au menu principal
+  showSection('mode2'); // Aller directement en mode révision
 }
+
 function determineGroupeDebloque(list) {
   if (!list || list.length === 0) return 1;
   
@@ -2519,13 +2550,23 @@ parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
 if (kanas.length === 0) {
 const nouveauNiveau = determineNiveauActif(HiraganaList);
 if (nouveauNiveau !== niveauActif) {
-niveauActif = nouveauNiveau;
-document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-updateLevelProgress(HiraganaList, niveauActif);
-updateRevisionButtonState();  
-nextQuestion();
-return;
+  niveauActif = nouveauNiveau;
+  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  updateLevelProgress(HiraganaList, niveauActif);
+  updateRevisionButtonState();
+  
+  // NOUVELLE VÉRIFICATION : Contrôler si le nouveau niveau est autorisé
+  const currentGroupeId = getCurrentGroupe();
+  const groupeDebloque = determineGroupeDebloque(HiraganaList);
+  
+  if (currentGroupeId > groupeDebloque) {
+    showBlockingOverlay();
+    return; // Arrêter la progression
+  }
+  
+  nextQuestion();
+  return;
 }
 }
 
@@ -3127,6 +3168,7 @@ function initRevisionKeyboard() {
 
       if (revisionMode.input.length >= totalLength) {
         const isCorrect = revisionMode.input === revisionMode.fullCorrect;
+        const ancienGroupeDebloque = determineGroupeDebloque(HiraganaList);
         const key = revisionMode.currentItem.ID; // Utiliser l'ID comme clé
 
         // Mettre à jour statsCache
@@ -3162,7 +3204,14 @@ if (hiraganaIndex !== -1) {
   
   console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
 }
-
+// AJOUTER ICI - Vérifier si un groupe vient d'être débloqué
+  const nouveauGroupeDebloque = determineGroupeDebloque(HiraganaList);
+  
+  if (nouveauGroupeDebloque > ancienGroupeDebloque) {
+    setTimeout(() => {
+      showUnlockMessage();
+    }, 1000);
+  }
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
           id: parseInt(revisionMode.currentItem.ID), 
@@ -3218,6 +3267,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
