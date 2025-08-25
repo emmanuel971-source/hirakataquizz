@@ -1264,7 +1264,8 @@
   transform: translateX(100%); /* animation type menu */
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
   opacity: 0;
-  z-index: 2000; /* devant le quiz */
+  isolation: isolate; /* crée un nouveau contexte d'empilement */
+  z-index: 99999 !important; /* passe devant absolument tout */
 }
 
 #blocking-overlay.active, #unlock-overlay.active {
@@ -3320,6 +3321,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
