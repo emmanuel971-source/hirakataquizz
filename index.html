@@ -1,7 +1,1261 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <link rel="icon" href="data:,">
+  <base target="_top">
+  <style>
+    html {
+      touch-action: pan-x pan-y;
+      -ms-touch-action: pan-x pan-y;
+    }
+
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #F8F1E9;
+      font-family: 'Noto Sans JP', sans-serif;
+      color: #8B6F47;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 0.5em 1em 1em 1em;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+      opacity: 0.1;
+      z-index: -1;
+    }
+
+    h1 {
+      margin: 0.5em 0;
+      font-size: 1.8em;
+      text-align: center;
+      color: #8B6F47;
+      text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
+    }
+
+    @media screen and (max-width: 400px),
+    screen and (-webkit-min-device-pixel-ratio: 2),
+    screen and (min-resolution: 192dpi) {
+      h1 {
+        font-size: 3em;
+        margin: 0.3em 0;
+      }
+    }
+
+    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+      h1 {
+        font-size: 2.2em;
+        margin: 0.15em 0;
+      }
+    }
+
+    h2 {
+      margin: 0.5em 0;
+      font-size: 3em;
+      text-align: center;
+      color: #8B6F47;
+      text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
+    }
+
+    @media screen and (max-width: 400px),
+    screen and (-webkit-min-device-pixel-ratio: 2),
+    screen and (min-resolution: 192dpi) {
+      h2 {
+        font-size: 4em;
+        margin: 0.1em 0;
+      }
+    }
+
+    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+      h2 {
+        font-size: 4em;
+        margin: 0.15em 0;
+      }
+    }
+
+    
+    #progressBarContainer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5em;
+      margin: 1em auto 0.3em auto;
+      max-width: 40ch;
+      width: 100%;
+    }
+
+    .progress-bar-track {
+      position: relative;
+      height: 16px;
+      background: linear-gradient(to right, #E0F7FA, #355E3B);
+      border-radius: 6px;
+      flex: 1;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-marker {
+      position: absolute;
+      top: 45%;
+      left: 0;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      transition: left 1.5s ease;
+      color: #636E72;
+    }
+
+    .side-emoji {
+      font-size: 1.6em;
+      line-height: 1;
+      color: #636E72;
+    }
+
+    @keyframes pulse {
+      0% { transform: translate(-50%, -50%) scale(1); }
+      100% { transform: translate(-50%, -50%) scale(1.2); }
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+      #progressBarContainer {
+        max-width: 80%;
+        margin: 1.5em auto 0.5em auto;
+        gap: 1em;
+      }
+
+      .progress-bar-track {
+        height: 32px;
+        border-radius: 12px;
+      }
+
+      .progress-marker {
+        font-size: 4.5em;
+        top: 45%;
+        transform: translate(-50%, -50%);
+      }
+
+      .side-emoji {
+        font-size: 2.5em;
+      }
+    }
+
+    .level-hiraganas {
+      margin: 1em auto;
+      max-width: 800px;
+      flex-shrink: 0;
+    }
+
+    .hiraganas-grid {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 0.5em;
+    }
+
+    .hiragana-card {
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 10px;
+      background: #FFFFFF;
+      border-radius: 8px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .hiragana-card.completed {
+      background: #DDE6D5;
+      animation: completedPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes completedPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .hiragana-char {
+      font-size: 2.2em;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #8B6F47;
+      text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
+    }
+
+    .hiragana-card.completed .hiragana-char {
+      color: #A8D5BA;
+      text-shadow: 0 0 5px rgba(168, 213, 186, 0.5);
+      animation: starGlow 2s ease-in-out infinite;
+    }
+
+    .stars-container {
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .star {
+      width: 12px;
+      height: 12px;
+      background: #E8ECEF;
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      transition: all 0.3s ease;
+    }
+
+    .star.filled {
+      background: #FDC1C5;
+    }
+
+    .star.new-star {
+      animation: starFill 0.5s ease-in-out;
+    }
+
+    .hiragana-card.completed .star.filled {
+      background: #A8D5BA;
+      animation: starGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes starFill {
+      0% { transform: scale(0) rotate(180deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    @keyframes starGlow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.3); }
+    }
+
+    .firework {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0.5em;
+      height: 0.5em;
+      background: transparent;
+      pointer-events: none;
+      animation: fireworkExplosion 700ms ease-out forwards;
+      z-index: 10;
+    }
+
+    @keyframes fireworkExplosion {
+      0% {
+        box-shadow: 0 0 #ff0, 0 0 #f00, 0 0 #0ff;
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+      }
+      100% {
+        box-shadow: 0 -40px #ff0, 30px -30px #f00, 40px 0 #0ff, 30px 30px #0f0, 0 40px #00f, -30px 30px #f0f, -40px 0 #fff, -30px -30px #ff0;
+        opacity: 0;
+        transform: translateX(-50%) scale(0.5);
+      }
+    }
+
+    .sakura {
+      position: absolute;
+      width: 100px;
+      height: 10px;
+      background: #FDC1C5;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: sakuraFall 3s linear forwards;
+      z-index: 10;
+    }
+
+    @keyframes sakuraFall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+      .level-hiraganas {
+        max-width: none;
+        width: 100vw;
+        padding: 0 2em;
+        box-sizing: border-box;
+      }
+
+      .hiraganas-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        gap: 15px;
+      }
+
+      .hiragana-card {
+        flex: 1 1 auto;
+        min-width: 80px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        padding: 10px;
+        background: #FFFFFF;
+        border-radius: 8px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+      }
+
+      .hiragana-char {
+        font-size: 4em;
+        margin-bottom: 10px;
+      }
+
+      .stars-container {
+        display: flex;
+        justify-content: center;
+        gap: 2px;
+      }
+
+      .star {
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+      .level-hiraganas {
+        max-width: none;
+        width: 100vw;
+        padding: 0 2em;
+        box-sizing: border-box;
+      }
+
+      .hiraganas-grid {
+        width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        gap: 20px;
+      }
+
+      .hiragana-card {
+        flex: 1 1 120px;
+        max-width: 140px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        padding: 10px;
+        background: #FFFFFF;
+        border-radius: 8px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+      }
+
+      .hiragana-char {
+        font-size: 6em;
+        margin-bottom: 10px;
+      }
+
+      .stars-container {
+        gap: 2px;
+      }
+
+      .star {
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    .quiz-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 0;
+      padding-bottom: 2em;
+    }
+
+    .question {
+      font-size: 3.5em;
+      font-weight: bold;
+      margin: 0.5em 0;
+      height: 1.2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8B6F47;
+      text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
+    }
+
+    .answers {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8em;
+      margin-bottom: 1em;
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+      .quiz-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        min-height: 0;
+        padding-bottom: 2em;
+      }
+
+      .question {
+        font-size: 10em;
+        font-weight: bold;
+        margin: 0.5em 0;
+        height: 1.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
+      }
+
+  .answers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    justify-content: center; /* centre le grid */
+    gap: 0.8em;
+    margin-bottom: 1em;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 1em;
+  }
+
+      .sakura {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    .arcade-button {
+      position: relative;
+      background: #F5E8C7;
+      background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
+      border: 2px solid #8B6F47;
+      border-radius: 10px;
+      padding: 0.8em 1.5em;
+      color: #8B6F47;
+      font-size: 1.4em;
+      line-height: 0.6;
+      white-space: normal;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+      transition: all 0.15s ease;
+      text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
+      overflow: hidden;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .arcade-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      pointer-events: none;
+    }
+
+    .arcade-button:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+      border-color: #7A5C3A;
+    }
+
+    .arcade-button:active {
+      transform: translateY(2px) scale(0.98);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    }
+
+    .arcade-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+
+    .arcade-button.clicked {
+      opacity: 1 !important;
+      cursor: default;
+    }
+
+    .arcade-button.clicked-glow {
+      text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
+      animation: glowPulse 1s ease-in-out infinite;
+    }
+
+    .arcade-button.correct {
+      background: rgba(168, 213, 186, 0.5) !important;
+      color: #8B6F47;
+      border-color: #A8D5BA;
+      background-image: none !important;
+      animation: correctGlow 0.6s ease-in-out;
+      opacity: 1 !important;
+    }
+
+    .arcade-button.correct::before {
+      display: none;
+    }
+
+    .arcade-button.incorrect {
+      background: rgba(253, 193, 197, 0.5) !important;
+      color: #8B6F47;
+      border-color: #FDC1C5;
+      background-image: none !important;
+      animation: incorrectShake 0.6s ease-in-out;
+      opacity: 1 !important;
+    }
+
+    .arcade-button.incorrect::before {
+      display: none;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
+      50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
+    }
+
+    @keyframes correctGlow {
+      0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+      50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
+      100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+    }
+
+    @keyframes incorrectShake {
+      0% { transform: translateX(0); }
+      10% { transform: translateX(-8px); }
+      20% { transform: translateX(8px); }
+      30% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      50% { transform: translateX(-4px); }
+      60% { transform: translateX(4px); }
+      70% { transform: translateX(-2px); }
+      80% { transform: translateX(2px); }
+      90% { transform: translateX(-1px); }
+      100% { transform: translateX(0); }
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+      button, a, input, textarea {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .arcade-button {
+        font-size: 4em;
+        aspect-ratio: 1 / 0.6;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+    }
+
+    .result {
+      animation: fadeIn 0.4s ease-in;
+      font-size: 1.3em;
+      line-height: 1.4em;
+      margin: 0.5em 0 0.2em 0;
+      min-height: 4.5em;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: #8B6F47;
+    }
+
+    .result-line.highlight {
+      color: #8B6F47;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #continueBtn {
+      visibility: hidden;
+      margin: 0.5em auto;
+      display: block;
+      width: fit-content;
+    }
+
+    #boutonInstaller {
+      margin: 0.5em auto;
+      height: 3em;
+      display: none;
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+      .result {
+        margin-top: 5em;
+        text-align: center;
+        word-break: break-word;
+        white-space: normal;
+        display: block;
+        min-height: auto;
+      }
+
+      .result > * {
+        width: 100%;
+      }
+
+      .result-line {
+        font-size: 4em;
+        width: 100%;
+        text-align: center;
+      }
+
+      .result-line.highlight {
+        margin-top: 1.2em;
+        font-size: 3em;
+      }
+
+      .result-line.highlight {
+        line-height: 1.2;
+        margin-top: 0.5em;
+      }
+
+      #continueBtn {
+        margin-top: 1em;
+        margin-bottom: 1em;
+        height: 3em;
+      }
+
+      #boutonInstaller {
+        margin-top: 1em;
+        margin-bottom: 1em;
+        height: 3em;
+      }
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+      .result {
+        margin-top: 5em;
+      }
+
+      .result > * {
+        width: 100%;
+      }
+
+      .result {
+        text-align: center;
+        word-break: break-word;
+        white-space: normal;
+        display: block;
+        min-height: auto;
+      }
+
+      .result-line {
+        font-size: 4em;
+        width: 100%;
+        text-align: center;
+      }
+
+      .result-line.highlight {
+        margin-top: 1.2em;
+        font-size: 3em;
+      }
+
+      .result-line.highlight {
+        line-height: 1.2;
+        margin-top: 0.5em;
+      }
+
+      #continueBtn {
+        margin-top: 2em;
+        margin-bottom: 2em;
+        height: 3em;
+        width: 100%;
+      }
+
+      visibility: hidden;
+    }
+
+    #boutonInstaller {
+      margin-top: 1em;
+      margin-bottom: 1em;
+      height: 3em;
+    }
+
+    .sakura {
+      width: 20px;
+      height: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .hiraganas-grid {
+        gap: 15px;
+      }
+
+      .hiragana-char {
+        font-size: 1.8em;
+      }
+
+      .question {
+        font-size: 2.8em;
+      }
+
+      .arcade-button {
+        padding: 0.6em 1.2em;
+        font-size: 1em;
+      }
+    }
+
+    @media (max-height: 700px) {
+      .hiragana-char {
+        font-size: 1.6em;
+        margin-bottom: 4px;
+      }
+
+      .question {
+        font-size: 2.5em;
+        margin: 0.3em 0;
+      }
+
+      .answers {
+        gap: 0.6em;
+        margin-bottom: 0.8em;
+      }
+
+      .arcade-button {
+        padding: 0.6em 1.2em;
+      }
+    }
+
+    @media (max-height: 600px) {
+      .hiragana-char {
+        font-size: 1.4em;
+      }
+
+      .stars-container {
+        gap: 1px;
+      }
+
+      .star {
+        width: 10px;
+        height: 10px;
+      }
+
+      .question {
+        font-size: 2.2em;
+      }
+
+      .progress-marker {
+        font-size: 1.6em;
+      }
+
+      .side-emoji {
+        font-size: 1.4em;
+      }
+    }
+
+    @keyframes confettiFall {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(110vh) rotate(720deg); }
+    }
+
+    body.shake {
+      animation: screenShake 0.4s ease-in-out;
+    }
+
+    @keyframes screenShake {
+      0% { transform: translate(0px, 0px); }
+      25% { transform: translate(4px, -4px); }
+      50% { transform: translate(-4px, 4px); }
+      75% { transform: translate(4px, 4px); }
+      100% { transform: translate(0px, 0px); }
+    }
+
+    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+      #progressBarContainer {
+        max-width: 80%;
+        margin: 1.5em auto 0.5em auto;
+        gap: 1em;
+      }
+
+      .progress-bar-track {
+        height: 32px;
+        border-radius: 12px;
+      }
+
+      .progress-marker {
+        font-size: 4.5em;
+        top: 30%;
+      }
+
+      .side-emoji {
+        font-size: 2.5em;
+      }
+
+      .level {
+        font-size: 2.5em;
+        margin: 0.4em 0;
+      }
+    }
+
+    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+      #progressBarContainer {
+        max-width: 80%;
+        margin: 1.5em auto 0.5em auto;
+        gap: 1em;
+      }
+
+      .progress-bar-track {
+        height: 32px;
+        border-radius: 12px;
+      }
+
+      .progress-marker {
+        font-size: 4.5em;
+        top: 30%;
+      }
+
+      .side-emoji {
+        font-size: 2.5em;
+      }
+
+      .level {
+        font-size: 1.5em;
+        margin: 0.1em 0;
+      }
+    }
+
+/* ? NOUVEAU STYLE HAMBURGER - Style carte hiragana */
+.hamburger {
+  position: fixed;
+  background: #FFFFFF; /* Fond blanc comme les cartes */
+  border: none; /* Supprime la bordure */
+  border-radius: 8px; /* Bords arrondis comme les cartes */
+  color: #8B6F47;
+  padding: 12px;
+  cursor: pointer;
+  z-index: 1000;
+  /* Ombre identique aux cartes hiragana */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Icône hamburger avec 3 barres */
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 20px;
+  height: 16px;
+}
+
+.hamburger-bar {
+  width: 100%;
+  height: 3px;
+  background: rgba(139, 111, 71, 0.3); /* Marron voilé/discret */
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Desktop - hover révèle les barres */
+@media (min-width: 769px) {
+  .hamburger {
+    top: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .hamburger:hover .hamburger-bar {
+    background: #8B6F47; /* Marron normal au survol */
+  }
+
+  .hamburger:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+  }
+}
+
+/* Mobile - 2x plus gros */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+  .hamburger {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    left: auto !important;
+    top: auto !important;
+    width: 88px !important; /* 2x plus gros */
+    height: 88px !important;
+    padding: 20px;
+    display: flex;
+    box-sizing: border-box;
+  }
+
+  .hamburger-icon {
+    width: 36px;
+    height: 28px;
+    gap: 6px;
+  }
+
+  .hamburger-bar {
+    height: 4px;
+    background: rgba(139, 111, 71, 0.4); /* Légèrement plus visible sur mobile */
+  }
+}
+
+
+
+/* Ajuster la règle générale pour .menu */
+   .menu {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(248, 241, 233, 0.95); /* Voile blanc cassé */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      opacity: 0;
+      z-index: 999;
+    }
+
+    .menu.active {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+ .menu .arcade-button {
+    width: 300px !important; /* Plus large que les 200px actuels */
+    height: 80px !important; /* Hauteur fixe pour tous */
+    min-height: 80px !important; /* Force la hauteur minimum */
+    max-height: 80px !important; /* Limite la hauteur maximum */
+    line-height: 80px !important; /* Centre le texte verticalement */
+    padding: 0 1.5em !important; /* Padding horizontal seulement */
+    font-size: 1.6em !important; /* Taille de police cohérente */
+    box-sizing: border-box !important;
+  }
+
+.arcade-button.disabled {
+  background: #E0E0E0 !important;
+  color: #999999 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  border-color: #CCCCCC !important;
+}
+
+.arcade-button.disabled:hover {
+  transform: none !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+
+/* Garde ton code Firefox intact */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+  .menu .arcade-button {
+    width: 600px !important;
+    font-size: 2.8em !important;
+    padding: 0.1em 1em !important;
+    line-height: 120px !important; /* ? Centre le texte */
+    height: 120px !important; /* ? Hauteur fixe pour TOUS */
+    max-height: 120px !important; /* ? Remplace l'ancien 2.5em */
+  }
+  
+  /* Correction spécifique Chrome */
+  @supports (-webkit-appearance: none) {
+    .menu .arcade-button {
+      width: min(80vw, 500px) !important; /* Plus conservateur */
+      height: 120px !important; /* ? Hauteur fixe */
+      max-height: 120px !important; /* ? Remplace l'ancien max-height */
+      line-height: 120px !important; /* ? Centre le texte verticalement */
+      padding: 0 1em !important; /* ? Supprime padding vertical */
+    }
+  }
+}
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .coming-soon {
+      font-size: 1.5em;
+      color: #8B6F47;
+      margin-top: 1em;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .coming-soon {
+        font-size: 2em;
+      }
+    }
+
+/* Styles pour le mode révisions */
+#revision-question {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+  color: #8B6F47;
+  text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
+}
+
+.char-correct {
+  background-color: #d4edda;
+  border-radius: 5px;
+  padding: 2px 4px;
+}
+
+.char-incorrect {
+  background-color: #f8e7e6;
+  border-radius: 5px;
+  padding: 2px 4px;
+}
+
+.pulsing {
+  animation: revisionPulse 0.8s infinite;
+}
+
+@keyframes revisionPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+#revision-input-display {
+  font-size: 2em;
+  margin: 0 auto 10px auto; /* Centre horizontalement et garde 10px en bas */
+  height: 65px; /* Hauteur fixe */
+  padding: 10px;
+  border: 2px solid #8B6F47;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
+  background: #FFFFFF;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex; /* Utilise flexbox pour centrer le contenu verticalement */
+  align-items: center; /* Centre verticalement le texte */
+  justify-content: center; /* Centre horizontalement le texte */
+  overflow: hidden; /* Empêche le contenu de déborder */
+}
+    
+.revision-keyboard {
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+  margin-top: 0; /* Assure qu'il n'y a pas de marge supérieure */
+}
+
+.revision-key {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #8B6F47;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: bold;
+  font-size: 1.1em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Couleurs des touches selon les lignes */
+.revision-key:nth-child(-n+5) { background-color: #d1e7ff; color: black; }
+.revision-key:nth-child(6), .revision-key:nth-child(7) { background-color: #fff3cd; color: black; }
+.revision-key:nth-child(8) { background-color: #d1e7ff; color: black; }
+.revision-key:nth-child(9), .revision-key:nth-child(10) { background-color: #f8e7e6; color: black; }
+.revision-key:nth-child(n+11):nth-child(-n+15) { background-color: #d4edda; color: black; }
+.revision-key:nth-child(n+16):nth-child(-n+20) { background-color: #ffe4b5; color: black; }
+.revision-key:nth-child(n+21):nth-child(-n+24) { background-color: #dee2e6; color: black; }
+.revision-key:nth-child(25) { background-color: #ffffff; color: black; }
+
+.revision-key:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.revision-key:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+#revision-message {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 1.2em;
+  color: #8B6F47;
+  min-height: 1.5em;
+}
+
+/* Responsive pour mobile */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+  #revision-question {
+    font-size: 6em;
+    margin-top: 40px; /* Pousse la carte plus bas */
+  }
+  
+#revision-input-display {
+    font-size: 4em;
+    width: 90%;
+    padding: 15px;
+    position: fixed;
+    bottom: 1040px; /* 10px au-dessus du clavier */
+    left: 50%;
+    transform: translateX(-50%);
+  /*   z-index: 1000; S'assurer que l'élément est au-dessus */
+  }
+  
+  #revision-message {
+    font-size: 3em; /* Beaucoup plus grand pour la réponse ! */
+    margin: 20px 0;
+    font-weight: bold; /* Pour une meilleure visibilité */
+  }
+   
+   .revision-keyboard {
+    grid-template-columns: repeat(5, 1fr);
+    width: 90%;
+    padding: 0 5px;
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .revision-key {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    min-width: 50px;
+    font-size: clamp(2.5em, 8vw, 5em);
+    font-weight: bold;
+    line-height: 1;
+  }
+}
+
+/* ? NOUVEAUX STYLES POUR LES CARTES - Identiques au mode apprentissage */
+.char-card {
+  display: inline-flex;
+  padding: 15px;
+  margin: 5px;
+  border-radius: 8px; /* Même rayon que les cartes hiragana */
+  min-width: 60px;
+  min-height: 60px;
+  text-align: center;
+  font-size: 2.2em;
+  font-weight: bold;
+  color: #8B6F47;
+  text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
+  
+  /* ? MÊME STYLE QUE LES CARTES HIRAGANA */
+  background: #FFFFFF;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s ease; /* Transition plus fluide */
+  
+  align-items: center;
+  justify-content: center;
+}
+
+/* ?? GRADATIONS ULTRA-SUBTILES (couleurs beaucoup plus douces) */
+.char-correct-1 { 
+  background: #f9fdf9; /* Vert ultra-discret, à peine visible */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 2px rgba(139, 195, 74, 0.1);
+}
+.char-correct-2 { 
+  background: #f5faf5; /* Vert très pâle */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 3px rgba(139, 195, 74, 0.15);
+}
+.char-correct-3 { 
+  background: #f0f8f0; /* Vert léger */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(139, 195, 74, 0.2);
+}
+.char-correct-4 { 
+  background: #ebf5eb; /* Vert final très soft */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 5px rgba(139, 195, 74, 0.25);
+}
+
+/* ?? GRADATIONS ROSES SAKURA ULTRA-SUBTILES */
+.char-incorrect-1 { 
+  background: #fdfafa; /* Rose ultra-discret */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 2px rgba(253, 193, 197, 0.1);
+}
+.char-incorrect-2 { 
+  background: #fcf5f5; /* Rose très pâle */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 3px rgba(253, 193, 197, 0.15);
+}
+.char-incorrect-3 { 
+  background: #faf0f1; /* Rose léger */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(253, 193, 197, 0.2);
+}
+.char-incorrect-4 { 
+  background: #f8ebec; /* Rose final très soft */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 5px rgba(253, 193, 197, 0.25);
+}
+
+/* ?? PULSATION AMÉLIORÉE - Plus fluide et prononcée */
+.pulsing {
+  animation: pulse-revision 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse-revision {
+  0% { 
+    transform: scale(1); 
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+  }
+  50% { 
+    transform: scale(1.08); /* Plus prononcé que 1.05 */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 8px rgba(139, 111, 71, 0.3);
+  }
+  100% { 
+    transform: scale(1); 
+    box-shadow: 0 6px 12px rgba(0,
+
+/* Style de base pour le titre mode révision*/
+#mode2 .title {
+   margin: 0.5em 0;
+      font-size: 1.8em;
+      text-align: center;
+      color: #8B6F47;
+      text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
+}
+
+/* Media query pour les écrans mobiles (jusqu'à 768px) */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+  #mode2 .title {
+      margin: 0.5em 0;
+      font-size: 3em;
+      text-align: center;
+      color: #8B6F47;
+      text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
+  }
+}
+    
+  </style>
+</head>
 <body>
-  <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">â˜°</button>  -->
+  <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">☰</button>  -->
 <!-- Bouton hamburger -->
 <button class="hamburger" onclick="toggleMenu()">
   <div class="hamburger-icon">
@@ -14,14 +1268,14 @@
   <!-- Menu -->
   <nav class="menu" id="menu">
     <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
-    <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode rÃ©visions</button>
+    <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
     <button class="arcade-button" onclick="showSection('options')">Options</button>
     <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
   </nav>
 
   <!-- Section Quiz (contenu actuel) -->
   <div id="quiz" class="section active">
-    <h1>ðŸŒ¿â›©ï¸ Welcome to Hira-Kata-Quiz â›©ï¸ðŸŒ¸</h1>
+    <h1>🌿⛩️ Welcome to Hira-Kata-Quiz ⛩️🌸</h1>
     <div id="progressBarContainer"></div>
     <div class="level" id="levelDisplay">Niveau actuel : 1</div>
     <div class="level-hiraganas">
@@ -35,16 +1289,16 @@
       </div>
       <div>
         <div class="result" id="result"></div>
-        <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">ðŸŒ± OK... jâ€™ai captÃ© ðŸŒ±</button>
-        <button class="arcade-button" id="boutonInstaller">Ajouter Ã  l'Ã©cran d'accueil</button>
+        <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j’ai capté 🌱</button>
+        <button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
       </div>
     </div>
   </div>
 
   <!-- Section Mode Katakana -->
-<!-- Section Mode rÃ©visions -->
+<!-- Section Mode révisions -->
 <div id="mode2" class="section">
-  <h2>ðŸŽŒ Mode RÃ©visions ðŸŽŒ</h2>
+  <h2>🎌 Mode Révisions 🎌</h2>
   <div id="revision-question"></div>
    <div id="revision-message"></div>
   <div id="revision-input-display"></div>
@@ -73,7 +1327,7 @@
     <div class="revision-key">n</div>
     <div class="revision-key">r</div>
     <div class="revision-key">w</div>
-    <div class="revision-key" id="revision-back">â†</div>
+    <div class="revision-key" id="revision-back">←</div>
   </div>
  
 </div>
@@ -91,10 +1345,10 @@
     }
 
 function showSection(sectionId) {
-    // VÃ©rifier si on essaie d'accÃ©der au mode rÃ©vision
+    // Vérifier si on essaie d'accéder au mode révision
   if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
     // Optionnel : afficher un message d'erreur
-    console.log('Mode rÃ©vision non disponible');
+    console.log('Mode révision non disponible');
     return;
   }
   document.querySelectorAll('.section').forEach(section => {
@@ -102,10 +1356,10 @@ function showSection(sectionId) {
   });
   document.getElementById(sectionId).classList.add('active');
   
- // DÃ©marrer le mode rÃ©visions si c'est le mode sÃ©lectionnÃ©
+ // Démarrer le mode révisions si c'est le mode sélectionné
   if (sectionId === 'mode2') {
     revisionMode.isActive = true;
-    // Petit dÃ©lai pour s'assurer que la section est visible
+    // Petit délai pour s'assurer que la section est visible
     setTimeout(() => {
       initRevisionKeyboard();
       startRevisionQuestion();
@@ -128,13 +1382,13 @@ let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
-let validationCache = {}; // Ajouter cette ligne prÃ¨s des autres variables globales
+let validationCache = {}; // Ajouter cette ligne près des autres variables globales
 let statsCache = {
   items: {}, // { [hiragana/katakana]: { tentatives, reussites, pourcentage } }
   globalPourcentage: 0
 };
   
-// Variables pour le mode rÃ©visions
+// Variables pour le mode révisions
 let revisionMode = {
   currentQuestion: "",
   input: "",
@@ -145,11 +1399,11 @@ let revisionMode = {
   cumulativeChars: [],
   isActive: false
 };
-// Initialisation du contexte audio (Ã  placer au dÃ©but du script, une seule fois)
+// Initialisation du contexte audio (à placer au début du script, une seule fois)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
   
-// Fonction pour gÃ©nÃ©rer la table romaji Ã  partir des donnÃ©es Google Sheet (VERSION CORRIGÃ‰E)
+// Fonction pour générer la table romaji à partir des données Google Sheet (VERSION CORRIGÉE)
 function generateRevisionRomajiTable(hiraganaList) {
   const table = {};
   let validItems = 0;
@@ -159,25 +1413,25 @@ function generateRevisionRomajiTable(hiraganaList) {
     const hiragana = item.Hiragana;
     const romaji = item.Romaji;
     
-    // âœ… VÃ‰RIFICATIONS ROBUSTES
+    // ✅ VÉRIFICATIONS ROBUSTES
     if (!hiragana || !romaji) {
-      console.warn(`âš ï¸ Item ${index} ignorÃ© - donnÃ©es manquantes:`, {hiragana, romaji});
+      console.warn(`⚠️ Item ${index} ignoré - données manquantes:`, {hiragana, romaji});
       invalidItems++;
       return;
     }
     
-    // Convertir en string si ce n'est pas dÃ©jÃ  le cas
+    // Convertir en string si ce n'est pas déjà le cas
     const hiraganaStr = String(hiragana).trim();
     const romajiStr = String(romaji).trim();
     
     if (hiraganaStr === '' || romajiStr === '' || romajiStr === 'undefined' || romajiStr === 'null') {
-      console.warn(`âš ï¸ Item ${index} ignorÃ© - donnÃ©es vides:`, {hiragana: hiraganaStr, romaji: romajiStr});
+      console.warn(`⚠️ Item ${index} ignoré - données vides:`, {hiragana: hiraganaStr, romaji: romajiStr});
       invalidItems++;
       return;
     }
     
     try {
-      // Analyser le romaji pour crÃ©er les segments
+      // Analyser le romaji pour créer les segments
       const segments = analyzeRomajiSegments(romajiStr);
       table[hiraganaStr] = {
         romaji: segments.segments,
@@ -188,12 +1442,12 @@ function generateRevisionRomajiTable(hiraganaList) {
       };
       validItems++;
     } catch (error) {
-      console.error(`âŒ Erreur lors de l'analyse de l'item ${index}:`, {hiragana: hiraganaStr, romaji: romajiStr}, error);
+      console.error(`❌ Erreur lors de l'analyse de l'item ${index}:`, {hiragana: hiraganaStr, romaji: romajiStr}, error);
       invalidItems++;
     }
   });
   
-  console.log(`ðŸ“Š GÃ©nÃ©ration table romaji: ${validItems} items valides, ${invalidItems} items ignorÃ©s`);
+  console.log(`📊 Génération table romaji: ${validItems} items valides, ${invalidItems} items ignorés`);
   return table;
 }
 function generateRevisionKatakanaTable(hiraganaList) {
@@ -206,7 +1460,7 @@ function generateRevisionKatakanaTable(hiraganaList) {
     const romaji = item.Romaji;
     
     if (!katakana || !romaji) {
-      console.warn(`âš ï¸ Item ${index} ignorÃ© pour Katakana - donnÃ©es manquantes:`, {katakana, romaji});
+      console.warn(`⚠️ Item ${index} ignoré pour Katakana - données manquantes:`, {katakana, romaji});
       invalidItems++;
       return;
     }
@@ -234,10 +1488,10 @@ function generateRevisionKatakanaTable(hiraganaList) {
     }
   });
   
-  console.log(`ðŸ“Š GÃ©nÃ©ration table katakana: ${validItems} items valides, ${invalidItems} items ignorÃ©s`);
+  console.log(`📊 Génération table katakana: ${validItems} items valides, ${invalidItems} items ignorés`);
   return table;
 }
-// Fonction pour analyser et segmenter le romaji (VERSION CORRIGÃ‰E)
+// Fonction pour analyser et segmenter le romaji (VERSION CORRIGÉE)
 function analyzeRomajiSegments(romajiInput) {
   if (!romajiInput) {
     throw new Error("Romaji vide ou null");
@@ -247,7 +1501,7 @@ function analyzeRomajiSegments(romajiInput) {
   romajiString = romajiString.replace(/[^a-z]/g, '');
 
   if (romajiString === '') {
-    throw new Error(`Romaji vide aprÃ¨s nettoyage des caractÃ¨res spÃ©ciaux`);
+    throw new Error(`Romaji vide après nettoyage des caractères spéciaux`);
   }
 
   // Segmenter intelligemment
@@ -255,11 +1509,11 @@ function analyzeRomajiSegments(romajiInput) {
   
   return {
     segments: segments,
-    charCounts: segments.map(() => 1) // Chaque segment = 1 caractÃ¨re visuel
+    charCounts: segments.map(() => 1) // Chaque segment = 1 caractère visuel
   };
 }
   
-// Fonction pour segmenter intelligemment le romaji (INCHANGÃ‰E mais ajout de vÃ©rifications)
+// Fonction pour segmenter intelligemment le romaji (INCHANGÉE mais ajout de vérifications)
 function smartSegmentRomaji(romaji) {
   if (!romaji || typeof romaji !== 'string') {
     console.warn("smartSegmentRomaji: romaji invalide", romaji);
@@ -305,7 +1559,7 @@ function smartSegmentRomaji(romaji) {
       }
     }
     
-    // Fallback : prendre 2 caractÃ¨res si possible (consonne + voyelle), sinon 1
+    // Fallback : prendre 2 caractères si possible (consonne + voyelle), sinon 1
     if (!found) {
       if (remaining.length >= 2 && !vowels.includes(remaining[0])) { // Si commence par consonne
         segments.push(remaining.slice(0, 2));
@@ -338,9 +1592,9 @@ function updateRevisionButtonState() {
     revisionButton.onclick = (e) => {
       e.preventDefault();
       // Optionnel : afficher un message
-      console.log('Mode rÃ©vision disponible Ã  partir du niveau 4');
+      console.log('Mode révision disponible à partir du niveau 4');
     };
-    revisionButton.title = 'Disponible Ã  partir du niveau 4';
+    revisionButton.title = 'Disponible à partir du niveau 4';
   }
 }
 
@@ -369,13 +1623,13 @@ setTimeout(() => sakura.remove(), 4000);
 }
 
 
-// ðŸŽ¯ GESTIONNAIRE DE PARTICULES OPTIMISÃ‰
+// 🎯 GESTIONNAIRE DE PARTICULES OPTIMISÉ
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30; // Limite stricte
 
 // Fonction de nettoyage des particules
 function cleanupOldParticles() {
-// Supprimer les particules les plus anciennes si on dÃ©passe la limite
+// Supprimer les particules les plus anciennes si on dépasse la limite
 while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
 const oldSpark = activeSparks.shift();
 if (oldSpark && oldSpark.canvas && oldSpark.canvas.parentNode) {
@@ -391,7 +1645,7 @@ return false;
 }
 return true;
 });
-console.log(`ðŸ§¹ Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
+console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
 }
 
 // Nettoyage automatique toutes les 3 secondes
@@ -648,7 +1902,7 @@ logError('Erreur Level Up: ' + error.message);
 }
 }
 
-// Son pour rÃ©ponses correctes : Clochette zen
+// Son pour réponses correctes : Clochette zen
 function playZenBell() {
   const oscillator = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
@@ -656,7 +1910,7 @@ function playZenBell() {
   oscillator.connect(gainNode);
   gainNode.connect(audioCtx.destination);
   
-  // FrÃ©quences cristallines
+  // Fréquences cristallines
   const frequencies = [1047, 1319, 1568, 1760]; // C6, E6, G6, A6
   oscillator.frequency.setValueAtTime(
     frequencies[Math.floor(Math.random() * frequencies.length)], 
@@ -671,9 +1925,9 @@ function playZenBell() {
   
   oscillator.start(audioCtx.currentTime);
   oscillator.stop(audioCtx.currentTime + 0.3);
-  console.log('ðŸŽ¶ Son jouÃ© : Goutte cristalline (frÃ©quence alÃ©atoire, 0.3s)');
+  console.log('🎶 Son joué : Goutte cristalline (fréquence aléatoire, 0.3s)');
 }
-// Son pour rÃ©ponses incorrectes : Bip attÃ©nuÃ©
+// Son pour réponses incorrectes : Bip atténué
 function playSoftError() {
   const oscillator = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
@@ -775,7 +2029,7 @@ triggerLevelUpAnimation(container);
 for (let salvo = 0; salvo < numSalvos; salvo++) {
 setTimeout(() => {
 if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-console.warn(`âš ï¸ Salvo ${salvo} annulÃ©e - limite atteinte`);
+console.warn(`⚠️ Salvo ${salvo} annulée - limite atteinte`);
 return;
 }
 
@@ -784,7 +2038,7 @@ const biasMagnitude = (Math.random() * 0.2 - 0.1) * biasDirection;
 
 for (let i = 0; i < numParticles; i++) {
 if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-console.warn(`ðŸ›‘ Particule ${i} du salvo ${salvo} ignorÃ©e - limite atteinte`);
+console.warn(`🛑 Particule ${i} du salvo ${salvo} ignorée - limite atteinte`);
 break;
 }
 
@@ -815,7 +2069,7 @@ rotation: Math.random() * Math.PI * 2
 });
 activeSparks.push({ canvas });
 globalParticleCount++;
-console.log(`Particule ajoutÃ©e: ${particles.length} particules, ${activeSparks.length} sparks`);
+console.log(`Particule ajoutée: ${particles.length} particules, ${activeSparks.length} sparks`);
 }
 }, salvo * salvoDelay);
 }
@@ -875,7 +2129,7 @@ requestAnimationFrame(animate);
 canvas.remove();
 activeSparks = activeSparks.filter(spark => spark.canvas !== canvas);
 globalParticleCount = Math.max(0, globalParticleCount - particles.length);
-console.log('Animation terminÃ©e');
+console.log('Animation terminée');
 }
 }
 requestAnimationFrame(animate);
@@ -896,7 +2150,7 @@ return false;
 }
 return true;
 });
-console.log(`ðŸ§¹ Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
+console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
 }
 
 setInterval(cleanupOldParticles, 3000);
@@ -977,11 +2231,11 @@ if (!container) return;
 container.innerHTML = "";
 
 const leftEmoji = document.createElement("span");
-leftEmoji.textContent = "ðŸŒ±";
+leftEmoji.textContent = "🌱";
 leftEmoji.className = "side-emoji";
 
 const rightEmoji = document.createElement("span");
-rightEmoji.textContent = "ðŸŒ³";
+rightEmoji.textContent = "🌳";
 rightEmoji.className = "side-emoji";
 
 const barTrack = document.createElement("div");
@@ -989,7 +2243,7 @@ barTrack.className = "progress-bar-track";
 
 const marker = document.createElement("div");
 marker.className = "progress-marker";
-marker.innerText = "ðŸ¼";  /*  ðŸ¼ ðŸ±ðŸ’©ðŸ¤¡ðŸ¶ðŸ¯ðŸ± */
+marker.innerText = "🐼";  /*  🐼 🐱💩🤡🐶🐯🐱 */
 
 const pct = maxLevel > 1 ? ((currentLevel - 1) / (maxLevel - 1)) * 100 : 0;
 marker.style.left = `${Math.min(100, Math.max(0, pct))}%`;
@@ -1032,26 +2286,26 @@ async function callAPI(action, data = null) {
         scorePoints: data.scorePoints,
         tentatives: data.tentatives,
         reussites: data.reussites,
-        isRevisionMode: data.isRevisionMode || false // âœ… NOUVEAU PARAMÃˆTRE
+        isRevisionMode: data.isRevisionMode || false // ✅ NOUVEAU PARAMÈTRE
       });
       const url = `${WEB_APP_URL}?${params}`;
-      console.log(`ðŸ” Appel updateStats: ${url}`);
+      console.log(`🔍 Appel updateStats: ${url}`);
       await fetch(url, { mode: 'no-cors' });
       return { success: true };
     } else {
       const url = `${WEB_APP_URL}?action=${action}`;
-      console.log(`ðŸ” Appel API: ${action} -> ${url}`);
+      console.log(`🔍 Appel API: ${action} -> ${url}`);
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const result = await response.json();
-      console.log(`ðŸ” RÃ©ponse brute de ${action}:`, JSON.stringify(result, null, 2));
+      console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
       return result;
     }
   } catch (error) {
     logError(`Erreur API (${action}): ${error.message}`);
-    console.error(`âš ï¸ DÃ©tails erreur:`, error);
+    console.error(`⚠️ Détails erreur:`, error);
     return { error: error.message };
   }
 }
@@ -1063,54 +2317,54 @@ async function initGame() {
   const data = await callAPI('getHiraganas');
   if (data.error) {
     logError('Erreur lors du chargement: ' + data.error);
-    console.warn('âš ï¸ Utilisation de HiraganaList par dÃ©faut ou vide');
+    console.warn('⚠️ Utilisation de HiraganaList par défaut ou vide');
     HiraganaList = HiraganaList || [];
   } else {
     HiraganaList = data;
   }
 
-  // Log des donnÃ©es brutes pour vÃ©rifier les clÃ©s
-  console.log('ðŸ“¥ DonnÃ©es brutes de l\'API (getHiraganas):', JSON.stringify(HiraganaList.slice(0, 3), null, 2));
+  // Log des données brutes pour vérifier les clés
+  console.log('📥 Données brutes de l\'API (getHiraganas):', JSON.stringify(HiraganaList.slice(0, 3), null, 2));
 
   revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
   revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
   
-  console.log("ðŸ“š Table romaji gÃ©nÃ©rÃ©e:", Object.keys(revisionRomajiTable).length, "entrÃ©es");
-  console.log("ðŸ“š Table katakana gÃ©nÃ©rÃ©e:", Object.keys(revisionKatakanaTable).length, "entrÃ©es");
+  console.log("📚 Table romaji générée:", Object.keys(revisionRomajiTable).length, "entrées");
+  console.log("📚 Table katakana générée:", Object.keys(revisionKatakanaTable).length, "entrées");
 
   // Initialiser statsCache
   statsCache.items = {};
-  // Ajouter aprÃ¨s l'initialisation de statsCache dans initGame()
+  // Ajouter après l'initialisation de statsCache dans initGame()
 validationCache = {};
 HiraganaList.forEach(item => {
   const validation = parseInt(item.Validation || 0);
   validationCache[item.ID] = validation;
 });
-console.log('ðŸ”„ Cache validation initialisÃ©e:', Object.keys(validationCache).length, 'items');
+console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).length, 'items');
   let totalTentatives = 0, totalReussites = 0;
   HiraganaList.forEach(item => {
-    // Log des clÃ©s disponibles pour cet item
-    console.log(`ðŸ” ClÃ©s de l\'item ID ${item.ID}:`, Object.keys(item));
+    // Log des clés disponibles pour cet item
+    console.log(`🔍 Clés de l\'item ID ${item.ID}:`, Object.keys(item));
 
-    const key = item.ID; // Utiliser l'ID comme clÃ©
+    const key = item.ID; // Utiliser l'ID comme clé
     if (!key) {
-      console.warn(`âš ï¸ Item sans ID:`, item);
+      console.warn(`⚠️ Item sans ID:`, item);
       return;
     }
 
     const tentatives = parseInt(item.Tentatives || 0, 10);
-    const reussites = parseInt(item['RÃ©ussites'] || 0, 10);
+    const reussites = parseInt(item['Réussites'] || 0, 10);
     const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
     statsCache.items[key] = { tentatives, reussites, pourcentage };
     totalTentatives += tentatives;
     totalReussites += reussites;
 
-    console.log(`ðŸ“Š Item ID ${key} (${item.Hiragana || item.Katakana}): Tentatives=${tentatives}, RÃ©ussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
+    console.log(`📊 Item ID ${key} (${item.Hiragana || item.Katakana}): Tentatives=${tentatives}, Réussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
   });
   statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-  console.log('ðŸ“ˆ Pourcentage global de rÃ©ussite:', statsCache.globalPourcentage.toFixed(2) + '%');
-  console.log('ðŸ“Š Stats par item:', 
+  console.log('📈 Pourcentage global de réussite:', statsCache.globalPourcentage.toFixed(2) + '%');
+  console.log('📊 Stats par item:', 
     Object.fromEntries(
       Object.entries(statsCache.items).map(([key, stats]) => {
         const item = HiraganaList.find(i => i.ID == key);
@@ -1202,10 +2456,10 @@ btn.onclick = () => {
 if (selections[slot] !== null || isAnswered) return;
 selections[slot] = text;
 
-// Ajouter l'effet de halo sans le retirer immÃ©diatement
+// Ajouter l'effet de halo sans le retirer immédiatement
 btn.classList.add("clicked-glow");
 
-// Garder l'effet d'opacitÃ© pour les autres boutons
+// Garder l'effet d'opacité pour les autres boutons
 container.querySelectorAll("button").forEach(b => {
 b.disabled = true;
 if (b === btn) {
@@ -1240,7 +2494,7 @@ containers.forEach((container, index) => {
 const buttons = container.querySelectorAll("button");
 buttons.forEach(btn => {
 if (btn.innerText === correctAnswers[index]) {
-// Toutes les bonnes rÃ©ponses (cliquÃ©es ou non) ont le voile vert
+// Toutes les bonnes réponses (cliquées ou non) ont le voile vert
 btn.classList.add("correct");
 btn.disabled = true;
 if (btn.innerText === userSelections[index]) {
@@ -1248,17 +2502,17 @@ score += 0.5;
 btn.classList.add("clicked"); // Maintenir .clicked pour style
 }
 } else if (btn.innerText === userSelections[index]) {
-// Bouton cliquÃ© mais incorrect : voile rouge
+// Bouton cliqué mais incorrect : voile rouge
 btn.classList.add("incorrect");
 btn.disabled = true;
 } else {
-// Bouton non cliquÃ© et incorrect : reste neutre
+// Bouton non cliqué et incorrect : reste neutre
 btn.disabled = true;
 }
 });
 });
 
-// Reste du code inchangÃ©...
+// Reste du code inchangé...
 const currentValidation = parseInt(current.Validation || 0);
 let newValidation = currentValidation;
 
@@ -1277,45 +2531,45 @@ updateStarsForHiragana(parseInt(current.ID), newValidation);
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
 if (hiraganaIndex !== -1) {
   HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-  validationCache[current.ID] = newValidation; // âœ… AJOUTER CETTE LIGNE
+  validationCache[current.ID] = newValidation; // ✅ AJOUTER CETTE LIGNE
 }
 
 let emoji = "", resultText = "";
 if (score === 1) {
-const emojisOK = ["ðŸŒ¸", "ðŸŽ", "ðŸµ", "ðŸª´", "ðŸ’®", "ðŸŒº", "ðŸŒ¼", "ðŸª·"];
+const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"];
 emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-resultText = isFinalValidation ? "ValidÃ© ! ðŸŽ‰" : "Parfait !";
+resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
 if (!isFinalValidation) {
 playMarioCoin();
 }
 } else if (score === 0.5) {
-const emojisMid = ["ðŸª¨", "ðŸŒ¿", "ðŸªµ", "ðŸƒ", "ðŸŒ³", "ðŸŽ‹"];
+const emojisMid = ["🪨", "🌿", "🪵", "🍃", "🌳", "🎋"];
 emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
 resultText = "Presque...";
 playSuccess90s();
 } else {
-const emojisBad = ["ðŸ™ˆ", "ðŸ™Š", "ðŸª¨", "ðŸŒŠ", "ðŸ‚", "ðŸ"];
+const emojisBad = ["🙈", "🙊", "🪨", "🌊", "🍂", "🍁"];
 emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
-resultText = "Pas tout Ã  fait...";
+resultText = "Pas tout à fait...";
 playFail();
 }
 
 document.getElementById("result").innerHTML = `
 <div class="result-line">${emoji} ${resultText} ${emoji}</div>
 <div class="result-line highlight">
-ðŸ‘‰ Bonne rÃ©ponse : <strong>${correct1}</strong> â€“ <strong>${correct2}</strong>
+👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
 
-// ðŸ”Š Jouer le fichier MP3 correspondant au Hiragana
+// 🔊 Jouer le fichier MP3 correspondant au Hiragana
 if (current && current.Hiragana) {
 const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
 const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-console.log("ðŸŽ§ Lecture du son :", audioUrl);
+console.log("🎧 Lecture du son :", audioUrl);
 
 const audio = new Audio(audioUrl);
 audio.play().catch(e => console.warn("Erreur audio :", e));
 } else {
-console.warn("â— Aucun Hiragana Ã  prononcer.");
+console.warn("❗ Aucun Hiragana à prononcer.");
 }
 
 
@@ -1332,7 +2586,7 @@ callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
 if (response.error) {
 console.warn('Erreur sauvegarde:', response.error);
 } else {
-console.log('âœ… Score sauvegardÃ© en arriÃ¨re-plan');
+console.log('✅ Score sauvegardé en arrière-plan');
 }
 })
 .catch(error => {
@@ -1369,7 +2623,7 @@ duration: 800,
 easing: "ease-out"
 }).onfinish = () => halo.remove();
 
-// Utiliser l'effet de chute de sakura depuis le haut de l'Ã©cran
+// Utiliser l'effet de chute de sakura depuis le haut de l'écran
 for (let i = 0; i < 30; i++) {
 const sakura = document.createElement("div");
 sakura.className = "sakura";
@@ -1433,7 +2687,7 @@ msgWrapper.style.pointerEvents = "none";
 document.body.appendChild(msgWrapper);
 
 const msg = document.createElement("div");
-msg.innerText = "ãƒ¬ãƒ™ãƒ«ã‚¢ãƒƒãƒ—ï¼";
+msg.innerText = "レベルアップ！";
 msg.style.display = "inline-block";
 msg.style.fontSize = "5em";
 msg.style.fontWeight = "bold";
@@ -1483,13 +2737,13 @@ function startRevisionQuestion() {
     ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: item.Katakana }))
   ];
 
-  console.log(`ðŸŽ¯ Items disponibles pour rÃ©vision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
+  console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
 
   if (availableItems.length === 0) {
     document.getElementById("revision-message").textContent = 
       niveauActif < 4 ? 
-      "Mode rÃ©vision disponible Ã  partir du niveau 4" : 
-      "Aucun item disponible pour rÃ©vision";
+      "Mode révision disponible à partir du niveau 4" : 
+      "Aucun item disponible pour révision";
     document.getElementById("revision-message").style.color = "#dc3545";
     return;
   }
@@ -1498,47 +2752,47 @@ function startRevisionQuestion() {
   const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]').map(id => parseInt(id));
 
   let selectedItem;
-  const RANDOM_RATIO = 0.2; // 20% pour tirage alÃ©atoire pur
+  const RANDOM_RATIO = 0.2; // 20% pour tirage aléatoire pur
 
   if (Math.random() < RANDOM_RATIO) {
-    // ðŸŽ² TIRAGE ALÃ‰ATOIRE PUR (20%) - FiltrÃ© seulement par le tampon
+    // 🎲 TIRAGE ALÉATOIRE PUR (20%) - Filtré seulement par le tampon
     const randomItems = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
     const finalRandomItems = randomItems.length >= 4 ? randomItems : availableItems;
     
     selectedItem = finalRandomItems[Math.floor(Math.random() * finalRandomItems.length)];
     
-    console.log(`ðŸŽ² TIRAGE ALÃ‰ATOIRE (20%)`);
-    console.log(`ðŸ“‹ Items disponibles pour tirage alÃ©atoire: ${finalRandomItems.length}/${availableItems.length}`);
-    console.log(`ðŸ” Items filtrÃ©s par tampon:`, finalRandomItems.map(item => `${item.key}(ID:${item.ID})`).join(', '));
+    console.log(`🎲 TIRAGE ALÉATOIRE (20%)`);
+    console.log(`📋 Items disponibles pour tirage aléatoire: ${finalRandomItems.length}/${availableItems.length}`);
+    console.log(`🔍 Items filtrés par tampon:`, finalRandomItems.map(item => `${item.key}(ID:${item.ID})`).join(', '));
     
   } else {
-    // âš–ï¸ TIRAGE PONDÃ‰RÃ‰ (80%) - FiltrÃ© par Validation â‰¤ 10 + tampon
+    // ⚖️ TIRAGE PONDÉRÉ (80%) - Filtré par Validation ≤ 10 + tampon
     const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) <= 10);
     const weightedItems = validationFilteredItems.filter(item => !recentItems.includes(parseInt(item.ID)));
     
     let finalWeightedItems;
     
     if (weightedItems.length >= 4) {
-      // Cas idÃ©al : assez d'items respectant validation â‰¤ 10 ET hors tampon
+      // Cas idéal : assez d'items respectant validation ≤ 10 ET hors tampon
       finalWeightedItems = weightedItems;
     } else if (weightedItems.length > 0) {
       // Peu d'items mais au moins quelques-uns : on les garde
       finalWeightedItems = weightedItems;
     } else {
       // Aucun item respectant les deux contraintes
-      // PRIORITÃ‰ : Ã©viter le tampon (libÃ©rer contrainte validation â‰¤ 10)
+      // PRIORITÉ : éviter le tampon (libérer contrainte validation ≤ 10)
       const itemsHorsTampon = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
       if (itemsHorsTampon.length > 0) {
         finalWeightedItems = itemsHorsTampon;
-        console.log(`âš ï¸ FALLBACK 1 - LibÃ©ration contrainte Validation â‰¤ 10 pour Ã©viter tampon`);
+        console.log(`⚠️ FALLBACK 1 - Libération contrainte Validation ≤ 10 pour éviter tampon`);
       } else {
-        // Dernier recours : prendre tous les items (mÃªme dans le tampon)
+        // Dernier recours : prendre tous les items (même dans le tampon)
         finalWeightedItems = availableItems;
-        console.log(`âš ï¸ FALLBACK 2 - Tous les items utilisÃ©s (tampon ignorÃ©)`);
+        console.log(`⚠️ FALLBACK 2 - Tous les items utilisés (tampon ignoré)`);
       }
     }
 
-    // Tirage pondÃ©rÃ© sur les items finaux
+    // Tirage pondéré sur les items finaux
     const weights = finalWeightedItems.map(item => {
       const stats = statsCache.items[parseInt(item.ID)] || { pourcentage: 0 };
       const pourcentage = stats.pourcentage;
@@ -1554,25 +2808,25 @@ function startRevisionQuestion() {
       }
     }
     
-    console.log(`âš–ï¸ TIRAGE PONDÃ‰RÃ‰ (80%)`);
-    console.log(`ðŸ“‹ Items disponibles (Validation â‰¤ 10 + tampon): ${finalWeightedItems.length}/${availableItems.length}`);
-    console.log(`ðŸ” Items respectant Validation â‰¤ 10:`, 
+    console.log(`⚖️ TIRAGE PONDÉRÉ (80%)`);
+    console.log(`📋 Items disponibles (Validation ≤ 10 + tampon): ${finalWeightedItems.length}/${availableItems.length}`);
+    console.log(`🔍 Items respectant Validation ≤ 10:`, 
       validationFilteredItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0})`)
         .join(', '));
-    console.log(`ðŸš« Items exclus par tampon:`, recentItems.join(', '));
-    console.log(`âœ… Items finaux pour pondÃ©ration:`, 
+    console.log(`🚫 Items exclus par tampon:`, recentItems.join(', '));
+    console.log(`✅ Items finaux pour pondération:`, 
       finalWeightedItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0},${(statsCache.items[parseInt(item.ID)]?.pourcentage || 0).toFixed(1)}%)`)
         .join(', '));
   }
 
-  // Mettre Ã  jour le tampon - s'assurer que c'est un number
+  // Mettre à jour le tampon - s'assurer que c'est un number
   recentItems.push(parseInt(selectedItem.ID));
   if (recentItems.length > 3) recentItems.shift(); // Garder seulement les 3 derniers
   localStorage.setItem('recentRevisionItems', JSON.stringify(recentItems));
 
-  // Log pour vÃ©rification
-  console.log(`ðŸŽ¯ Question sÃ©lectionnÃ©e: "${selectedItem.key}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
-  console.log(`ðŸ” Tampon rÃ©cent:`, recentItems);
+  // Log pour vérification
+  console.log(`🎯 Question sélectionnée: "${selectedItem.key}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
+  console.log(`🔍 Tampon récent:`, recentItems);
 
   // Configurer la question
   revisionMode.currentQuestion = selectedItem.key;
@@ -1607,8 +2861,8 @@ function startRevisionQuestion() {
   const firstCard = document.getElementById(`revision-card-0`);
   if (firstCard) firstCard.classList.add("pulsing");
 
-  console.log(`ðŸ“ Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
-  console.log(`ðŸ“Š Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+  console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
+  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
 }  
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
@@ -1647,7 +2901,7 @@ function updateRevisionFeedback() {
 
     console.log(`Segment ${seg}: romStart=${romStart}, romEnd=${romEnd}, typedLen=${typedLen}, typedSegment="${typedSegment}", expected="${expected}"`);
 
-    // Gradation basÃ©e sur la progression dans le segment
+    // Gradation basée sur la progression dans le segment
     if (typedLen > 0) {
       if (expected.startsWith(typedSegment)) {
         const level = Math.min(4, typedLen);
@@ -1664,7 +2918,7 @@ function updateRevisionFeedback() {
       const span = document.getElementById(`revision-char-${c}`);
       if (card) {
         card.className = `char-card ${className || ""}`; // Appliquer la gradation
-        // Ajouter animation "pop" et son si on valide un nouveau caractÃ¨re
+        // Ajouter animation "pop" et son si on valide un nouveau caractère
         if (inputLength > romStart && c === charStart && !card.classList.contains("pop-animation")) {
           card.classList.add("pop-animation");
           playPopSound();
@@ -1673,7 +2927,7 @@ function updateRevisionFeedback() {
       }
     }
 
-    // Validation finale uniquement pour le segment courant si entiÃ¨rement saisi
+    // Validation finale uniquement pour le segment courant si entièrement saisi
     if (inputLength >= romEnd) {
       const fullSegment = revisionMode.input.substring(romStart, romEnd);
       if (fullSegment === expected) {
@@ -1695,13 +2949,13 @@ function updateRevisionFeedback() {
       }
     }
 
-    // DÃ©terminer le segment en cours pour la pulsation
+    // Déterminer le segment en cours pour la pulsation
     if (romStart <= inputLength && inputLength < romEnd) {
       currentSegment = seg;
     }
   }
 
-  // Ajouter la pulsation Ã  la carte en cours
+  // Ajouter la pulsation à la carte en cours
   if (currentSegment >= 0) {
     const charStart = currentSegment > 0 ? revisionMode.cumulativeChars[currentSegment - 1] : 0;
     const charEnd = revisionMode.cumulativeChars[currentSegment];
@@ -1717,7 +2971,7 @@ function updateRevisionFeedback() {
       
   
   
-// Initialiser les Ã©vÃ©nements du clavier de rÃ©vision
+// Initialiser les événements du clavier de révision
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
   revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true)));
@@ -1746,60 +3000,60 @@ function initRevisionKeyboard() {
 
       if (revisionMode.input.length >= totalLength) {
         const isCorrect = revisionMode.input === revisionMode.fullCorrect;
-        const key = revisionMode.currentItem.ID; // Utiliser l'ID comme clÃ©
+        const key = revisionMode.currentItem.ID; // Utiliser l'ID comme clé
 
-        // Mettre Ã  jour statsCache
+        // Mettre à jour statsCache
         statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
         statsCache.items[key].tentatives += 1;
         statsCache.items[key].reussites += isCorrect ? 1 : 0;
         statsCache.items[key].pourcentage = statsCache.items[key].tentatives > 0 
           ? (statsCache.items[key].reussites / statsCache.items[key].tentatives * 100) : 0;
 
-        // Mettre Ã  jour pourcentage global
+        // Mettre à jour pourcentage global
         const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
         const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
         statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-        // Log des stats mises Ã  jour
-        console.log(`ðŸ“Š Mise Ã  jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, RÃ©ussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
-        console.log('ðŸ“ˆ Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
+        // Log des stats mises à jour
+        console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
+        console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-// âœ… MODIFICATION : En mode rÃ©vision, ne pas faire baisser la Validation en dessous de 5
+// ✅ MODIFICATION : En mode révision, ne pas faire baisser la Validation en dessous de 5
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
 if (hiraganaIndex !== -1) {
   const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
   
   let newValidation;
   if (isCorrect) {
-    newValidation = currentValidation + 1; // Bonne rÃ©ponse +1
+    newValidation = currentValidation + 1; // Bonne réponse +1
   } else {
-    newValidation = Math.max(5, currentValidation - 2); // Mauvaise rÃ©ponse -2 mais minimum 5
+    newValidation = Math.max(5, currentValidation - 2); // Mauvaise réponse -2 mais minimum 5
   }
   
   HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-  validationCache[revisionMode.currentItem.ID] = newValidation; // âœ… MISE Ã€ JOUR CACHE
+  validationCache[revisionMode.currentItem.ID] = newValidation; // ✅ MISE À JOUR CACHE
   
-  console.log(`ðŸ”’ Mode rÃ©vision - Validation mise Ã  jour: ${newValidation} (Ã©tait: ${currentValidation}) - Cache mis Ã  jour`);
+  console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
 }
 
-        // Appeler API en arriÃ¨re-plan avec le flag mode rÃ©vision
+        // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
           id: parseInt(revisionMode.currentItem.ID), 
           scorePoints: isCorrect ? 1 : 0,
           tentatives: statsCache.items[key].tentatives,
           reussites: statsCache.items[key].reussites,
-          isRevisionMode: true // âœ… NOUVEAU FLAG
+          isRevisionMode: true // ✅ NOUVEAU FLAG
         }).catch(error => console.error('Erreur sauvegarde stats:', error));
 
         // Afficher feedback
         if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `ðŸŒ¸ Parfait !${katakanaDisplay} ðŸŒ¸`;
+          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🌸 Parfait !${katakanaDisplay} 🌸`;
           document.getElementById("revision-message").style.color = "#28a745";
           playZenBell();
         } else {
           document.getElementById("revision-message").textContent = isHighLevel 
             ? "Faux" 
-            : `âŒ ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
+            : `❌ ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
           document.getElementById("revision-message").style.color = "#dc3545";
           playSoftError();
         }
@@ -1824,16 +3078,20 @@ window.addEventListener('load', () => {
 
   
   
-  // DÃ©marrage du jeu
+  // Démarrage du jeu
 window.onload = () => {
 initGame();
 };
-// S'assurer que les voix sont bien chargÃ©es
+// S'assurer que les voix sont bien chargées
 speechSynthesis.onvoiceschanged = () => {
-console.log("ðŸ“¢ Voix disponibles :", speechSynthesis.getVoices());
+console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 
 </script>
   
 </body>
 </html>
+
+
+
+
