@@ -2597,9 +2597,11 @@ if (nouveauNiveau !== niveauActif) {
   const groupeDebloque = determineGroupeDebloque(HiraganaList);
   
   if (currentGroupeId > groupeDebloque) {
+  setTimeout(() => {
     showBlockingOverlay();
-    return; // Arrêter la progression
-  }
+  }, 3100); // attendre la fin de l'anim "Level Up"
+  return; // Arrêter la progression
+}
   
   nextQuestion();
   return;
@@ -3303,6 +3305,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
