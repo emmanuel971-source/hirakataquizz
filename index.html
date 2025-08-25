@@ -1271,6 +1271,7 @@
 #blocking-overlay.active, #unlock-overlay.active {
   transform: translateX(0);
   opacity: 1;
+  position: fixed !important; /* Force le fixed */
 }
 
 /* Conteneur du contenu interne */
@@ -2613,9 +2614,9 @@ if (nouveauNiveau !== niveauActif) {
   const groupeDebloque = determineGroupeDebloque(HiraganaList);
   
   if (currentGroupeId > groupeDebloque) {
-  setTimeout(() => {
-    showBlockingOverlay();
-  }, 3100); // attendre la fin de l'anim "Level Up"
+ setTimeout(() => {
+  showBlockingOverlay();
+}, 3500); // Au lieu de 3100
   return; // Arrêter la progression
 }
   
@@ -3321,6 +3322,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
