@@ -1377,6 +1377,8 @@ function showSection(sectionId) {
   } else {
     revisionMode.isActive = false;
   }
+  toggleMenu();
+}
 function updateMenuMessage() {
     const messages = [
         'Continuez à apprendre ! 🌸',
@@ -1388,9 +1390,7 @@ function updateMenuMessage() {
     if (menuMessage && menuMessage.innerText === '') {
         menuMessage.innerText = messages[Math.floor(Math.random() * messages.length)];
     }
-}  
-  toggleMenu();
-}
+}      
   </script>
 <script>
 let HiraganaList = [];
@@ -3118,6 +3118,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
