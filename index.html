@@ -2939,6 +2939,13 @@ duration: 1000,
 easing: "ease-in-out"
 });
 }
+// Après la réapparition des éléments
+setTimeout(() => {
+  // S'assurer qu'aucun élément n'a un z-index élevé
+  document.querySelectorAll('#question, #choices1, #choices2').forEach(el => {
+    el.style.zIndex = 'auto';
+  });
+}, 3000);  
 }
 
 function startRevisionQuestion() {
@@ -3322,6 +3329,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
