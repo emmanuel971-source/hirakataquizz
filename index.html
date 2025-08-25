@@ -1253,10 +1253,10 @@
 }
 #menu-message {
   text-align: center !important;
-  font-size: 2.5em !important; /* Taille proche d'un h1 */
-  font-weight: 700 !important; /* Bold */
-  color: #ffffff !important; /* Couleur blanche */
-  background: rgba(0, 0, 0, 0.7) !important; /* Fond semi-transparent */
+  font-size: 2.5em !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  background: rgba(0, 0, 0, 0.7) !important;
   padding: 15px !important;
   margin-bottom: 15px !important;
   border-radius: 8px !important;
@@ -1265,7 +1265,7 @@
 
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #menu-message {
-    font-size: 1.8em !important; /* Taille réduite pour mobiles */
+    font-size: 1.8em !important;
     padding: 10px !important;
     margin-bottom: 10px !important;
     line-height: 1.2 !important;
@@ -1285,13 +1285,13 @@
 </button>
 
   <!-- Menu -->
-  <nav class="menu" id="menu">
-    <div id="menu-message" class="menu-message"></div>
-    <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
-    <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
-    <button class="arcade-button" onclick="showSection('options')">Options</button>
-    <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
-  </nav>
+<nav class="menu" id="menu">
+  <div id="menu-message" class="menu-message"></div>
+  <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
+  <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
+  <button class="arcade-button" onclick="showSection('options')">Options</button>
+  <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
+</nav>
 
   <!-- Section Quiz (contenu actuel) -->
   <div id="quiz" class="section active">
@@ -2431,10 +2431,13 @@ renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
 updateLevelProgress(HiraganaList, niveauActif);
 updateRevisionButtonState();  
 // Ajouter ici
-        const menu = document.getElementById('menu');
+if (niveauActif === 4 && !hasShownLevel4Menu) {
+    const menu = document.getElementById('menu');
+    const menuMessage = document.getElementById('menu-message');
     menu.classList.add('active');
-    document.getElementById('menu-message').innerText = '🌱🎋 Mode révisions débloqué : consolidez vos acquis !!!🌱🎋 ';
-    hasShownLevel4Menu = true; // Marquer que le menu a été affiché
+    menuMessage.innerText = 'Mode révisions débloqué : consolidez vos acquis !!!';
+    hasShownLevel4Menu = true;
+}
 nextQuestion();
 return;
 }
@@ -3129,6 +3132,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
