@@ -1251,33 +1251,46 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
   }
 }
-    
-#blocking-overlay {
+#blocking-overlay, #unlock-overlay {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(248, 241, 233, 0.95); /* Même voile que le menu */
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
+  gap: 15px;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  opacity: 0;
+  z-index: 999; /* Même z-index que le menu */
+}
+
+#blocking-overlay.active, #unlock-overlay.active {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 .blocking-content {
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
   text-align: center;
   max-width: 400px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: 20px;
 }
 
 .blocking-content h2 {
   margin-top: 0;
   color: #dc3545;
+  font-size: 2em;
+}
+
+.blocking-content p {
+  font-size: 1.2em;
+  margin: 20px 0;
 }    
+
   </style>
 </head>
 <body>
@@ -1502,9 +1515,15 @@ function showBlockingOverlay() {
     </div>
   `;
   document.body.appendChild(overlay);
+  
+  // Déclencher l'animation comme pour le menu
+  setTimeout(() => {
+    overlay.classList.add('active');
+  }, 10);
 }
+
 function showUnlockMessage() {
-  // Éviter les doublons
+  // Même principe pour le message de déblocage
   const existingOverlay = document.getElementById('unlock-overlay');
   if (existingOverlay) {
     existingOverlay.remove();
@@ -1520,8 +1539,12 @@ function showUnlockMessage() {
     </div>
   `;
   document.body.appendChild(overlay);
+  
+  // Déclencher l'animation
+  setTimeout(() => {
+    overlay.classList.add('active');
+  }, 10);
 }
-
 function closeUnlockMessage() {
   const overlay = document.getElementById('unlock-overlay');
   if (overlay) {
@@ -3267,6 +3290,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
