@@ -1382,6 +1382,7 @@ let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
+let hasShownLevel4Menu = false; // Variable pour suivre si le menu a été affiché au niveau 4  
 let validationCache = {}; // Ajouter cette ligne près des autres variables globales
 let statsCache = {
   items: {}, // { [hiragana/katakana]: { tentatives, reussites, pourcentage } }
@@ -2397,6 +2398,12 @@ document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauAct
 renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
 updateLevelProgress(HiraganaList, niveauActif);
 updateRevisionButtonState();  
+// Ajouter ici
+        if (niveauActif === 4 && !hasShownLevel4Menu) {
+            const menu = document.getElementById('menu');
+            menu.classList.add('active');
+            hasShownLevel4Menu = true;
+        }  
 nextQuestion();
 return;
 }
@@ -3091,6 +3098,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
