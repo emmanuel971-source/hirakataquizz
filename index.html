@@ -1253,20 +1253,20 @@
 }
 /* CSS des overlays - EXACTEMENT comme le menu */
 #blocking-overlay, #unlock-overlay {
-  position: fixed !important;
-  inset: 0; /* top:0; right:0; bottom:0; left:0 */
-  width: 100%;
-  height: 100%;
-  background: rgba(248, 241, 233, 0.95); /* voile comme le menu */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* ... */
-  transform: scale(0.8); /* ← Animation de zoom au lieu de slide */
-  /* OU ALORS : */
-  transform: translateY(-50px); /* ← Animation de haut en bas */
-  /* ... */
-  opacity: 0;
+ position: fixed !important;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(248, 241, 233, 0.95); /* Voile blanc cassé */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      opacity: 0;
   isolation: isolate; /* crée un nouveau contexte d'empilement */
   z-index: 99999 !important; /* passe devant absolument tout */
 }
@@ -3330,6 +3330,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
