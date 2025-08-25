@@ -1251,25 +1251,26 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
   }
 }
-.menu-message {
-  text-align: center;
-  font-size: 4em !important; /* Taille proche d'un h1, forcée */
-  font-weight: bold; /* Pour renforcer l'apparence comme un h1 */
-  color: #ffffff;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 15px; /* Légèrement plus grand pour correspondre à la taille */
-  margin-bottom: 15px;
-  border-radius: 8px;
+nav.menu #menu-message {
+  text-align: center !important;
+  font-size: 4em !important; /* Taille proche d'un h1 */
+  font-weight: bold !important; /* Forcer le bold */
+  color: #ffffff !important; /* Forcer la couleur blanche */
+  background: rgba(0, 0, 0, 0.7) !important; /* Forcer le fond */
+  padding: 15px !important;
+  margin-bottom: 15px !important;
+  border-radius: 8px !important;
+  line-height: 1.3 !important;
 }
 
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-  .menu-message {
-    font-size: 2em !important; /* Taille réduite pour mobiles, forcée */
-    padding: 10px; /* Ajustement du padding pour mobiles */
-    margin-bottom: 10px;
-    line-height: 1.2; /* Meilleure lisibilité sur petits écrans */
+  nav.menu #menu-message {
+    font-size: 3em !important; /* Taille réduite pour mobiles */
+    padding: 10px !important;
+    margin-bottom: 10px !important;
+    line-height: 1.2 !important;
   }
-}   
+}
   </style>
 </head>
 <body>
@@ -3128,6 +3129,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
