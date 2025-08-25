@@ -935,24 +935,9 @@
   z-index: 1001;
 /*  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);  même ombre que les boutons */
   opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity .45s ease, transform .45s ease;
+ 
+}
 
-}
-.menu.active #menu-message {
-  opacity: 1;
-  transform: translateY(0);
-}    
-@keyframes fadeInMenuMsg {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 /* Version responsive */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #menu-message {
@@ -3164,6 +3149,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
