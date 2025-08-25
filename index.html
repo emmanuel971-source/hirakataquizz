@@ -1261,15 +1261,19 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  transform: translateX(100%); /* animation type menu */
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  /* ... */
+  transform: scale(0.8); /* ← Animation de zoom au lieu de slide */
+  /* OU ALORS : */
+  transform: translateY(-50px); /* ← Animation de haut en bas */
+  /* ... */
   opacity: 0;
   isolation: isolate; /* crée un nouveau contexte d'empilement */
   z-index: 99999 !important; /* passe devant absolument tout */
 }
 
 #blocking-overlay.active, #unlock-overlay.active {
-  transform: translateX(0);
+    transform: scale(1); /* ← ou translateY(0) */
+
   opacity: 1;
   position: fixed !important; /* Force le fixed */
 }
@@ -1299,10 +1303,7 @@
   color: #333;
 }
 
-/* Petite animation d’apparition */
-@keyframes slideDown {
-  from { transform: translateY(-30px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
+
 }
 
     
@@ -3329,6 +3330,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
