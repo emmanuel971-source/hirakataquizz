@@ -1251,22 +1251,23 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
   }
 }
+/* CSS des overlays - EXACTEMENT comme le menu */
 #blocking-overlay, #unlock-overlay {
   position: fixed;
   top: 0;
   right: 0;
   width: 100%;
   height: 100%;
-  background: rgba(248, 241, 233, 0.95); /* Même voile que le menu */
+  background: rgba(248, 241, 233, 0.95); /* Même fond que le menu */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 15px;
-  transform: translateX(100%);
+  transform: translateX(100%); /* Même animation */
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
   opacity: 0;
-  z-index: 999; /* Même z-index que le menu */
+  z-index: 999; /* Même z-index */
 }
 
 #blocking-overlay.active, #unlock-overlay.active {
@@ -1274,21 +1275,18 @@
   opacity: 1;
 }
 
-.blocking-content {
-  text-align: center;
-  max-width: 400px;
-  padding: 20px;
-}
-
 .blocking-content h2 {
-  margin-top: 0;
+  margin: 0;
   color: #dc3545;
-  font-size: 2em;
+  font-size: 2.5em;
+  text-align: center;
 }
 
 .blocking-content p {
-  font-size: 1.2em;
+  font-size: 1.3em;
   margin: 20px 0;
+  text-align: center;
+  color: #333;
 }    
 
   </style>
@@ -1491,7 +1489,6 @@ function isGroupeCompleted(groupeId) {
   return itemsGroupe.length > 0 && itemsValides.length === itemsGroupe.length;
 }
 function showBlockingOverlay() {
-  // Éviter les doublons
   const existingOverlay = document.getElementById('blocking-overlay');
   if (existingOverlay) {
     existingOverlay.remove();
@@ -1514,9 +1511,9 @@ function showBlockingOverlay() {
       <button class="arcade-button" onclick="closeBlockingOverlay()">OK</button>
     </div>
   `;
+  
   document.body.appendChild(overlay);
   
-  // Déclencher l'animation comme pour le menu
   setTimeout(() => {
     overlay.classList.add('active');
   }, 10);
@@ -1555,9 +1552,25 @@ function closeUnlockMessage() {
 function closeBlockingOverlay() {
   const overlay = document.getElementById('blocking-overlay');
   if (overlay) {
-    overlay.remove();
+    overlay.classList.remove('active');
+    setTimeout(() => {
+      if (overlay.parentNode) {
+        overlay.remove();
+      }
+    }, 300);
   }
-  showSection('mode2'); // Aller directement en mode révision
+  
+  // Aller directement au mode révision
+  document.querySelectorAll('.section').forEach(section => {
+    section.classList.remove('active');
+  });
+  document.getElementById('mode2').classList.add('active');
+  
+  revisionMode.isActive = true;
+  setTimeout(() => {
+    initRevisionKeyboard();
+    startRevisionQuestion();
+  }, 400); // Un peu plus de délai pour l'animation
 }
 
 function determineGroupeDebloque(list) {
@@ -3290,6 +3303,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
