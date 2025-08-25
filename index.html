@@ -1253,7 +1253,8 @@
 }
 /* CSS des overlays - EXACTEMENT comme le menu */
 #blocking-overlay, #unlock-overlay {
-  position: fixed;
+  position: fixed !important;
+  inset: 0; /* équivalent à top:0; right:0; bottom:0; left:0 */
   top: 0;
   right: 0;
   width: 100%;
@@ -3305,6 +3306,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
