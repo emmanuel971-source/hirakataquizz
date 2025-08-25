@@ -918,6 +918,30 @@
 
 
 /* Ajuster la règle générale pour .menu */
+    /* ✅ Style menu-message */
+#menu-message {
+  text-align: center !important;
+  font-size: 2.5em !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  padding: 15px !important;
+  margin-bottom: 15px !important;
+  border-radius: 8px !important;
+  line-height: 1.3 !important;
+  display: block; /* garantit l’affichage */
+  z-index: 1001;  /* au-dessus du menu (qui est z-index:999) */
+}
+
+/* ✅ Version responsive */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+  #menu-message {
+    font-size: 1.8em !important;
+    padding: 10px !important;
+    margin-bottom: 10px !important;
+    line-height: 1.2 !important;
+  }
+}
    .menu {
       position: fixed;
       top: 0;
@@ -1251,26 +1275,7 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
   }
 }
-#menu-message {
-  text-align: center !important;
-  font-size: 2.5em !important;
-  font-weight: 700 !important;
-  color: #ffffff !important;
-  background: rgba(0, 0, 0, 0.7) !important;
-  padding: 15px !important;
-  margin-bottom: 15px !important;
-  border-radius: 8px !important;
-  line-height: 1.3 !important;
-}
 
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-  #menu-message {
-    font-size: 1.8em !important;
-    padding: 10px !important;
-    margin-bottom: 10px !important;
-    line-height: 1.2 !important;
-  }
-}
   </style>
 </head>
 <body>
@@ -3132,6 +3137,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
