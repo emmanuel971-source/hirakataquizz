@@ -923,17 +923,20 @@
   text-align: center !important;
   font-size: 2.5em !important;
   font-weight: 700 !important;
-  color: #ffffff !important;
-  background: rgba(0, 0, 0, 0.7) !important;
+  color: #8B6F47 !important; /* marron des boutons */
+  background: #F5E8C7 !important; /* fond des boutons */
+  background-image: url('https://www.transparenttextures.com/patterns/light-wood.png') !important;
+  border: 2px solid #8B6F47 !important; /* même bordure que les boutons */
   padding: 15px !important;
   margin-bottom: 15px !important;
   border-radius: 8px !important;
   line-height: 1.3 !important;
-  display: block; /* garantit l’affichage */
-  z-index: 1001;  /* au-dessus du menu (qui est z-index:999) */
+  display: block;
+  z-index: 1001;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15); /* même ombre que les boutons */
 }
 
-/* ✅ Version responsive */
+/* Version responsive */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #menu-message {
     font-size: 1.8em !important;
@@ -3137,6 +3140,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
