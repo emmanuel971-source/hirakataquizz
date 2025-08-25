@@ -1253,22 +1253,9 @@
 }
 /* CSS des overlays - EXACTEMENT comme le menu */
 #blocking-overlay, #unlock-overlay {
-  position: fixed !important;
+ position: fixed !important;
   inset: 0; /* équivalent à top:0; right:0; bottom:0; left:0 */
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(248, 241, 233, 0.95); /* Même fond que le menu */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  transform: translateX(100%); /* Même animation */
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  opacity: 0;
-  z-index: 2000; /* Même z-index */
+  z-index: 2000 !important;
 }
 
 #blocking-overlay.active, #unlock-overlay.active {
@@ -3306,6 +3293,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
