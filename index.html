@@ -1251,7 +1251,15 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
   }
 }
-    
+.menu-message {
+  text-align: center;
+  font-size: 1.2em;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}    
   </style>
 </head>
 <body>
@@ -1267,6 +1275,7 @@
 
   <!-- Menu -->
   <nav class="menu" id="menu">
+    <div id="menu-message" class="menu-message"></div>
     <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
     <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
     <button class="arcade-button" onclick="showSection('options')">Options</button>
@@ -2399,11 +2408,10 @@ renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
 updateLevelProgress(HiraganaList, niveauActif);
 updateRevisionButtonState();  
 // Ajouter ici
-        if (niveauActif === 4 && !hasShownLevel4Menu) {
-            const menu = document.getElementById('menu');
-            menu.classList.add('active');
-            hasShownLevel4Menu = true;
-        }  
+        const menu = document.getElementById('menu');
+    menu.classList.add('active');
+    document.getElementById('menu-message').innerText = '🌱🎋 Mode révisions débloqué : consolidez vos acquis !!!🌱🎋 ';
+    hasShownLevel4Menu = true; // Marquer que le menu a été affiché
 nextQuestion();
 return;
 }
@@ -3098,6 +3106,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
