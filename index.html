@@ -1460,6 +1460,7 @@ function showSection(sectionId) {
     setTimeout(() => {
       initRevisionKeyboard();
       startRevisionQuestion();
+      updateUnlockProgress(); // 🔥 affiche / met à jour la barre en mode révision
     }, 100);
   } else {
     revisionMode.isActive = false;
@@ -3414,6 +3415,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
