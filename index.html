@@ -1620,7 +1620,7 @@ function updateUnlockProgress() {
   } else {
     fill.classList.remove('proche-deblocage');
   }
-  
+  console.log("isApprentissageBloque:", isApprentissageBloque());
   console.log(`📊 Déficit: ${deficitActuel}/${deficitMaximum} (${pourcentage.toFixed(1)}%)`);
 }  
 function isGroupeDebloque(groupeId) {
@@ -3415,6 +3415,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
