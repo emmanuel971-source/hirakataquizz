@@ -1454,6 +1454,51 @@ let revisionMode = {
   cumulativeChars: [],
   isActive: false
 };
+const GROUPES = {
+  1: { niveaux: [1, 2, 3], nom: "Groupe 1" },
+  2: { niveaux: [4, 5], nom: "Groupe 2" },
+  3: { niveaux: [6, 7, 8], nom: "Groupe 3" },
+  4: { niveaux: [9, 10, 11, 12], nom: "Groupe 4" },
+  5: { niveaux: [13, 14, 15, 16, 17], nom: "Groupe 5" },
+  6: { niveaux: [18, 19, 20, 21, 22], nom: "Groupe 6" },
+  7: { niveaux: [23, 24, 25, 26, 27], nom: "Groupe 7" },
+  8: { niveaux: [28, 29, 30, 31, 32, 33], nom: "Groupe 8" },
+  9: { niveaux: [34, 35, 36, 37, 38, 39], nom: "Groupe 9" },
+  10: { niveaux: [40, 41, 42, 43, 44, 45, 46], nom: "Groupe 10" }
+};
+
+let hasShownBlockedMenu = false;
+let hasShownUnblockedMenu = false;
+
+function getNiveauGroupe(niveau) {
+  for (const [groupeId, groupe] of Object.entries(GROUPES)) {
+    if (groupe.niveaux.includes(niveau)) {
+      return parseInt(groupeId);
+    }
+  }
+  return 1;
+}
+
+function isGroupeDebloque(groupeId) {
+  if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
+  
+  const groupePrecedent = groupeId - 1;
+  const niveauxPrecedents = GROUPES[groupePrecedent].niveaux;
+  
+  for (const niveau of niveauxPrecedents) {
+    const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+    const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= 10);
+    
+    if (itemsValides.length < itemsNiveau.length) {
+      return false;
+    }
+  }
+  return true;
+}
+function isApprentissageBloque() {
+  const groupeActuel = getNiveauGroupe(niveauActif);
+  return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
+}  
 // Initialisation du contexte audio (à placer au début du script, une seule fois)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -2310,19 +2355,42 @@ container.appendChild(rightEmoji);
 }
 
 function determineNiveauActif(list) {
-if (!list || list.length === 0) return 1;
-let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
+  if (!list || list.length === 0) return 1;
+  let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
 
-for (let n = 1; n <= maxNiveau; n++) {
-const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
-const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5);
-if (kanjisValides.length < kanjisNiveau.length) {
-return n;
+  for (let n = 1; n <= maxNiveau; n++) {
+    const groupeActuel = getNiveauGroupe(n);
+    
+    // Vérifier si le groupe est bloqué (à partir du groupe 3)
+    if (groupeActuel >= 3 && !isGroupeDebloque(groupeActuel)) {
+      return n;
+    }
+    
+    const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
+    const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5);
+    if (kanjisValides.length < kanjisNiveau.length) {
+      return n;
+    }
+  }
+  return maxNiveau;
 }
+function updateApprendreButtonState() {
+  const apprendreButton = document.querySelector('button[onclick="showSection(\'quiz\')"]');
+  if (!apprendreButton) return;
+  
+  if (isApprentissageBloque()) {
+    apprendreButton.classList.add('disabled');
+    apprendreButton.onclick = (e) => {
+      e.preventDefault();
+      console.log('Mode apprentissage bloqué');
+    };
+    apprendreButton.title = 'Mode bloqué - Pratiquez le mode révision';
+  } else {
+    apprendreButton.classList.remove('disabled');
+    apprendreButton.onclick = () => showSection('quiz');
+    apprendreButton.title = '';
+  }
 }
-return maxNiveau;
-}
-
 function updateLevelProgress(list, niveau) {
 renderHiraganaCards(list, niveau);
 }
@@ -2432,6 +2500,7 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   updateRevisionButtonState();
+  updateApprendreButtonState();
   nextQuestion();  
 }
 function nextQuestion() {
@@ -2447,11 +2516,15 @@ parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
 if (kanas.length === 0) {
 const nouveauNiveau = determineNiveauActif(HiraganaList);
 if (nouveauNiveau !== niveauActif) {
-niveauActif = nouveauNiveau;
+
+const ancienGroupe = getNiveauGroupe(niveauActif);
+const nouveauGroupe = getNiveauGroupe(nouveauNiveau);  
+niveauActif = nouveauNiveau;  
 document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
 renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
 updateLevelProgress(HiraganaList, niveauActif);
 updateRevisionButtonState();  
+updateApprendreButtonState(); // Nouvelle ligne  
 // Ajouter ici
 if (niveauActif === 4 && !hasShownLevel4Menu) {
     const menu = document.getElementById('menu');
@@ -2460,6 +2533,15 @@ if (niveauActif === 4 && !hasShownLevel4Menu) {
     menuMessage.innerText = '🏮 Mode révisions débloqué 🏮';
     hasShownLevel4Menu = true;
 }
+if (nouveauGroupe > ancienGroupe && nouveauGroupe >= 3 && isApprentissageBloque() && !hasShownBlockedMenu) {
+    setTimeout(() => {
+      const menu = document.getElementById('menu');
+      const menuMessage = document.getElementById('menu-message');
+      menu.classList.add('active');
+      menuMessage.innerText = 'Mode Apprendre bloqué';
+      hasShownBlockedMenu = true;
+    }, 3000);
+}  
 nextQuestion();
 return;
 }
@@ -3080,7 +3162,8 @@ function initRevisionKeyboard() {
         // Log des stats mises à jour
         console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
-
+// ✅ AJOUTEZ ICI - AVANT la modification de la Validation
+  const wasBlocked = isApprentissageBloque();
 // ✅ MODIFICATION : En mode révision, ne pas faire baisser la Validation en dessous de 5
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
 if (hiraganaIndex !== -1) {
@@ -3098,7 +3181,21 @@ if (hiraganaIndex !== -1) {
   
   console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
 }
+  // ✅ AJOUTEZ ICI - APRÈS la modification de la Validation
+  const isNowUnblocked = !isApprentissageBloque();
 
+  if (wasBlocked && isNowUnblocked && !hasShownUnblockedMenu) {
+    setTimeout(() => {
+      const menu = document.getElementById('menu');
+      const menuMessage = document.getElementById('menu-message');
+      menu.classList.add('active');
+      menuMessage.innerText = 'Mode Apprendre réouvert';
+      updateApprendreButtonState();
+      hasShownUnblockedMenu = true;
+      // Reset le flag pour le prochain blocage
+      hasShownBlockedMenu = false;
+    }, 2000);
+  }
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
           id: parseInt(revisionMode.currentItem.ID), 
@@ -3154,6 +3251,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
