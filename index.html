@@ -1381,21 +1381,26 @@
     }
 
 function showSection(sectionId) {
-    // Vérifier si on essaie d'accéder au mode révision
+  // Vérifier si on essaie d'accéder au mode révision
   if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
-    // Optionnel : afficher un message d'erreur
     console.log('Mode révision non disponible');
     return;
   }
+  
+  // NOUVEAU : Vérifier si on essaie d'accéder au quiz bloqué
+  if (sectionId === 'quiz' && isApprentissageBloque()) {
+    console.log('Mode apprentissage bloqué - redirection vers révision');
+    sectionId = 'mode2'; // Forcer la redirection vers le mode révision
+  }
+
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
   document.getElementById(sectionId).classList.add('active');
   
- // Démarrer le mode révisions si c'est le mode sélectionné
+  // Démarrer le mode révisions si c'est le mode sélectionné
   if (sectionId === 'mode2') {
     revisionMode.isActive = true;
-    // Petit délai pour s'assurer que la section est visible
     setTimeout(() => {
       initRevisionKeyboard();
       startRevisionQuestion();
@@ -1405,6 +1410,18 @@ function showSection(sectionId) {
   }
   toggleMenu();
 }
+function forceRevisionMode() {
+  document.querySelectorAll('.section').forEach(section => {
+    section.classList.remove('active');
+  });
+  document.getElementById('mode2').classList.add('active');
+  
+  revisionMode.isActive = true;
+  setTimeout(() => {
+    initRevisionKeyboard();
+    startRevisionQuestion();
+  }, 100);
+}    
 function updateMenuMessage() {
     const messages = [
         'Continues à apprendre ! 🌸',
@@ -2501,6 +2518,10 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   updateRevisionButtonState();
   updateApprendreButtonState();
+  // NOUVEAU : Basculer automatiquement en mode révision si apprentissage bloqué
+  if (isApprentissageBloque()) {
+  forceRevisionMode();
+}
   nextQuestion();  
 }
 function nextQuestion() {
@@ -2534,14 +2555,19 @@ if (niveauActif === 4 && !hasShownLevel4Menu) {
     hasShownLevel4Menu = true;
 }
 if (nouveauGroupe > ancienGroupe && nouveauGroupe >= 3 && isApprentissageBloque() && !hasShownBlockedMenu) {
+  // Passer automatiquement en mode révision AVANT d'afficher le menu
+  setTimeout(() => {
+    forceRevisionMode();
+    // Puis afficher le menu après un court délai
     setTimeout(() => {
       const menu = document.getElementById('menu');
       const menuMessage = document.getElementById('menu-message');
       menu.classList.add('active');
       menuMessage.innerText = 'Mode Apprendre bloqué';
       hasShownBlockedMenu = true;
-    }, 3000);
-}  
+    }, 500);
+  }, 3000);
+} 
 nextQuestion();
 return;
 }
@@ -3185,17 +3211,24 @@ if (hiraganaIndex !== -1) {
   const isNowUnblocked = !isApprentissageBloque();
 
   if (wasBlocked && isNowUnblocked && !hasShownUnblockedMenu) {
-    setTimeout(() => {
-      const menu = document.getElementById('menu');
-      const menuMessage = document.getElementById('menu-message');
-      menu.classList.add('active');
-      menuMessage.innerText = 'Mode Apprendre réouvert';
-      updateApprendreButtonState();
-      hasShownUnblockedMenu = true;
-      // Reset le flag pour le prochain blocage
-      hasShownBlockedMenu = false;
-    }, 2000);
-  }
+  setTimeout(() => {
+    // Retourner automatiquement au mode quiz
+    document.querySelectorAll('.section').forEach(section => {
+      section.classList.remove('active');
+    });
+    document.getElementById('quiz').classList.add('active');
+    revisionMode.isActive = false;
+    
+    // Puis afficher le menu
+    const menu = document.getElementById('menu');
+    const menuMessage = document.getElementById('menu-message');
+    menu.classList.add('active');
+    menuMessage.innerText = 'Mode Apprendre réouvert';
+    updateApprendreButtonState();
+    hasShownUnblockedMenu = true;
+    hasShownBlockedMenu = false;
+  }, 2000);
+}
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
           id: parseInt(revisionMode.currentItem.ID), 
@@ -3251,6 +3284,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
