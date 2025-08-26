@@ -39,7 +39,57 @@
       opacity: 0.1;
       z-index: -1;
     }
+.unlock-progress-container {
+  margin: 15px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
 
+.unlock-progress-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.unlock-progress-bar {
+  position: relative;
+  height: 25px;
+  background: #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #ccc;
+}
+
+.unlock-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.unlock-progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  color: #333;
+  font-size: 12px;
+  z-index: 1;
+}
+
+/* Animation pulsante quand proche du déblocage */
+.unlock-progress-fill.proche-deblocage {
+  animation: pulse-unlock 1s infinite;
+}
+
+@keyframes pulse-unlock {
+  0%, 100% { background: linear-gradient(90deg, #4CAF50, #66BB6A); }
+  50% { background: linear-gradient(90deg, #66BB6A, #81C784); }
+}
     h1 {
       margin: 0.5em 0;
       font-size: 1.8em;
@@ -1334,7 +1384,13 @@
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
   <h2>🎌 Mode Révisions 🎌</h2>
-  <div id="revision-question"></div>
+  <div id="unlock-progress-container" style="display: none;">
+    <div class="unlock-progress-label">Points restants pour débloquer le mode Apprendre :</div>
+    <div class="unlock-progress-bar">
+      <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
+      <div class="unlock-progress-text" id="unlock-progress-text">0</div>
+    </div>
+  </div>
    <div id="revision-message"></div>
   <div id="revision-input-display"></div>
     <div class="revision-keyboard">
@@ -1417,10 +1473,11 @@ function forceRevisionMode() {
   document.getElementById('mode2').classList.add('active');
   
   revisionMode.isActive = true;
-  setTimeout(() => {
-    initRevisionKeyboard();
-    startRevisionQuestion();
-  }, 100);
+setTimeout(() => {
+  initRevisionKeyboard();
+  startRevisionQuestion();
+  updateUnlockProgress(); // Ajouter cette ligne
+}, 100);
 }    
 function updateMenuMessage() {
     const messages = [
@@ -1495,7 +1552,76 @@ function getNiveauGroupe(niveau) {
   }
   return 1;
 }
-
+function calculerDeficitValidation() {
+  const groupeActuel = getNiveauGroupe(niveauActif);
+  if (groupeActuel < 3) return 0; // Pas de blocage avant le groupe 3
+  
+  const groupePrecedent = groupeActuel - 1;
+  const niveauxPrecedents = GROUPES[groupePrecedent].niveaux;
+  
+  let deficitTotal = 0;
+  
+  for (const niveau of niveauxPrecedents) {
+    const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+    for (const item of itemsNiveau) {
+      const validation = parseInt(item.Validation || 0);
+      if (validation < 10) {
+        deficitTotal += (10 - validation);
+      }
+    }
+  }
+  
+  return deficitTotal;
+}
+function calculerDeficitMaximum() {
+  const groupeActuel = getNiveauGroupe(niveauActif);
+  if (groupeActuel < 3) return 0;
+  
+  const groupePrecedent = groupeActuel - 1;
+  const niveauxPrecedents = GROUPES[groupePrecedent].niveaux;
+  
+  let totalItems = 0;
+  for (const niveau of niveauxPrecedents) {
+    const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+    totalItems += itemsNiveau.length;
+  }
+  
+  return totalItems * 5; // Chaque item doit passer de 5 à 10 = déficit max de 5 par item
+}
+function updateUnlockProgress() {
+  const container = document.getElementById('unlock-progress-container');
+  const fill = document.getElementById('unlock-progress-fill');
+  const text = document.getElementById('unlock-progress-text');
+  
+  if (!container || !fill || !text) return;
+  
+  const isBlocked = isApprentissageBloque();
+  
+  if (!isBlocked) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  container.style.display = 'block';
+  
+  const deficitActuel = calculerDeficitValidation();
+  const deficitMaximum = calculerDeficitMaximum();
+  
+  // Pourcentage : plus on approche de 0, plus la barre se vide
+  const pourcentage = deficitMaximum > 0 ? (deficitActuel / deficitMaximum * 100) : 0;
+  
+  fill.style.width = `${pourcentage}%`;
+  text.textContent = deficitActuel;
+  
+  // Animation spéciale si proche du déblocage (moins de 10% du déficit max)
+  if (pourcentage < 10 && pourcentage > 0) {
+    fill.classList.add('proche-deblocage');
+  } else {
+    fill.classList.remove('proche-deblocage');
+  }
+  
+  console.log(`📊 Déficit: ${deficitActuel}/${deficitMaximum} (${pourcentage.toFixed(1)}%)`);
+}  
 function isGroupeDebloque(groupeId) {
   if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
   
@@ -3034,6 +3160,7 @@ function startRevisionQuestion() {
 
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
   console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+  updateUnlockProgress();
 }  
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
@@ -3228,6 +3355,9 @@ if (hiraganaIndex !== -1) {
     hasShownUnblockedMenu = true;
     hasShownBlockedMenu = false;
   }, 2000);
+} else if (wasBlocked) {
+  // Mettre à jour la barre même si pas encore débloqué
+  updateUnlockProgress();
 }
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
@@ -3284,6 +3414,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
