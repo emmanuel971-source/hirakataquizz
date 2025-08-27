@@ -3140,7 +3140,7 @@ function startRevisionQuestion() {
     
   } else {
     // ⚖️ TIRAGE PONDÉRÉ (80%) - Filtré par Validation ≤ 10 + tampon
-    const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) <= seuilValidation);
+    const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) < seuilValidation);
     const weightedItems = validationFilteredItems.filter(item => !recentItems.includes(parseInt(item.ID)));
     
     let finalWeightedItems;
@@ -3490,6 +3490,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
