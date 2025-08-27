@@ -3412,7 +3412,10 @@ if (hiraganaIndex !== -1) {
 }
   // ✅ AJOUTEZ ICI - APRÈS la modification de la Validation
   const isNowUnblocked = !isApprentissageBloque();
-
+  // Après la mise à jour de la validation et AVANT le setTimeout, ajouter :
+const wasBlocked = isApprentissageBloque();
+// ... mise à jour de la validation existante ...
+const isNowBlocked = isApprentissageBloque();
 // Si on passe de débloqué à bloqué
 if (!wasBlocked && isNowBlocked) {
   updateApprendreButtonState(); // Griser le bouton
@@ -3506,6 +3509,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
