@@ -87,92 +87,7 @@
         margin: 0.15em 0;
       }
     }
-.unlock-progress-container {
-  margin: 15px auto; /* Centrer le container */
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  max-width: 400px; /* Largeur maximale sur desktop */
-}
 
-/* Responsive : 90% sur mobile */
-@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-  .unlock-progress-container {
-    max-width: 90vw;
-    margin: 15px 5vw;
-  }
-}
-
-/* Supprimer le label */
-.unlock-progress-label {
-  display: none;
-}
-
-.unlock-progress-bar {
-  position: relative;
-  height: 20px; /* Légèrement plus fin */
-  background: #e0e0e0;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid #ccc;
-}
-
-.unlock-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
-  border-radius: 8px;
-  transition: width 0.3s ease;
-  position: relative;
-}
-
-/* Supprimer le texte au centre */
-.unlock-progress-text {
-  display: none;
-}
-
-/* Garder l'animation proche déblocage */
-.unlock-progress-fill.proche-deblocage {
-  animation: pulse-unlock 1s infinite;
-}
-
-@keyframes pulse-unlock {
-  0%, 100% { background: linear-gradient(90deg, #4CAF50, #66BB6A); }
-  50% { background: linear-gradient(90deg, #66BB6A, #81C784); }
-}
-.option-group {
-  margin: 20px 0;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-}
-
-.option-group label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
-
-.slider-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.slider-container input[type="range"] {
-  flex: 1;
-}
-
-.slider-container span {
-  min-width: 30px;
-  text-align: center;
-  font-weight: bold;
-}
-
-.option-description {
-  font-size: 12px;
-  color: #666;
-  margin-top: 5px;
-}    
     
     
 
@@ -1003,7 +918,94 @@
   }
 }
 
+.unlock-progress-container {
+  margin: 15px auto; /* Centrer le container */
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  max-width: 400px; /* Largeur maximale sur desktop */
+}
 
+/* Responsive : 90% sur mobile */
+@media screen and (max-width: 400px),
+    screen and (-webkit-min-device-pixel-ratio: 2),
+    screen and (min-resolution: 192dpi) {
+  .unlock-progress-container {
+    max-width: 90vw;
+    margin: 15px 5vw;
+  }
+}
+
+/* Supprimer le label */
+.unlock-progress-label {
+  display: none;
+}
+
+.unlock-progress-bar {
+  position: relative;
+  height: 20px; /* Légèrement plus fin */
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #ccc;
+}
+
+.unlock-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+  border-radius: 8px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+/* Supprimer le texte au centre */
+.unlock-progress-text {
+  display: none;
+}
+
+/* Garder l'animation proche déblocage */
+.unlock-progress-fill.proche-deblocage {
+  animation: pulse-unlock 1s infinite;
+}
+
+@keyframes pulse-unlock {
+  0%, 100% { background: linear-gradient(90deg, #4CAF50, #66BB6A); }
+  50% { background: linear-gradient(90deg, #66BB6A, #81C784); }
+}
+.option-group {
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.option-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-container input[type="range"] {
+  flex: 1;
+}
+
+.slider-container span {
+  min-width: 30px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.option-description {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+}    
 
 /* Ajuster la règle générale pour .menu */
     /* ✅ Style menu-message */
@@ -3505,6 +3507,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
