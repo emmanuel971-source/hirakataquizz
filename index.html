@@ -3392,7 +3392,7 @@ function initRevisionKeyboard() {
         console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 // ✅ AJOUTEZ ICI - AVANT la modification de la Validation
-/*  const wasBlocked = isApprentissageBloque(); */
+  const wasBlocked = isApprentissageBloque();
 // ✅ MODIFICATION : En mode révision, ne pas faire baisser la Validation en dessous de 5
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
 if (hiraganaIndex !== -1) {
@@ -3411,19 +3411,9 @@ if (hiraganaIndex !== -1) {
   console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
 }
   // ✅ AJOUTEZ ICI - APRÈS la modification de la Validation
-  const wasBlocked = isApprentissageBloque();      
-  const isNowBlocked = isApprentissageBloque();
-  if (!wasBlocked && isNowBlocked) {
-  updateApprendreButtonState(); // Griser le bouton
-  // Optionnel : afficher le menu avec message
-  setTimeout(() => {
-    const menu = document.getElementById('menu');
-    const menuMessage = document.getElementById('menu-message');
-    menu.classList.add('active');
-    menuMessage.innerText = 'Mode Apprendre bloqué';
-  }, 1000);
-} 
-  if (wasBlocked && !isNowBlocked && !hasShownUnblockedMenu) {
+  const isNowUnblocked = !isApprentissageBloque();
+
+  if (wasBlocked && isNowUnblocked && !hasShownUnblockedMenu) {
   setTimeout(() => {
     // Retourner automatiquement au mode quiz
     document.querySelectorAll('.section').forEach(section => {
@@ -3444,12 +3434,7 @@ if (hiraganaIndex !== -1) {
 } else if (wasBlocked) {
   // Mettre à jour la barre même si pas encore débloqué
   updateUnlockProgress();
-  updateApprendreButtonState(); // S'assurer que le bouton est réactivé  
 }
-// Mise à jour de la barre dans tous les cas
-if (isNowBlocked) {
-  updateUnlockProgress();
-}        
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
           id: parseInt(revisionMode.currentItem.ID), 
@@ -3505,8 +3490,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
-
-
 
 
 
