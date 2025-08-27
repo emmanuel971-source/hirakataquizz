@@ -1557,17 +1557,19 @@ function calculerDeficitValidation() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   if (groupeActuel < 3) return 0; // Pas de blocage avant le groupe 3
   
-  const groupePrecedent = groupeActuel - 1;
-  const niveauxPrecedents = GROUPES[groupePrecedent].niveaux;
-  
   let deficitTotal = 0;
   
-  for (const niveau of niveauxPrecedents) {
-    const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-    for (const item of itemsNiveau) {
-      const validation = parseInt(item.Validation || 0);
-      if (validation < 10) {
-        deficitTotal += (10 - validation);
+  // Parcourir TOUS les groupes précédents (1 à groupeActuel-1)
+  for (let g = 1; g < groupeActuel; g++) {
+    const niveauxGroupe = GROUPES[g].niveaux;
+    
+    for (const niveau of niveauxGroupe) {
+      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+      for (const item of itemsNiveau) {
+        const validation = parseInt(item.Validation || 0);
+        if (validation < 10) {
+          deficitTotal += (10 - validation);
+        }
       }
     }
   }
@@ -1578,17 +1580,20 @@ function calculerDeficitMaximum() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   if (groupeActuel < 3) return 0;
   
-  const groupePrecedent = groupeActuel - 1;
-  const niveauxPrecedents = GROUPES[groupePrecedent].niveaux;
-  
   let totalItems = 0;
-  for (const niveau of niveauxPrecedents) {
-    const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-    totalItems += itemsNiveau.length;
+  
+  // Parcourir TOUS les groupes précédents (1 à groupeActuel-1)
+  for (let g = 1; g < groupeActuel; g++) {
+    const niveauxGroupe = GROUPES[g].niveaux;
+    
+    for (const niveau of niveauxGroupe) {
+      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+      totalItems += itemsNiveau.length;
+    }
   }
   
   return totalItems * 5; // Chaque item doit passer de 5 à 10 = déficit max de 5 par item
-}  
+}
 function updateUnlockProgress() {
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
@@ -1626,15 +1631,17 @@ function updateUnlockProgress() {
 function isGroupeDebloque(groupeId) {
   if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
   
-  const groupePrecedent = groupeId - 1;
-  const niveauxPrecedents = GROUPES[groupePrecedent].niveaux;
-  
-  for (const niveau of niveauxPrecedents) {
-    const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-    const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= 10);
+  // Vérifier TOUS les groupes précédents (1 à groupeId-1)
+  for (let g = 1; g < groupeId; g++) {
+    const niveauxGroupe = GROUPES[g].niveaux;
     
-    if (itemsValides.length < itemsNiveau.length) {
-      return false;
+    for (const niveau of niveauxGroupe) {
+      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+      const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= 10);
+      
+      if (itemsValides.length < itemsNiveau.length) {
+        return false;
+      }
     }
   }
   return true;
@@ -3415,4 +3422,5 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
