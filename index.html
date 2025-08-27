@@ -87,6 +87,43 @@
         margin: 0.15em 0;
       }
     }
+
+.option-group {
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.option-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-container input[type="range"] {
+  flex: 1;
+}
+
+.slider-container span {
+  min-width: 30px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.option-description {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+}    
+    
+    
 .unlock-progress-container {
   margin: 15px 0;
   padding: 10px;
@@ -1424,11 +1461,18 @@
  
 </div>
 
-  <!-- Section Options -->
-  <div id="options" class="section">
-    <h1>Options</h1>
-    <p class="coming-soon">Coming soon</p>
+<!-- Section Options -->
+<div id="options" class="section">
+  <h1>Options</h1>
+  <div class="option-group">
+    <label for="seuil-validation">Seuil de validation (6-12) :</label>
+    <div class="slider-container">
+      <input type="range" id="seuil-validation" min="6" max="12" value="10">
+      <span id="seuil-value">10</span>
+    </div>
+    <p class="option-description">Plus élevé = plus difficile</p>
   </div>
+</div>
 
   <script>
     function toggleMenu() {
@@ -1436,7 +1480,28 @@
       menu.classList.toggle('active');
     /*  updateMenuMessage(); // Met à jour le message à chaque ouverture du menu*/
     }
-
+function initOptionsControls() {
+  const seuilSlider = document.getElementById('seuil-validation');
+  const seuilValue = document.getElementById('seuil-value');
+  
+  if (seuilSlider && seuilValue) {
+    seuilSlider.value = seuilValidation;
+    seuilValue.textContent = seuilValidation;
+    
+    seuilSlider.addEventListener('input', (e) => {
+      seuilValidation = parseInt(e.target.value);
+      seuilValue.textContent = seuilValidation;
+      localStorage.setItem('seuilValidation', seuilValidation);
+      
+      // Mettre à jour l'état des boutons et la barre si nécessaire
+      updateApprendreButtonState();
+      updateRevisionButtonState();
+      if (revisionMode.isActive) {
+        updateUnlockProgress();
+      }
+    });
+  }
+}
 function showSection(sectionId) {
   // Vérifier si on essaie d'accéder au mode révision
   if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
@@ -1449,7 +1514,9 @@ function showSection(sectionId) {
     console.log('Mode apprentissage bloqué - redirection vers révision');
     sectionId = 'mode2'; // Forcer la redirection vers le mode révision
   }
-
+  if (sectionId === 'options') {
+  initOptionsControls();
+  }
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
@@ -1517,7 +1584,7 @@ let statsCache = {
   items: {}, // { [hiragana/katakana]: { tentatives, reussites, pourcentage } }
   globalPourcentage: 0
 };
-  
+let seuilValidation = parseInt(localStorage.getItem('seuilValidation')) || 10;  
 // Variables pour le mode révisions
 let revisionMode = {
   currentQuestion: "",
@@ -1567,8 +1634,8 @@ function calculerDeficitValidation() {
       const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
       for (const item of itemsNiveau) {
         const validation = parseInt(item.Validation || 0);
-        if (validation < 10) {
-          deficitTotal += (10 - validation);
+        if (validation < seuilValidation) {
+  deficitTotal += (seuilValidation - validation);
         }
       }
     }
@@ -1592,7 +1659,7 @@ function calculerDeficitMaximum() {
     }
   }
   
-  return totalItems * 5; // Chaque item doit passer de 5 à 10 = déficit max de 5 par item
+  return totalItems * (seuilValidation - 5); // Déficit max = passage de 5 au seuil
 }
 function updateUnlockProgress() {
   const container = document.getElementById('unlock-progress-container');
@@ -1637,7 +1704,7 @@ function isGroupeDebloque(groupeId) {
     
     for (const niveau of niveauxGroupe) {
       const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-      const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= 10);
+      const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= seuilValidation);
       
       if (itemsValides.length < itemsNiveau.length) {
         return false;
@@ -2656,6 +2723,7 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
   if (isApprentissageBloque()) {
   forceRevisionMode();
 }
+  initOptionsControls();
   nextQuestion();  
 }
 function nextQuestion() {
@@ -3072,7 +3140,7 @@ function startRevisionQuestion() {
     
   } else {
     // ⚖️ TIRAGE PONDÉRÉ (80%) - Filtré par Validation ≤ 10 + tampon
-    const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) <= 10);
+    const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) <= seuilValidation);
     const weightedItems = validationFilteredItems.filter(item => !recentItems.includes(parseInt(item.ID)));
     
     let finalWeightedItems;
@@ -3422,5 +3490,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
