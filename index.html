@@ -88,7 +88,58 @@
       }
     }
 
-    
+   .unlock-progress-container {
+  margin: 15px auto; /* Centrer le container */
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  max-width: 400px; /* Largeur maximale sur desktop */
+}
+
+/* Responsive : 90% sur mobile */
+@media (max-width: 768px) {
+  .unlock-progress-container {
+    max-width: 90vw;
+    margin: 15px 5vw;
+  }
+}
+
+/* Supprimer le label */
+.unlock-progress-label {
+  display: none;
+}
+
+.unlock-progress-bar {
+  position: relative;
+  height: 20px; /* Légèrement plus fin */
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #ccc;
+}
+
+.unlock-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+  border-radius: 8px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+/* Supprimer le texte au centre */
+.unlock-progress-text {
+  display: none;
+}
+
+/* Garder l'animation proche déblocage */
+.unlock-progress-fill.proche-deblocage {
+  animation: pulse-unlock 1s infinite;
+}
+
+@keyframes pulse-unlock {
+  0%, 100% { background: linear-gradient(90deg, #4CAF50, #66BB6A); }
+  50% { background: linear-gradient(90deg, #66BB6A, #81C784); }
+} 
     
 
     
@@ -3454,6 +3505,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
