@@ -125,24 +125,31 @@
     
     
 .unlock-progress-container {
-  margin: 15px 0;
+  margin: 15px auto; /* Centrer le container */
   padding: 10px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
+  max-width: 400px; /* Largeur maximale sur desktop */
 }
 
+/* Responsive : 90% sur mobile */
+@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+  .unlock-progress-container {
+    max-width: 90vw;
+    margin: 15px 5vw;
+  }
+}
+
+/* Supprimer le label */
 .unlock-progress-label {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 8px;
-  text-align: center;
+  display: none;
 }
 
 .unlock-progress-bar {
   position: relative;
-  height: 25px;
+  height: 20px; /* Légèrement plus fin */
   background: #e0e0e0;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   border: 2px solid #ccc;
 }
@@ -150,23 +157,17 @@
 .unlock-progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
-  border-radius: 10px;
+  border-radius: 8px;
   transition: width 0.3s ease;
   position: relative;
 }
 
+/* Supprimer le texte au centre */
 .unlock-progress-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-weight: bold;
-  color: #333;
-  font-size: 12px;
-  z-index: 1;
+  display: none;
 }
 
-/* Animation pulsante quand proche du déblocage */
+/* Garder l'animation proche déblocage */
 .unlock-progress-fill.proche-deblocage {
   animation: pulse-unlock 1s infinite;
 }
@@ -1421,13 +1422,11 @@
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
   <h2>🎌 Mode Révisions 🎌</h2>
-  <div id="unlock-progress-container" style="display: none;">
-    <div class="unlock-progress-label">Points restants pour débloquer le mode Apprendre :</div>
-    <div class="unlock-progress-bar">
-      <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
-      <div class="unlock-progress-text" id="unlock-progress-text">0</div>
-    </div>
+<div id="unlock-progress-container" style="display: none;">
+  <div class="unlock-progress-bar">
+    <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
   </div>
+</div>
   <div id="revision-question"></div>
    <div id="revision-message"></div>
   <div id="revision-input-display"></div>
@@ -1664,9 +1663,8 @@ function calculerDeficitMaximum() {
 function updateUnlockProgress() {
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
-  const text = document.getElementById('unlock-progress-text');
   
-  if (!container || !fill || !text) return;
+  if (!container || !fill) return;
   
   const isBlocked = isApprentissageBloque();
   
@@ -1680,13 +1678,11 @@ function updateUnlockProgress() {
   const deficitActuel = calculerDeficitValidation();
   const deficitMaximum = calculerDeficitMaximum();
   
-  // Pourcentage : plus on approche de 0, plus la barre se vide
   const pourcentage = deficitMaximum > 0 ? (deficitActuel / deficitMaximum * 100) : 0;
   
   fill.style.width = `${pourcentage}%`;
-  text.textContent = deficitActuel;
   
-  // Animation spéciale si proche du déblocage (moins de 10% du déficit max)
+  // Animation spéciale si proche du déblocage
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
   } else {
@@ -3509,6 +3505,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
