@@ -3369,7 +3369,7 @@ function initRevisionKeyboard() {
 
       if (revisionMode.input.length >= totalLength) {
         const isCorrect = revisionMode.input === revisionMode.fullCorrect;
-        const key = revisionMode.currentItem.ID; // Utiliser l'ID comme clé
+        const key = revisionMode.currentItem.ID;
 
         // Mettre à jour statsCache
         statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
@@ -3383,79 +3383,79 @@ function initRevisionKeyboard() {
         const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
         statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-        // Log des stats mises à jour
         console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
-// ✅ AJOUTEZ ICI - AVANT la modification de la Validation
-  const wasBlocked = isApprentissageBloque();
-// ✅ MODIFICATION : En mode révision, ne pas faire baisser la Validation en dessous de 5
-const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
-if (hiraganaIndex !== -1) {
-  const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-  
-  let newValidation;
-  if (isCorrect) {
-    newValidation = currentValidation + 1; // Bonne réponse +1
-  } else {
-    newValidation = Math.max(5, currentValidation - 2); // Mauvaise réponse -2 mais minimum 5
-  }
-  
-  HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-  validationCache[revisionMode.currentItem.ID] = newValidation; // ✅ MISE À JOUR CACHE
-  
-  console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
-}
-  // ✅ AJOUTEZ ICI - APRÈS la modification de la Validation
-  const isNowUnblocked = !isApprentissageBloque();
-  // Après la mise à jour de la validation et AVANT le setTimeout, ajouter :
 
-// ... mise à jour de la validation existante ...
-const isNowBlocked = isApprentissageBloque();
-// Si on passe de débloqué à bloqué
-if (!wasBlocked && isNowBlocked) {
-  updateApprendreButtonState(); // Griser le bouton
-  // Optionnel : afficher le menu avec message
-  setTimeout(() => {
-    const menu = document.getElementById('menu');
-    const menuMessage = document.getElementById('menu-message');
-    menu.classList.add('active');
-    menuMessage.innerText = 'Mode Apprendre bloqué';
-  }, 1000);
-}
-        
-  if (wasBlocked && isNowUnblocked && !hasShownUnblockedMenu) {
-  setTimeout(() => {
-    // Retourner automatiquement au mode quiz
-    document.querySelectorAll('.section').forEach(section => {
-      section.classList.remove('active');
-    });
-    document.getElementById('quiz').classList.add('active');
-    revisionMode.isActive = false;
-    
-    // Puis afficher le menu
-    const menu = document.getElementById('menu');
-    const menuMessage = document.getElementById('menu-message');
-    menu.classList.add('active');
-    menuMessage.innerText = 'Mode Apprendre réouvert';
-    updateApprendreButtonState();
-    hasShownUnblockedMenu = true;
-    hasShownBlockedMenu = false;
-  }, 2000);
-} else if (wasBlocked) {
-  // Mettre à jour la barre même si pas encore débloqué
-  updateUnlockProgress();
-}
-// Mise à jour de la barre dans tous les cas
-if (isNowBlocked) {
-  updateUnlockProgress();
-}        
+        // Capturer l'état avant modification
+        const wasBlocked = isApprentissageBloque();
+
+        // Modification de la validation en mode révision
+        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+        if (hiraganaIndex !== -1) {
+          const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+          
+          let newValidation;
+          if (isCorrect) {
+            newValidation = currentValidation + 1; // Pas de plafonnement
+          } else {
+            newValidation = Math.max(5, currentValidation - 2);
+          }
+          
+          HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+          validationCache[revisionMode.currentItem.ID] = newValidation;
+          
+          console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
+        }
+
+        // Vérifier l'état après modification
+        const isNowBlocked = isApprentissageBloque();
+
+        // Gestion du passage de débloqué à bloqué
+        if (!wasBlocked && isNowBlocked) {
+          updateApprendreButtonState();
+          hasShownUnblockedMenu = false; // Reset le flag pour permettre le prochain déblocage
+          setTimeout(() => {
+            const menu = document.getElementById('menu');
+            const menuMessage = document.getElementById('menu-message');
+            menu.classList.add('active');
+            menuMessage.innerText = 'Mode Apprendre bloqué';
+            hasShownBlockedMenu = true;
+          }, 1000);
+        }
+
+        // Gestion du passage de bloqué à débloqué
+        if (wasBlocked && !isNowBlocked) {
+          setTimeout(() => {
+            // Retourner automatiquement au mode quiz
+            document.querySelectorAll('.section').forEach(section => {
+              section.classList.remove('active');
+            });
+            document.getElementById('quiz').classList.add('active');
+            revisionMode.isActive = false;
+            
+            // Puis afficher le menu
+            const menu = document.getElementById('menu');
+            const menuMessage = document.getElementById('menu-message');
+            menu.classList.add('active');
+            menuMessage.innerText = 'Mode Apprendre réouvert';
+            updateApprendreButtonState();
+            hasShownUnblockedMenu = true;
+            hasShownBlockedMenu = false; // Reset pour permettre le prochain message de blocage
+          }, 2000);
+        }
+
+        // Mise à jour de la barre dans tous les cas
+        if (isNowBlocked) {
+          updateUnlockProgress();
+        }
+
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
           id: parseInt(revisionMode.currentItem.ID), 
           scorePoints: isCorrect ? 1 : 0,
           tentatives: statsCache.items[key].tentatives,
           reussites: statsCache.items[key].reussites,
-          isRevisionMode: true // ✅ NOUVEAU FLAG
+          isRevisionMode: true
         }).catch(error => console.error('Erreur sauvegarde stats:', error));
 
         // Afficher feedback
@@ -3504,6 +3504,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
