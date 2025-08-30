@@ -139,6 +139,9 @@
   20% { opacity: 1; }
   100% { opacity: 0.2; }
 }
+.hidden {
+  display: none !important;
+}
 
 /* Responsive pour mobile */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
@@ -3622,7 +3625,24 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </body>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const panda = document.querySelector(".panda-logo");
+    if (panda) {
+      panda.addEventListener("click", () => {
+        // Masquer l’écran d’accueil définitivement
+        document.getElementById("welcome").classList.add("hidden");
+
+        // Ouvrir ton menu principal
+        const menu = document.querySelector(".menu");
+        if (menu) menu.classList.add("active");
+      });
+    }
+  });
+</script>
+  
 </html>
+
 
 
 
