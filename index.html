@@ -1111,35 +1111,29 @@
     line-height: 1.2 !important;
   }
 }
-.menu {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(248, 241, 233, 0.95);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  transform: translateX(100%);
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  opacity: 0;
-  z-index: 999;
-}
+/* Ajuster la règle générale pour .menu */
+   .menu {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(248, 241, 233, 0.95); /* Voile blanc cassé */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      opacity: 0;
+      z-index: 999;
+    }
 
-/* Quand le menu est dans une section active */
-.section.active .menu {
-  position: relative; /* Change en relative quand dans une section active */
-  transform: translateX(0);
-  opacity: 1;
-}
-
-.menu.active {
-  transform: translateX(0);
-  opacity: 1;
-}
+    .menu.active {
+      transform: translateX(0);
+      opacity: 1;
+    }
 
  .menu .arcade-button {
     width: 300px !important; /* Plus large que les 200px actuels */
@@ -1712,8 +1706,13 @@ function startApp() {
     return;
   }
   
-  // Passer à la section menu au lieu d'ouvrir le menu en overlay
-  showSection('menu-section');
+  // Masquer la page d'accueil
+  document.getElementById('welcome').classList.remove('active');
+  
+  // Ouvrir le menu hamburger normalement
+  const menu = document.getElementById('menu');
+  menu.classList.add('active');
+  updateMenuMessage();
 }
 function updateMenuSectionMessage() {
   const messages = [
@@ -3624,6 +3623,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
