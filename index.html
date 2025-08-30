@@ -973,7 +973,10 @@
   align-items: center;
   justify-content: center;
 }
-
+#welcome.active ~ * .hamburger,
+#menu-section.active ~ * .hamburger {
+  display: none;
+}
 /* Icône hamburger avec 3 barres */
 .hamburger-icon {
   display: flex;
@@ -1108,28 +1111,35 @@
     line-height: 1.2 !important;
   }
 }
-   .menu {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(248, 241, 233, 0.95); /* Voile blanc cassé */
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-      transform: translateX(100%);
-      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-      opacity: 0;
-      z-index: 999;
-    }
+.menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(248, 241, 233, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  opacity: 0;
+  z-index: 999;
+}
 
-    .menu.active {
-      transform: translateX(0);
-      opacity: 1;
-    }
+/* Quand le menu est dans une section active */
+.section.active .menu {
+  position: relative; /* Change en relative quand dans une section active */
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.menu.active {
+  transform: translateX(0);
+  opacity: 1;
+}
 
  .menu .arcade-button {
     width: 300px !important; /* Plus large que les 200px actuels */
@@ -1470,6 +1480,14 @@
   <p class="welcome-subtitle">Apprenez les hiraganas et katakanas</p>
   <div class="loading-dots" id="loadingText">Chargement...</div>
 </div>
+  <!-- Section Menu -->
+<div id="menu-section" class="section">
+  <div id="menu-message" class="menu-message"></div>
+  <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
+  <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
+  <button class="arcade-button" onclick="showSection('options')">Options</button>
+  <button class="arcade-button" onclick="showSection('welcome')">Retour accueil</button>
+</div>
   <!-- Section Quiz (contenu actuel) -->
   <div id="quiz" class="section">
     <h1>🌿⛩️ Welcome to Hira-Kata-Quiz ⛩️🌸</h1>
@@ -1582,7 +1600,9 @@ function showSection(sectionId) {
     console.log('Mode révision non disponible');
     return;
   }
-  
+   if (sectionId === 'menu-section') {
+    updateMenuSectionMessage();
+  } 
   // NOUVEAU : Vérifier si on essaie d'accéder au quiz bloqué
   if (sectionId === 'quiz' && isApprentissageBloque()) {
     console.log('Mode apprentissage bloqué - redirection vers révision');
@@ -1692,15 +1712,22 @@ function startApp() {
     return;
   }
   
-  // Aller directement au menu au lieu du quiz
-  document.querySelectorAll('.section').forEach(section => {
-    section.classList.remove('active');
-  });
-  
-  const menu = document.getElementById('menu');
-  menu.classList.add('active');
-  updateMenuMessage();
+  // Passer à la section menu au lieu d'ouvrir le menu en overlay
+  showSection('menu-section');
 }
+function updateMenuSectionMessage() {
+  const messages = [
+    'Continues à apprendre ! 🌸',
+    'Explores les options ! ⚙️',
+    'Progresses chaque jour ! 🐼',
+    'Un pas après l\'autre 🌸',
+    'Bravo, tu progresses 🎌'
+  ];
+  const menuMessage = document.getElementById('menu-message');
+  if (menuMessage) {
+    menuMessage.innerText = messages[Math.floor(Math.random() * messages.length)];
+  }
+}  
 function getNiveauGroupe(niveau) {
   for (const [groupeId, groupe] of Object.entries(GROUPES)) {
     if (groupe.niveaux.includes(niveau)) {
@@ -3597,6 +3624,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
