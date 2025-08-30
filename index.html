@@ -87,7 +87,77 @@
         margin: 0.15em 0;
       }
     }
+/* Section Page d'accueil */
+#welcome {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+}
 
+.panda-logo {
+  font-size: 12em;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  animation: pandaPulse 2s ease-in-out infinite;
+}
+
+.panda-logo:hover {
+  transform: scale(1.1);
+}
+
+@keyframes pandaPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.welcome-title {
+  font-size: 2.5em;
+  color: #8B6F47;
+  text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.welcome-subtitle {
+  font-size: 1.2em;
+  color: #8B6F47;
+  opacity: 0.8;
+}
+
+.loading-dots {
+  font-size: 1.5em;
+  color: #8B6F47;
+  margin-top: 20px;
+  animation: loadingDots 1.5s infinite;
+}
+
+@keyframes loadingDots {
+  0% { opacity: 0.2; }
+  20% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+/* Responsive pour mobile */
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+  .panda-logo {
+    font-size: 15em;
+  }
+  
+  .welcome-title {
+    font-size: 4em;
+  }
+  
+  .welcome-subtitle {
+    font-size: 2.5em;
+  }
+  
+  .loading-dots {
+    font-size: 3em;
+  }
+}
 /* Conteneur de la barre de progression */
 #unlock-progress-container,
 .unlock-progress-container {
@@ -1393,9 +1463,15 @@
   <button class="arcade-button" onclick="showSection('options')">Options</button>
   <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
 </nav>
-
+<!-- Section Page d'accueil -->
+<div id="welcome" class="section active">
+  <div class="panda-logo" onclick="startApp()">🐼</div>
+  <h1 class="welcome-title">Hira-Kata-Quiz</h1>
+  <p class="welcome-subtitle">Apprenez les hiraganas et katakanas</p>
+  <div class="loading-dots" id="loadingText">Chargement...</div>
+</div>
   <!-- Section Quiz (contenu actuel) -->
-  <div id="quiz" class="section active">
+  <div id="quiz" class="section">
     <h1>🌿⛩️ Welcome to Hira-Kata-Quiz ⛩️🌸</h1>
     <div id="progressBarContainer"></div>
     <div class="level" id="levelDisplay">Niveau actuel : 1</div>
@@ -1566,6 +1642,7 @@ function updateMenuMessage() {
 }
   </script>
 <script>
+let gameDataLoaded = false; // Nouvelle variable globale  
 let HiraganaList = [];
 let current = {};
 let selections = { first: null, second: null };
@@ -1609,7 +1686,21 @@ const GROUPES = {
 
 let hasShownBlockedMenu = false;
 let hasShownUnblockedMenu = false;
-
+function startApp() {
+  if (!gameDataLoaded) {
+    document.getElementById("loadingText").textContent = "Chargement en cours...";
+    return;
+  }
+  
+  // Aller directement au menu au lieu du quiz
+  document.querySelectorAll('.section').forEach(section => {
+    section.classList.remove('active');
+  });
+  
+  const menu = document.getElementById('menu');
+  menu.classList.add('active');
+  updateMenuMessage();
+}
 function getNiveauGroupe(niveau) {
   for (const [groupeId, groupe] of Object.entries(GROUPES)) {
     if (groupe.niveaux.includes(niveau)) {
@@ -2719,7 +2810,9 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
   forceRevisionMode();
 }
   initOptionsControls();
-  nextQuestion();  
+  nextQuestion();
+  gameDataLoaded = true;
+  document.getElementById("loadingText").textContent = "Touchez le panda pour commencer !";
 }
 function nextQuestion() {
 document.getElementById("result").innerText = "";
@@ -3504,6 +3597,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 </html>
+
 
 
 
