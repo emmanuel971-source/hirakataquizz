@@ -3630,10 +3630,16 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const panda = document.querySelector(".panda-logo");
+    const menuBtn = document.querySelector(".hamburger");
+    // Masquer le menu tant qu'on est sur l'accueil
+    if (menuBtn) menuBtn.classList.add("hidden"); 
     if (panda) {
       panda.addEventListener("click", () => {
         // Masquer l’écran d’accueil définitivement
         document.getElementById("welcome").classList.add("hidden");
+       // Afficher le bouton menu une fois sorti de l'accueil
+       const menuBtn = document.querySelector(".hamburger");
+       if (menuBtn) menuBtn.classList.remove("hidden");
 
         // Ouvrir ton menu principal
         const menu = document.querySelector(".menu");
@@ -3644,6 +3650,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
