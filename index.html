@@ -1455,6 +1455,35 @@
 .hidden {
   display: none !important;
 }
+.options-menu,
+.options-sub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+}
+
+.options-sub .arcade-button,
+.options-menu .arcade-button {
+  width: 300px !important;  /* même largeur que ton menu principal */
+}
+
+.options-sub .arcade-button:first-child {
+  margin-bottom: 20px; /* espace entre ← Retour et le titre */
+}
+
+/* Animation d'apparition des sous-rubriques */
+.options-sub {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.options-sub.active {
+  opacity: 1;
+  transform: translateY(0);
+}
 
   </style>
 </head>
@@ -1561,29 +1590,34 @@
 <div id="options" class="section">
   <h1>Options</h1>
   
-  <!-- Menu interne Options -->
+  <!-- Menu principal Options -->
   <div class="options-menu">
     <button class="arcade-button" onclick="showSubOptions('difficulty')">Difficulté</button>
     <button class="arcade-button" onclick="showSubOptions('sound')">Son</button>
     <button class="arcade-button" onclick="showSubOptions('language')">Langue</button>
   </div>
 
-  <!-- Sous-rubriques -->
+  <!-- Sous-rubrique Difficulté -->
   <div id="options-difficulty" class="options-sub hidden">
-    <h3>Difficulté</h3>
+    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
+    <h2>Difficulté</h2>
     <button class="arcade-button" onclick="setDifficulty(6)">Facile (6)</button>
     <button class="arcade-button" onclick="setDifficulty(8)">Moyen (8)</button>
     <button class="arcade-button" onclick="setDifficulty(10)">Hard (10)</button>
   </div>
 
+  <!-- Sous-rubrique Son -->
   <div id="options-sound" class="options-sub hidden">
-    <h3>Son</h3>
-    <p>🔊 Ici tu pourras mettre volume, on/off, etc.</p>
+    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
+    <h2>Son</h2>
+    <p>🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)</p>
   </div>
 
+  <!-- Sous-rubrique Langue -->
   <div id="options-language" class="options-sub hidden">
-    <h3>Langue</h3>
-    <p>🌍 Ici tu pourras mettre un sélecteur FR/EN/JP.</p>
+    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
+    <h2>Langue</h2>
+    <p>🌍 Ici tu pourras ajouter un sélecteur FR / EN / JP</p>
   </div>
 </div>
 
@@ -3688,10 +3722,44 @@ function setDifficulty(value) {
   // Tu peux aussi sauvegarder en localStorage si besoin
   localStorage.setItem("difficulty", value);
 }
+function showSubOptions(section) {
+  // Masquer le menu principal
+  document.querySelector(".options-menu").classList.add("hidden");
+
+  // Masquer toutes les sous-rubriques
+  document.querySelectorAll('.options-sub').forEach(div => {
+    div.classList.remove("active");
+    div.classList.add("hidden");
+  });
+
+  // Afficher la sous-rubrique choisie avec animation
+  const sub = document.getElementById('options-' + section);
+  sub.classList.remove("hidden");
+  setTimeout(() => sub.classList.add("active"), 10);
+}
+
+function backToOptions() {
+  // Masquer toutes les sous-rubriques
+  document.querySelectorAll('.options-sub').forEach(div => {
+    div.classList.remove("active");
+    div.classList.add("hidden");
+  });
+
+  // Réafficher le menu principal Options
+  const menu = document.querySelector(".options-menu");
+  menu.classList.remove("hidden");
+}
+
+function setDifficulty(value) {
+  seuilValidation = value; // la variable que ton slider utilisait avant
+  localStorage.setItem("difficulty", value);
+  alert("Difficulté réglée sur : " + value);
+}
   
 </script>
   
 </html>
+
 
 
 
