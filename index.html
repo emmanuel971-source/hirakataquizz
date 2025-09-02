@@ -1448,6 +1448,13 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
   }
 }
+.options-sub {
+  margin-top: 20px;
+}
+
+.hidden {
+  display: none !important;
+}
 
   </style>
 </head>
@@ -1551,17 +1558,35 @@
 </div>
 
 <!-- Section Options -->
-<div id="options" class="section">
-  <h1>Options</h1>
-  <div class="option-group">
-    <label for="seuil-validation">Seuil de validation (6-12) :</label>
-    <div class="slider-container">
-      <input type="range" id="seuil-validation" min="6" max="12" value="10">
-      <span id="seuil-value">10</span>
-    </div>
-    <p class="option-description">Plus élevé = plus difficile</p>
+<div id="options-section" class="hidden">
+  <h2>Options</h2>
+  
+  <!-- Menu interne Options -->
+  <div class="options-menu">
+    <button class="arcade-button" onclick="showSubOptions('difficulty')">Difficulté</button>
+    <button class="arcade-button" onclick="showSubOptions('sound')">Son</button>
+    <button class="arcade-button" onclick="showSubOptions('language')">Langue</button>
+  </div>
+
+  <!-- Sous-rubriques -->
+  <div id="options-difficulty" class="options-sub hidden">
+    <h3>Difficulté</h3>
+    <button class="arcade-button" onclick="setDifficulty(6)">Facile (6)</button>
+    <button class="arcade-button" onclick="setDifficulty(8)">Moyen (8)</button>
+    <button class="arcade-button" onclick="setDifficulty(10)">Hard (10)</button>
+  </div>
+
+  <div id="options-sound" class="options-sub hidden">
+    <h3>Son</h3>
+    <p>🔊 Ici tu pourras mettre volume, on/off, etc.</p>
+  </div>
+
+  <div id="options-language" class="options-sub hidden">
+    <h3>Langue</h3>
+    <p>🌍 Ici tu pourras mettre un sélecteur FR/EN/JP.</p>
   </div>
 </div>
+
 
   <script>
     function toggleMenu() {
@@ -3647,9 +3672,27 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
       });
     }
   });
+function showSubOptions(section) {
+  // Cacher toutes les sous-rubriques
+  document.querySelectorAll('.options-sub').forEach(div => div.classList.add('hidden'));
+
+  // Afficher la rubrique choisie
+  document.getElementById('options-' + section).classList.remove('hidden');
+}
+
+function setDifficulty(value) {
+  // Met à jour le seuil de validation global
+  seuilValidation = value;   // ⚡ variable que ton slider utilisait avant
+  alert("Difficulté réglée sur : " + value);
+
+  // Tu peux aussi sauvegarder en localStorage si besoin
+  localStorage.setItem("difficulty", value);
+}
+  
 </script>
   
 </html>
+
 
 
 
