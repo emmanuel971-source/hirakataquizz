@@ -1472,7 +1472,7 @@
 </nav>
 <!-- Section Page d'accueil -->
 <div id="welcome" class="section active">
-  <div class="panda-logo" onclick="startApp()">🐼</div>
+  <div class="panda-logo" onclick="">🐼</div>
   <h1 class="welcome-title">Hira-Kata-Quiz</h1>
   <p class="welcome-subtitle">Apprenez les hiraganas et katakanas</p>
   <div class="loading-dots" id="loadingText">Chargement...</div>
@@ -1705,17 +1705,19 @@ let hasShownBlockedMenu = false;
 let hasShownUnblockedMenu = false;
 function startApp() {
   if (!gameDataLoaded) {
-    document.getElementById("loadingText").textContent = "Chargement en cours...";
+    document.getElementById("loadingText").textContent = "Chargement en cours.";
     return;
   }
-  
-  // Masquer la page d'accueil
- document.getElementById('welcome').classList.remove('active');
-  
-  // Ouvrir le menu hamburger normalement
-  const menu = document.getElementById('menu');
-  menu.classList.add('active');
+
+  // ❌ On ne masque plus l’accueil automatiquement
+  // ❌ On n’ouvre plus le menu automatiquement
+
+  // ✅ On met simplement à jour le message du menu pour plus tard
   updateMenuMessage();
+
+  // 👉 L’accueil reste affiché (panda visible)
+  // Quand l’utilisateur clique sur le panda (événement déjà branché),
+  // alors seulement #welcome est masqué et le menu s’ouvre.
 }
 function updateMenuSectionMessage() {
   const messages = [
@@ -3642,6 +3644,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
