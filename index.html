@@ -1715,13 +1715,6 @@ function startApp() {
   // ✅ On met simplement à jour le message du menu pour plus tard
   updateMenuMessage();
 
-panda.addEventListener("click", () => {
-  document.getElementById("welcome").classList.add("hidden");
-  
-  // Afficher le bouton menu une fois sorti de l'accueil
-  const menu = document.querySelector(".menu");
-  if (menu) menu.classList.add("active");
-});
 }
 function updateMenuSectionMessage() {
   const messages = [
@@ -3638,7 +3631,9 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
       panda.addEventListener("click", () => {
         // Masquer l’écran d’accueil définitivement
         document.getElementById("welcome").classList.add("hidden");
-
+        // Afficher le bouton menu une fois sorti de l'accueil
+        const menuBtn = document.querySelector(".hamburger");
+        if (menuBtn) menuBtn.classList.remove("hidden");
         // Ouvrir ton menu principal
         const menu = document.querySelector(".menu");
         if (menu) menu.classList.add("active");
@@ -3657,6 +3652,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
