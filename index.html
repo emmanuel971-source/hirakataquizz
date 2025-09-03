@@ -1448,42 +1448,6 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
   }
 }
-.options-sub {
-  margin-top: 20px;
-}
-
-.hidden {
-  display: none !important;
-}
-.options-menu,
-.options-sub {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  width: 100%;
-}
-
-.options-sub .arcade-button,
-.options-menu .arcade-button {
-  width: 300px !important;  /* même largeur que ton menu principal */
-}
-
-.options-sub .arcade-button:first-child {
-  margin-bottom: 20px; /* espace entre ← Retour et le titre */
-}
-
-/* Animation d'apparition des sous-rubriques */
-.options-sub {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.options-sub.active {
-  opacity: 1;
-  transform: translateY(0);
-}
 
   </style>
 </head>
@@ -1589,38 +1553,15 @@
 <!-- Section Options -->
 <div id="options" class="section">
   <h1>Options</h1>
-  
-  <!-- Menu principal Options -->
-  <div class="options-menu">
-    <button class="arcade-button" onclick="showSubOptions('difficulty')">Difficulté</button>
-    <button class="arcade-button" onclick="showSubOptions('sound')">Son</button>
-    <button class="arcade-button" onclick="showSubOptions('language')">Langue</button>
-  </div>
-
-  <!-- Sous-rubrique Difficulté -->
-  <div id="options-difficulty" class="options-sub hidden">
-    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
-    <h2>Difficulté</h2>
-    <button class="arcade-button" onclick="setDifficulty(6)">Facile (6)</button>
-    <button class="arcade-button" onclick="setDifficulty(8)">Moyen (8)</button>
-    <button class="arcade-button" onclick="setDifficulty(10)">Hard (10)</button>
-  </div>
-
-  <!-- Sous-rubrique Son -->
-  <div id="options-sound" class="options-sub hidden">
-    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
-    <h2>Son</h2>
-    <p>🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)</p>
-  </div>
-
-  <!-- Sous-rubrique Langue -->
-  <div id="options-language" class="options-sub hidden">
-    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
-    <h2>Langue</h2>
-    <p>🌍 Ici tu pourras ajouter un sélecteur FR / EN / JP</p>
+  <div class="option-group">
+    <label for="seuil-validation">Seuil de validation (6-12) :</label>
+    <div class="slider-container">
+      <input type="range" id="seuil-validation" min="6" max="12" value="10">
+      <span id="seuil-value">10</span>
+    </div>
+    <p class="option-description">Plus élevé = plus difficile</p>
   </div>
 </div>
-
 
   <script>
     function toggleMenu() {
@@ -3689,16 +3630,10 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const panda = document.querySelector(".panda-logo");
-    const menuBtn = document.querySelector(".hamburger");
-    // Masquer le menu tant qu'on est sur l'accueil
-    if (menuBtn) menuBtn.classList.add("hidden"); 
     if (panda) {
       panda.addEventListener("click", () => {
         // Masquer l’écran d’accueil définitivement
         document.getElementById("welcome").classList.add("hidden");
-       // Afficher le bouton menu une fois sorti de l'accueil
-       const menuBtn = document.querySelector(".hamburger");
-       if (menuBtn) menuBtn.classList.remove("hidden");
 
         // Ouvrir ton menu principal
         const menu = document.querySelector(".menu");
@@ -3706,84 +3641,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
       });
     }
   });
-function showSubOptions(section) {
-  // Cacher toutes les sous-rubriques
-  document.querySelectorAll('.options-sub').forEach(div => div.classList.add('hidden'));
-
-  // Afficher la rubrique choisie
-  document.getElementById('options-' + section).classList.remove('hidden');
-}
-
-function setDifficulty(value) {
-  // Met à jour le seuil de validation global
-  seuilValidation = value;   // ⚡ variable que ton slider utilisait avant
-  alert("Difficulté réglée sur : " + value);
-
-  // Tu peux aussi sauvegarder en localStorage si besoin
-  localStorage.setItem("difficulty", value);
-}
-function showSubOptions(section) {
-  // Masquer le menu principal
-  document.querySelector(".options-menu").classList.add("hidden");
-
-  // Masquer toutes les sous-rubriques
-  document.querySelectorAll('.options-sub').forEach(div => {
-    div.classList.remove("active");
-    div.classList.add("hidden");
-  });
-
-  // Afficher la sous-rubrique choisie avec animation
-  const sub = document.getElementById('options-' + section);
-  sub.classList.remove("hidden");
-  setTimeout(() => sub.classList.add("active"), 10);
-}
-
-function backToOptions() {
-  // Masquer toutes les sous-rubriques
-  document.querySelectorAll('.options-sub').forEach(div => {
-    div.classList.remove("active");
-    div.classList.add("hidden");
-  });
-
-  // Réafficher le menu principal Options
-  const menu = document.querySelector(".options-menu");
-  menu.classList.remove("hidden");
-}
-
-function setDifficulty(value) {
-  seuilValidation = value; // la variable que ton slider utilisait avant
-  localStorage.setItem("difficulty", value);
-  alert("Difficulté réglée sur : " + value);
-}
-  
 </script>
   
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
