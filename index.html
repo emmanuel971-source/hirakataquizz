@@ -1667,6 +1667,17 @@ function showSubOptions(section) {
   sub.classList.remove("hidden");
   setTimeout(() => sub.classList.add("active"), 10);
 }
+// Charger la difficulté sauvegardée
+function loadDifficulty() {
+  const saved = localStorage.getItem("difficulty");
+  if (saved) {
+    seuilValidation = parseInt(saved, 10);
+    console.log("Difficulté restaurée :", seuilValidation);
+  } else {
+    // valeur par défaut si rien n'est encore enregistré
+    seuilValidation = 8; // Moyen par défaut
+  }
+}
 
 function backToOptions() {
   // Masquer toutes les sous-rubriques
@@ -1772,7 +1783,8 @@ function startApp() {
 
   // ❌ On ne masque plus l’accueil automatiquement
   // ❌ On n’ouvre plus le menu automatiquement
-
+  // ✅ Charger la difficulté enregistrée
+  loadDifficulty();
   // ✅ On met simplement à jour le message du menu pour plus tard
   updateMenuMessage();
   
@@ -3722,6 +3734,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
