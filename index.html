@@ -1634,9 +1634,7 @@ function showSection(sectionId) {
     console.log('Mode apprentissage bloqué - redirection vers révision');
     sectionId = 'mode2'; // Forcer la redirection vers le mode révision
   }
-  if (sectionId === 'options') {
-  initOptionsControls();
-  }
+ 
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
@@ -3724,6 +3722,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
