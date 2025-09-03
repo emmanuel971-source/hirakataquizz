@@ -2842,10 +2842,11 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
   initOptionsControls();
   nextQuestion();
   gameDataLoaded = true;
+  panda.style.opacity = "1";
   document.getElementById("loadingText").textContent = "Touchez le panda pour commencer !";
   const panda = document.querySelector(".panda-logo");
   panda.style.pointerEvents = "auto";
-  panda.style.opacity = "1";
+  
 }
 function nextQuestion() {
 document.getElementById("result").innerText = "";
@@ -3659,6 +3660,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
