@@ -1619,28 +1619,7 @@
       menu.classList.toggle('active');
     /*  updateMenuMessage(); // Met à jour le message à chaque ouverture du menu*/
     }
-function initOptionsControls() {
-  const seuilSlider = document.getElementById('seuil-validation');
-  const seuilValue = document.getElementById('seuil-value');
-  
-  if (seuilSlider && seuilValue) {
-    seuilSlider.value = seuilValidation;
-    seuilValue.textContent = seuilValidation;
-    
-    seuilSlider.addEventListener('input', (e) => {
-      seuilValidation = parseInt(e.target.value);
-      seuilValue.textContent = seuilValidation;
-      localStorage.setItem('seuilValidation', seuilValidation);
-      
-      // Mettre à jour l'état des boutons et la barre si nécessaire
-      updateApprendreButtonState();
-      updateRevisionButtonState();
-      if (revisionMode.isActive) {
-        updateUnlockProgress();
-      }
-    });
-  }
-}
+
 function showSection(sectionId) {
   // Vérifier si on essaie d'accéder au mode révision
   if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
@@ -1701,6 +1680,11 @@ function backToOptions() {
   // Réafficher le menu principal Options
   const menu = document.querySelector(".options-menu");
   menu.classList.remove("hidden");
+}    
+function seuilValidation(value) {
+  seuilValidation = value; // la variable que ton slider utilisait avant
+  localStorage.setItem("difficulty", value);
+  alert("Difficulté réglée sur : " + value);
 }    
 function forceRevisionMode() {
   document.querySelectorAll('.section').forEach(section => {
@@ -3738,6 +3722,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
