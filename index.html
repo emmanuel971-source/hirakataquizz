@@ -3711,6 +3711,10 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
       panda.addEventListener("click", () => {
         // Masquer l’écran d’accueil définitivement
         document.getElementById("welcome").classList.add("hidden");
+        // ✅ Charger la difficulté enregistrée
+  loadDifficulty();
+  // ✅ On met simplement à jour le message du menu pour plus tard
+  updateMenuMessage();
         // Afficher le bouton menu une fois sorti de l'accueil
         const menuBtn = document.querySelector(".hamburger");
         if (menuBtn) menuBtn.classList.remove("hidden");
@@ -3734,6 +3738,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
