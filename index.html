@@ -1714,10 +1714,7 @@ function startApp() {
 
   // ✅ On met simplement à jour le message du menu pour plus tard
   updateMenuMessage();
-  // ✅ Les données sont prêtes → on active le panda
-  const panda = document.querySelector(".panda-logo");
-  panda.style.pointerEvents = "auto";
-  panda.style.opacity = "1";
+  
 
   // Le menu restera masqué jusqu'à ce que le panda soit cliqué
 }
@@ -2846,6 +2843,9 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
   nextQuestion();
   gameDataLoaded = true;
   document.getElementById("loadingText").textContent = "Touchez le panda pour commencer !";
+  const panda = document.querySelector(".panda-logo");
+  panda.style.pointerEvents = "auto";
+  panda.style.opacity = "1";
 }
 function nextQuestion() {
 document.getElementById("result").innerText = "";
@@ -3659,6 +3659,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
