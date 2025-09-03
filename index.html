@@ -1494,7 +1494,7 @@
   <!-- Menu -->
 <nav class="menu" id="menu">
   <div id="menu-message" class="menu-message"></div>
-  <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
+  <button class="arcade-button" onclick="showSection('quiz')"></button>
   <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
   <button class="arcade-button" onclick="showSection('options')">Options</button>
   <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
@@ -1509,7 +1509,7 @@
   <!-- Section Menu -->
 <div id="menu-section" class="section">
   <div id="menu-message" class="menu-message"></div>
-  <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
+  <button class="arcade-button" onclick="showSection('quiz')"></button>
   <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
   <button class="arcade-button" onclick="showSection('options')">Options</button>
   <button class="arcade-button" onclick="showSection('welcome')">Retour accueil</button>
@@ -1711,7 +1711,7 @@ function forceRevisionMode() {
 }    
 function updateMenuMessage() {
     const messages = [
-        'Continues à apprendre ! 🌸',
+        'Continues à  ! 🌸',
         'Explores les options ! ⚙️',
         'Progresses chaque jour ! 🐼',
         'Un pas après l\'autre 🌸',
@@ -1793,7 +1793,7 @@ function startApp() {
 }
 function updateMenuSectionMessage() {
   const messages = [
-    'Continues à apprendre ! 🌸',
+    'Continues à  ! 🌸',
     'Explores les options ! ⚙️',
     'Progresses chaque jour ! 🐼',
     'Un pas après l\'autre 🌸',
@@ -2781,12 +2781,12 @@ function determineNiveauActif(list) {
   }
   return maxNiveau;
 }
-function updateApprendreButtonState() {
-  const apprendreButton = document.querySelector('button[onclick="showSection(\'quiz\')"]');
-  if (!apprendreButton) return;
+function updateButtonState() {
+  const Button = document.querySelector('button[onclick="showSection(\'quiz\')"]');
+  if (!Button) return;
   
   if (isApprentissageBloque()) {
-    apprendreButton.classList.add('disabled');
+    Button.classList.add('disabled');
     apprendreButton.onclick = (e) => {
       e.preventDefault();
       console.log('Mode apprentissage bloqué');
@@ -3715,6 +3715,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   loadDifficulty();
   // ✅ On met simplement à jour le message du menu pour plus tard
   updateMenuMessage();
+  updateApprendreButtonState();      
         // Afficher le bouton menu une fois sorti de l'accueil
         const menuBtn = document.querySelector(".hamburger");
         if (menuBtn) menuBtn.classList.remove("hidden");
@@ -3738,6 +3739,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
