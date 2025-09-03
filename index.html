@@ -1714,7 +1714,12 @@ function startApp() {
 
   // ✅ On met simplement à jour le message du menu pour plus tard
   updateMenuMessage();
+  // ✅ Les données sont prêtes → on active le panda
+  const panda = document.querySelector(".panda-logo");
+  panda.style.pointerEvents = "auto";
+  panda.style.opacity = "1";
 
+  // Le menu restera masqué jusqu'à ce que le panda soit cliqué
 }
 function updateMenuSectionMessage() {
   const messages = [
@@ -3654,6 +3659,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
