@@ -1593,9 +1593,9 @@
   <div id="options-difficulty" class="options-sub hidden">
     <button class="arcade-button" onclick="backToOptions()">← Retour</button>
     <h2>Difficulté</h2>
-    <button class="arcade-button" onclick="seuilValidation(6)">Facile (6)</button>
-    <button class="arcade-button" onclick="seuilValidation(8)">Moyen (8)</button>
-    <button class="arcade-button" onclick="seuilValidation(10)">Hard (10)</button>
+    <button class="arcade-button" onclick="setDifficulty(6)">Facile (6)</button>
+    <button class="arcade-button" onclick="setDifficulty(8)">Moyen (8)</button>
+    <button class="arcade-button" onclick="setDifficulty(10)">Hard (10)</button>
   </div>
 
   <!-- Sous-rubrique Son -->
@@ -1681,11 +1681,12 @@ function backToOptions() {
   const menu = document.querySelector(".options-menu");
   menu.classList.remove("hidden");
 }    
-function seuilValidation(value) {
+function setDifficulty(value) {
   seuilValidation = value; // la variable que ton slider utilisait avant
   localStorage.setItem("difficulty", value);
   alert("Difficulté réglée sur : " + value);
-}    
+}
+   
 function forceRevisionMode() {
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
@@ -1737,7 +1738,8 @@ let statsCache = {
   items: {}, // { [hiragana/katakana]: { tentatives, reussites, pourcentage } }
   globalPourcentage: 0
 };
-let seuilValidation = parseInt(localStorage.getItem('seuilValidation')) || 10;  
+let seuilValidation = parseInt(localStorage.getItem('seuilValidation')) || 10;
+  
 // Variables pour le mode révisions
 let revisionMode = {
   currentQuestion: "",
@@ -3722,6 +3724,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
