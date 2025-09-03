@@ -1718,6 +1718,16 @@ function startApp() {
   // 👉 L’accueil reste affiché (panda visible)
   // Quand l’utilisateur clique sur le panda (événement déjà branché),
   // alors seulement #welcome est masqué et le menu s’ouvre.
+  panda.addEventListener("click", () => {
+  document.getElementById("welcome").classList.add("hidden");
+  
+  // Afficher le bouton menu une fois sorti de l'accueil
+  const menuBtn = document.querySelector(".hamburger");
+  if (menuBtn) menuBtn.classList.remove("hidden");
+
+  const menu = document.querySelector(".menu");
+  if (menu) menu.classList.add("active");
+});
 }
 function updateMenuSectionMessage() {
   const messages = [
@@ -3648,5 +3658,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
