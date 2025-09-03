@@ -1719,9 +1719,6 @@ panda.addEventListener("click", () => {
   document.getElementById("welcome").classList.add("hidden");
   
   // Afficher le bouton menu une fois sorti de l'accueil
-  const menuBtn = document.querySelector(".hamburger");
-  if (menuBtn) menuBtn.classList.remove("hidden");
-
   const menu = document.querySelector(".menu");
   if (menu) menu.classList.add("active");
 });
@@ -3660,6 +3657,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
