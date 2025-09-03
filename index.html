@@ -3647,11 +3647,14 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   // Masquer le menu tant qu'on est sur l'accueil
   if (menuBtn) menuBtn.classList.add("hidden");
 
-
+  // Désactiver le clic sur le panda tant que les données ne sont pas chargées
+  panda.style.pointerEvents = "none"; 
+  panda.style.opacity = "0.6"; // optionnel, pour indiquer que c'est inactif
 });
 </script>
   
 </html>
+
 
 
 
