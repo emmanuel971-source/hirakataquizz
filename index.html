@@ -2782,11 +2782,11 @@ function determineNiveauActif(list) {
   return maxNiveau;
 }
 function updateApprendreButtonState() {
-  const Button = document.querySelector('button[onclick="showSection(\'quiz\')"]');
-  if (!Button) return;
+  const apprendreButton = document.querySelector('button[onclick="showSection(\'quiz\')"]');
+  if (!apprendreButton) return;
   
   if (isApprentissageBloque()) {
-    Button.classList.add('disabled');
+    apprendreButton.classList.add('disabled');
     apprendreButton.onclick = (e) => {
       e.preventDefault();
       console.log('Mode apprentissage bloqué');
@@ -2798,6 +2798,7 @@ function updateApprendreButtonState() {
     apprendreButton.title = '';
   }
 }
+
 function updateLevelProgress(list, niveau) {
 renderHiraganaCards(list, niveau);
 }
@@ -3740,6 +3741,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
