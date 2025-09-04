@@ -2541,17 +2541,17 @@ easing: 'ease-out'
 
 console.log("🎯 nbre d'items dans le niveau =", itemCount, "niveau =", niveauActif);
 console.log("🎯 nbre d'items validés =", validatedCount, "niveau =", niveauActif);  
-if (validatedCount === 0) {
-playFireworkSound();
-} else if (validatedCount === 1) {
-playfireworksound2();
-} else if (validatedCount === 2) {
-playfireworksound3();
-} else if (validatedCount === 3) {
-playfireworksound4();
-} else if (validatedCount === itemCount-1) {
+if (validatedCount === itemCount-1) {
   playLevelUp();
   triggerLevelUpAnimation(document.body);
+} else if (validatedCount === 3) {
+playfireworksound4();
+} else if (validatedCount === 2) {
+playfireworksound3();
+} else if (validatedCount === 1) {
+playfireworksound2();
+} else if (validatedCount === 0) {
+playFireworkSound();
 }
 
 for (let salvo = 0; salvo < numSalvos; salvo++) {
@@ -3228,18 +3228,21 @@ const validatedCount = getValidatedCountForLevel(niveauActif);
 const itemCount = getItemCountForLevel(niveauActif);
 console.log("🎯 nbre d'items dans le niveau =", itemCount, "niveau =", niveauActif);
 console.log("🎯 nbre d'items validés =", validatedCount, "niveau =", niveauActif);  
-if (validatedCount === 0) {
-playFireworkSound();
-} else if (validatedCount === 1) {
-playfireworksound2();
-} else if (validatedCount === 2) {
-playfireworksound3();
-} else if (validatedCount === 3) {
-playfireworksound4();
-} else if (validatedCount === itemCount-1) {
+
+
+if (validatedCount === itemCount-1) {
   playLevelUp();
   triggerLevelUpAnimation(document.body);
+} else if (validatedCount === 3) {
+playfireworksound4();
+} else if (validatedCount === 2) {
+playfireworksound3();
+} else if (validatedCount === 1) {
+playfireworksound2();
+} else if (validatedCount === 0) {
+playFireworkSound();
 }
+ 
 }
 
 function triggerLevelUpAnimation(container) {
@@ -3769,6 +3772,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
