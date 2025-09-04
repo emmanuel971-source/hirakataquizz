@@ -3164,8 +3164,7 @@ setTimeout(nextQuestion, 1500);
 } else {
 document.getElementById("continueBtn").style.visibility = "visible";
 }
-const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n)  
-console.log("🎆 validatedCount pour niveau", niveauActif, "=", kanjisNiveau);
+
 callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
 .then(response => {
 if (response.error) {
@@ -3762,6 +3761,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
