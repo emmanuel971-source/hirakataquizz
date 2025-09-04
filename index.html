@@ -1828,8 +1828,8 @@ function getNiveauGroupe(niveau) {
   return 1;
 }
 function getItemCountForLevel(level) {
-  if (!gameData || !gameData.hiraganas) return 0;
-  return gameData.hiraganas.filter(item => item.level === level).length;
+ return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Niveau) >= level).length;
+  
 }
 function calculerDeficitValidation() {
   const groupeActuel = getNiveauGroupe(niveauActif);
@@ -3766,6 +3766,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
