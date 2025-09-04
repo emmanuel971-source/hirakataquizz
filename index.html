@@ -3720,6 +3720,8 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
         document.getElementById("welcome").classList.add("hidden");
         loadDifficulty();
         updateMenuMessage();
+         // ✅ Mettre à jour le bouton Apprendre
+        updateApprendreButtonState();
         // Afficher le bouton menu une fois sorti de l'accueil
         const menuBtn = document.querySelector(".hamburger");
         if (menuBtn) menuBtn.classList.remove("hidden");
@@ -3743,6 +3745,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
