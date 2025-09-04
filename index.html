@@ -1828,8 +1828,9 @@ function getNiveauGroupe(niveau) {
   return 1;
 }
 function getItemCountForLevel(level) {
-  return niveaux[level] ? niveaux[level].length : 0;
-}  
+  if (!gameData || !gameData.hiraganas) return 0;
+  return gameData.hiraganas.filter(item => item.level === level).length;
+}
 function calculerDeficitValidation() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   if (groupeActuel < 3) return 0; // Pas de blocage avant le groupe 3
@@ -2513,7 +2514,7 @@ const numSalvos = isMobile ? 3 : 3;
 const gravity = 0.1;
 const salvoDelay = 150;
 const dispersionBase = 3;
-
+const itemCount = getItemCountForLevel(niveauActif);
 const particles = [];
 const trails = [];
 
@@ -2546,7 +2547,7 @@ playfireworksound2();
 playfireworksound3();
 } else if (validatedCount === 3) {
 playfireworksound4();
-} else if (validatedCount === getItemCountForLevel(niveauActif)) {
+} else if (validatedCount === itemCount) {
   playLevelUp();
   triggerLevelUpAnimation(document.body);
 }
@@ -3221,8 +3222,9 @@ sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
 document.body.appendChild(sakura);
 setTimeout(() => sakura.remove(), 4000);
 }
-
 const validatedCount = getValidatedCountForLevel(niveauActif);
+const itemCount = getItemCountForLevel(niveauActif);
+
 if (validatedCount === 0) {
 playFireworkSound();
 } else if (validatedCount === 1) {
@@ -3231,7 +3233,7 @@ playfireworksound2();
 playfireworksound3();
 } else if (validatedCount === 3) {
 playfireworksound4();
-} else if (validatedCount === getItemCountForLevel(niveauActif)) {
+} else if (validatedCount === itemCount) {
   playLevelUp();
   triggerLevelUpAnimation(document.body);
 }
@@ -3764,6 +3766,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
