@@ -3733,6 +3733,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  nextQuestion();      
   updateRevisionButtonState();
   updateApprendreButtonState();
       });
@@ -3752,6 +3753,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
