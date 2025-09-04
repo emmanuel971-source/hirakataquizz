@@ -3719,7 +3719,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
         // Masquer l’écran d’accueil définitivement
         document.getElementById("welcome").classList.add("hidden");
         loadDifficulty();
-        const niveauActif = determineNiveauActif(HiraganaList);
+        
         updateMenuMessage();
          // ✅ Mettre à jour le bouton Apprendre
         updateApprendreButtonState();
@@ -3729,6 +3729,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
         // Ouvrir ton menu principal
         const menu = document.querySelector(".menu");
         if (menu) menu.classList.add("active");
+        initGame();
       });
     }
   });
@@ -3746,6 +3747,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
