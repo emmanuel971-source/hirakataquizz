@@ -1827,6 +1827,9 @@ function getNiveauGroupe(niveau) {
   }
   return 1;
 }
+function getItemCountForLevel(level) {
+  return niveaux[level] ? niveaux[level].length : 0;
+}  
 function calculerDeficitValidation() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   if (groupeActuel < 3) return 0; // Pas de blocage avant le groupe 3
@@ -2543,9 +2546,9 @@ playfireworksound2();
 playfireworksound3();
 } else if (validatedCount === 3) {
 playfireworksound4();
-} else if (validatedCount === 4) {
-playLevelUp();
-triggerLevelUpAnimation(container);
+} else if (validatedCount === getItemCountForLevel(niveauActif)) {
+  playLevelUp();
+  triggerLevelUpAnimation(document.body);
 }
 
 for (let salvo = 0; salvo < numSalvos; salvo++) {
@@ -3228,9 +3231,9 @@ playfireworksound2();
 playfireworksound3();
 } else if (validatedCount === 3) {
 playfireworksound4();
-} else if (validatedCount === 4) {
-playLevelUp();
-triggerLevelUpAnimation(document.body);
+} else if (validatedCount === getItemCountForLevel(niveauActif)) {
+  playLevelUp();
+  triggerLevelUpAnimation(document.body);
 }
 }
 
@@ -3761,6 +3764,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
