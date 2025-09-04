@@ -3729,7 +3729,12 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
         // Ouvrir ton menu principal
         const menu = document.querySelector(".menu");
         if (menu) menu.classList.add("active");
-        initGame();
+        niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  updateRevisionButtonState();
+  updateApprendreButtonState();
       });
     }
   });
@@ -3747,6 +3752,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
