@@ -3719,6 +3719,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
         // Masquer l’écran d’accueil définitivement
         document.getElementById("welcome").classList.add("hidden");
         loadDifficulty();
+        const niveauActif = determineNiveauActif(HiraganaList);
         updateMenuMessage();
          // ✅ Mettre à jour le bouton Apprendre
         updateApprendreButtonState();
@@ -3745,6 +3746,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
