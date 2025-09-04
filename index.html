@@ -2549,7 +2549,7 @@ playfireworksound2();
 playfireworksound3();
 } else if (validatedCount === 3) {
 playfireworksound4();
-} else if (validatedCount === itemCount) {
+} else if (validatedCount === itemCount-1) {
   playLevelUp();
   triggerLevelUpAnimation(document.body);
 }
@@ -3769,6 +3769,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
