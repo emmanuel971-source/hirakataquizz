@@ -1658,8 +1658,18 @@ function backToOptions() {
 }
 
 function setDifficulty(value) {
-  seuilValidation = value; // la variable que ton slider utilisait avant
+  seuilValidation = value; 
   localStorage.setItem("difficulty", value);
+
+  // Mise en surbrillance du bouton choisi
+  document.querySelectorAll("#options-difficulty .arcade-button").forEach(btn => {
+    btn.classList.remove("clicked-glow");
+  });
+  event.target.classList.add("clicked-glow");
+
+  // ✅ Mettre à jour le bouton Apprendre
+  updateApprendreButtonState();
+
   alert("Difficulté réglée sur : " + value);
 }
     
@@ -3733,5 +3743,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
