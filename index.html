@@ -1626,7 +1626,7 @@ function loadDifficulty() {
     console.log("Difficulté restaurée :", seuilValidation);
   } else {
     // valeur par défaut si rien n'est encore enregistré
-    seuilValidation = 8; // Moyen par défaut
+    seuilValidation = 6; // Moyen par défaut
   }
 }
 function showSubOptions(section) {
@@ -1671,6 +1671,14 @@ function setDifficulty(value) {
   updateApprendreButtonState();
 
   alert("Difficulté réglée sur : " + value);
+
+ niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  nextQuestion();      
+
+
 }
     
 function showSection(sectionId) {
@@ -3753,6 +3761,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
