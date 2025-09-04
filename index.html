@@ -2539,6 +2539,8 @@ duration: 700,
 easing: 'ease-out'
 }).onfinish = () => halo.remove();
 
+console.log("🎯 nbre d'items dans le niveau =", itemCount, "niveau =", niveauActif);
+console.log("🎯 nbre d'items validés =", validatedCount, "niveau =", niveauActif);  
 if (validatedCount === 0) {
 playFireworkSound();
 } else if (validatedCount === 1) {
@@ -3224,7 +3226,8 @@ setTimeout(() => sakura.remove(), 4000);
 }
 const validatedCount = getValidatedCountForLevel(niveauActif);
 const itemCount = getItemCountForLevel(niveauActif);
-
+console.log("🎯 nbre d'items dans le niveau =", itemCount, "niveau =", niveauActif);
+console.log("🎯 nbre d'items validés =", validatedCount, "niveau =", niveauActif);  
 if (validatedCount === 0) {
 playFireworkSound();
 } else if (validatedCount === 1) {
@@ -3766,6 +3769,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
