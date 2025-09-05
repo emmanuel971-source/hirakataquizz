@@ -1489,7 +1489,7 @@
   <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">☰</button>  -->
 <!-- Bouton hamburger -->
 <button class="hamburger" onclick="toggleMenu()">
-   <h1 class="welcome-title">🎌⛩️Welcome to Kanas-Zen-Garden⛩️🎌</h1>
+
   <div class="hamburger-icon">
     <div class="hamburger-bar"></div>
     <div class="hamburger-bar"></div>
@@ -1508,13 +1508,14 @@
 <!-- Section Page d'accueil -->
 <div id="welcome" class="section active">
   <div class="panda-logo" onclick="">🐼</div>
-   <div class="loading-dots" id="loadingText">Chargement...</div>
+
   <h1 class="welcome-title">🎌⛩️ Kanas-Zen-Garden ⛩️🎌</h1>
   <p class="welcome-subtitle">Apprenez à Lire le Japonais</p>
- 
+    <div class="loading-dots" id="loadingText">Chargement...</div>
 </div>
   <!-- Section Menu -->
 <div id="menu-section" class="section">
+     <h1 class="welcome-title">🎌⛩️Welcome to Kanas-Zen-Garden⛩️🎌</h1>
   <div id="menu-message" class="menu-message"></div>
   <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
   <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
@@ -2945,7 +2946,7 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
   gameDataLoaded = true;
   const panda = document.querySelector(".panda-logo");
   panda.style.opacity = "1";
-  document.getElementById("loadingText").textContent = "Touchez le panda pour commencer !";
+  document.getElementById("loadingText").textContent = "Touchez le panda pour entrer !";
  
   panda.style.pointerEvents = "auto";
   
@@ -3779,6 +3780,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
