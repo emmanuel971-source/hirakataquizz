@@ -219,7 +219,7 @@
   50% { background: linear-gradient(90deg, #66BB6A, #81C784); }
 }
 
-/* BARRE DE PROGRESSION DU MODE APPRENDRE  */        
+/* BARRE DE PROGRESSION DU MODE APPRENDRE - DESKTOP */        
     #progressBarContainer {
       display: flex;
       align-items: center;
@@ -266,6 +266,7 @@
         margin: 0.4em 0;
         margin-bottom: 100px;
     } 
+    /* BARRE DE PROGRESSION DU MODE APPRENDRE - TABLETTES */  
     @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
       #progressBarContainer {
         max-width: 80%;
@@ -295,7 +296,19 @@
         margin-bottom: 100px;
       } 
     }
-/* LES CARTES MODE APPRENDRE */ 
+
+/* BARRE DE PROGRESSION DU MODE APPRENDRE - SMARTPHONES */      
+ @media screen and (max-width: 400px),
+    screen and (-webkit-min-device-pixel-ratio: 2),
+    screen and (min-resolution: 192dpi) {
+      .level {
+        font-size: 2.5em;
+        margin: 0.4em 0;
+        margin-bottom: 100px;
+      } 
+    }
+        
+/* LES CARTES MODE APPRENDRE - DESKTOP */ 
     .level-hiraganas {
       margin: 1em auto;
       max-width: 800px;
@@ -3795,6 +3808,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
