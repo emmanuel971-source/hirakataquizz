@@ -1514,9 +1514,8 @@
     <div class="loading-dots" id="loadingText">Chargement...</div>
 </div>
   <!-- Section Menu -->
-<h1 class="welcome-title">🎌⛩️Welcome to Kanas-Zen-Garden⛩️🎌</h1>
+
 <div id="menu-section" class="section">
-    
   <div id="menu-message" class="menu-message"></div>
   <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
   <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
@@ -1737,17 +1736,10 @@ function forceRevisionMode() {
 }    
 function updateMenuMessage() {
     const messages = [
-        'Continues à apprendre ! 🌸',
-        'Explores les options ! ⚙️',
-        'Progresses chaque jour ! 🐼',
-        'Un pas après l\'autre 🌸',
-        'Bravo, tu progresses 🎌',
-        'Calme et constance 🐢',
-        'Douceur et patience 🍵',
-        'Tu avances bien 🌿',
-        'Continue sereinement 🐼',
-        'Belle progression ⛩️',
-        'Force intérieure 🐉'
+        '🎌⛩️Welcome to Kanas-Zen-Garden⛩️🎌',
+        '🎌⛩️Welcome to Kanas-Zen-Garden⛩️🎌',
+        '🎌⛩️Welcome to Kanas-Zen-Garden⛩️🎌',
+
     ];
     const menuMessage = document.getElementById('menu-message');
     if (menuMessage && menuMessage.innerText === '') {
@@ -3781,6 +3773,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
