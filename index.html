@@ -166,7 +166,7 @@
   }
 }
 
-/* MODE APPRENDRE */    
+/* BARRE DE DEBLOCAGE DU MODE REVISION  */    
 /* Conteneur de la barre de progression */
 #unlock-progress-container,
 .unlock-progress-container {
@@ -219,7 +219,7 @@
   50% { background: linear-gradient(90deg, #66BB6A, #81C784); }
 }
 
-    
+/* BARRE DE PROGRESSION DU MODE APPRENDRE  */        
     #progressBarContainer {
       display: flex;
       align-items: center;
@@ -265,6 +265,7 @@
         max-width: 80%;
         margin: 1.5em auto 0.5em auto;
         gap: 1em;
+        margin-bottom: 20px;
       }
 
       .progress-bar-track {
@@ -281,6 +282,11 @@
       .side-emoji {
         font-size: 2.5em;
       }
+
+      .level {
+        font-size: 2.5em;
+        margin: 0.4em 0;
+      } 
     }
 /* LES CARTES MODE APPRENDRE */ 
     .level-hiraganas {
@@ -3780,6 +3786,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
