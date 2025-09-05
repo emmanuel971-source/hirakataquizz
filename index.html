@@ -266,6 +266,16 @@
         margin: 0.4em 0;
         margin-bottom: 100px;
     } 
+    /* BARRE DE PROGRESSION DU MODE APPRENDRE - SMARTPHONES */      
+ @media screen and (max-width: 400px),
+    screen and (-webkit-min-device-pixel-ratio: 2),
+    screen and (min-resolution: 192dpi) {
+      .level {
+        font-size: 2.5em;
+        margin: 0.4em 0;
+        margin-bottom: 100px;
+      } 
+    }
     /* BARRE DE PROGRESSION DU MODE APPRENDRE - TABLETTES */  
     @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
       #progressBarContainer {
@@ -297,16 +307,7 @@
       } 
     }
 
-/* BARRE DE PROGRESSION DU MODE APPRENDRE - SMARTPHONES */      
- @media screen and (max-width: 400px),
-    screen and (-webkit-min-device-pixel-ratio: 2),
-    screen and (min-resolution: 192dpi) {
-      .level {
-        font-size: 2.5em;
-        margin: 0.4em 0;
-        margin-bottom: 100px;
-      } 
-    }
+
         
 /* LES CARTES MODE APPRENDRE - DESKTOP */ 
     .level-hiraganas {
@@ -3808,6 +3809,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
