@@ -145,7 +145,7 @@
   display: none !important;
 }
 
-/* R/* Section Page d'accueil SMARTPHONES */
+/*  Section Page d'accueil SMARTPHONES */
  @media screen and (max-width: 400px),
     screen and (-webkit-min-device-pixel-ratio: 2),
     screen and (min-resolution: 192dpi) {
@@ -166,7 +166,7 @@
   }
 }
 
-/* BARRE DE DEBLOCAGE DU MODE REVISION  */    
+/* BARRE DE DEBLOCAGE DU MODE REVISION - DESKTOP */    
 /* Conteneur de la barre de progression */
 #unlock-progress-container,
 .unlock-progress-container {
@@ -178,7 +178,7 @@
   width: 100%;                  /* S'adapte à l'espace dispo */
   box-sizing: border-box;
 }
-
+/* BARRE DE DEBLOCAGE DU MODE REVISION - SMARTPHONE */  
 /* Responsive : sur mobile → occupe 90% de la largeur */
  @media screen and (max-width: 400px),
     screen and (-webkit-min-device-pixel-ratio: 2),
@@ -308,13 +308,14 @@
     }
 
 
+
         
 /* LES CARTES MODE APPRENDRE - DESKTOP */ 
     .level-hiraganas {
       margin: 1em auto;
       max-width: 800px;
       flex-shrink: 0;
-      margin-bottom: 50px;
+      margin-bottom: 25px;
     }
 
     .hiraganas-grid {
@@ -438,6 +439,7 @@
       100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
     }
 
+    /* LES CARTES MODE APPRENDRE - TABLETTES */ 
     @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
       .level-hiraganas {
         max-width: none;
@@ -482,7 +484,7 @@
         height: 28px;
       }
     }
-
+  /* LES CARTES MODE APPRENDRE - TABLETTES n°2 ????????????*/ 
     @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
       .level-hiraganas {
         max-width: none;
@@ -527,6 +529,7 @@
       }
     }
 
+/* ITEM QUESTION MODE APPRENDRE   - DESKTOP    */
     .quiz-container {
       flex: 1;
       display: flex;
@@ -555,7 +558,7 @@
       gap: 0.8em;
       margin-bottom: 1em;
     }
-
+/* ITEM QUESTION MODE APPRENDRE -  TABLETTE    */
     @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
       .quiz-container {
         flex: 1;
@@ -593,7 +596,7 @@
         height: 20px;
       }
     }
-
+/*  BOUTONS REPONSES MODE APPRENDRE- DESKTOP    */
     .arcade-button {
       position: relative;
       background: #F5E8C7;
@@ -704,7 +707,7 @@
       90% { transform: translateX(-1px); }
       100% { transform: translateX(0); }
     }
-
+/*  BOUTONS REPONSES MODE APPRENDRE- MOBILES   */
     @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
       button, a, input, textarea {
         -webkit-tap-highlight-color: transparent;
@@ -724,7 +727,7 @@
         border-radius: 20px;
       }
     }
-
+/*  AFFICHAGE REPONSE MODE APPRENDRE- DESKTOP   */
     .result {
       animation: fadeIn 0.4s ease-in;
       font-size: 1.3em;
@@ -760,7 +763,7 @@
       height: 3em;
       display: none;
     }
-
+/*  AFFICHAGE REPONSE MODE APPRENDRE- MOBILES   */
     @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
       .result {
         margin-top: 5em;
@@ -803,7 +806,7 @@
         height: 3em;
       }
     }
-
+/*  AFFICHAGE REPONSE MODE APPRENDRE- MOBILE 2 ???????   */
     @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
       .result {
         margin-top: 5em;
@@ -843,88 +846,9 @@
         height: 3em;
         width: 100%;
       }
-
-   /*   visibility: hidden; */
     }
 
-    #boutonInstaller {
-      margin-top: 1em;
-      margin-bottom: 1em;
-      height: 3em;
-    }
-
-    .sakura {
-      width: 20px;
-      height: 20px;
-    }
-
-    @media (max-width: 768px) {
-      .hiraganas-grid {
-        gap: 15px;
-      }
-
-      .hiragana-char {
-        font-size: 1.8em;
-      }
-
-      .question {
-        font-size: 2.8em;
-      }
-
-      .arcade-button {
-        padding: 0.6em 1.2em;
-        font-size: 1em;
-      }
-    }
-
-    @media (max-height: 700px) {
-      .hiragana-char {
-        font-size: 1.6em;
-        margin-bottom: 4px;
-      }
-
-      .question {
-        font-size: 2.5em;
-        margin: 0.3em 0;
-      }
-
-      .answers {
-        gap: 0.6em;
-        margin-bottom: 0.8em;
-      }
-
-      .arcade-button {
-        padding: 0.6em 1.2em;
-      }
-    }
-
-    @media (max-height: 600px) {
-      .hiragana-char {
-        font-size: 1.4em;
-      }
-
-      .stars-container {
-        gap: 1px;
-      }
-
-      .star {
-        width: 10px;
-        height: 10px;
-      }
-
-      .question {
-        font-size: 2.2em;
-      }
-
-      .progress-marker {
-        font-size: 1.6em;
-      }
-
-      .side-emoji {
-        font-size: 1.4em;
-      }
-    }
-
+ /* ANIMATIONS - DESKTOP */    
     @keyframes confettiFall {
       0% { transform: translateY(0); }
       100% { transform: translateY(110vh) rotate(720deg); }
@@ -942,57 +866,7 @@
       100% { transform: translate(0px, 0px); }
     }
 
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-      #progressBarContainer {
-        max-width: 80%;
-        margin: 1.5em auto 0.5em auto;
-        gap: 1em;
-      }
-
-      .progress-bar-track {
-        height: 32px;
-        border-radius: 12px;
-      }
-
-      .progress-marker {
-        font-size: 4.5em;
-        top: 30%;
-      }
-
-      .side-emoji {
-        font-size: 2.5em;
-      }
-
-
-    }
-
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-      #progressBarContainer {
-        max-width: 80%;
-        margin: 1.5em auto 0.5em auto;
-        gap: 1em;
-      }
-
-      .progress-bar-track {
-        height: 32px;
-        border-radius: 12px;
-      }
-
-      .progress-marker {
-        font-size: 4.5em;
-        top: 30%;
-      }
-
-      .side-emoji {
-        font-size: 2.5em;
-      }
-
-      .level {
-        font-size: 1.5em;
-        margin: 0.1em 0;
-      }
-    }
-
+  
 /* BOUTON MENU HAMBURGER - Style carte hiragana */
 .hamburger {
   position: fixed;
@@ -1050,7 +924,7 @@
   }
 }
 
-/* BOUTON MENU HAMBURGER  SMARPHONES */
+/* BOUTON MENU HAMBURGER  MOBILES */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   .hamburger {
     position: fixed !important;
@@ -1077,41 +951,6 @@
   }
 }
 
-/* ANCIENNES OPTIONS SLIDER - VOIR SI A SUPPRIMER  */
-.option-group {
-  margin: 20px 0;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-}
-
-.option-group label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
-
-.slider-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.slider-container input[type="range"] {
-  flex: 1;
-}
-
-.slider-container span {
-  min-width: 30px;
-  text-align: center;
-  font-weight: bold;
-}
-
-.option-description {
-  font-size: 12px;
-  color: #666;
-  margin-top: 5px;
-}    
 
 /* MENU  DESKTOP  Ajuster la règle générale pour .menu */
     /* ✅ Style menu-message */
@@ -1139,7 +978,7 @@
   opacity: 1;
   transform: translateY(0);
 }
-/* Version responsive */
+/* MENU Version responsive MOBILES */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #menu-message {
     font-size: 3.5em !important;
@@ -1262,20 +1101,9 @@
       height: 100vh;
     }
 
-    .coming-soon {
-      font-size: 1.5em;
-      color: #8B6F47;
-      margin-top: 1em;
-      text-align: center;
-    }
 
-    @media (max-width: 768px) {
-      .coming-soon {
-        font-size: 2em;
-      }
-    }
 
-/* Styles pour le mode révisions */
+/* MODE REVISIONS  - DESKTOP */
 #revision-question {
   font-size: 1.5em;
   margin-bottom: 10px;
@@ -1374,7 +1202,7 @@
   min-height: 1.5em;
 }
 
-/* Responsive pour mobile */
+/* MODE REVISIONS  - MOBILES */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #revision-question {
     font-size: 6em;
@@ -1419,7 +1247,7 @@
   }
 }
 
-/* ? NOUVEAUX STYLES POUR LES CARTES - Identiques au mode apprentissage */
+/* ? NOUVEAUX STYLES POUR LES CARTES  MODES REVISION- DESKTOP  */
 .char-card {
   display: inline-flex;
   padding: 15px;
@@ -1433,7 +1261,7 @@
   color: #8B6F47;
   text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
   
-  /* ? MÊME STYLE QUE LES CARTES HIRAGANA */
+  /* ? MODE REVISION MÊME STYLE QUE LES CARTES HIRAGANA -  DESKTOP*/
   background: #FFFFFF;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
   transition: all 0.4s ease; /* Transition plus fluide */
@@ -1505,7 +1333,7 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
 }
 
-/* Media query pour les écrans mobiles (jusqu'à 768px) */
+/* TITRE MODE REVISIONS - MOBILES  */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #mode2 .title {
       margin: 0.5em 0;
@@ -3806,6 +3634,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
