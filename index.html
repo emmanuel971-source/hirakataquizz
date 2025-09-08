@@ -1017,11 +1017,11 @@
     }
 
  .menu .arcade-button {
-    width: 300px !important; /* Plus large que les 200px actuels */
-    height: 80px !important; /* Hauteur fixe pour tous */
-    min-height: 80px !important; /* Force la hauteur minimum */
-    max-height: 80px !important; /* Limite la hauteur maximum */
-    line-height: 80px !important; /* Centre le texte verticalement */
+    width: 600px !important; /* Plus large que les 200px actuels */
+    height: 280px !important; /* Hauteur fixe pour tous */
+    min-height: 280px !important; /* Force la hauteur minimum */
+    max-height: 280px !important; /* Limite la hauteur maximum */
+    line-height: 280px !important; /* Centre le texte verticalement */
     padding: 0 1.5em !important; /* Padding horizontal seulement */
     font-size: 1.6em !important; /* Taille de police cohérente */
     box-sizing: border-box !important;
@@ -1365,10 +1365,10 @@
   <!-- Menu -->
 <nav class="menu" id="menu">
   <div id="menu-message" class="menu-message"></div>
-  <button class="menu .arcade-button" onclick="showSection('quiz')">Apprendre</button>
-  <button class="menu .arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
-  <button class="menu .arcade-button" onclick="showSection('options')">Options</button>
-  <button class="menu .arcade-button" onclick="toggleMenu()">Fermer</button>
+  <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
+  <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
+  <button class="arcade-button" onclick="showSection('options')">Options</button>
+  <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
 </nav>
 
 <!-- Section Page d'accueil -->
@@ -3633,6 +3633,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
