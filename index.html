@@ -183,18 +183,7 @@
   .loading-dots {
     font-size: 2.5em;
   }
-    }
-
-
-
-
-
-
-
-
-
-
-
+  }
     
 /* BARRE DE DEBLOCAGE DU MODE REVISION - DESKTOP */    
 /* Conteneur de la barre de progression */
@@ -1014,14 +1003,39 @@
   transform: translateY(0);
 }
 /* MENU Version responsive MOBILES */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-  #menu-message {
+/*@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {  */
+/*  #menu-message {                          */
+/*    font-size: 3.5em !important;             */
+ /*   padding: 10px !important;         */
+ /*  margin-bottom: 150px !important;   */
+ /*   line-height: 1.2 !important;    */
+/*  }                                 */
+/*}                                      */
+
+
+/* MENU Version responsive  SMARTPHONES */
+    @media screen and (max-width: 400px),
+    screen and (-webkit-min-device-pixel-ratio: 2),
+    screen and (min-resolution: 192dpi) {
+      #menu-message {
     font-size: 3.5em !important;
     padding: 10px !important;
     margin-bottom: 150px !important;
     line-height: 1.2 !important;
-  }
-}
+      }
+    }
+/* 
+/* MENU Version responsive  TABLETTES */
+    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+     #menu-message {
+    font-size: 3em !important;
+    padding: 10px !important;
+    margin-bottom: 150px !important;
+    line-height: 1.2 !important;
+      }
+    }
+
+    
 /* Ajuster la règle générale pour .menu */
    .menu {
       position: fixed;
@@ -3663,6 +3677,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
