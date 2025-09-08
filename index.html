@@ -1093,6 +1093,34 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/* BOUTONS MENUS - VERSION TABLETTES*/
+@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+  .menu .arcade-button {
+    width: 600px !important;
+    font-size: 3em !important;
+    padding: 0.2em 1em !important;
+    line-height: 100px !important; /* ? Centre le texte */
+    height: 100px !important; /* ? Hauteur fixe pour TOUS */
+    max-height: 100px !important; /* ? Remplace l'ancien 2.5em */
+    margin-bottom: 15px 
+    border: 10px solid #8B6F47;
+  }
+  
+  /* Correction spécifique Chrome */
+  @supports (-webkit-appearance: none) {
+    .menu .arcade-button {
+      width: min(80vw, 600px) !important; /* Plus conservateur */
+      height: 100px !important; /* ? Hauteur fixe */
+      max-height: 100px !important; /* ? Remplace l'ancien max-height */
+      line-height: 100px !important; /* ? Centre le texte verticalement */
+      padding: 0.2em 1em !important; /* ? Supprime padding vertical */
+      margin-bottom: 15px 
+      border: 10px solid #8B6F47;
+    }
+  }
+}
+    
 /* BOUTONS MENUS - VERSION SMARTPHONES*/
     @media screen and (max-width: 400px),
     screen and (-webkit-min-device-pixel-ratio: 2),
@@ -1122,32 +1150,7 @@
   }
 }
 
-/* BOUTONS MENUS - VERSION TABLETTES*/
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
-  .menu .arcade-button {
-    width: 600px !important;
-    font-size: 3em !important;
-    padding: 0.2em 1em !important;
-    line-height: 100px !important; /* ? Centre le texte */
-    height: 100px !important; /* ? Hauteur fixe pour TOUS */
-    max-height: 100px !important; /* ? Remplace l'ancien 2.5em */
-    margin-bottom: 15px 
-    border: 10px solid #8B6F47;
-  }
-  
-  /* Correction spécifique Chrome */
-  @supports (-webkit-appearance: none) {
-    .menu .arcade-button {
-      width: min(80vw, 600px) !important; /* Plus conservateur */
-      height: 100px !important; /* ? Hauteur fixe */
-      max-height: 100px !important; /* ? Remplace l'ancien max-height */
-      line-height: 100px !important; /* ? Centre le texte verticalement */
-      padding: 0.2em 1em !important; /* ? Supprime padding vertical */
-      margin-bottom: 15px 
-      border: 10px solid #8B6F47;
-    }
-  }
-}
+
     .section {
       display: none;
     }
@@ -3685,6 +3688,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
