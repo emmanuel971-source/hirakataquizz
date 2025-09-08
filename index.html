@@ -1018,10 +1018,10 @@
 
  .menu .arcade-button {
     width: 600px !important; /* Plus large que les 200px actuels */
-    height: 280px !important; /* Hauteur fixe pour tous */
-    min-height: 280px !important; /* Force la hauteur minimum */
-    max-height: 280px !important; /* Limite la hauteur maximum */
-    line-height: 280px !important; /* Centre le texte verticalement */
+    height: 80px !important; /* Hauteur fixe pour tous */
+    min-height: 80px !important; /* Force la hauteur minimum */
+    max-height: 80px !important; /* Limite la hauteur maximum */
+    line-height: 80px !important; /* Centre le texte verticalement */
     padding: 0 1.5em !important; /* Padding horizontal seulement */
     font-size: 1.6em !important; /* Taille de police cohérente */
     box-sizing: border-box !important;
@@ -1074,11 +1074,11 @@
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
   .menu .arcade-button {
     width: 700px !important;
-    font-size: 2.8em !important;
+    font-size: 3em !important;
     padding: 0.2em 1em !important;
-    line-height: 140px !important; /* ? Centre le texte */
-    height: 140px !important; /* ? Hauteur fixe pour TOUS */
-    max-height: 140px !important; /* ? Remplace l'ancien 2.5em */
+    line-height: 200px !important; /* ? Centre le texte */
+    height: 200px !important; /* ? Hauteur fixe pour TOUS */
+    max-height: 200px !important; /* ? Remplace l'ancien 2.5em */
     margin-bottom: 10px 
     border: 10px solid #8B6F47;
   }
@@ -1087,9 +1087,9 @@
   @supports (-webkit-appearance: none) {
     .menu .arcade-button {
       width: min(80vw, 700px) !important; /* Plus conservateur */
-      height: 180px !important; /* ? Hauteur fixe */
-      max-height: 120px !important; /* ? Remplace l'ancien max-height */
-      line-height: 120px !important; /* ? Centre le texte verticalement */
+      height: 200px !important; /* ? Hauteur fixe */
+      max-height: 200px !important; /* ? Remplace l'ancien max-height */
+      line-height: 200px !important; /* ? Centre le texte verticalement */
       padding: 0.2em 1em !important; /* ? Supprime padding vertical */
       margin-bottom: 10px 
       border: 10px solid #8B6F47;
@@ -3633,6 +3633,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
