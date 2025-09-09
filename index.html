@@ -508,6 +508,8 @@
 
   .hiraganas-grid {
     width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
     box-sizing: border-box;
     display: flex;
     flex-wrap: nowrap;
@@ -519,7 +521,7 @@
   .hiragana-card {
     flex: 1;
     min-width: 0;
-    max-width: calc((100vw - 12px) / 5);
+    max-width: calc((100vw - 24px) / 5);
     height: 80px; /* Hauteur fixe comme demandé */
     text-align: center;
     transition: all 0.3s ease;
@@ -3845,6 +3847,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
