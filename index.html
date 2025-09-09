@@ -74,7 +74,7 @@
 /* H2 SMARTPHONES */
     @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
-        font-size: 2em;
+        font-size: 1.8em;
         margin: 0.1em 0;
       }
     }
@@ -305,9 +305,29 @@
         margin-bottom: 50px;
     } 
     /* BARRE DE PROGRESSION DU MODE APPRENDRE - SMARTPHONES */      
- @media screen and (max-width: 400px),
-    screen and (-webkit-min-device-pixel-ratio: 2),
-    screen and (min-resolution: 192dpi) {
+ @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2)
+      #progressBarContainer {
+        max-width: 80%;
+        margin: 1.5em auto 0.5em auto;
+        gap: 1em;
+        
+      }
+
+      .progress-bar-track {
+        height: 32px;
+        border-radius: 12px;
+      }
+
+      .progress-marker {
+        font-size: 4.5em;
+        top: 45%;
+        transform: translate(-50%, -50%);
+      }
+
+      .side-emoji {
+        font-size: 2.5em;
+      }
+
       .level {
         font-size: 2.5em;
         margin: 0.4em 0;
@@ -315,7 +335,7 @@
       } 
     }
     /* BARRE DE PROGRESSION DU MODE APPRENDRE - TABLETTES */  
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       #progressBarContainer {
         max-width: 80%;
         margin: 1.5em auto 0.5em auto;
@@ -3766,6 +3786,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
