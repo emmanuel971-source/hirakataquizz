@@ -1122,7 +1122,9 @@
 }
     
 /* BOUTONS MENUS - VERSION SMARTPHONES*/
-    (max-width: 400px) and (-webkit-min-device-pixel-ratio: 2) {
+    @media screen and (max-width: 400px),
+    screen and (-webkit-min-device-pixel-ratio: 2),
+    screen and (min-resolution: 192dpi) {
       .menu .arcade-button {
     width: 700px !important;
     font-size: 4em !important;
@@ -3686,6 +3688,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
