@@ -74,7 +74,7 @@
 /* H2 SMARTPHONES */
     @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
-        font-size: 1.6em;
+        font-size: 1.4em;
         margin: 0.1em 0;
       }
     }
@@ -307,19 +307,19 @@
     /* BARRE DE PROGRESSION DU MODE APPRENDRE - SMARTPHONES */      
  @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       #progressBarContainer {
-        max-width: 90%;
+        max-width: 95%;
         margin: 1.5em auto 0.5em auto;
         gap: 1em;
         
       }
 
       .progress-bar-track {
-        height: 16px;
-        border-radius: 6px;
+        height: 12px;
+        border-radius: 2px;
       }
 
       .progress-marker {
-        font-size: 2.2em;
+        font-size: 2.0em;
         top: 45%;
         transform: translate(-50%, -50%);
       }
@@ -329,9 +329,9 @@
       }
 
       .level {
-        font-size: 1.2em;
+        font-size: 1.0em;
         margin: 0.4em 0;
-        margin-bottom: 50px;
+        margin-bottom: 25px;
       } 
     }
     /* BARRE DE PROGRESSION DU MODE APPRENDRE - TABLETTES */  
@@ -520,7 +520,7 @@
     display: flex;
     flex-wrap: nowrap;
     justify-content: space-between;
-    gap: 2px;
+    gap: 4px;
     padding: 0; /* Supprime le padding qui décalait */
     margin: 0;
   }
@@ -528,8 +528,8 @@
   .hiragana-card {
     flex: 1;
     min-width: 0;
-    width: calc((100% - 8px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
-    height: 100px;
+    width: calc((100% - 16px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
+    height: 80px;
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
@@ -663,7 +663,7 @@
       }
 
       .question {
-        font-size: 4em;
+        font-size: 3em;
         font-weight: bold;
         margin: 0.5em 0;
         height: 1.2em;
@@ -675,7 +675,7 @@
 
   .answers {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
     justify-content: center; /* centre le grid */
     gap: 0.8em;
     margin-bottom: 1em;
@@ -846,7 +846,7 @@
       }
 
       .arcade-button {
-        font-size: 1.2em;
+        font-size: 1.4em;
         aspect-ratio: 1 / 0.6;
         width: 100%;
         box-sizing: border-box;
@@ -856,8 +856,8 @@
         justify-content: center;
         text-align: center;
         border: 2px solid #8B6F47;
-        border-radius: 10px;
-        min-width: 60px;
+        border-radius: 5px;
+        min-width: 65px;
       }
     }
     
@@ -3855,6 +3855,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
