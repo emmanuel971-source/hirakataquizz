@@ -1001,16 +1001,25 @@
   opacity: 1;
   transform: translateY(0);
 }
-/* MENU Version responsive MOBILES */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+/* MENU Version responsive SMARTPHONES */
+@media screen and (max-width: 500px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #menu-message {
-    font-size: 3.5em !important;
+    font-size: 2em !important;
     padding: 10px !important;
-    margin-bottom: 150px !important;
+    margin-bottom: 100px !important;
     line-height: 1.2 !important;
   }
 }                            
 
+/* MENU Version responsive SMARTPHONES */
+@media screen and (min-width: 600px), screen and (-webkit-min-device-pixel-ratio: 2) {
+  #menu-message {
+    font-size: 0.2em !important;
+    padding: 10px !important;
+    margin-bottom: 10px !important;
+    line-height: 1.2 !important;
+  }
+}         
 
 /* MENU Version responsive  SMARTPHONES */
 
@@ -1094,7 +1103,7 @@
 }
 
 /* BOUTONS MENUS - VERSION TABLETTES*/
-@media (min-width: 981px) and (-webkit-min-device-pixel-ratio: 2) {
+@media (min-width: 701px) and (-webkit-min-device-pixel-ratio: 2) {
   .menu .arcade-button {
     width: 200px !important;
     font-size: 3em !important;
@@ -1109,10 +1118,10 @@
   /* Correction spécifique Chrome */
   @supports (-webkit-appearance: none) {
     .menu .arcade-button {
-      width: min(80vw, 600px) !important; /* Plus conservateur */
-      height: 100px !important; /* ? Hauteur fixe */
-      max-height: 100px !important; /* ? Remplace l'ancien max-height */
-      line-height: 100px !important; /* ? Centre le texte verticalement */
+      width: min(80vw, 700px) !important; /* Plus conservateur */
+      height: 10px !important; /* ? Hauteur fixe */
+      max-height: 10px !important; /* ? Remplace l'ancien max-height */
+      line-height: 10px !important; /* ? Centre le texte verticalement */
       padding: 0.2em 1em !important; /* ? Supprime padding vertical */
       margin-bottom: 15px 
       border: 10px solid #8B6F47;
@@ -1121,14 +1130,14 @@
 }
     
 /* BOUTONS MENUS - VERSION SMARTPHONES*/
-    @media (max-width: 980px) and (-webkit-min-device-pixel-ratio: 2) {
+    @media (max-width: 500px) and (-webkit-min-device-pixel-ratio: 2) {
       .menu .arcade-button {
     width: 700px !important;
-    font-size: 4em !important;
+    font-size: 3em !important;
     padding: 0.2em 1em !important;
-    line-height: 200px !important; /* ? Centre le texte */
-    height: 200px !important; /* ? Hauteur fixe pour TOUS */
-    max-height: 200px !important; /* ? Remplace l'ancien 2.5em */
+    line-height: 120px !important; /* ? Centre le texte */
+    height: 120px !important; /* ? Hauteur fixe pour TOUS */
+    max-height: 120px !important; /* ? Remplace l'ancien 2.5em */
     margin-bottom: 15px 
     border: 10px solid #8B6F47;
   }
@@ -1137,9 +1146,9 @@
   @supports (-webkit-appearance: none) {
     .menu .arcade-button {
       width: min(80vw, 700px) !important; /* Plus conservateur */
-      height: 200px !important; /* ? Hauteur fixe */
-      max-height: 200px !important; /* ? Remplace l'ancien max-height */
-      line-height: 200px !important; /* ? Centre le texte verticalement */
+      height: 120px !important; /* ? Hauteur fixe */
+      max-height: 120px !important; /* ? Remplace l'ancien max-height */
+      line-height: 120px !important; /* ? Centre le texte verticalement */
       padding: 0.2em 1em !important; /* ? Supprime padding vertical */
       margin-bottom: 15px 
       border: 10px solid #8B6F47;
@@ -3685,6 +3694,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
