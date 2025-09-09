@@ -499,6 +499,12 @@
 
     /* LES CARTES MODE APPRENDRE - SMARTPHONES */ 
    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+      /* Force le conteneur principal à ne pas déborder */
+  #quiz {
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
   .level-hiraganas {
     max-width: none;
     width: 100vw;
@@ -3847,6 +3853,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
