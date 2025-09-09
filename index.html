@@ -498,11 +498,11 @@
     }
 
     /* LES CARTES MODE APPRENDRE - SMARTPHONES */ 
-    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+   @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
   .level-hiraganas {
     max-width: none;
     width: 100vw;
-    padding: 0 4px; /* Padding réduit pour maximiser l'espace */
+    padding: 0 4px;
     box-sizing: border-box;
   }
 
@@ -510,48 +510,57 @@
     width: 100%;
     box-sizing: border-box;
     display: flex;
-    flex-wrap: nowrap; /* Force les 5 cartes sur une ligne */
+    flex-wrap: nowrap;
     justify-content: space-between;
-    gap: 2px; /* Espacement minimal de 2px comme demandé */
+    gap: 2px;
     padding: 0 2px;
   }
 
   .hiragana-card {
-    flex: 1; /* Chaque carte prend la même largeur disponible */
-    min-width: 0; /* Permet aux cartes de se rétrécir */
-    max-width: calc((100vw - 20px) / 5); /* Calcul précis pour 5 cartes */
+    flex: 1;
+    min-width: 0;
+    max-width: calc((100vw - 20px) / 5);
+    height: 100px; /* Hauteur fixe comme demandé */
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
-    padding: 3px 1px; /* Padding minimal */
+    padding: 8px 2px;
     background: #FFFFFF;
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Répartit le contenu verticalement */
   }
 
   .hiragana-char {
-    font-size: 0.9em; /* Taille réduite pour permettre 3 caractères */
-    margin-bottom: 2px;
-    line-height: 1;
+    font-size: 1.1em;
+    margin-bottom: 0;
+    line-height: 1.2;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    flex-grow: 1; /* Prend l'espace disponible */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .stars-container {
     display: flex;
-    justify-content: space-between; /* Répartit les étoiles sur toute la largeur */
-    gap: 0; /* Pas d'espace supplémentaire */
-    width: 100%; /* Occupe toute la largeur de la carte */
-    padding: 0 1px; /* Petit padding pour éviter le débordement */
-    box-sizing: border-box;
+    justify-content: center; /* Centre les étoiles */
+    gap: 1px;
+    width: 100%;
+    padding: 0;
+    margin-top: auto; /* Pousse vers le bas */
   }
 
   .star {
-    width: calc(20% - 0.5px); /* Chaque étoile prend 20% de la largeur disponible */
-    height: 6px;
-    flex-shrink: 0; /* Empêche les étoiles de rétrécir */
+    width: 8px; /* Taille naturelle conservée */
+    height: 8px; /* Proportions 1:1 maintenues */
+    flex-shrink: 0;
   }
 }
+    
   /* LES CARTES MODE APPRENDRE - TABLETTES  */ 
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       .level-hiraganas {
@@ -3796,6 +3805,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
