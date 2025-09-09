@@ -544,7 +544,7 @@
   }
 
   .hiragana-char {
-    font-size: 1.6em;
+    font-size: 1.4em;
     margin-bottom: 0;
     line-height: 1.2;
     word-wrap: break-word;
@@ -917,8 +917,8 @@
       height: 3em;
       display: none;
     }
-/*  AFFICHAGE REPONSE MODE APPRENDRE- MOBILES   */
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+/*  AFFICHAGE REPONSE MODE APPRENDRE- SMARTPHONE   */
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       .result {
         margin-top: 5em;
         text-align: center;
@@ -933,7 +933,7 @@
       }
 
       .result-line {
-        font-size: 4em;
+        font-size: 2em;
         width: 100%;
         text-align: center;
       }
@@ -960,8 +960,8 @@
         height: 3em;
       }
     }
-/*  AFFICHAGE REPONSE MODE APPRENDRE- MOBILE 2 ???????   */
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+/*  AFFICHAGE REPONSE MODE APPRENDRE- TABLETTE  */
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       .result {
         margin-top: 5em;
       }
@@ -3855,6 +3855,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
