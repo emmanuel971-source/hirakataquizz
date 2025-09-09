@@ -74,7 +74,7 @@
 /* H2 SMARTPHONES */
     @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
-        font-size: 1.8em;
+        font-size: 1.6em;
         margin: 0.1em 0;
       }
     }
@@ -305,7 +305,7 @@
         margin-bottom: 50px;
     } 
     /* BARRE DE PROGRESSION DU MODE APPRENDRE - SMARTPHONES */      
- @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2)
+ @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       #progressBarContainer {
         max-width: 90%;
         margin: 1.5em auto 0.5em auto;
@@ -497,14 +497,14 @@
       100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
     }
 
-    /* LES CARTES MODE APPRENDRE - TABLETTES */ 
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+    /* LES CARTES MODE APPRENDRE - SMARTPHONES */ 
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       .level-hiraganas {
         max-width: none;
-        width: 100vw;
+        width: 50vw;
         padding: 0 2em;
         box-sizing: border-box;
-        margin-bottom: 50px;
+        margin-bottom: 25px;
       }
 
       .hiraganas-grid {
@@ -516,7 +516,7 @@
 
       .hiragana-card {
         flex: 1 1 auto;
-        min-width: 80px;
+        min-width: 4px;
         text-align: center;
         transition: all 0.3s ease;
         position: relative;
@@ -527,8 +527,8 @@
       }
 
       .hiragana-char {
-        font-size: 4em;
-        margin-bottom: 10px;
+        font-size: 2em;
+        margin-bottom: 5px;
       }
 
       .stars-container {
@@ -538,12 +538,12 @@
       }
 
       .star {
-        width: 28px;
-        height: 28px;
+        width: 14px;
+        height: 14px;
       }
     }
-  /* LES CARTES MODE APPRENDRE - TABLETTES n°2 ????????????*/ 
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+  /* LES CARTES MODE APPRENDRE - TABLETTES  */ 
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       .level-hiraganas {
         max-width: none;
         width: 100vw;
@@ -3786,6 +3786,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
