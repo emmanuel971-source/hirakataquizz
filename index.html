@@ -49,16 +49,14 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
     }
 /* H1 SMARTPHONES */
-    @media screen and (max-width: 400px),
-    screen and (-webkit-min-device-pixel-ratio: 2),
-    screen and (min-resolution: 192dpi) {
+   @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       h1 {
         font-size: 3em;
         margin: 0.3em 0;
       }
     }
 /* H1 TABLETTES */
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h1 {
         font-size: 2.2em;
         margin: 0.15em 0;
@@ -74,16 +72,14 @@
       margin-bottom: 5px;
     }
 /* H2 SMARTPHONES */
-    @media screen and (max-width: 400px),
-    screen and (-webkit-min-device-pixel-ratio: 2),
-    screen and (min-resolution: 192dpi) {
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
         font-size: 4em;
         margin: 0.1em 0;
       }
     }
 /* H2 TABLETTES */
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
         font-size: 4em;
         margin: 0.15em 0;
@@ -147,7 +143,7 @@
 }
 
 /*  Section Page d'accueil SMARTPHONES */
-@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 500px) {
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
   .panda-logo {
     font-size: 8em;
   }
@@ -166,7 +162,7 @@
 }
 
 /* Section Page d'accueil TABLETTES */
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (min-width: 600px) {
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
        .panda-logo {
     font-size: 15em;
   }
@@ -1002,7 +998,7 @@
   transform: translateY(0);
 }
 /* MENU Version responsive SMARTPHONES */
-@media (max-width: 1000px) and (-webkit-min-device-pixel-ratio: 2) {
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
   #menu-message {
     font-size: 2em !important;
     padding: 10px !important;
@@ -1012,7 +1008,7 @@
 }                            
 
 /* MENU Version responsive TABLETTES */
-@media (min-width: 1000px) and (-webkit-min-device-pixel-ratio: 2) {
+@media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
   #menu-message {
     font-size: 0.2em !important;
     padding: 10px !important;
@@ -1103,7 +1099,7 @@
 }
 
 /* BOUTONS MENUS - VERSION TABLETTES*/
-@media (min-width: 1000px) and (-webkit-min-device-pixel-ratio: 2) {
+@media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
   .menu .arcade-button {
     width: 200px !important;
     font-size: 3em !important;
@@ -1130,7 +1126,7 @@
 }
     
 /* BOUTONS MENUS - VERSION SMARTPHONES*/
-    @media (max-width: 1000px) and (-webkit-min-device-pixel-ratio: 2) {
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       .menu .arcade-button {
     width: 700px !important;
     font-size: 3em !important;
@@ -3694,6 +3690,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
