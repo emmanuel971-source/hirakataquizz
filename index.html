@@ -726,8 +726,30 @@
       90% { transform: translateX(-1px); }
       100% { transform: translateX(0); }
     }
-/*  BOUTONS REPONSES MODE APPRENDRE- MOBILES   */
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+
+/*  BOUTONS REPONSES MODE APPRENDRE- SMARTPHONES   */
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+      button, a, input, textarea {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .arcade-button {
+        font-size: 4em;
+        aspect-ratio: 1 / 0.6;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border: 5px solid #8B6F47;
+        border-radius: 10px;
+      }
+    }
+    
+/*  BOUTONS REPONSES MODE APPRENDRE- TABLETTES  */
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       button, a, input, textarea {
         -webkit-tap-highlight-color: transparent;
       }
@@ -1164,8 +1186,8 @@
     line-height: 80px !important; /* ? Centre le texte */
     height: 80px !important; /* ? Hauteur fixe pour TOUS */
     max-height: 120px !important; /* ? Remplace l'ancien 2.5em */
-    margin-bottom: 10px 
-    border: 6px solid #8B6F47;
+    margin-bottom: 5px 
+    border: 4px solid #8B6F47;
   }
   
   /* Correction spécifique Chrome */
@@ -1176,8 +1198,8 @@
       max-height: 80px !important; /* ? Remplace l'ancien max-height */
       line-height: 80px !important; /* ? Centre le texte verticalement */
       padding: 0.2em 1em !important; /* ? Supprime padding vertical */
-      margin-bottom: 10px 
-      border: 6px solid #8B6F47;
+      margin-bottom: 5px 
+      border: 4px solid #8B6F47;
     }
   }
 }
@@ -3720,6 +3742,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
