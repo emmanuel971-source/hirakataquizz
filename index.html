@@ -81,7 +81,7 @@
 /* H2 TABLETTES */
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
-        font-size: 2em;
+        font-size: 3em;
         margin: 0.15em 0;
       }
     }
@@ -594,7 +594,7 @@
     display: flex;
     flex-wrap: nowrap;
     justify-content: space-between;
-    gap: 4px;
+    gap: 6px;
     padding: 0; /* Supprime le padding qui décalait */
     margin: 0;
   }
@@ -602,14 +602,14 @@
   .hiragana-card {
     flex: 1;
     min-width: 0;
-    width: calc((100% - 16px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
+    width: calc((100% - 24px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
     height: 160px;
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
     padding: 8px 2px;
     background: #FFFFFF;
-    border-radius: 4px;
+    border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
@@ -618,7 +618,7 @@
   }
 
   .hiragana-char {
-    font-size: 2.6em;
+    font-size: 2.8em;
     margin-bottom: 0;
     line-height: 1.2;
     word-wrap: break-word;
@@ -910,8 +910,8 @@
 .answers {
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
-    gap: 2px; /* espace de 2px entre chaque bouton */
-    width: 95%;
+    gap: 6px; /* espace de 2px entre chaque bouton */
+    width: 98%;
     padding: 0;
     margin: 0 auto 1em auto;
     box-sizing: border-box;
@@ -923,11 +923,11 @@
     width: 100%;
     
     /* Dimensions et apparence */
-    font-size: 1.2em;
+    font-size: 3em;
     aspect-ratio: 1 / 0.6; /* conserve la forme rectangulaire */
     box-sizing: border-box;
     padding: 8px 4px;
-    border-radius: 5px;
+    border-radius: 8px;
     /* Alignement */
     display: flex;
     align-items: center;
@@ -3907,6 +3907,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
