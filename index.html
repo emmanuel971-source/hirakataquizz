@@ -846,9 +846,17 @@
       }
 
       .arcade-button {
+    flex: 1;
+    min-width: 0;
+    width: calc((100% - 16px) / 4); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
+    position: relative;
+    flex-direction: column;
+    justify-content: space-between;
+    
+        
         font-size: 1.4em;
         aspect-ratio: 1 / 0.6;
-        width: 100%;
+        /* width: 100%; */
         box-sizing: border-box;
         padding: 0;
         display: flex;
@@ -857,7 +865,7 @@
         text-align: center;
         border: 2px solid #8B6F47;
         border-radius: 5px;
-        min-width: 65px;
+        min-width: 80px;
       }
     }
     
@@ -3855,6 +3863,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
