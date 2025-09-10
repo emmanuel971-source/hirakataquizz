@@ -727,174 +727,160 @@
         height: 20px;
       }
     }
-
 /*  BOUTONS REPONSES MODE APPRENDRE- DESKTOP    */
-.arcade-button {
-  position: relative;
-  background: #F5E8C7;
-  background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
-  border: 2px solid #8B6F47;
-  border-radius: 10px;
-  padding: 0.8em 1.5em;
-  color: #8B6F47;
-  font-size: 1.4em;
-  line-height: 0.6;
-  white-space: normal;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-  transition: all 0.15s ease;
-  text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
-  overflow: hidden;
-  min-width: 120px;
-  text-align: center;
-}
+    .arcade-button {
+      position: relative;
+      background: #F5E8C7;
+      background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
+      border: 2px solid #8B6F47;
+      border-radius: 10px;
+      padding: 0.8em 1.5em;
+      color: #8B6F47;
+      font-size: 1.4em;
+      line-height: 0.6;
+      white-space: normal;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+      transition: all 0.15s ease;
+      text-shadow: 0 0 8px rgba(139, 111, 71, 0.5);
+      overflow: hidden;
+      min-width: 120px;
+      text-align: center;
+    }
 
-.arcade-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  pointer-events: none;
-}
+    .arcade-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      pointer-events: none;
+    }
 
-.arcade-button:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-  border-color: #7A5C3A;
-}
+    .arcade-button:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
+      border-color: #7A5C3A;
+    }
 
-.arcade-button:active {
-  transform: translateY(2px) scale(0.98);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
-}
+    .arcade-button:active {
+      transform: translateY(2px) scale(0.98);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    }
 
-.arcade-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.8;
-}
+    .arcade-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
 
-.arcade-button.clicked {
-  opacity: 1 !important;
-  cursor: default;
-}
+    .arcade-button.clicked {
+      opacity: 1 !important;
+      cursor: default;
+    }
 
-.arcade-button.clicked-glow {
-  text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
-  animation: glowPulse 1s ease-in-out infinite;
-}
+    .arcade-button.clicked-glow {
+      text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA;
+      animation: glowPulse 1s ease-in-out infinite;
+    }
 
-.arcade-button.correct {
-  background: rgba(168, 213, 186, 0.5) !important;
-  color: #8B6F47;
-  border-color: #A8D5BA;
-  background-image: none !important;
-  animation: correctGlow 0.6s ease-in-out;
-  opacity: 1 !important;
-}
+    .arcade-button.correct {
+      background: rgba(168, 213, 186, 0.5) !important;
+      color: #8B6F47;
+      border-color: #A8D5BA;
+      background-image: none !important;
+      animation: correctGlow 0.6s ease-in-out;
+      opacity: 1 !important;
+    }
 
-.arcade-button.correct::before {
-  display: none;
-}
+    .arcade-button.correct::before {
+      display: none;
+    }
 
-.arcade-button.incorrect {
-  background: rgba(253, 193, 197, 0.5) !important;
-  color: #8B6F47;
-  border-color: #FDC1C5;
-  background-image: none !important;
-  animation: incorrectShake 0.6s ease-in-out;
-  opacity: 1 !important;
-}
+    .arcade-button.incorrect {
+      background: rgba(253, 193, 197, 0.5) !important;
+      color: #8B6F47;
+      border-color: #FDC1C5;
+      background-image: none !important;
+      animation: incorrectShake 0.6s ease-in-out;
+      opacity: 1 !important;
+    }
 
-.arcade-button.incorrect::before {
-  display: none;
-}
+    .arcade-button.incorrect::before {
+      display: none;
+    }
 
-@keyframes glowPulse {
-  0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
-  50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
-}
+    @keyframes glowPulse {
+      0%, 100% { text-shadow: 0 0 12px #A8D5BA, 0 0 4px #A8D5BA; }
+      50% { text-shadow: 0 0 18px #A8D5BA, 0 0 6px #A8D5BA; }
+    }
 
-@keyframes correctGlow {
-  0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
-  50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
-  100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
-}
+    @keyframes correctGlow {
+      0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+      50% { box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 213, 186, 0.6); }
+      100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3); }
+    }
 
-@keyframes incorrectShake {
-  0% { transform: translateX(0); }
-  10% { transform: translateX(-8px); }
-  20% { transform: translateX(8px); }
-  30% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  50% { transform: translateX(-4px); }
-  60% { transform: translateX(4px); }
-  70% { transform: translateX(-2px); }
-  80% { transform: translateX(2px); }
-  90% { transform: translateX(-1px); }
-  100% { transform: translateX(0); }
-}
+    @keyframes incorrectShake {
+      0% { transform: translateX(0); }
+      10% { transform: translateX(-8px); }
+      20% { transform: translateX(8px); }
+      30% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      50% { transform: translateX(-4px); }
+      60% { transform: translateX(4px); }
+      70% { transform: translateX(-2px); }
+      80% { transform: translateX(2px); }
+      90% { transform: translateX(-1px); }
+      100% { transform: translateX(0); }
+    }
 
-/*  CONTENEUR POUR LES BOUTONS SUR SMARTPHONES  */
-@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-  button, a, input, textarea {
-    -webkit-tap-highlight-color: transparent;
-  }
-.answers {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
-    gap: 2px; /* espace de 2px entre chaque bouton */
-    width: 100%;
-    padding: 0;
-    margin: 0 auto 1em auto;
-    box-sizing: border-box;
-  }
+/*  BOUTONS REPONSES MODE APPRENDRE- SMARTPHONES   */
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+      button, a, input, textarea {
+        -webkit-tap-highlight-color: transparent;
+      }
 
-  .answers .arcade-button {
-    flex: 1;
-    min-width: 0;
-    width: 100%;
+      .arcade-button {
+        font-size: 1.4em;
+        aspect-ratio: 1 / 0.6;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border: 2px solid #8B6F47;
+        border-radius: 5px;
+        min-width: 65px;
+      }
+    }
     
-    /* Dimensions et apparence */
-    font-size: 1.2em;
-    aspect-ratio: 1 / 0.6; /* conserve la forme rectangulaire */
-    box-sizing: border-box;
-    padding: 8px 4px;
-    
-    /* Alignement */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
- 
-}
-
 /*  BOUTONS REPONSES MODE APPRENDRE- TABLETTES  */
-@media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
-  button, a, input, textarea {
-    -webkit-tap-highlight-color: transparent;
-  }
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+      button, a, input, textarea {
+        -webkit-tap-highlight-color: transparent;
+      }
 
-  .arcade-button {
-    font-size: 4em;
-    aspect-ratio: 1 / 0.6;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    border: 5px solid #8B6F47;
-    border-radius: 20px;
-  }
-}
-    
+      .arcade-button {
+        font-size: 4em;
+        aspect-ratio: 1 / 0.6;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border: 5px solid #8B6F47;
+        border-radius: 20px;
+      }
+    }
 /*  AFFICHAGE REPONSE MODE APPRENDRE- DESKTOP   */
     .result {
       animation: fadeIn 0.4s ease-in;
@@ -3869,108 +3855,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
