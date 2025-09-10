@@ -603,7 +603,7 @@
     flex: 1;
     min-width: 0;
     width: calc((100% - 16px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
-    height: 80px;
+    height: 160px;
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
@@ -618,7 +618,7 @@
   }
 
   .hiragana-char {
-    font-size: 1.4em;
+    font-size: 2.6em;
     margin-bottom: 0;
     line-height: 1.2;
     word-wrap: break-word;
@@ -632,15 +632,15 @@
   .stars-container {
     display: flex;
     justify-content: center; /* Centre les étoiles */
-    gap: 1px;
+    gap: 3px;
     width: 100%;
     padding: 0;
     margin-top: auto; /* Pousse vers le bas */
   }
 
   .star {
-    width: 10px; /* Taille naturelle conservée */
-    height: 10px; /* Proportions 1:1 maintenues */
+    width: 20px; /* Taille naturelle conservée */
+    height: 20px; /* Proportions 1:1 maintenues */
     flex-shrink: 0;
   }
 }
@@ -905,22 +905,36 @@
 /*  BOUTONS REPONSES MODE APPRENDRE- TABLETTES  */
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       button, a, input, textarea {
-        -webkit-tap-highlight-color: transparent;
-      }
+    -webkit-tap-highlight-color: transparent;
+  }
+.answers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
+    gap: 2px; /* espace de 2px entre chaque bouton */
+    width: 95%;
+    padding: 0;
+    margin: 0 auto 1em auto;
+    box-sizing: border-box;
+  }
 
-      .arcade-button {
-        font-size: 4em;
-        aspect-ratio: 1 / 0.6;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        border: 5px solid #8B6F47;
-        border-radius: 20px;
-      }
+  .answers .arcade-button {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    
+    /* Dimensions et apparence */
+    font-size: 1.2em;
+    aspect-ratio: 1 / 0.6; /* conserve la forme rectangulaire */
+    box-sizing: border-box;
+    padding: 8px 4px;
+    border-radius: 5px;
+    /* Alignement */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+ 
+}
     }
 /*  AFFICHAGE REPONSE MODE APPRENDRE- DESKTOP   */
     .result {
@@ -3893,6 +3907,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
