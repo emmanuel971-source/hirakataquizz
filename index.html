@@ -845,24 +845,24 @@
   button, a, input, textarea {
     -webkit-tap-highlight-color: transparent;
   }
-
-  /* Conteneur des boutons - à appliquer sur l'élément parent */
-  .buttons-container {
-    display: flex;
+.answers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
+    gap: 2px; /* espace de 2px entre chaque bouton */
     width: 100%;
-    gap: 2px;
+    padding: 0;
+    margin: 0 auto 1em auto;
     box-sizing: border-box;
   }
 
-  .arcade-button {
-    /* Réinitialise les propriétés qui pourraient causer des conflits */
+  .answers .arcade-button {
     flex: 1;
     min-width: 0;
-    width: auto; /* Laisse flexbox gérer la largeur */
+    width: 100%;
     
     /* Dimensions et apparence */
     font-size: 1.2em;
-    aspect-ratio: 1 / 0.6;
+    aspect-ratio: 1 / 0.6; /* conserve la forme rectangulaire */
     box-sizing: border-box;
     padding: 8px 4px;
     
@@ -871,11 +871,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    
-    /* Style */
-    border: 2px solid #8B6F47;
-    border-radius: 5px;
-  }
+ 
 }
 
 /*  BOUTONS REPONSES MODE APPRENDRE- TABLETTES  */
@@ -3873,6 +3869,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
