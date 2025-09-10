@@ -81,7 +81,7 @@
 /* H2 TABLETTES */
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
-        font-size: 4em;
+        font-size: 2em;
         margin: 0.15em 0;
       }
     }
@@ -359,7 +359,7 @@
       }
 
       .level {
-        font-size: 2.5em;
+        font-size: 2.0em;
         margin: 0.4em 0;
         margin-bottom: 100px;
       } 
@@ -573,49 +573,77 @@
     
   /* LES CARTES MODE APPRENDRE - TABLETTES  */ 
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
-      .level-hiraganas {
-        max-width: none;
-        width: 100vw;
-        padding: 0 2em;
-        box-sizing: border-box;
-      }
+        /* Force le conteneur principal à ne pas déborder */
+  #quiz {
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .level-hiraganas {
+    max-width: none;
+    width: 100%;
+    padding: 0; /* Supprime complètement le padding */
+    margin: 0; /* Supprime la marge */
+    box-sizing: border-box;
+  }
 
-      .hiraganas-grid {
-        width: 100%;
-        box-sizing: border-box;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-evenly;
-        gap: 20px;
-      }
 
-      .hiragana-card {
-        flex: 1 1 120px;
-        max-width: 140px;
-        text-align: center;
-        transition: all 0.3s ease;
-        position: relative;
-        padding: 10px;
-        background: #FFFFFF;
-        border-radius: 8px;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
-      }
+  .hiraganas-grid {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 0; /* Supprime le padding qui décalait */
+    margin: 0;
+  }
 
-      .hiragana-char {
-        font-size: 6em;
-        margin-bottom: 10px;
-      }
+  .hiragana-card {
+    flex: 1;
+    min-width: 0;
+    width: calc((100% - 16px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
+    height: 80px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 8px 2px;
+    background: #FFFFFF;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+  }
 
-      .stars-container {
-        gap: 2px;
-      }
+  .hiragana-char {
+    font-size: 1.4em;
+    margin-bottom: 0;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    flex-grow: 1; /* Prend l'espace disponible */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-      .star {
-        width: 14px;
-        height: 14px;
-      }
-    }
+  .stars-container {
+    display: flex;
+    justify-content: center; /* Centre les étoiles */
+    gap: 1px;
+    width: 100%;
+    padding: 0;
+    margin-top: auto; /* Pousse vers le bas */
+  }
 
+  .star {
+    width: 10px; /* Taille naturelle conservée */
+    height: 10px; /* Proportions 1:1 maintenues */
+    flex-shrink: 0;
+  }
+}
 /* ITEM QUESTION MODE APPRENDRE   - DESKTOP    */
     .quiz-container {
       flex: 1;
@@ -3865,6 +3893,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
