@@ -840,26 +840,39 @@
     }
 
 /*  BOUTONS REPONSES MODE APPRENDRE- SMARTPHONES   */
-    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-      button, a, input, textarea {
-        -webkit-tap-highlight-color: transparent;
-      }
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  button, a, input, textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+.answers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
+    gap: 2px; /* espace de 2px entre chaque bouton */
+    width: 100%;
+    padding: 0;
+    margin: 0 auto 1em auto;
+    box-sizing: border-box;
+  }
 
-      .arcade-button {
-        font-size: 1.4em;
-        aspect-ratio: 1 / 0.6;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        border: 2px solid #8B6F47;
-        border-radius: 5px;
-        min-width: 65px;
-      }
-    }
+  .answers .arcade-button {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    
+    /* Dimensions et apparence */
+    font-size: 1.2em;
+    aspect-ratio: 1 / 0.6; /* conserve la forme rectangulaire */
+    box-sizing: border-box;
+    padding: 8px 4px;
+    
+    /* Alignement */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+ 
+}
+
     
 /*  BOUTONS REPONSES MODE APPRENDRE- TABLETTES  */
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
@@ -3855,4 +3868,5 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
