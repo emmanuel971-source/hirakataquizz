@@ -793,7 +793,7 @@
     .arcade-button:hover {
       transform: translateY(-2px) scale(1.02);
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-      border-color: #7A5C3A;
+   /*   border-color: #7A5C3A; */
     }
 
     .arcade-button:active {
@@ -1485,26 +1485,26 @@
 }
 
 /* MODE REVISIONS  - MOBILES */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
   #revision-question {
-    font-size: 6em;
-    margin-top: 40px; /* Pousse la carte plus bas */
+    font-size: 2em;
+    margin-top: 20px; /* Pousse la carte plus bas */
   }
   
 #revision-input-display {
-    font-size: 4em;
+    font-size: 2em;
     width: 90%;
     padding: 15px;
     position: fixed;
-    bottom: 1040px; /* 10px au-dessus du clavier */
+    bottom: 400px; /* 10px au-dessus du clavier */
     left: 50%;
     transform: translateX(-50%);
   /*   z-index: 1000; S'assurer que l'élément est au-dessus */
   }
   
   #revision-message {
-    font-size: 3em; /* Beaucoup plus grand pour la réponse ! */
-    margin: 20px 0;
+    font-size: 1em; /* Beaucoup plus grand pour la réponse ! */
+    margin: 10px 0;
     font-weight: bold; /* Pour une meilleure visibilité */
   }
    
@@ -3910,6 +3910,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
