@@ -1446,7 +1446,7 @@
   margin: 0 auto 10px auto; /* Centre horizontalement et garde 10px en bas */
   height: 65px; /* Hauteur fixe */
   padding: 10px;
-  border: 2px solid #8B6F47;
+  border: 2px solid transparent;
   border-radius: 8px;
   width: 300px;
   text-align: center;
@@ -1473,7 +1473,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #8B6F47;
+  border: 2px solid transparent;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1523,7 +1523,7 @@
     width: 90%;
     padding: 05px;
     position: fixed;
-    bottom: 500px; /* 10px au-dessus du clavier */
+    bottom: 400px; /* 10px au-dessus du clavier */
     left: 50%;
     transform: translateX(-50%);
   /*   z-index: 1000; S'assurer que l'élément est au-dessus */
@@ -1537,12 +1537,12 @@
    
    .revision-keyboard {
     
-    gap: 3px;
+    gap: 4px;
     grid-template-columns: repeat(5, 1fr);
     width: 90%;
     padding: 0 5px;
     position: fixed;
-    bottom: 50px;
+    bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
   }
@@ -3959,6 +3959,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
