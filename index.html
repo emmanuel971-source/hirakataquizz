@@ -338,18 +338,18 @@
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       #progressBarContainer {
         max-width: 80%;
-        margin: 1.5em auto 0.5em auto;
+        margin: 1.2em auto 0.3em auto;
         gap: 1em;
         
       }
 
       .progress-bar-track {
-        height: 24px;
+        height: 20px;
         border-radius: 8px;
       }
 
       .progress-marker {
-        font-size: 3.8em;
+        font-size: 3.2em;
         top: 45%;
         transform: translate(-50%, -50%);
       }
@@ -359,9 +359,9 @@
       }
 
       .level {
-        font-size: 1.6em;
+        font-size: 1.2em;
         margin: 0.4em 0;
-        margin-bottom: 50px;
+        margin-bottom: 40px;
       } 
     }
 
@@ -603,7 +603,7 @@
     flex: 1;
     min-width: 0;
     width: calc((100% - 24px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
-    height: 140px;
+    height: 120px;
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
@@ -725,11 +725,11 @@
         flex-direction: column;
         justify-content: flex-start;
         min-height: 0;
-        padding-bottom: 1em;
+        padding-bottom: 0.5em;
       }
 
       .question {
-        font-size: 5em;
+        font-size: 3.5em;
         font-weight: bold;
         margin: 0.5em 0;
         height: 1.2em;
@@ -751,8 +751,8 @@
   }
 
       .sakura {
-        width: 20px;
-        height: 20px;
+        width: 10px;
+        height: 10px;
       }
     }
 /*  BOUTONS REPONSES MODE APPRENDRE- DESKTOP    */
@@ -914,14 +914,14 @@
     gap: 6px; /* espace de 2px entre chaque bouton */
     width: 95%;
     padding: 0;
-    margin: 0 auto 1em auto;
+    margin: 0 auto 0.5em auto;
     box-sizing: border-box;
   }
 
   .answers .arcade-button {
     flex: 1;
     min-width: 0;
-    width: 100%;
+    width: 98%;
     
     /* Dimensions et apparence */
     font-size: 3em;
@@ -1019,7 +1019,7 @@
 /*  AFFICHAGE REPONSE MODE APPRENDRE- TABLETTE  */
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       .result {
-        margin-top: 2em;
+        margin-top: 1em;
         text-align: center;
         word-break: break-word;
         white-space: normal;
@@ -1032,24 +1032,24 @@
       }
 
       .result-line {
-        font-size: 1.8em;
+        font-size: 1.2em;
         width: 100%;
         text-align: center;
       }
 
   
       .result-line.highlight {
-        line-height: 1.8;
-        margin-top: 0.5em;
-        font-size: 2.2em;
+        line-height: 1.2;
+        margin-top: 0.2em;
+        font-size: 1.2em;
       }
 
       #continueBtn {
         font-size: 1.8em;
-        margin-top: 1em;
-        margin-bottom: 1em;
+        margin-top: 0.5em;
+        margin-bottom: 0.1em;
         height: 2.4em;
-        border: 4px solid solid transparent;
+        border: 4px solid transparent;
       }
 
       #boutonInstaller {
@@ -3910,6 +3910,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
