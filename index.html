@@ -216,17 +216,6 @@
   width: 100%;                  /* S'adapte à l'espace dispo */
   box-sizing: border-box;
 }
-/* BARRE DE DEBLOCAGE DU MODE REVISION - SMARTPHONE */  
-/* Responsive : sur mobile → occupe 90% de la largeur */
- @media screen and (max-width: 400px),
-    screen and (-webkit-min-device-pixel-ratio: 2),
-    screen and (min-resolution: 192dpi) {
-  #unlock-progress-container,
-  .unlock-progress-container {
-    max-width: 90vw;
-    margin: 15px auto;
-  }
-}
 
 /* La barre */
 .unlock-progress-bar {
@@ -252,11 +241,48 @@
   animation: pulse-unlock 1s infinite;
 }
 
+    
 @keyframes pulse-unlock {
   0%, 100% { background: linear-gradient(90deg, #4CAF50, #66BB6A); }
   50% { background: linear-gradient(90deg, #66BB6A, #81C784); }
 }
 
+/* BARRE DE DEBLOCAGE DU MODE REVISION - SMARTPHONE */  
+/* Responsive : sur mobile → occupe 90% de la largeur */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+#unlock-progress-container,
+.unlock-progress-container {
+  margin: 5px auto;            /* Centrer le container */
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  max-width: 400px;             /* Largeur max sur desktop */
+  width: 100%;                  /* S'adapte à l'espace dispo */
+  box-sizing: border-box;
+}
+
+/* La barre */
+.unlock-progress-bar {
+  position: relative;
+  height: 10px; /* Légèrement plus fine */
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid #ccc;
+}
+
+/* Le remplissage */
+.unlock-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+}
+
+
+    
 /* BARRE DE PROGRESSION DU MODE APPRENDRE - DESKTOP */        
     #progressBarContainer {
       display: flex;
@@ -1488,7 +1514,7 @@
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
   #revision-question {
     font-size: 2em;
-    margin-top: 20px; /* Pousse la carte plus bas */
+    margin-top: 10px; /* Pousse la carte plus bas */
   }
   
 #revision-input-display {
@@ -1497,7 +1523,7 @@
     width: 90%;
     padding: 05px;
     position: fixed;
-    bottom: 400px; /* 10px au-dessus du clavier */
+    bottom: 500px; /* 10px au-dessus du clavier */
     left: 50%;
     transform: translateX(-50%);
   /*   z-index: 1000; S'assurer que l'élément est au-dessus */
@@ -1618,11 +1644,31 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
 }
 
+/* MODE REVISIONS  - CARTES SMARTHONES */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+.char-card {
+  display: inline-flex;
+  padding: 5px;
+  margin: 5px;
+  border-radius: 8px; /* Même rayon que les cartes hiragana */
+  min-width: 40px;
+  min-height: 40px;
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #8B6F47;
+  text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
+
+
+  
+  }
+
+  
 /* TITRE MODE REVISIONS - MOBILES  */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #mode2 .title {
-      margin: 0.5em 0;
-      font-size: 3em;
+      margin: 0.1em 0;
+      font-size: 1em;
       text-align: center;
       color: #8B6F47;
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
@@ -3913,6 +3959,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
