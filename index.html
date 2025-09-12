@@ -1542,7 +1542,7 @@
     width: 95%;
     padding: 0 5px;
     position: fixed;
-    bottom: 60px; /* laisse la place pour bouton hamburgeur 40px + 2x 10 px */ 
+    bottom: calc(60px - 5vw); /* laisse la place pour bouton hamburgeur 40px + 2x 10 px car keyboard 95% */ 
     left: 50%;
     transform: translateX(-50%);
   }
@@ -3959,6 +3959,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
