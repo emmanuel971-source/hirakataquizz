@@ -1513,8 +1513,10 @@
 /* MODE REVISIONS  - SMARTPHONES */
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
   #revision-question {
+    position: fixed;
+    top: 100px;
     font-size: 1em;
-    margin-top: 5px; /* Pousse la carte plus bas */
+/*    margin-top: 5px;  Pousse la carte plus bas */
   }
   
 #revision-input-display {
@@ -1647,8 +1649,7 @@
 /* MODE REVISIONS  - CARTES SMARTHONES */
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
 .char-card {
-  position: fixed;
-  top: 100px;
+  
   display: inline-flex;
   padding: 5px;
   margin: 5px;
@@ -3961,6 +3962,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
