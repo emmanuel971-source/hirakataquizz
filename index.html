@@ -1520,10 +1520,10 @@
 #revision-input-display {
     height: 25px; /* Hauteur fixe */   
     font-size: 1.8em;
-    width: 90%;
+    width: 85%;
     padding: 05px;
     position: fixed;
-    bottom: calc(85vw + 85px); /*  au-dessus du clavier */
+    bottom: calc(85vw + 90px); /*  au-dessus du clavier */
     left: 50%;
     transform: translateX(-50%);
   /*   z-index: 1000; S'assurer que l'élément est au-dessus */
@@ -1647,6 +1647,8 @@
 /* MODE REVISIONS  - CARTES SMARTHONES */
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
 .char-card {
+  position: fixed;
+  top: 100px;
   display: inline-flex;
   padding: 5px;
   margin: 5px;
@@ -3959,6 +3961,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
