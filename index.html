@@ -1165,10 +1165,10 @@
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
   .hamburger {
     position: fixed !important;
-    bottom: auto !important;
-    right: auto !important;
-    left: 10px !important;
-    top: 10px !important;
+    bottom: 10px !important;
+    right: 10px !important;
+    left: auto !important;
+    top: auto !important;
     width: 40px !important; /* 2x plus gros */
     height: 40px !important;
     padding: 10px;
@@ -1542,9 +1542,8 @@
     width: 95%;
     padding: 0 5px;
     position: fixed;
-   /* bottom: calc(60px - 5vw);  laisse la place pour bouton hamburgeur 40px + 2x 10 px car keyboard 95%  */
-    bottom: 10px;
-     left: 50%;
+    bottom: calc(60px - 5vw); /* laisse la place pour bouton hamburgeur 40px + 2x 10 px car keyboard 95% */ 
+    left: 50%;
     transform: translateX(-50%);
   }
   
@@ -1711,7 +1710,7 @@
 
   <!-- Section Quiz (contenu actuel) -->
   <div id="quiz" class="section">
-    <h2>🎌 Apprenez les Kanas 🎌</h2>
+    <h2>🎌⛩️ Apprenez les Kanas ⛩️🎌</h2>
     <div id="progressBarContainer"></div>
     <div class="level" id="levelDisplay">Niveau actuel : 1</div>
     <div class="level-hiraganas">
@@ -1734,7 +1733,7 @@
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-  <h1>🎌 Réviser les Kanas 🎌</h1>
+  <h1>🎌⛩️ Réviser les Kanas ⛩️🎌</h1>
 <div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
   <div class="unlock-progress-bar">
     <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
@@ -3960,42 +3959,3 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
