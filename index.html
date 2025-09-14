@@ -1771,41 +1771,40 @@
 
   <h1 class="welcome-title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
   <p class="welcome-subtitle">Apprenez à Lire le Japonais</p>
-  <div class="loading-dots" id="loadingText">(Chargement... )</div>
+    <div class="loading-dots" id="loadingText">(Chargement... )</div>
 </div>
+  <!-- Section Menu -->
 
-<!-- Section Menu -->
 
-
-<!-- Section Quiz -->
-<div id="quiz" class="section">
-  <h1>🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>
-  <div id="progressBarContainer"></div>
-  <div class="level" id="levelDisplay">Niveau actuel : 1</div>
-  <div class="level-hiraganas">
-    <div class="hiraganas-grid" id="hiraganaCards"></div>
-  </div>
-  <div class="quiz-container">
-    <div class="question" id="question">load...</div>
-    <div>
-      <div class="answers" id="choices1"></div>
-      <div class="answers" id="choices2"></div>
+  <!-- Section Quiz (contenu actuel) -->
+  <div id="quiz" class="section">
+    <h1>🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>
+    <div id="progressBarContainer"></div>
+    <div class="level" id="levelDisplay">Niveau actuel : 1</div>
+    <div class="level-hiraganas">
+      <div class="hiraganas-grid" id="hiraganaCards"></div>
     </div>
-    <div>
-      <div class="result" id="result"></div>
-      <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j’ai capté 🌱</button>
-      <button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
+    <div class="quiz-container">
+      <div class="question" id="question">load...</div>
+      <div>
+        <div class="answers" id="choices1"></div>
+        <div class="answers" id="choices2"></div>
+      </div>
+      <div>
+        <div class="result" id="result"></div>
+        <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j’ai capté 🌱</button>
+        <button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Section Mode Katakana / Révisions -->
+  <!-- Section Mode Katakana -->
+<!-- Section Mode révisions -->
 <div id="mode2" class="section">
   <h2>🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
-  <div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
-    <div class="unlock-progress-bar">
-      <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
-    </div>
+<div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
+  <div class="unlock-progress-bar">
+    <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
   </div>
 </div>
 
@@ -1916,27 +1915,6 @@ function showSubOptions(section) {
   sub.classList.remove("hidden");
   setTimeout(() => sub.classList.add("active"), 10);
 }
-
-function adjustFontSizeToFit(element) {
-  const parentWidth = window.innerWidth;
-  let fontSize = parseInt(window.getComputedStyle(element).fontSize, 10);
-
-  element.style.whiteSpace = "nowrap"; // force une seule ligne
-
-  // Réduire tant que le texte déborde
-  while (element.scrollWidth > parentWidth && fontSize > 10) {
-    fontSize--;
-    element.style.fontSize = fontSize + "px";
-  }
-}
-
-function adjustAllTitles() {
-  document.querySelectorAll("h1, h2").forEach(el => adjustFontSizeToFit(el));
-}
-
-// Exécution au chargement et lors du redimensionnement
-document.addEventListener("DOMContentLoaded", adjustAllTitles);
-window.addEventListener("resize", adjustAllTitles);
 
 function backToOptions() {
   // Masquer toutes les sous-rubriques
