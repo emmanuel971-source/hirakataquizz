@@ -1531,8 +1531,8 @@
   }
   
   #revision-message {
-    font-size: 1.2em; /* Beaucoup plus grand pour la réponse ! */
-    margin: 3px 5px;
+    font-size: 1.4em; /* Beaucoup plus grand pour la réponse ! */
+    margin: 10px 10px;
     font-weight: bold; /* Pour une meilleure visibilité */
   }
    
@@ -1743,7 +1743,7 @@
 </div>
 
   <div id="revision-question"></div>
-   <div id="revision-message"></div>
+  
   <div id="revision-input-display"></div>
     <div class="revision-keyboard">
     <div class="revision-key">a</div>
@@ -1772,7 +1772,7 @@
     <div class="revision-key">w</div>
     <div class="revision-key" id="revision-back">←</div>
   </div>
- 
+ <div id="revision-message"></div> 
 </div>
 
 <!-- Section Options -->
@@ -3876,13 +3876,13 @@ function initRevisionKeyboard() {
 
         // Afficher feedback
         if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🌸 Parfait !${katakanaDisplay} 🌸`;
-          document.getElementById("revision-message").style.color = "#28a745";
+          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🎍 Correct !${katakanaDisplay} `;
+          document.getElementById("revision-message").style.color = "#c7ffd4";
           playZenBell();
         } else {
           document.getElementById("revision-message").textContent = isHighLevel 
             ? "Faux" 
-            : `❌ ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
+            : `🙈 ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
           document.getElementById("revision-message").style.color = "#dc3545";
           playSoftError();
         }
@@ -3961,6 +3961,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
