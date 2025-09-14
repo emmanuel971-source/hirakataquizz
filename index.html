@@ -48,6 +48,13 @@
       color: #8B6F47;
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
     }
+/* H1 SMARTPHONES */
+   @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+      h1 {
+        font-size: 1.4em;
+        margin: 0.1em 0;
+      }
+    }
 /* H1 TABLETTES */
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h1 {
@@ -64,7 +71,13 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
       margin-bottom: 5px;
     }
-
+/* H2 SMARTPHONES */
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+      h2 {
+        font-size: 1.4em;
+        margin: 0 0;
+      }
+    }
 /* H2 TABLETTES */
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
@@ -1756,7 +1769,7 @@
 <div id="welcome" class="section active">
   <div class="panda-logo" onclick="">🐼</div>
 
-  <h1 class="welcome-title">🎌🌸 Kanas-Garden 🌸🎌</h1>
+  <h1 class="welcome-title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
   <p class="welcome-subtitle">Apprenez à Lire le Japonais</p>
     <div class="loading-dots" id="loadingText">(Chargement... )</div>
 </div>
@@ -1765,7 +1778,7 @@
 
   <!-- Section Quiz (contenu actuel) -->
   <div id="quiz" class="section">
-    <h1>🎌⛩️ Apprenez les ⛩️🎌</h1>
+    <h1>🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>
     <div id="progressBarContainer"></div>
     <div class="level" id="levelDisplay">Niveau actuel : 1</div>
     <div class="level-hiraganas">
@@ -1788,7 +1801,7 @@
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-  <h2>🎌⛩️ Réviser ⛩️🎌</h2>
+  <h2>🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
 <div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
   <div class="unlock-progress-bar">
     <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
@@ -3979,35 +3992,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 
 </script>
-<script>
-function adjustFontSizeToFit(element, min=12, max=60) {
-  const parentWidth = window.innerWidth;
-
-  // Taille de départ
-  element.style.whiteSpace = "nowrap";
-  element.style.display = "inline-block";
-
-  // Récupérer largeur actuelle du texte à la taille CSS courante
-  const initialFontSize = parseFloat(window.getComputedStyle(element).fontSize);
-  const textWidth = element.scrollWidth;
-
-  // Ratio pour ajuster pile à la largeur écran
-  let newSize = initialFontSize * (parentWidth / textWidth);
-
-  // Clamp entre min et max pour éviter l’extrême
-  if (newSize < min) newSize = min;
-  if (newSize > max) newSize = max;
-
-  element.style.fontSize = newSize + "px";
-}
-
-function adjustAllTitles() {
-  document.querySelectorAll("h1, h2").forEach(el => adjustFontSizeToFit(el));
-}
-
-document.addEventListener("DOMContentLoaded", adjustAllTitles);
-window.addEventListener("resize", adjustAllTitles);
-</script>
   
 </body>
 <script>
@@ -4052,8 +4036,4 @@ window.addEventListener("resize", adjustAllTitles);
 </script>
   
 </html>
-
-
-
-
 
