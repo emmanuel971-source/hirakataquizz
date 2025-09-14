@@ -1467,7 +1467,7 @@
       margin-top: 0;
  }
 
-    .revision-key {
+       .revision-key {
       width: 60px;
       height: 60px;
       display: flex;
@@ -1478,17 +1478,18 @@
       cursor: pointer;
       font-family: 'Poppins', sans-serif;
       font-weight: 500;
-      font-size: 1.2em; /* Lettres légèrement plus grandes */
+      font-size: 1.2em;
       position: relative;
       overflow: hidden;
-      transition: none; /* Suppression des transitions pour le survol */
+      touch-action: manipulation; /* Améliore la réactivité tactile */
       background: linear-gradient(145deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
       box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.15);
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
     /* Animation d'enfoncement et retour */
-    .revision-key:active {
+    .revision-key:active,
+    .revision-key.active {
       animation: pressAndRelease 0.3s ease forwards;
     }
 
@@ -1504,7 +1505,8 @@
       pointer-events: none;
     }
 
-    .revision-key:active::after {
+    .revision-key:active::after,
+    .revision-key.active::after {
       transform: translateX(100%) rotate(45deg);
     }
 
@@ -1566,7 +1568,6 @@
       background-color: #ffffff; /* Blanc */
       color: #333333; /* Gris très foncé pour contraste */
     }
-
 #revision-message {
   margin-top: 10px;
   margin-bottom: 10px;
@@ -1875,6 +1876,15 @@
 </div>
 
   <script>
+     // Ajout du support pour les événements tactiles
+    document.querySelectorAll('.revision-key').forEach(key => {
+      key.addEventListener('touchstart', function() {
+        this.classList.add('active');
+        setTimeout(() => {
+          this.classList.remove('active');
+        }, 300); // Correspond à la durée de l'animation (0.3s)
+      });
+    });
     function toggleMenu() {
       const menu = document.getElementById('menu');
       menu.classList.toggle('active');
@@ -4026,6 +4036,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
