@@ -51,8 +51,13 @@
 /* H1 SMARTPHONES */
    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       h1 {
-        font-size: 1.4em;
-        margin: 0.1em 0;
+    width: 100%; /* Occupe toute la largeur */
+    white-space: nowrap; /* Force le texte à rester sur une seule ligne */
+    overflow: hidden; /* Cache le texte qui dépasse */
+    text-overflow: ellipsis; /* Ajoute des points de suspension si le texte est trop long */
+    font-size: 1.5rem; /* Ajustez la taille de police si nécessaire */
+    line-height: 1.2; /* Garde une hauteur de ligne cohérente */
+    box-sizing: border-box; /* S'assure que padding/margin ne dépasse pas */
       }
     }
 /* H1 TABLETTES */
@@ -74,8 +79,13 @@
 /* H2 SMARTPHONES */
     @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
-        font-size: 1.4em;
-        margin: 0 0;
+width: 100%; /* Occupe toute la largeur */
+    white-space: nowrap; /* Force le texte à rester sur une seule ligne */
+    overflow: hidden; /* Cache le texte qui dépasse */
+    text-overflow: ellipsis; /* Ajoute des points de suspension si le texte est trop long */
+    font-size: 1.5rem; /* Ajustez la taille de police si nécessaire */
+    line-height: 1.2; /* Garde une hauteur de ligne cohérente */
+    box-sizing: border-box; /* S'assure que padding/margin ne dépasse pas */
       }
     }
 /* H2 TABLETTES */
@@ -4036,6 +4046,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
