@@ -3993,27 +3993,35 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 
 </script>
 <script>
-function adjustFontSizeToFit(element) {
+function adjustFontSizeToFit(element, min=12, max=60) {
   const parentWidth = window.innerWidth;
-  let fontSize = parseInt(window.getComputedStyle(element).fontSize, 10);
 
-  element.style.whiteSpace = "nowrap"; // force une seule ligne
+  // Taille de départ
+  element.style.whiteSpace = "nowrap";
+  element.style.display = "inline-block";
 
-  // Réduire tant que le texte déborde
-  while (element.scrollWidth > parentWidth && fontSize > 10) {
-    fontSize--;
-    element.style.fontSize = fontSize + "px";
-  }
+  // Récupérer largeur actuelle du texte à la taille CSS courante
+  const initialFontSize = parseFloat(window.getComputedStyle(element).fontSize);
+  const textWidth = element.scrollWidth;
+
+  // Ratio pour ajuster pile à la largeur écran
+  let newSize = initialFontSize * (parentWidth / textWidth);
+
+  // Clamp entre min et max pour éviter l’extrême
+  if (newSize < min) newSize = min;
+  if (newSize > max) newSize = max;
+
+  element.style.fontSize = newSize + "px";
 }
 
 function adjustAllTitles() {
   document.querySelectorAll("h1, h2").forEach(el => adjustFontSizeToFit(el));
 }
 
-// Exécution au chargement et lors du redimensionnement
 document.addEventListener("DOMContentLoaded", adjustAllTitles);
 window.addEventListener("resize", adjustAllTitles);
-</script>  
+</script>
+  
 </body>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -4057,6 +4065,7 @@ window.addEventListener("resize", adjustAllTitles);
 </script>
   
 </html>
+
 
 
 
