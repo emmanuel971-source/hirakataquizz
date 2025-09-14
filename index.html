@@ -1463,8 +1463,6 @@
   grid-template-columns: repeat(5, 60px);
   gap: 8px;
   justify-content: center;
-  margin-bottom: 20px;
-  margin-top: 0; /* Assure qu'il n'y a pas de marge supérieure */
 }
 
 .revision-key {
@@ -1473,33 +1471,118 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid transparent;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
   font-weight: bold;
   font-size: 1.1em;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+
+  /* Effet 3D - ombre */
+  box-shadow: 
+      0 4px 0 rgba(0, 0, 0, 0.15),
+      0 6px 12px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+  /* Dégradé subtil plastique/brillant */
+  background-image: linear-gradient(145deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-/* Couleurs des touches selon les lignes */
-.revision-key:nth-child(-n+5) { background-color: #d1e7ff; color: black; }
-.revision-key:nth-child(6), .revision-key:nth-child(7) { background-color: #fff3cd; color: black; }
-.revision-key:nth-child(8) { background-color: #d1e7ff; color: black; }
-.revision-key:nth-child(9), .revision-key:nth-child(10) { background-color: #f8e7e6; color: black; }
-.revision-key:nth-child(n+11):nth-child(-n+15) { background-color: #d4edda; color: black; }
-.revision-key:nth-child(n+16):nth-child(-n+20) { background-color: #ffe4b5; color: black; }
-.revision-key:nth-child(n+21):nth-child(-n+24) { background-color: #dee2e6; color: black; }
-.revision-key:nth-child(25) { background-color: #ffffff; color: black; }
-
-.revision-key:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
+/* Enfoncement mécanique */
 .revision-key:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transform: translateY(2px);
+  box-shadow: 
+      0 2px 0 rgba(0, 0, 0, 0.25),
+      0 3px 6px rgba(0, 0, 0, 0.2),
+      inset 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* Reflet lumineux en diagonale */
+.revision-key::after {
+  content: "";
+  position: absolute;
+  top: -120%;
+  left: -120%;
+  width: 250%;
+  height: 250%;
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0) 45%,
+    rgba(255,255,255,0.95) 50%,
+    rgba(255,255,255,0) 55%
+  );
+  transform: rotate(25deg);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.revision-key:active::after {
+  animation: sweep 0.4s forwards ease-out;
+}
+
+@keyframes sweep {
+  0% {
+    top: -120%;
+    left: -120%;
+    opacity: 0.9;
+  }
+  100% {
+    top: 120%;
+    left: 120%;
+    opacity: 0;
+  }
+}
+
+/* Couleurs riches par ligne */
+.revision-key:nth-child(-n+5) { 
+  background-color: #d1e7ff;
+  background-image: linear-gradient(145deg, #e1f5fe 0%, #b3e5fc 100%);
+  color: #1565c0; 
+}
+
+.revision-key:nth-child(6), .revision-key:nth-child(7) { 
+  background-color: #fff3cd;
+  background-image: linear-gradient(145deg, #fff9db 0%, #ffecb3 100%);
+  color: #bf8f00; 
+}
+
+.revision-key:nth-child(8) { 
+  background-color: #d1e7ff;
+  background-image: linear-gradient(145deg, #e1f5fe 0%, #b3e5fc 100%);
+  color: #1565c0; 
+}
+
+.revision-key:nth-child(9), .revision-key:nth-child(10) { 
+  background-color: #f8e7e6;
+  background-image: linear-gradient(145deg, #ffebee 0%, #ffcdd2 100%);
+  color: #c62828; 
+}
+
+.revision-key:nth-child(n+11):nth-child(-n+15) { 
+  background-color: #d4edda;
+  background-image: linear-gradient(145deg, #e8f5e8 0%, #c8e6c9 100%);
+  color: #2e7d32; 
+}
+
+.revision-key:nth-child(n+16):nth-child(-n+20) { 
+  background-color: #ffe4b5;
+  background-image: linear-gradient(145deg, #fff3e0 0%, #ffcc80 100%);
+  color: #ef6c00; 
+}
+
+.revision-key:nth-child(n+21):nth-child(-n+24) { 
+  background-color: #dee2e6;
+  background-image: linear-gradient(145deg, #f5f5f5 0%, #e0e0e0 100%);
+  color: #424242; 
+}
+
+.revision-key:nth-child(25) { 
+  background-color: #ffffff;
+  background-image: linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%);
+  color: #333; 
 }
 
 #revision-message {
@@ -3961,6 +4044,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
