@@ -1505,7 +1505,7 @@
 #revision-message {
   margin-top: 10px;
   margin-bottom: 10px;
-  font-size: 1.2em;
+  font-size: 2em;
   color: #8B6F47;
   min-height: 1.5em;
 }
@@ -3876,13 +3876,13 @@ function initRevisionKeyboard() {
 
         // Afficher feedback
         if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🎍 Correct !${katakanaDisplay} `;
-          document.getElementById("revision-message").style.color = "#c7ffd4";
+          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🎍 CORRECT !!!🎍${katakanaDisplay} `;
+          document.getElementById("revision-message").style.color = "#035716";
           playZenBell();
         } else {
           document.getElementById("revision-message").textContent = isHighLevel 
             ? "Faux" 
-            : `🙈 ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
+            : `🙈 ERREUR !!!🙊: ${revisionMode.fullCorrect}${katakanaDisplay}`;
           document.getElementById("revision-message").style.color = "#dc3545";
           playSoftError();
         }
@@ -3961,6 +3961,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
