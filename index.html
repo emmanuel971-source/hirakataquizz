@@ -50,7 +50,6 @@
     }
 /* H1 SMARTPHONES */
    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-     {
             h1, h2 {
                 white-space: nowrap;
                 overflow: hidden;
@@ -4013,17 +4012,8 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 
         // Function pour détecter si on est en mode smartphone via CSS
         function checkSmartphoneMode() {
-            const testH1 = document.createElement('h1');
-            testH1.style.position = 'absolute';
-            testH1.style.visibility = 'hidden';
-            testH1.textContent = 'test';
-            document.body.appendChild(testH1);
-            
-            const computed = getComputedStyle(testH1);
-            const isSmartphone = computed.whiteSpace === 'nowrap';
-            
-            document.body.removeChild(testH1);
-            return isSmartphone;
+            const afterContent = getComputedStyle(document.body, '::after').content;
+            return afterContent === '"smartphone"' || window.innerWidth <= 768;
         }
 
         // Fonction principale d'auto-ajustement pour H1 et H2
@@ -4114,7 +4104,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
                 subtree: true
             });
         }
-    </script>  
+    </script>
 </body>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -4158,5 +4148,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
