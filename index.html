@@ -64,7 +64,7 @@
     }
 /* H2 DESKTOP */
     h2 {
-      margin: 0.5em 0;
+      margin: 0.1em 0;
       font-size: 2.5em;
       text-align: center;
       color: #8B6F47;
@@ -1890,28 +1890,7 @@
       menu.classList.toggle('active');
     /*  updateMenuMessage(); // Met à jour le message à chaque ouverture du menu*/
     }
-function adjustFontSizeToFit(element) {
-  const parentWidth = window.innerWidth;
-  let fontSize = parseInt(window.getComputedStyle(element).fontSize, 10);
-
-  element.style.whiteSpace = "nowrap"; // force une seule ligne
-
-  // Réduire tant que le texte déborde
-  while (element.scrollWidth > parentWidth && fontSize > 10) {
-    fontSize--;
-    element.style.fontSize = fontSize + "px";
-  }
-}
-
-function adjustAllTitles() {
-  document.querySelectorAll("h1, h2").forEach(el => adjustFontSizeToFit(el));
-}
-
-// Exécution au chargement et lors du redimensionnement
-document.addEventListener("DOMContentLoaded", adjustAllTitles);
-window.addEventListener("resize", adjustAllTitles);
-    
-  function loadDifficulty() {
+function loadDifficulty() {
   const saved = localStorage.getItem("difficulty");
   if (saved) {
     seuilValidation = parseInt(saved, 10);
@@ -4013,7 +3992,28 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 
 </script>
-  
+<script>
+function adjustFontSizeToFit(element) {
+  const parentWidth = window.innerWidth;
+  let fontSize = parseInt(window.getComputedStyle(element).fontSize, 10);
+
+  element.style.whiteSpace = "nowrap"; // force une seule ligne
+
+  // Réduire tant que le texte déborde
+  while (element.scrollWidth > parentWidth && fontSize > 10) {
+    fontSize--;
+    element.style.fontSize = fontSize + "px";
+  }
+}
+
+function adjustAllTitles() {
+  document.querySelectorAll("h1, h2").forEach(el => adjustFontSizeToFit(el));
+}
+
+// Exécution au chargement et lors du redimensionnement
+document.addEventListener("DOMContentLoaded", adjustAllTitles);
+window.addEventListener("resize", adjustAllTitles);
+</script>  
 </body>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
