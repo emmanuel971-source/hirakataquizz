@@ -50,10 +50,16 @@
     }
 /* H1 SMARTPHONES */
    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-      h1 {
-        font-size: 1.4em;
-        margin: 0.1em 0;
-      }
+  h1 {
+    font-size: 1.4em; /* Taille par défaut, sera surchargée par JS */
+    margin: 0.5em 0;
+    white-space: nowrap; /* Une seule ligne */
+    overflow: hidden; /* Cache le débordement */
+    text-overflow: ellipsis; /* Points de suspension si besoin */
+    width: 100%; /* Occupe toute la largeur */
+    box-sizing: border-box;
+    padding: 0 10px; /* Petit padding pour éviter de coller aux bords */
+  }
     }
 /* H1 TABLETTES */
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
@@ -1766,17 +1772,14 @@
 </nav>
 
 <!-- Section Page d'accueil -->
-<div id="welcome" class="section active">
-  <div class="panda-logo" onclick="">🐼</div>
-
-  <h1 class="welcome-title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
-  <p class="welcome-subtitle">Apprenez à Lire le Japonais</p>
+  <div id="welcome" class="section active">
+    <div class="panda-logo" onclick="">🐼</div>
+    <h1 class="welcome-title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
+    <p class="welcome-subtitle">Apprenez à Lire le Japonais</p>
     <div class="loading-dots" id="loadingText">(Chargement... )</div>
-</div>
-  <!-- Section Menu -->
+  </div>
 
-
-  <!-- Section Quiz (contenu actuel) -->
+  <!-- Section Quiz -->
   <div id="quiz" class="section">
     <h1>🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>
     <div id="progressBarContainer"></div>
@@ -1798,15 +1801,15 @@
     </div>
   </div>
 
-  <!-- Section Mode Katakana -->
-<!-- Section Mode révisions -->
-<div id="mode2" class="section">
-  <h2>🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
-<div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
-  <div class="unlock-progress-bar">
-    <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
+  <!-- Section Mode révisions -->
+  <div id="mode2" class="section">
+    <h1>🎌⛩️ Réviser les Kanas ⛩️🎌</h1>
+    <div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
+      <div class="unlock-progress-bar">
+        <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
+      </div>
+    </div>
   </div>
-</div>
 
   <div id="revision-question"></div>
   
@@ -3992,7 +3995,42 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 
 </script>
-  
+function adjustFontSize(element) {
+  // Vérifie si on est sur smartphone (max-width: 480px)
+  if (window.innerWidth > 480) return;
+
+  const containerWidth = element.parentElement.clientWidth - 20; // Soustrait le padding (10px de chaque côté)
+  let fontSize = 50; // Taille initiale arbitraire (à tester selon ta police)
+  element.style.fontSize = `${fontSize}px`;
+
+  // Réduit la taille jusqu'à ce que le texte rentre
+  while (element.scrollWidth > containerWidth && fontSize > 0) {
+    fontSize -= 0.5; // Ajustement fin
+    element.style.fontSize = `${fontSize}px`;
+  }
+
+  // Augmente légèrement pour maximiser l’occupation
+  while (element.scrollWidth < containerWidth * 0.98 && fontSize < 100) { // 98% pour une marge de sécurité
+    fontSize += 0.2;
+    element.style.fontSize = `${fontSize}px`;
+    if (element.scrollWidth > containerWidth) {
+      fontSize -= 0.2; // Reviens en arrière si ça dépasse
+      element.style.fontSize = `${fontSize}px`;
+      break;
+    }
+  }
+}
+
+// Applique à tous les h1 au chargement et au redimensionnement
+window.addEventListener('load', () => {
+  const titles = document.querySelectorAll('h1');
+  titles.forEach(adjustFontSize);
+});
+
+window.addEventListener('resize', () => {
+  const titles = document.querySelectorAll('h1');
+  titles.forEach(adjustFontSize);
+});  
 </body>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -4036,3 +4074,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
