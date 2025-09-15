@@ -607,7 +607,7 @@
   }
   .level-hiraganas {
     max-width: none;
-    width: 95%;
+    width: 100%;
     justify-content: center;
     padding: 0; /* Supprime complètement le padding */
     margin: 0; /* Supprime la marge */
@@ -616,7 +616,7 @@
 
 
   .hiraganas-grid {
-    width: 95%;
+    width: 100%;
     box-sizing: border-box;
     display: flex;
     flex-wrap: nowrap;
@@ -629,7 +629,7 @@
   .hiragana-card {
     flex: 1;
     min-width: 0;
-    width: calc((95% - 40px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
+    width: calc((10% - 40px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
     height: 120px;
     text-align: center;
     transition: all 0.3s ease;
@@ -4037,6 +4037,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
