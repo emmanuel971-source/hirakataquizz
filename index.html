@@ -50,7 +50,7 @@
     }
 /* H1 SMARTPHONES */
    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-  h1 {
+h1 {
     font-size: 1.4em; /* Taille par défaut, sera surchargée par JS */
     margin: 0.5em 0;
     white-space: nowrap; /* Une seule ligne */
@@ -1772,14 +1772,17 @@
 </nav>
 
 <!-- Section Page d'accueil -->
-  <div id="welcome" class="section active">
-    <div class="panda-logo" onclick="">🐼</div>
-    <h1 class="welcome-title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
-    <p class="welcome-subtitle">Apprenez à Lire le Japonais</p>
-    <div class="loading-dots" id="loadingText">(Chargement... )</div>
-  </div>
+<div id="welcome" class="section active">
+  <div class="panda-logo" onclick="">🐼</div>
 
-  <!-- Section Quiz -->
+  <h1 class="welcome-title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
+  <p class="welcome-subtitle">Apprenez à Lire le Japonais</p>
+    <div class="loading-dots" id="loadingText">(Chargement... )</div>
+</div>
+  <!-- Section Menu -->
+
+
+  <!-- Section Quiz (contenu actuel) -->
   <div id="quiz" class="section">
     <h1>🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>
     <div id="progressBarContainer"></div>
@@ -1801,15 +1804,15 @@
     </div>
   </div>
 
-  <!-- Section Mode révisions -->
-  <div id="mode2" class="section">
-    <h1>🎌⛩️ Réviser les Kanas ⛩️🎌</h1>
-    <div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
-      <div class="unlock-progress-bar">
-        <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
-      </div>
-    </div>
+  <!-- Section Mode Katakana -->
+<!-- Section Mode révisions -->
+<div id="mode2" class="section">
+  <h2>🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
+<div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
+  <div class="unlock-progress-bar">
+    <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
   </div>
+</div>
 
   <div id="revision-question"></div>
   
@@ -3995,6 +3998,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 
 </script>
+<script>
 function adjustFontSize(element) {
   // Vérifie si on est sur smartphone (max-width: 480px)
   if (window.innerWidth > 480) return;
@@ -4030,7 +4034,10 @@ window.addEventListener('load', () => {
 window.addEventListener('resize', () => {
   const titles = document.querySelectorAll('h1');
   titles.forEach(adjustFontSize);
-});  
+});
+</script>
+
+  
 </body>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -4074,4 +4081,3 @@ window.addEventListener('resize', () => {
 </script>
   
 </html>
-
