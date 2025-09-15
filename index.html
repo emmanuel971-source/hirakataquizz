@@ -50,29 +50,11 @@
     }
 /* H1 SMARTPHONES */
    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-            h1, h2 {
-                white-space: nowrap;
-                overflow: hidden;
-                /* Signal CSS pour activer le JavaScript */
-                position: relative;
-            }
-            
-            h1::before, h2::before {
-                content: "";
-                /* Marqueur invisible pour détecter le mode smartphone en JS */
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-                width: 1px;
-                height: 1px;
-                background: var(--smartphone-mode, transparent);
-            }
-            
-            /* Variable CSS pour détecter le mode smartphone */
-            :root {
-                --smartphone-mode: #smartphone;
-            }
-        }
+      h1 {
+        font-size: 1.4em;
+        margin: 0.1em 0;
+      }
+    }
 /* H1 TABLETTES */
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h1 {
@@ -90,7 +72,12 @@
       margin-bottom: 5px;
     }
 /* H2 SMARTPHONES */
-
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+      h2 {
+        font-size: 1.4em;
+        margin: 0 0;
+      }
+    }
 /* H2 TABLETTES */
     @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
@@ -4005,106 +3992,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 
 </script>
-    <script>
-        // Variable pour tracker si on est en mode smartphone
-        let isSmartphoneMode = false;
-        let resizeTimeout;
-
-        // Function pour détecter si on est en mode smartphone via CSS
-        function checkSmartphoneMode() {
-            const afterContent = getComputedStyle(document.body, '::after').content;
-            return afterContent === '"smartphone"' || window.innerWidth <= 768;
-        }
-
-        // Fonction principale d'auto-ajustement pour H1 et H2
-        function autoFitTitles() {
-            // Ne s'exécuter QUE si on est en mode smartphone
-            if (!checkSmartphoneMode()) {
-                // Reset des tailles si on revient sur desktop
-                document.querySelectorAll('h1, h2').forEach(title => {
-                    title.style.fontSize = '';
-                });
-                return;
-            }
-
-            // Traiter tous les H1 et H2
-            const titles = document.querySelectorAll('h1, h2');
-            
-            titles.forEach(title => {
-                // Calculer la largeur disponible
-                const containerWidth = title.parentElement.offsetWidth;
-                const computedStyle = getComputedStyle(title);
-                const paddingLeft = parseFloat(computedStyle.paddingLeft);
-                const paddingRight = parseFloat(computedStyle.paddingRight);
-                const availableWidth = containerWidth - paddingLeft - paddingRight - 10; // marge de sécurité
-                
-                // Taille de départ différente selon H1 ou H2
-                let maxFontSize = title.tagName === 'H1' ? 60 : 50;
-                let minFontSize = 12;
-                
-                // Commencer avec la taille maximum
-                let fontSize = maxFontSize;
-                title.style.fontSize = fontSize + 'px';
-                
-                // Réduire jusqu'à ce que ça rentre
-                while (title.scrollWidth > availableWidth && fontSize > minFontSize) {
-                    fontSize -= 0.5;
-                    title.style.fontSize = fontSize + 'px';
-                }
-                
-                // Ajouter un attribut data pour debug si nécessaire
-                title.setAttribute('data-auto-size', fontSize + 'px');
-                title.setAttribute('data-tag', title.tagName);
-            });
-        }
-
-        // Fonction optimisée avec debounce pour le resize
-        function handleResize() {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                autoFitTitles();
-            }, 100);
-        }
-
-        // Initialisation
-        document.addEventListener('DOMContentLoaded', autoFitTitles);
-        window.addEventListener('resize', handleResize);
-        
-        // Pour le développement : observer les changements d'orientation
-        window.addEventListener('orientationchange', () => {
-            setTimeout(autoFitTitles, 200);
-        });
-
-        // Fonction publique pour ajuster manuellement si nécessaire
-        window.refreshTitleSizes = autoFitTitles;
-
-        // Observer l'ajout de nouveaux H1/H2 (optionnel)
-        if (typeof MutationObserver !== 'undefined') {
-            const observer = new MutationObserver((mutations) => {
-                let hasNewTitles = false;
-                mutations.forEach((mutation) => {
-                    mutation.addedNodes.forEach((node) => {
-                        if (node.nodeType === 1 && (node.tagName === 'H1' || node.tagName === 'H2')) {
-                            hasNewTitles = true;
-                        }
-                        if (node.nodeType === 1 && node.querySelectorAll) {
-                            const newTitles = node.querySelectorAll('h1, h2');
-                            if (newTitles.length > 0) hasNewTitles = true;
-                        }
-                    });
-                });
-                
-                if (hasNewTitles) {
-                    setTimeout(autoFitTitles, 50);
-                }
-            });
-            
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        }
-    </script>
+  
 </body>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -4148,6 +4036,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
-
-
 
