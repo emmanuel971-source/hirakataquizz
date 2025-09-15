@@ -531,43 +531,42 @@
     width: 100%;
     box-sizing: border-box;
   }
-  .level-hiraganas {
-    max-width: none;
-    width: 100%;
-    padding: 0; /* Supprime complètement le padding */
-    margin: 0; /* Supprime la marge */
-    box-sizing: border-box;
-  }
+.level-hiraganas {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
 
+.hiraganas-grid {
+  width: 95%;              /* 95% de la largeur de l’écran */
+  margin: 0 auto;          /* centre la grille */
+  display: flex;
+  flex-wrap: wrap;         /* permet le retour à la ligne si besoin */
+  justify-content: center; /* centre les cartes dans la grille */
+  gap: 10px;
+  box-sizing: border-box;
+}
 
-  .hiraganas-grid {
-    width: 100%;
-    box-sizing: border-box;
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    gap: 4px;
-    padding: 0; /* Supprime le padding qui décalait */
-    margin: 0;
-  }
-
-  .hiragana-card {
-    flex: 1;
-    min-width: 0;
-    width: calc((100% - 16px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
-    height: 80px;
-    text-align: center;
-    transition: all 0.3s ease;
-    position: relative;
-    padding: 8px 2px;
-    background: #FFFFFF;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-sizing: border-box;
-  }
+.hiragana-card {
+  flex: 1 1 calc((100% - 40px) / 5); 
+  /* 5 colonnes avec gestion des 4 gaps de 10px = 40px */
+  
+  min-width: 0;
+  height: 800px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 8px 2px;
+  background: #FFFFFF;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2),
+              0 1px 2px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
 
   .hiragana-char {
     font-size: 1.4em;
@@ -4035,6 +4034,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
