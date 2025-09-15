@@ -615,12 +615,12 @@
 
 
   .hiraganas-grid {
-    width: 100%;
+    width: 95%;
     box-sizing: border-box;
     display: flex;
     flex-wrap: nowrap;
     justify-content: space-between;
-    gap: 6px;
+    gap: 10px;
     padding: 0; /* Supprime le padding qui décalait */
     margin: 0;
   }
@@ -628,7 +628,7 @@
   .hiragana-card {
     flex: 1;
     min-width: 0;
-    width: calc((95% - 24px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
+    width: calc((95% - 40px) / 5); /* Utilise 100% au lieu de 100vw et soustrait les gaps (4 gaps × 2px) */
     height: 120px;
     text-align: center;
     transition: all 0.3s ease;
@@ -681,7 +681,7 @@
     }
 
     .question {
-      font-size: 3.5em;
+      font-size: 4em;
       font-weight: bold;
       margin: 0.5em 0;
       height: 1.2em;
@@ -950,7 +950,7 @@
     width: 98%;
     
     /* Dimensions et apparence */
-    font-size: 3em;
+    font-size: 2.5em;
     aspect-ratio: 1 / 0.5; /* conserve la forme rectangulaire */
     box-sizing: border-box;
     padding: 8px 4px;
@@ -4036,5 +4036,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
