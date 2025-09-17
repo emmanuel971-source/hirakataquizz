@@ -2011,6 +2011,8 @@ function showSection(sectionId) {
   
   // Démarrer le mode révisions si c'est le mode sélectionné
   if (sectionId === 'mode2') {
+    // NOUVEAU : Capturer l'état du blocage à l'entrée en mode révision
+    wasBlockedWhenEnteringRevision = isApprentissageBloque();
     revisionMode.isActive = true;
     setTimeout(() => {
       initRevisionKeyboard();
@@ -2018,9 +2020,12 @@ function showSection(sectionId) {
     }, 100);
   } else {
     revisionMode.isActive = false;
+    // Remettre à false quand on quitte le mode révision
+    wasBlockedWhenEnteringRevision = false;
   }
   toggleMenu();
-}    
+}
+   
 function forceRevisionMode() {
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
@@ -2048,6 +2053,7 @@ function updateMenuMessage() {
 }
   </script>
 <script>
+let wasBlockedWhenEnteringRevision = false;
 let gameDataLoaded = false; // Nouvelle variable globale  
 let HiraganaList = [];
 let current = {};
@@ -2181,6 +2187,13 @@ function updateUnlockProgress() {
   
   const isBlocked = isApprentissageBloque();
   
+  // NOUVELLE LOGIQUE : Ne pas afficher la barre si on est en session de révision
+  // et que le mode n'était pas bloqué à l'entrée
+  if (revisionMode.isActive && !wasBlockedWhenEnteringRevision) {
+    container.style.display = 'none';
+    return;
+  }
+  
   if (!isBlocked) {
     container.style.display = 'none';
     return;
@@ -2203,7 +2216,7 @@ function updateUnlockProgress() {
   }
   
   console.log(`📊 Déficit: ${deficitActuel}/${deficitMaximum} (${pourcentage.toFixed(1)}%)`);
-}  
+} 
 function isGroupeDebloque(groupeId) {
   if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
   
@@ -3932,8 +3945,7 @@ function initRevisionKeyboard() {
           console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
         }
 
-        // Mise à jour de la barre de progression uniquement
-        updateUnlockProgress();
+        // SUPPRIMER updateUnlockProgress() ici - la barre ne doit plus se mettre à jour pendant la session
 
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
@@ -3970,6 +3982,7 @@ function initRevisionKeyboard() {
     });
   });
 }
+  
 // Appeler l'initialisation au chargement de la page
 window.addEventListener('load', () => {
   initRevisionKeyboard();
@@ -4031,6 +4044,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
