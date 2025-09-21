@@ -1884,11 +1884,15 @@
         }, 300); // Correspond à la durée de l'animation (0.3s)
       });
     });
-    function toggleMenu() {
-      const menu = document.getElementById('menu');
-      menu.classList.toggle('active');
-    /*  updateMenuMessage(); // Met à jour le message à chaque ouverture du menu*/
-    }
+function toggleMenu() {
+  const menu = document.getElementById('menu');
+  menu.classList.toggle('active');
+  
+  // NOUVEAU : Vérifier l'état des boutons à chaque ouverture du menu
+  if (menu.classList.contains('active')) {
+    updateMenuButtonStates();
+  }
+}
 function loadDifficulty() {
   const saved = localStorage.getItem("difficulty");
   if (saved) {
@@ -1990,20 +1994,21 @@ function showSection(sectionId) {
     }
   }
 
+  // NOUVEAU : Vérifier systématiquement l'état du bouton Apprendre à chaque passage par le menu
+  if (sectionId === 'menu-section') {
+    updateApprendreButtonState();
+    updateMenuSectionMessage();
+  }
+
   // Vérifier si on essaie d'accéder au mode révision
   if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
     console.log('Mode révision non disponible');
     return;
   }
-   if (sectionId === 'menu-section') {
-    updateMenuSectionMessage();
-  } 
-  // NOUVEAU : Vérifier si on essaie d'accéder au quiz bloqué
-  if (sectionId === 'quiz' && isApprentissageBloque()) {
-    console.log('Mode apprentissage bloqué - redirection vers révision');
-    sectionId = 'mode2'; // Forcer la redirection vers le mode révision
-  }
- 
+
+  // SUPPRIMER la redirection automatique vers le mode révision
+  // Le bouton bloqué ne doit plus rediriger, il doit juste être inopérant
+  
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
@@ -2025,6 +2030,7 @@ function showSection(sectionId) {
   }
   toggleMenu();
 }
+
    
 function forceRevisionMode() {
   document.querySelectorAll('.section').forEach(section => {
@@ -3122,17 +3128,29 @@ function updateApprendreButtonState() {
   
   if (isApprentissageBloque()) {
     apprendreButton.classList.add('disabled');
+    // Complètement bloquer le clic
     apprendreButton.onclick = (e) => {
       e.preventDefault();
-      console.log('Mode apprentissage bloqué');
+      e.stopPropagation();
+      // Optionnel : feedback visuel ou sonore pour indiquer que c'est bloqué
+      console.log('Mode apprentissage bloqué - utilisez le mode révision');
+      return false;
     };
-    apprendreButton.title = 'Mode bloqué - Pratiquez le mode révision';
+    apprendreButton.title = 'Mode bloqué - Pratiquez le mode révision pour débloquer';
+    apprendreButton.style.opacity = '0.5';
+    apprendreButton.style.cursor = 'not-allowed';
   } else {
     apprendreButton.classList.remove('disabled');
     apprendreButton.onclick = () => showSection('quiz');
     apprendreButton.title = '';
+    apprendreButton.style.opacity = '1';
+    apprendreButton.style.cursor = 'pointer';
   }
 }
+function updateMenuButtonStates() {
+  updateApprendreButtonState();
+  updateRevisionButtonState();
+}  
 function updateLevelProgress(list, niveau) {
 renderHiraganaCards(list, niveau);
 }
@@ -3243,6 +3261,9 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   updateRevisionButtonState();
   updateApprendreButtonState();
+  setTimeout(() => {
+  updateMenuButtonStates();
+}, 100);
   // NOUVEAU : Basculer automatiquement en mode révision si apprentissage bloqué
   if (isApprentissageBloque()) {
 /*  forceRevisionMode();  */
@@ -4044,6 +4065,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
