@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <base target="_top">
   <style>
@@ -39,7 +40,7 @@
       opacity: 0.1;
       z-index: -1;
     }
-
+/* H1 DESKTOP */
     h1 {
       margin: 0.5em 0;
       font-size: 1.8em;
@@ -47,56 +48,251 @@
       color: #8B6F47;
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
     }
-
-    @media screen and (max-width: 400px),
-    screen and (-webkit-min-device-pixel-ratio: 2),
-    screen and (min-resolution: 192dpi) {
+/* H1 SMARTPHONES */
+   @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       h1 {
-        font-size: 3em;
-        margin: 0.3em 0;
+        font-size: 1.4em;
+        margin: 0.1em 0;
       }
     }
-
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+/* H1 TABLETTES */
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h1 {
         font-size: 2.2em;
         margin: 0.15em 0;
       }
     }
-
+/* H2 DESKTOP */
     h2 {
-      margin: 0.5em 0;
-      font-size: 3em;
+      margin: 0.1em 0;
+      font-size: 2.5em;
       text-align: center;
       color: #8B6F47;
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
+      margin-bottom: 5px;
     }
-
-    @media screen and (max-width: 400px),
-    screen and (-webkit-min-device-pixel-ratio: 2),
-    screen and (min-resolution: 192dpi) {
+/* H2 SMARTPHONES */
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
-        font-size: 4em;
-        margin: 0.1em 0;
+        font-size: 1.4em;
+        margin: 0 0;
       }
     }
-
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
+/* H2 TABLETTES */
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
-        font-size: 4em;
+        font-size: 3em;
         margin: 0.15em 0;
       }
     }
 
+/* Desktop - gap normal */
+.menu {
+  gap: 15px;
+}
+
+/* Smartphones - gap réduit */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .menu {
+    gap: 10px; /* Au lieu de 15px */
+  }
+}
+
+/* Tablettes - gap intermédiaire */
+@media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  .menu {
+    gap: 15px;
+  }
+}    
     
+    
+    
+    
+    
+/* Section Page d'accueil DESKTOP */
+#welcome {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+}
+
+.panda-logo {
+  font-size: 12em;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  animation: pandaPulse 2s ease-in-out infinite;
+}
+
+.panda-logo:hover {
+  transform: scale(1.1);
+}
+
+@keyframes pandaPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.20); }
+}
+
+.welcome-title {
+  font-size: 2.5em;
+  color: #8B6F47;
+  text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
+  margin-top: 50px;
+  margin-bottom: 5px;
+}
+
+.welcome-subtitle {
+  font-size: 1.2em;
+  color: #8B6F47;
+  opacity: 0.8;
+}
+
+.loading-dots {
+  font-size: 1.5em;
+  color: #8B6F47;
+  margin-top: 30px;
+  animation: loadingDots 1.5s infinite;
+  margin-bottom: 1px;
+}
+
+@keyframes loadingDots {
+  0% { opacity: 0.2; }
+  20% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+.hidden {
+  display: none !important;
+}
+
+/*  Section Page d'accueil SMARTPHONES */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .panda-logo {
+    font-size: 8em;
+  }
+  
+  .welcome-title {
+    font-size: 1.4em;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1em;
+  }
+  
+  .loading-dots {
+    font-size: 1.4em;
+  }
+}
+
+/* Section Page d'accueil TABLETTES */
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+       .panda-logo {
+    font-size: 15em;
+  }
+  
+  .welcome-title {
+    font-size: 3em;
+  }
+  
+  .welcome-subtitle {
+    font-size: 2em;
+  }
+  
+  .loading-dots {
+    font-size: 2.5em;
+  }
+  }
+    
+/* BARRE DE DEBLOCAGE DU MODE REVISION - DESKTOP */    
+/* Conteneur de la barre de progression */
+#unlock-progress-container,
+.unlock-progress-container {
+  margin: 15px auto;            /* Centrer le container */
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  max-width: 400px;             /* Largeur max sur desktop */
+  width: 100%;                  /* S'adapte à l'espace dispo */
+  box-sizing: border-box;
+}
+
+/* La barre */
+.unlock-progress-bar {
+  position: relative;
+  height: 20px; /* Légèrement plus fine */
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #ccc;
+}
+
+/* Le remplissage */
+.unlock-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+  border-radius: 8px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+/* Animation quand on approche du déblocage */
+.unlock-progress-fill.proche-deblocage {
+  animation: pulse-unlock 1s infinite;
+}
+
+    
+@keyframes pulse-unlock {
+  0%, 100% { background: linear-gradient(90deg, #4CAF50, #66BB6A); }
+  50% { background: linear-gradient(90deg, #66BB6A, #81C784); }
+}
+
+/* BARRE DE DEBLOCAGE DU MODE REVISION - SMARTPHONE */  
+/* Responsive : sur mobile → occupe 90% de la largeur */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+#unlock-progress-container,
+.unlock-progress-container {
+  margin: 5px auto;            /* Centrer le container */
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  max-width: 400px;             /* Largeur max sur desktop */
+  width: 100%;                  /* S'adapte à l'espace dispo */
+  box-sizing: border-box;
+}
+
+/* La barre */
+.unlock-progress-bar {
+  position: relative;
+  height: 8px; /* Légèrement plus fine */
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+}
+
+/* Le remplissage */
+.unlock-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+}
+
+
+    
+/* BARRE DE PROGRESSION DU MODE APPRENDRE - DESKTOP */        
     #progressBarContainer {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.5em;
       margin: 1em auto 0.3em auto;
-      max-width: 40ch;
+      max-width: 50ch;
       width: 100%;
+      margin-bottom: 10px;
     }
 
     .progress-bar-track {
@@ -129,33 +325,81 @@
       100% { transform: translate(-50%, -50%) scale(1.2); }
     }
 
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+    .level {
+        font-size: 1.6em;
+        margin: 0.4em 0;
+        margin-bottom: 50px;
+    } 
+    /* BARRE DE PROGRESSION DU MODE APPRENDRE - SMARTPHONES */      
+ @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       #progressBarContainer {
-        max-width: 80%;
+        max-width: 90%;
         margin: 1.5em auto 0.5em auto;
         gap: 1em;
+        
       }
 
       .progress-bar-track {
-        height: 32px;
-        border-radius: 12px;
+        height: 12px;
+        border-radius: 4px;
       }
 
       .progress-marker {
-        font-size: 4.5em;
+        font-size: 2.0em;
         top: 45%;
         transform: translate(-50%, -50%);
       }
 
       .side-emoji {
-        font-size: 2.5em;
+        font-size: 1.2em;
       }
+
+      .level {
+        font-size: 1.0em;
+        margin: 0.4em 0;
+        margin-bottom: 25px;
+      } 
+    }
+    /* BARRE DE PROGRESSION DU MODE APPRENDRE - TABLETTES */  
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+      #progressBarContainer {
+        max-width: 80%;
+        margin: 1.2em auto 0.3em auto;
+        gap: 1em;
+        
+      }
+
+      .progress-bar-track {
+        height: 20px;
+        border-radius: 8px;
+      }
+
+      .progress-marker {
+        font-size: 3.2em;
+        top: 45%;
+        transform: translate(-50%, -50%);
+      }
+
+      .side-emoji {
+        font-size: 2.0em;
+      }
+
+      .level {
+        font-size: 1.2em;
+        margin: 0.4em 0;
+        margin-bottom: 30px;
+      } 
     }
 
+
+
+        
+/* LES CARTES MODE APPRENDRE - DESKTOP */ 
     .level-hiraganas {
       margin: 1em auto;
       max-width: 800px;
       flex-shrink: 0;
+      margin-bottom: 25px;
     }
 
     .hiraganas-grid {
@@ -279,94 +523,152 @@
       100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
     }
 
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-      .level-hiraganas {
-        max-width: none;
-        width: 100vw;
-        padding: 0 2em;
-        box-sizing: border-box;
-      }
+    /* LES CARTES MODE APPRENDRE - SMARTPHONES */ 
+   @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+      /* Force le conteneur principal à ne pas déborder */
+  #quiz {
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+.level-hiraganas {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
 
-      .hiraganas-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-evenly;
-        gap: 15px;
-      }
+.hiraganas-grid {
+  width: 95%;              /* 95% de la largeur de l’écran */
+  margin: 0 auto;          /* centre la grille */
+  display: flex;
+  flex-wrap: wrap;         /* permet le retour à la ligne si besoin */
+  justify-content: center; /* centre les cartes dans la grille */
+  gap: 6px;
+  box-sizing: border-box;
+}
 
-      .hiragana-card {
-        flex: 1 1 auto;
-        min-width: 80px;
-        text-align: center;
-        transition: all 0.3s ease;
-        position: relative;
-        padding: 10px;
-        background: #FFFFFF;
-        border-radius: 8px;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
-      }
+.hiragana-card {
+  flex: 1 1 calc((100% - 24px) / 5); 
+  /* 5 colonnes avec gestion des 4 gaps de 10px = 40px */
+  
+  min-width: 0;
+  height: 80px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 8px 2px;
+  background: #FFFFFF;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2),
+              0 1px 2px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
 
-      .hiragana-char {
-        font-size: 4em;
-        margin-bottom: 10px;
-      }
+  .hiragana-char {
+    font-size: 1.4em;
+    margin-bottom: 0;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    flex-grow: 1; /* Prend l'espace disponible */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-      .stars-container {
-        display: flex;
-        justify-content: center;
-        gap: 2px;
-      }
+  .stars-container {
+    display: flex;
+    justify-content: center; /* Centre les étoiles */
+    gap: 1px;
+    width: 100%;
+    padding: 0;
+    margin-top: auto; /* Pousse vers le bas */
+  }
 
-      .star {
-        width: 28px;
-        height: 28px;
-      }
-    }
+  .star {
+    width: 10px; /* Taille naturelle conservée */
+    height: 10px; /* Proportions 1:1 maintenues */
+    flex-shrink: 0;
+  }
+}
+    
+  /* LES CARTES MODE APPRENDRE - TABLETTES  */ 
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+        /* Force le conteneur principal à ne pas déborder */
+  #quiz {
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .level-hiraganas {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
 
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-      .level-hiraganas {
-        max-width: none;
-        width: 100vw;
-        padding: 0 2em;
-        box-sizing: border-box;
-      }
+.hiraganas-grid {
+  width: 95%;              /* 95% de la largeur de l’écran */
+  margin: 0 auto;          /* centre la grille */
+  display: flex;
+  flex-wrap: wrap;         /* permet le retour à la ligne si besoin */
+  justify-content: center; /* centre les cartes dans la grille */
+  gap: 10px;
+  box-sizing: border-box;
+}
 
-      .hiraganas-grid {
-        width: 100%;
-        box-sizing: border-box;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-evenly;
-        gap: 20px;
-      }
+.hiragana-card {
+  flex: 1 1 calc((100% - 40px) / 5); 
+  /* 5 colonnes avec gestion des 4 gaps de 10px = 40px */
+  
+  min-width: 0;
+  height: 120px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 8px 2px;
+  background: #FFFFFF;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2),
+              0 1px 2px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
 
-      .hiragana-card {
-        flex: 1 1 120px;
-        max-width: 140px;
-        text-align: center;
-        transition: all 0.3s ease;
-        position: relative;
-        padding: 10px;
-        background: #FFFFFF;
-        border-radius: 8px;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
-      }
+  .hiragana-char {
+    font-size: 2.8em;
+    margin-bottom: 0;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    flex-grow: 1; /* Prend l'espace disponible */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-      .hiragana-char {
-        font-size: 6em;
-        margin-bottom: 10px;
-      }
+  .stars-container {
+    display: flex;
+    justify-content: center; /* Centre les étoiles */
+    gap: 4px;
+    width: 100%;
+    padding: 0;
+    margin-top: auto; /* Pousse vers le bas */
+  }
 
-      .stars-container {
-        gap: 2px;
-      }
-
-      .star {
-        width: 14px;
-        height: 14px;
-      }
-    }
-
+  .star {
+    width: 16px; /* Taille naturelle conservée */
+    height: 16px; /* Proportions 1:1 maintenues */
+    flex-shrink: 0;
+  }
+}
+/* ITEM QUESTION MODE APPRENDRE   - DESKTOP    */
     .quiz-container {
       flex: 1;
       display: flex;
@@ -377,7 +679,7 @@
     }
 
     .question {
-      font-size: 3.5em;
+      font-size: 4em;
       font-weight: bold;
       margin: 0.5em 0;
       height: 1.2em;
@@ -386,6 +688,7 @@
       justify-content: center;
       color: #8B6F47;
       text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
+      margin-bottom: 53px;
     }
 
     .answers {
@@ -395,8 +698,13 @@
       gap: 0.8em;
       margin-bottom: 1em;
     }
+    .sakura {
+      width: 12px;
+      height: 12px;
+    }
 
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+ /* ITEM QUESTION MODE APPRENDRE -  SMARTPHONE    */
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       .quiz-container {
         flex: 1;
         display: flex;
@@ -407,7 +715,45 @@
       }
 
       .question {
-        font-size: 10em;
+        font-size: 3em;
+        font-weight: bold;
+        margin: 0.5em 0;
+        height: 1.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-shadow: 1px 1px 2px rgba(139, 111, 71, 0.4);
+      }
+
+  .answers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    justify-content: center; /* centre le grid */
+    gap: 0.8em;
+    margin-bottom: 1em;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 1em;
+  }
+
+      .sakura {
+        width: 10px;
+        height: 10px;
+      }
+    }   
+/* ITEM QUESTION MODE APPRENDRE -  TABLETTE    */
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+      .quiz-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        min-height: 0;
+        padding-bottom: 0.5em;
+      }
+
+      .question {
+        font-size: 3.5em;
         font-weight: bold;
         margin: 0.5em 0;
         height: 1.2em;
@@ -429,16 +775,16 @@
   }
 
       .sakura {
-        width: 20px;
-        height: 20px;
+        width: 10px;
+        height: 10px;
       }
     }
-
+/*  BOUTONS REPONSES MODE APPRENDRE- DESKTOP    */
     .arcade-button {
       position: relative;
       background: #F5E8C7;
       background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');
-      border: 2px solid #8B6F47;
+      border: 2px solid transparent;
       border-radius: 10px;
       padding: 0.8em 1.5em;
       color: #8B6F47;
@@ -471,7 +817,7 @@
     .arcade-button:hover {
       transform: translateY(-2px) scale(1.02);
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.3);
-      border-color: #7A5C3A;
+   /*   border-color: #7A5C3A; */
     }
 
     .arcade-button:active {
@@ -545,24 +891,78 @@
       100% { transform: translateX(0); }
     }
 
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+/*  BOUTONS REPONSES MODE APPRENDRE- SMARTPHONES   */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  button, a, input, textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+.answers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
+    gap: 3px; /* espace de 2px entre chaque bouton */
+    width: 98%;
+    padding: 0;
+    margin: 0 auto 0.6em auto;
+    box-sizing: border-box;
+  }
+
+  .answers .arcade-button {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    
+    /* Dimensions et apparence */
+    font-size: 1.30em;
+    aspect-ratio: 1 / 0.6; /* conserve la forme rectangulaire */
+    box-sizing: border-box;
+    padding: 6px 4px;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    /* Alignement */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+ 
+}
+}
+    
+/*  BOUTONS REPONSES MODE APPRENDRE- TABLETTES  */
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       button, a, input, textarea {
-        -webkit-tap-highlight-color: transparent;
-      }
+    -webkit-tap-highlight-color: transparent;
+  }
+.answers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 colonnes fixes */
+    gap: 6px; /* espace de 2px entre chaque bouton */
+    width: 95%;
+    padding: 0;
+    margin: 0 auto 0.5em auto;
+    box-sizing: border-box;
+  }
 
-      .arcade-button {
-        font-size: 4em;
-        aspect-ratio: 1 / 0.6;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-      }
+  .answers .arcade-button {
+    flex: 1;
+    min-width: 0;
+    width: 98%;
+    
+    /* Dimensions et apparence */
+    font-size: 2.5em;
+    aspect-ratio: 1 / 0.5; /* conserve la forme rectangulaire */
+    box-sizing: border-box;
+    padding: 8px 4px;
+    border-radius: 8px;
+    border: 4px solid transparent;
+    /* Alignement */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+ 
+}
     }
-
+/*  AFFICHAGE REPONSE MODE APPRENDRE- DESKTOP   */
     .result {
       animation: fadeIn 0.4s ease-in;
       font-size: 1.3em;
@@ -598,10 +998,10 @@
       height: 3em;
       display: none;
     }
-
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+/*  AFFICHAGE REPONSE MODE APPRENDRE- SMARTPHONE   */
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
       .result {
-        margin-top: 5em;
+        margin-top: 1em;
         text-align: center;
         word-break: break-word;
         white-space: normal;
@@ -614,25 +1014,66 @@
       }
 
       .result-line {
-        font-size: 4em;
+        font-size: 1.2em;
         width: 100%;
         text-align: center;
       }
 
+  
       .result-line.highlight {
-        margin-top: 1.2em;
-        font-size: 3em;
-      }
-
-      .result-line.highlight {
-        line-height: 1.2;
+        line-height: 1.0;
         margin-top: 0.5em;
+         font-size: 1.0em;
       }
 
       #continueBtn {
         margin-top: 1em;
         margin-bottom: 1em;
         height: 3em;
+        border-radius: 8px;
+        border: 4px solid transparent;
+      }
+
+      #boutonInstaller {
+        margin-top: 1em;
+        margin-bottom: 1em;
+        height: 3em;
+      }
+    }
+/*  AFFICHAGE REPONSE MODE APPRENDRE- TABLETTE  */
+    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+      .result {
+        margin-top: 1em;
+        text-align: center;
+        word-break: break-word;
+        white-space: normal;
+        display: block;
+        min-height: auto;
+      }
+
+      .result > * {
+        width: 100%;
+      }
+
+      .result-line {
+        font-size: 1.8em;
+        width: 100%;
+        text-align: center;
+      }
+
+  
+      .result-line.highlight {
+        line-height: 1.8;
+        margin-top: 0.4em;
+        font-size: 1.8em;
+      }
+
+      #continueBtn {
+        font-size: 1.8em;
+        margin-top: 1em;
+        margin-bottom: 0.1em;
+        height: 2.4em;
+        border: 4px solid transparent;
       }
 
       #boutonInstaller {
@@ -642,127 +1083,7 @@
       }
     }
 
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
-      .result {
-        margin-top: 5em;
-      }
-
-      .result > * {
-        width: 100%;
-      }
-
-      .result {
-        text-align: center;
-        word-break: break-word;
-        white-space: normal;
-        display: block;
-        min-height: auto;
-      }
-
-      .result-line {
-        font-size: 4em;
-        width: 100%;
-        text-align: center;
-      }
-
-      .result-line.highlight {
-        margin-top: 1.2em;
-        font-size: 3em;
-      }
-
-      .result-line.highlight {
-        line-height: 1.2;
-        margin-top: 0.5em;
-      }
-
-      #continueBtn {
-        margin-top: 2em;
-        margin-bottom: 2em;
-        height: 3em;
-        width: 100%;
-      }
-
-      visibility: hidden;
-    }
-
-    #boutonInstaller {
-      margin-top: 1em;
-      margin-bottom: 1em;
-      height: 3em;
-    }
-
-    .sakura {
-      width: 20px;
-      height: 20px;
-    }
-
-    @media (max-width: 768px) {
-      .hiraganas-grid {
-        gap: 15px;
-      }
-
-      .hiragana-char {
-        font-size: 1.8em;
-      }
-
-      .question {
-        font-size: 2.8em;
-      }
-
-      .arcade-button {
-        padding: 0.6em 1.2em;
-        font-size: 1em;
-      }
-    }
-
-    @media (max-height: 700px) {
-      .hiragana-char {
-        font-size: 1.6em;
-        margin-bottom: 4px;
-      }
-
-      .question {
-        font-size: 2.5em;
-        margin: 0.3em 0;
-      }
-
-      .answers {
-        gap: 0.6em;
-        margin-bottom: 0.8em;
-      }
-
-      .arcade-button {
-        padding: 0.6em 1.2em;
-      }
-    }
-
-    @media (max-height: 600px) {
-      .hiragana-char {
-        font-size: 1.4em;
-      }
-
-      .stars-container {
-        gap: 1px;
-      }
-
-      .star {
-        width: 10px;
-        height: 10px;
-      }
-
-      .question {
-        font-size: 2.2em;
-      }
-
-      .progress-marker {
-        font-size: 1.6em;
-      }
-
-      .side-emoji {
-        font-size: 1.4em;
-      }
-    }
-
+ /* ANIMATIONS - DESKTOP */    
     @keyframes confettiFall {
       0% { transform: translateY(0); }
       100% { transform: translateY(110vh) rotate(720deg); }
@@ -780,61 +1101,8 @@
       100% { transform: translate(0px, 0px); }
     }
 
-    @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
-      #progressBarContainer {
-        max-width: 80%;
-        margin: 1.5em auto 0.5em auto;
-        gap: 1em;
-      }
-
-      .progress-bar-track {
-        height: 32px;
-        border-radius: 12px;
-      }
-
-      .progress-marker {
-        font-size: 4.5em;
-        top: 30%;
-      }
-
-      .side-emoji {
-        font-size: 2.5em;
-      }
-
-      .level {
-        font-size: 2.5em;
-        margin: 0.4em 0;
-      }
-    }
-
-    @media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 800px) {
-      #progressBarContainer {
-        max-width: 80%;
-        margin: 1.5em auto 0.5em auto;
-        gap: 1em;
-      }
-
-      .progress-bar-track {
-        height: 32px;
-        border-radius: 12px;
-      }
-
-      .progress-marker {
-        font-size: 4.5em;
-        top: 30%;
-      }
-
-      .side-emoji {
-        font-size: 2.5em;
-      }
-
-      .level {
-        font-size: 1.5em;
-        margin: 0.1em 0;
-      }
-    }
-
-/* ✅ NOUVEAU STYLE HAMBURGER - Style carte hiragana */
+  
+/* BOUTON  HAMBURGER - Style carte hiragana */
 .hamburger {
   position: fixed;
   background: #FFFFFF; /* Fond blanc comme les cartes */
@@ -851,7 +1119,10 @@
   align-items: center;
   justify-content: center;
 }
-
+#welcome.active ~ * .hamburger,
+#-section.active ~ * .hamburger {
+  display: none;
+}
 /* Icône hamburger avec 3 barres */
 .hamburger-icon {
   display: flex;
@@ -888,16 +1159,46 @@
   }
 }
 
-/* Mobile - 2x plus gros */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+/* BOUTON  HAMBURGER SMARTPHONES */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .hamburger {
+    position: fixed !important;
+    bottom: 10px !important;
+    right: 10px !important;
+    left: auto !important;
+    top: auto !important;
+    width: 40px !important; /* 2x plus gros */
+    height: 40px !important;
+    padding: 10px;
+    display: flex;
+    box-sizing: border-box;
+  }
+
+  .hamburger-icon {
+    width: 30px;
+    height: 22px;
+    gap: 6px;
+  }
+
+  .hamburger-bar {
+    height: 4px;
+    background: rgba(139, 111, 71, 0.4); /* Légèrement plus visible sur mobile */
+  }
+}
+
+
+
+    
+/* BOUTON  HAMBURGER  TABLETTES */
+@media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
   .hamburger {
     position: fixed !important;
     bottom: 20px !important;
     right: 20px !important;
     left: auto !important;
     top: auto !important;
-    width: 88px !important; /* 2x plus gros */
-    height: 88px !important;
+    width: 66px !important; /* 2x plus gros */
+    height: 66px !important;
     padding: 20px;
     display: flex;
     box-sizing: border-box;
@@ -916,7 +1217,54 @@
 }
 
 
+/* MENU  DESKTOP  Ajuster la règle générale pour .menu */
+    /* ✅ Style menu-message */
+#menu-message {
+  text-align: center !important;
+  font-size: 2.5em !important;
+  font-weight: 700 !important;
+  color: #8B6F47 !important; /* marron des boutons */
+/*  background: #F5E8C7 !important;  fond des boutons */ 
+/*  background-image: url('https://www.transparenttextures.com/patterns/light-wood.png') !important  */
+  border: none !important; /* supprime le liseret marron */
+  padding: 15px !important;
+  margin-bottom: 30px !important;
+  border-radius: 8px !important;
+  line-height: 1.3 !important;
+  display: block;
+  z-index: 1001;
+/*  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);  même ombre que les boutons */
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity .45s ease, transform .45s ease;
+}
+/* quand le menu s’ouvre, on déclenche la transition */
+.menu.active #menu-message {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* MENU Version responsive SMARTPHONES */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  #menu-message {
+    font-size: 1.2em !important;
+    padding: 10px !important;
+    margin-bottom: 100px !important;
+    line-height: 1.2 !important;
+  }
+}                            
 
+/* MENU Version responsive TABLETTES */
+@media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  #menu-message {
+    font-size: 2.6em !important;
+    padding: 8px !important;
+    margin-bottom: 120px !important;
+    line-height: 1.2 !important;
+  }
+}         
+
+
+    
 /* Ajuster la règle générale pour .menu */
    .menu {
       position: fixed;
@@ -929,7 +1277,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 15px;
+ /*  gap: 15px; */
       transform: translateX(100%);
       transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
       opacity: 0;
@@ -952,30 +1300,103 @@
     box-sizing: border-box !important;
   }
 
+.arcade-button.disabled {
+  background: #E0E0E0 !important;
+  color: #999999 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  border-color: #CCCCCC !important;
+}
 
+.arcade-button.disabled:hover {
+  transform: none !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+.options-menu,
+.options-sub {
+  display: flex;
+  flex-direction: column !important;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+}
 
-/* Garde ton code Firefox intact */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi) {
+.options-sub .arcade-button,
+.options-menu .arcade-button {
+  width: 300px !important;  /* même largeur que ton menu principal */
+}
+
+.options-sub .arcade-button:first-child {
+  margin-bottom: 20px; /* espace entre ← Retour et le titre */
+}
+
+/* Animation d'apparition des sous-rubriques */
+.options-sub {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.options-sub.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* BOUTONS MENUS - VERSION TABLETTES*/
+@media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
   .menu .arcade-button {
     width: 600px !important;
-    font-size: 2.8em !important;
-    padding: 0.1em 1em !important;
-    line-height: 120px !important; /* ← Centre le texte */
-    height: 120px !important; /* ← Hauteur fixe pour TOUS */
-    max-height: 120px !important; /* ← Remplace l'ancien 2.5em */
+    font-size: 3em !important;
+    padding: 0.2em 1em !important;
+    line-height: 20px !important; /* ? Centre le texte */
+    height: 20px !important; /* ? Hauteur fixe pour TOUS */
+    max-height: 20px !important; /* ? Remplace l'ancien 2.5em */
+    border: 5px solid transparent;
+   
   }
   
   /* Correction spécifique Chrome */
   @supports (-webkit-appearance: none) {
     .menu .arcade-button {
-      width: min(80vw, 500px) !important; /* Plus conservateur */
-      height: 120px !important; /* ← Hauteur fixe */
-      max-height: 120px !important; /* ← Remplace l'ancien max-height */
-      line-height: 120px !important; /* ← Centre le texte verticalement */
-      padding: 0 1em !important; /* ← Supprime padding vertical */
+      width: min(80vw, 600px) !important; /* Plus conservateur */
+      height: 20px !important; /* ? Hauteur fixe */
+      max-height: 20px !important; /* ? Remplace l'ancien max-height */
+      line-height: 20px !important; /* ? Centre le texte verticalement */
+      padding: 0.2em 1em !important; /* ? Supprime padding vertical */
+      border: 5px solid transparent;
+      
     }
   }
 }
+    
+/* BOUTONS MENUS - VERSION SMARTPHONES*/
+    @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+      .menu .arcade-button {
+    width: 700px !important;
+    font-size: 1.4em !important;
+    padding: 0.2em 1em !important;
+    line-height: 60px !important; /* ? Centre le texte */
+    height: 60px !important; /* ? Hauteur fixe pour TOUS */
+    max-height: 60px !important; /* ? Remplace l'ancien 2.5em */
+    border: 2px solid solid transparent;
+        
+  }
+  
+  /* Correction spécifique Chrome */
+  @supports (-webkit-appearance: none) {
+    .menu .arcade-button {
+      width: min(80vw, 700px) !important; /* Plus conservateur */
+      height: 60px !important; /* ? Hauteur fixe */
+      max-height: 60px !important; /* ? Remplace l'ancien max-height */
+      line-height: 60px !important; /* ? Centre le texte verticalement */
+      padding: 0.2em 1em !important; /* ? Supprime padding vertical */
+      border: 2px solid solid transparent;
+      
+    }
+  }
+}
+
+
     .section {
       display: none;
     }
@@ -986,20 +1407,9 @@
       height: 100vh;
     }
 
-    .coming-soon {
-      font-size: 1.5em;
-      color: #8B6F47;
-      margin-top: 1em;
-      text-align: center;
-    }
 
-    @media (max-width: 768px) {
-      .coming-soon {
-        font-size: 2em;
-      }
-    }
 
-/* Styles pour le mode révisions */
+/* MODE REVISIONS  - DESKTOP */
 #revision-question {
   font-size: 1.5em;
   margin-bottom: 10px;
@@ -1034,7 +1444,7 @@
   margin: 0 auto 10px auto; /* Centre horizontalement et garde 10px en bas */
   height: 65px; /* Hauteur fixe */
   padding: 10px;
-  border: 2px solid #8B6F47;
+  border: 2px solid transparent;
   border-radius: 8px;
   width: 300px;
   text-align: center;
@@ -1046,88 +1456,159 @@
   overflow: hidden; /* Empêche le contenu de déborder */
 }
     
-.revision-keyboard {
-  display: grid;
-  grid-template-columns: repeat(5, 60px);
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 20px;
-  margin-top: 0; /* Assure qu'il n'y a pas de marge supérieure */
-}
+ .revision-keyboard {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 10px;
+      margin-top: 0;
+ }
 
-.revision-key {
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #8B6F47;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: bold;
-  font-size: 1.1em;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+       .revision-key {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      font-size: 1.2em;
+      position: relative;
+      overflow: hidden;
+      touch-action: manipulation; /* Améliore la réactivité tactile */
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.15);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
 
-/* Couleurs des touches selon les lignes */
-.revision-key:nth-child(-n+5) { background-color: #d1e7ff; color: black; }
-.revision-key:nth-child(6), .revision-key:nth-child(7) { background-color: #fff3cd; color: black; }
-.revision-key:nth-child(8) { background-color: #d1e7ff; color: black; }
-.revision-key:nth-child(9), .revision-key:nth-child(10) { background-color: #f8e7e6; color: black; }
-.revision-key:nth-child(n+11):nth-child(-n+15) { background-color: #d4edda; color: black; }
-.revision-key:nth-child(n+16):nth-child(-n+20) { background-color: #ffe4b5; color: black; }
-.revision-key:nth-child(n+21):nth-child(-n+24) { background-color: #dee2e6; color: black; }
-.revision-key:nth-child(25) { background-color: #ffffff; color: black; }
+    /* Animation d'enfoncement et retour */
+    .revision-key:active,
+    .revision-key.active {
+      animation: pressAndRelease 0.3s ease forwards;
+    }
 
-.revision-key:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+    /* Effet de scintillement au clic */
+    .revision-key::after {
+      content: '';
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+      transform: translateX(-100%) rotate(45deg);
+      transition: transform 0.3s ease;
+      pointer-events: none;
+    }
 
-.revision-key:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
+    .revision-key:active::after,
+    .revision-key.active::after {
+      transform: translateX(100%) rotate(45deg);
+    }
 
+    /* Animation pour l'enfoncement et le retour */
+    @keyframes pressAndRelease {
+      0% {
+        transform: translateY(0);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      50% {
+        transform: translateY(3px);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      100% {
+        transform: translateY(0);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    /* Couleurs des touches et des lettres */
+    .revision-key:nth-child(-n+5) {
+      background-color: #d1e7ff; /* Bleu clair */
+      color: #1a3c66; /* Bleu foncé complémentaire */
+    }
+
+    .revision-key:nth-child(6),
+    .revision-key:nth-child(7) {
+      background-color: #fff3cd; /* Jaune pâle */
+      color: #664d1a; /* Marron doré complémentaire */
+    }
+
+    .revision-key:nth-child(8) {
+      background-color: #d1e7ff; /* Bleu clair */
+      color: #1a3c66; /* Bleu foncé complémentaire */
+    }
+
+    .revision-key:nth-child(9),
+    .revision-key:nth-child(10) {
+      background-color: #f8e7e6; /* Rose pâle */
+      color: #661a1a; /* Rouge foncé complémentaire */
+    }
+
+    .revision-key:nth-child(n+11):nth-child(-n+15) {
+      background-color: #d4edda; /* Vert pâle */
+      color: #1a6642; /* Vert foncé complémentaire */
+    }
+
+    .revision-key:nth-child(n+16):nth-child(-n+20) {
+      background-color: #ffe4b5; /* Orange pâle */
+      color: #663b1a; /* Marron orangé complémentaire */
+    }
+
+    .revision-key:nth-child(n+21):nth-child(-n+24) {
+      background-color: #dee2e6; /* Gris clair */
+      color: #3c3f41; /* Gris foncé complémentaire */
+    }
+
+    .revision-key:nth-child(25) {
+      background-color: #ffffff; /* Blanc */
+      color: #333333; /* Gris très foncé pour contraste */
+    }
 #revision-message {
   margin-top: 10px;
   margin-bottom: 10px;
-  font-size: 1.2em;
+  font-size: 1.8em;
   color: #8B6F47;
   min-height: 1.5em;
 }
 
-/* Responsive pour mobile */
-@media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
+/* MODE REVISIONS  - SMARTPHONES */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
   #revision-question {
-    font-size: 6em;
-    margin-top: 40px; /* Pousse la carte plus bas */
+   
+    font-size: 1em;
+    margin-top: 15px;  /*Pousse la carte plus bas */
   }
   
 #revision-input-display {
-    font-size: 4em;
-    width: 90%;
-    padding: 15px;
+    height: 23px; /* Hauteur fixe */   
+    font-size: 1.8em;
+    width: 80%;
+    padding: 05px;
     position: fixed;
-    bottom: 1040px; /* 10px au-dessus du clavier */
+    bottom: calc(85vw + 83px); /*  au-dessus du clavier */
     left: 50%;
     transform: translateX(-50%);
   /*   z-index: 1000; S'assurer que l'élément est au-dessus */
   }
   
   #revision-message {
-    font-size: 3em; /* Beaucoup plus grand pour la réponse ! */
-    margin: 20px 0;
+    line-height: 1.0;
+    font-size: 1.0em; /* Beaucoup plus grand pour la réponse ! */
+    margin-bottom: 12px;
     font-weight: bold; /* Pour une meilleure visibilité */
   }
    
    .revision-keyboard {
+    
+    gap: 7px;
     grid-template-columns: repeat(5, 1fr);
-    width: 90%;
+    width: 85%;
     padding: 0 5px;
     position: fixed;
-    bottom: 100px;
+    bottom: calc(60px - 5vw); /* laisse la place pour bouton hamburgeur 40px + 2x 10 px car keyboard 95% */ 
     left: 50%;
     transform: translateX(-50%);
   }
@@ -1143,7 +1624,7 @@
   }
 }
 
-/* ✨ NOUVEAUX STYLES POUR LES CARTES - Identiques au mode apprentissage */
+/* ? NOUVEAUX STYLES POUR LES CARTES  MODES REVISION- DESKTOP  */
 .char-card {
   display: inline-flex;
   padding: 15px;
@@ -1157,7 +1638,7 @@
   color: #8B6F47;
   text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
   
-  /* ✅ MÊME STYLE QUE LES CARTES HIRAGANA */
+  /* ? MODE REVISION MÊME STYLE QUE LES CARTES HIRAGANA -  DESKTOP*/
   background: #FFFFFF;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
   transition: all 0.4s ease; /* Transition plus fluide */
@@ -1166,7 +1647,7 @@
   justify-content: center;
 }
 
-/* 🎨 GRADATIONS ULTRA-SUBTILES (couleurs beaucoup plus douces) */
+/* ?? GRADATIONS ULTRA-SUBTILES (couleurs beaucoup plus douces) */
 .char-correct-1 { 
   background: #f9fdf9; /* Vert ultra-discret, à peine visible */
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 2px rgba(139, 195, 74, 0.1);
@@ -1184,7 +1665,7 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 5px rgba(139, 195, 74, 0.25);
 }
 
-/* 🌸 GRADATIONS ROSES SAKURA ULTRA-SUBTILES */
+/* ?? GRADATIONS ROSES SAKURA ULTRA-SUBTILES */
 .char-incorrect-1 { 
   background: #fdfafa; /* Rose ultra-discret */
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 2px rgba(253, 193, 197, 0.1);
@@ -1202,7 +1683,7 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 0 5px rgba(253, 193, 197, 0.25);
 }
 
-/* 💫 PULSATION AMÉLIORÉE - Plus fluide et prononcée */
+/* ?? PULSATION AMÉLIORÉE - Plus fluide et prononcée */
 .pulsing {
   animation: pulse-revision 1.8s infinite ease-in-out;
 }
@@ -1229,41 +1710,74 @@
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
 }
 
-/* Media query pour les écrans mobiles (jusqu'à 768px) */
+/* MODE REVISIONS  - CARTES SMARTHONES */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+.char-card {
+  
+  display: inline-flex;
+  padding: 5px;
+  margin: 5px;
+  border-radius: 8px; /* Même rayon que les cartes hiragana */
+  min-width: 40px;
+  min-height: 40px;
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #8B6F47;
+  text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
+
+
+   } 
+  }
+
+  
+/* TITRE MODE REVISIONS - MOBILES  */
 @media screen and (max-width: 768px), screen and (-webkit-min-device-pixel-ratio: 2) {
   #mode2 .title {
-      margin: 0.5em 0;
-      font-size: 3em;
+      margin: 0.1em 0;
+      font-size: 1em;
       text-align: center;
       color: #8B6F47;
       text-shadow: 0 1px 2px rgba(139, 111, 71, 0.3);
   }
 }
-    
+
   </style>
 </head>
 <body>
   <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">☰</button>  -->
 <!-- Bouton hamburger -->
 <button class="hamburger" onclick="toggleMenu()">
+
   <div class="hamburger-icon">
     <div class="hamburger-bar"></div>
     <div class="hamburger-bar"></div>
     <div class="hamburger-bar"></div>
   </div>
 </button>
-
   <!-- Menu -->
-  <nav class="menu" id="menu">
-    <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
-    <button class="arcade-button" onclick="showSection('mode2')">Mode révisions</button>
-    <button class="arcade-button" onclick="showSection('options')">Options</button>
-    <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
-  </nav>
+<nav class="menu" id="menu">
+  <div id="menu-message" class="menu-message"></div>
+  <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
+  <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
+  <button class="arcade-button" onclick="showSection('options')">Options</button>
+  <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
+</nav>
+
+<!-- Section Page d'accueil -->
+<div id="welcome" class="section active">
+  <div class="panda-logo" onclick="">🐼</div>
+
+  <h1 class="welcome-title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
+  <p class="welcome-subtitle">Apprenez à Lire le Japonais</p>
+    <div class="loading-dots" id="loadingText">(Chargement... )</div>
+</div>
+  <!-- Section Menu -->
+
 
   <!-- Section Quiz (contenu actuel) -->
-  <div id="quiz" class="section active">
-    <h1>🌿⛩️ Welcome to Hira-Kata-Quiz ⛩️🌸</h1>
+  <div id="quiz" class="section">
+    <h1>🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>
     <div id="progressBarContainer"></div>
     <div class="level" id="levelDisplay">Niveau actuel : 1</div>
     <div class="level-hiraganas">
@@ -1286,9 +1800,15 @@
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-  <h2>🎌 Mode Révisions 🎌</h2>
+  <h2>🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
+<div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
+  <div class="unlock-progress-bar">
+    <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
+  </div>
+</div>
+
   <div id="revision-question"></div>
-   <div id="revision-message"></div>
+  
   <div id="revision-input-display"></div>
     <div class="revision-keyboard">
     <div class="revision-key">a</div>
@@ -1317,22 +1837,178 @@
     <div class="revision-key">w</div>
     <div class="revision-key" id="revision-back">←</div>
   </div>
- 
+ <div id="revision-message"></div> 
 </div>
 
-  <!-- Section Options -->
-  <div id="options" class="section">
-    <h1>Options</h1>
-    <p class="coming-soon">Coming soon</p>
+<!-- Section Options -->
+<div id="options" class="section">
+  <h1>Options</h1>
+  <!-- Menu principal Options -->
+  <div class="options-menu">
+    <button class="arcade-button" onclick="showSubOptions('difficulty')">Difficulté</button>
+    <button class="arcade-button" onclick="showSubOptions('sound')">Son</button>
+    <button class="arcade-button" onclick="showSubOptions('language')">Langue</button>
   </div>
 
-  <script>
-    function toggleMenu() {
-      const menu = document.getElementById('menu');
-      menu.classList.toggle('active');
-    }
+  <!-- Sous-rubrique Difficulté -->
+  <div id="options-difficulty" class="options-sub hidden">
+    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
+    <h2>Difficulté</h2>
+    <button class="arcade-button" onclick="setDifficulty(6)">Facile (6)</button>
+    <button class="arcade-button" onclick="setDifficulty(8)">Moyen (8)</button>
+    <button class="arcade-button" onclick="setDifficulty(10)">Hard (10)</button>
+  </div>
 
+  <!-- Sous-rubrique Son -->
+  <div id="options-sound" class="options-sub hidden">
+    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
+    <h2>Son</h2>
+    <p>🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)</p>
+  </div>
+
+  <!-- Sous-rubrique Langue -->
+  <div id="options-language" class="options-sub hidden">
+    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
+    <h2>Langue</h2>
+    <p>🌍 Ici tu pourras ajouter un sélecteur FR / EN / JP</p>
+  </div>
+</div>
+
+  <script>
+     // Ajout du support pour les événements tactiles
+    document.querySelectorAll('.revision-key').forEach(key => {
+      key.addEventListener('touchstart', function() {
+        this.classList.add('active');
+        setTimeout(() => {
+          this.classList.remove('active');
+        }, 300); // Correspond à la durée de l'animation (0.3s)
+      });
+    });
+function toggleMenu() {
+  const menu = document.getElementById('menu');
+  menu.classList.toggle('active');
+  
+  // NOUVEAU : Vérifier l'état des boutons à chaque ouverture du menu
+  if (menu.classList.contains('active')) {
+    updateMenuButtonStates();
+  }
+}
+function loadDifficulty() {
+  const saved = localStorage.getItem("difficulty");
+  if (saved) {
+    seuilValidation = parseInt(saved, 10);
+    console.log("Difficulté restaurée :", seuilValidation);
+  } else {
+    // valeur par défaut si rien n'est encore enregistré
+    seuilValidation = 6; // Moyen par défaut
+  }
+}
+function showSubOptions(section) {
+  // Masquer le menu principal
+  document.querySelector(".options-menu").classList.add("hidden");
+
+  // Masquer toutes les sous-rubriques
+  document.querySelectorAll('.options-sub').forEach(div => {
+    div.classList.remove("active");
+    div.classList.add("hidden");
+  });
+
+  // Afficher la sous-rubrique choisie avec animation
+  const sub = document.getElementById('options-' + section);
+  sub.classList.remove("hidden");
+  setTimeout(() => sub.classList.add("active"), 10);
+}
+
+function backToOptions() {
+  // Masquer toutes les sous-rubriques
+  document.querySelectorAll('.options-sub').forEach(div => {
+    div.classList.remove("active");
+    div.classList.add("hidden");
+  });
+
+  // Réafficher le menu principal Options
+  const menu = document.querySelector(".options-menu");
+  menu.classList.remove("hidden");
+}
+
+function setDifficulty(value) {
+  seuilValidation = value; 
+  localStorage.setItem("difficulty", value);
+
+  // Mise en surbrillance du bouton choisi
+  document.querySelectorAll("#options-difficulty .arcade-button").forEach(btn => {
+    btn.classList.remove("clicked-glow");
+  });
+  event.target.classList.add("clicked-glow");
+
+  // ✅ Mettre à jour le bouton Apprendre
+  updateApprendreButtonState();
+
+  alert("Difficulté réglée sur : " + value);
+
+ niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  nextQuestion();      
+
+
+}
 function showSection(sectionId) {
+  // NOUVEAU : Vérifier le blocage seulement lors du retour au menu depuis le mode révision
+  if (sectionId === 'menu-section' && revisionMode.isActive) {
+    const wasBlocked = hasShownBlockedMenu; // État précédent
+    const isNowBlocked = isApprentissageBloque();
+    
+    // Mettre à jour l'état des boutons
+    updateApprendreButtonState();
+    
+    // Afficher message approprié
+    if (isNowBlocked && !wasBlocked) {
+      // Passage de débloqué à bloqué
+      setTimeout(() => {
+        const menu = document.getElementById('menu');
+        const menuMessage = document.getElementById('menu-message');
+        menu.classList.add('active');
+        menuMessage.innerText = 'Mode Apprendre bloqué';
+        hasShownBlockedMenu = true;
+      }, 500);
+    } else if (!isNowBlocked && wasBlocked) {
+      // Passage de bloqué à débloqué
+      setTimeout(() => {
+        const menu = document.getElementById('menu');
+        const menuMessage = document.getElementById('menu-message');
+        menu.classList.add('active');
+        menuMessage.innerText = 'Mode Apprendre débloqué !';
+        hasShownBlockedMenu = false;
+        hasShownUnblockedMenu = true;
+      }, 500);
+    } else if (isNowBlocked) {
+      // Toujours bloqué
+      setTimeout(() => {
+        const menuMessage = document.getElementById('menu-message');
+        if (menuMessage) {
+          menuMessage.innerText = 'Mode Apprendre encore bloqué';
+        }
+      }, 500);
+    }
+  }
+
+  // NOUVEAU : Vérifier systématiquement l'état du bouton Apprendre à chaque passage par le menu
+  if (sectionId === 'menu-section') {
+    updateApprendreButtonState();
+    updateMenuSectionMessage();
+  }
+
+  // Vérifier si on essaie d'accéder au mode révision
+  if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
+    console.log('Mode révision non disponible');
+    return;
+  }
+
+  // SUPPRIMER la redirection automatique vers le mode révision
+  // Le bouton bloqué ne doit plus rediriger, il doit juste être inopérant
+  
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
@@ -1340,20 +2016,56 @@ function showSection(sectionId) {
   
   // Démarrer le mode révisions si c'est le mode sélectionné
   if (sectionId === 'mode2') {
+    // NOUVEAU : Capturer l'état du blocage à l'entrée en mode révision
+    wasBlockedWhenEnteringRevision = isApprentissageBloque();
+    if (wasBlockedWhenEnteringRevision) {
+  deficitInitialRevision = calculerDeficitValidation();
+  console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
+}
     revisionMode.isActive = true;
-    // Petit délai pour s'assurer que la section est visible
     setTimeout(() => {
       initRevisionKeyboard();
       startRevisionQuestion();
     }, 100);
   } else {
     revisionMode.isActive = false;
+    // Remettre à false quand on quitte le mode révision
+    wasBlockedWhenEnteringRevision = false;
   }
-  
   toggleMenu();
+}
+
+   
+function forceRevisionMode() {
+  document.querySelectorAll('.section').forEach(section => {
+    section.classList.remove('active');
+  });
+  document.getElementById('mode2').classList.add('active');
+  
+  revisionMode.isActive = true;
+  setTimeout(() => {
+    initRevisionKeyboard();
+    startRevisionQuestion();
+    updateUnlockProgress(); // Ajouter cette ligne
+  }, 100);
+}    
+function updateMenuMessage() {
+    const messages = [
+        '⛩️ Welcome to Kanas-Zen-Garden ⛩️',
+        '🎌 Welcome to Kanas-Zen-Garden 🎌',
+        '🍃 Welcome to Kanas-Zen-Garden 🍵',
+
+    ];
+    const menuMessage = document.getElementById('menu-message');
+    if (menuMessage && menuMessage.innerText === '') {
+        menuMessage.innerText = messages[Math.floor(Math.random() * messages.length)];
+    }
 }
   </script>
 <script>
+let wasBlockedWhenEnteringRevision = false;
+let deficitInitialRevision = 0;  
+let gameDataLoaded = false; // Nouvelle variable globale  
 let HiraganaList = [];
 let current = {};
 let selections = { first: null, second: null };
@@ -1364,12 +2076,13 @@ let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
-
+let hasShownLevel4Menu = false; // Variable pour suivre si le menu a été affiché au niveau 4  
+let validationCache = {}; // Ajouter cette ligne près des autres variables globales
 let statsCache = {
   items: {}, // { [hiragana/katakana]: { tentatives, reussites, pourcentage } }
   globalPourcentage: 0
 };
-  
+let seuilValidation = parseInt(localStorage.getItem('seuilValidation')) || 10;  
 // Variables pour le mode révisions
 let revisionMode = {
   currentQuestion: "",
@@ -1381,6 +2094,162 @@ let revisionMode = {
   cumulativeChars: [],
   isActive: false
 };
+const GROUPES = {
+  1: { niveaux: [1, 2, 3], nom: "Groupe 1" },
+  2: { niveaux: [4, 5], nom: "Groupe 2" },
+  3: { niveaux: [6, 7, 8], nom: "Groupe 3" },
+  4: { niveaux: [9, 10, 11, 12], nom: "Groupe 4" },
+  5: { niveaux: [13, 14, 15, 16, 17], nom: "Groupe 5" },
+  6: { niveaux: [18, 19, 20, 21, 22], nom: "Groupe 6" },
+  7: { niveaux: [23, 24, 25, 26, 27], nom: "Groupe 7" },
+  8: { niveaux: [28, 29, 30, 31, 32, 33], nom: "Groupe 8" },
+  9: { niveaux: [34, 35, 36, 37, 38, 39], nom: "Groupe 9" },
+  10: { niveaux: [40, 41, 42, 43, 44, 45, 46], nom: "Groupe 10" }
+};
+
+let hasShownBlockedMenu = false;
+let hasShownUnblockedMenu = false;
+function startApp() {
+  if (!gameDataLoaded) {
+    document.getElementById("loadingText").textContent = "Chargement en cours.";
+    return;
+  }
+
+  // ❌ On ne masque plus l’accueil automatiquement
+  // ❌ On n’ouvre plus le menu automatiquement
+
+  // ✅ On met simplement à jour le message du menu pour plus tard
+  updateMenuMessage();
+  
+
+  // Le menu restera masqué jusqu'à ce que le panda soit cliqué
+}
+function updateMenuSectionMessage() {
+  const messages = [
+    'Continues à apprendre ! 🌸',
+    'Explores les options ! ⚙️',
+    'Progresses chaque jour ! 🐼',
+    'Un pas après l\'autre 🌸',
+    'Bravo, tu progresses 🎌'
+  ];
+  const menuMessage = document.getElementById('menu-message');
+  if (menuMessage) {
+    menuMessage.innerText = messages[Math.floor(Math.random() * messages.length)];
+  }
+}  
+function getNiveauGroupe(niveau) {
+  for (const [groupeId, groupe] of Object.entries(GROUPES)) {
+    if (groupe.niveaux.includes(niveau)) {
+      return parseInt(groupeId);
+    }
+  }
+  return 1;
+}
+function getItemCountForLevel(level) {
+ return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Niveau) >= level).length;
+  
+}
+function calculerDeficitValidation() {
+  const groupeActuel = getNiveauGroupe(niveauActif);
+  if (groupeActuel < 3) return 0; // Pas de blocage avant le groupe 3
+  
+  let deficitTotal = 0;
+  
+  // Parcourir TOUS les groupes précédents (1 à groupeActuel-1)
+  for (let g = 1; g < groupeActuel; g++) {
+    const niveauxGroupe = GROUPES[g].niveaux;
+    
+    for (const niveau of niveauxGroupe) {
+      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+      for (const item of itemsNiveau) {
+        const validation = parseInt(item.Validation || 0);
+        if (validation < seuilValidation) {
+  deficitTotal += (seuilValidation - validation);
+        }
+      }
+    }
+  }
+  
+  return deficitTotal;
+}
+function calculerDeficitMaximum() {
+  const groupeActuel = getNiveauGroupe(niveauActif);
+  if (groupeActuel < 3) return 0;
+  
+  let totalItems = 0;
+  
+  // Parcourir TOUS les groupes précédents (1 à groupeActuel-1)
+  for (let g = 1; g < groupeActuel; g++) {
+    const niveauxGroupe = GROUPES[g].niveaux;
+    
+    for (const niveau of niveauxGroupe) {
+      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+      totalItems += itemsNiveau.length;
+    }
+  }
+  
+  return totalItems * (seuilValidation - 5); // Déficit max = passage de 5 au seuil
+}
+function updateUnlockProgress() {
+  const container = document.getElementById('unlock-progress-container');
+  const fill = document.getElementById('unlock-progress-fill');
+  
+  if (!container || !fill) return;
+  
+  const isBlocked = isApprentissageBloque();
+  
+  if (revisionMode.isActive && !wasBlockedWhenEnteringRevision) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  if (!isBlocked) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  container.style.display = 'block';
+  
+  const deficitActuel = calculerDeficitValidation();
+  
+  // Calcul inversé : 100% au début, 0% au déblocage
+  const pourcentage = deficitInitialRevision > 0 
+    ? (deficitActuel / deficitInitialRevision * 100) 
+    : 0;
+  
+  fill.style.width = `${pourcentage}%`;
+  
+  if (pourcentage < 10 && pourcentage > 0) {
+    fill.classList.add('proche-deblocage');
+  } else {
+    fill.classList.remove('proche-deblocage');
+  }
+  
+  console.log(`📊 Barre de déblocage: ${deficitActuel}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%)`);
+}
+  
+function isGroupeDebloque(groupeId) {
+  if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
+  
+  // Vérifier TOUS les groupes précédents (1 à groupeId-1)
+  for (let g = 1; g < groupeId; g++) {
+    const niveauxGroupe = GROUPES[g].niveaux;
+    
+    for (const niveau of niveauxGroupe) {
+      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+      const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= seuilValidation);
+      
+      if (itemsValides.length < itemsNiveau.length) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+function isApprentissageBloque() {
+  const groupeActuel = getNiveauGroupe(niveauActif);
+  return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
+}  
 // Initialisation du contexte audio (à placer au début du script, une seule fois)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -1561,7 +2430,24 @@ function smartSegmentRomaji(romaji) {
 function logError(msg) {
 console.warn(msg);
 }
-
+function updateRevisionButtonState() {
+  const revisionButton = document.getElementById('revision-button');
+  if (!revisionButton) return;
+  
+  if (isRevisionModeAvailable()) {
+    revisionButton.classList.remove('disabled');
+    revisionButton.onclick = () => showSection('mode2');
+    revisionButton.title = '';
+  } else {
+    revisionButton.classList.add('disabled');
+    revisionButton.onclick = (e) => {
+      e.preventDefault();
+      // Optionnel : afficher un message
+      console.log('Mode révision disponible à partir du niveau 4');
+    };
+    revisionButton.title = 'Disponible à partir du niveau 4';
+  }
+}
 
 function testFeu() {
 const container = document.querySelector('.quiz-container');
@@ -1953,7 +2839,7 @@ const numSalvos = isMobile ? 3 : 3;
 const gravity = 0.1;
 const salvoDelay = 150;
 const dispersionBase = 3;
-
+const itemCount = getItemCountForLevel(niveauActif);
 const particles = [];
 const trails = [];
 
@@ -1978,17 +2864,19 @@ duration: 700,
 easing: 'ease-out'
 }).onfinish = () => halo.remove();
 
-if (validatedCount === 0) {
-playFireworkSound();
-} else if (validatedCount === 1) {
-playfireworksound2();
-} else if (validatedCount === 2) {
-playfireworksound3();
+console.log("🎯 nbre d'items dans le niveau =", itemCount, "niveau =", niveauActif);
+console.log("🎯 nbre d'items validés =", validatedCount, "niveau =", niveauActif);  
+if (validatedCount === itemCount-1) {
+  playLevelUp();
+  triggerLevelUpAnimation(document.body);
 } else if (validatedCount === 3) {
 playfireworksound4();
-} else if (validatedCount === 4) {
-playLevelUp();
-triggerLevelUpAnimation(container);
+} else if (validatedCount === 2) {
+playfireworksound3();
+} else if (validatedCount === 1) {
+playfireworksound2();
+} else if (validatedCount === 0) {
+playFireworkSound();
 }
 
 for (let salvo = 0; salvo < numSalvos; salvo++) {
@@ -2220,26 +3108,61 @@ container.appendChild(rightEmoji);
 }
 
 function determineNiveauActif(list) {
-if (!list || list.length === 0) return 1;
-let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
+  if (!list || list.length === 0) return 1;
+  let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
 
-for (let n = 1; n <= maxNiveau; n++) {
-const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
-const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5);
-if (kanjisValides.length < kanjisNiveau.length) {
-return n;
+  for (let n = 1; n <= maxNiveau; n++) {
+    const groupeActuel = getNiveauGroupe(n);
+    
+    // Vérifier si le groupe est bloqué (à partir du groupe 3)
+    if (groupeActuel >= 3 && !isGroupeDebloque(groupeActuel)) {
+      return n;
+    }
+    
+    const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
+    const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5);
+    if (kanjisValides.length < kanjisNiveau.length) {
+      return n;
+    }
+  }
+  return maxNiveau;
 }
+function updateApprendreButtonState() {
+  const apprendreButton = document.querySelector('button[onclick="showSection(\'quiz\')"]');
+  if (!apprendreButton) return;
+  
+  if (isApprentissageBloque()) {
+    apprendreButton.classList.add('disabled');
+    // Complètement bloquer le clic
+    apprendreButton.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Optionnel : feedback visuel ou sonore pour indiquer que c'est bloqué
+      console.log('Mode apprentissage bloqué - utilisez le mode révision');
+      return false;
+    };
+    apprendreButton.title = 'Mode bloqué - Pratiquez le mode révision pour débloquer';
+    apprendreButton.style.opacity = '0.5';
+    apprendreButton.style.cursor = 'not-allowed';
+  } else {
+    apprendreButton.classList.remove('disabled');
+    apprendreButton.onclick = () => showSection('quiz');
+    apprendreButton.title = '';
+    apprendreButton.style.opacity = '1';
+    apprendreButton.style.cursor = 'pointer';
+  }
 }
-return maxNiveau;
-}
-
+function updateMenuButtonStates() {
+  updateApprendreButtonState();
+  updateRevisionButtonState();
+}  
 function updateLevelProgress(list, niveau) {
 renderHiraganaCards(list, niveau);
 }
 
 // Initialisation avec Google Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP GOOGLE ***
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyunFkM7h0FV_xu1GRa4uOiuxeggNSVY1HRCzNungo8QonzHznN0TRNLDOEEOtfQu_8FQ/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby1y-ThlFkq3WwR--BaPr8D4TlyQhoTdVVqSx3N87qbY9YzSwEWDn3YvjRLwo8ABbYk5g/exec';
 
 // Fonction pour appeler l'API
 async function callAPI(action, data = null) {
@@ -2250,7 +3173,8 @@ async function callAPI(action, data = null) {
         id: data.id,
         scorePoints: data.scorePoints,
         tentatives: data.tentatives,
-        reussites: data.reussites
+        reussites: data.reussites,
+        isRevisionMode: data.isRevisionMode || false // ✅ NOUVEAU PARAMÈTRE
       });
       const url = `${WEB_APP_URL}?${params}`;
       console.log(`🔍 Appel updateStats: ${url}`);
@@ -2298,18 +3222,24 @@ async function initGame() {
 
   // Initialiser statsCache
   statsCache.items = {};
+  // Ajouter après l'initialisation de statsCache dans initGame()
+validationCache = {};
+HiraganaList.forEach(item => {
+  const validation = parseInt(item.Validation || 0);
+  validationCache[item.ID] = validation;
+});
+console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).length, 'items');
   let totalTentatives = 0, totalReussites = 0;
   HiraganaList.forEach(item => {
     // Log des clés disponibles pour cet item
-    console.log(`🔍 Clés de l\'item "${item.Hiragana || item.Katakana}":`, Object.keys(item));
+    console.log(`🔍 Clés de l\'item ID ${item.ID}:`, Object.keys(item));
 
-    const key = item.Hiragana || item.Katakana;
+    const key = item.ID; // Utiliser l'ID comme clé
     if (!key) {
-      console.warn(`⚠️ Item sans Hiragana ni Katakana:`, item);
+      console.warn(`⚠️ Item sans ID:`, item);
       return;
     }
 
-    // Utiliser les clés exactes avec majuscules et accent
     const tentatives = parseInt(item.Tentatives || 0, 10);
     const reussites = parseInt(item['Réussites'] || 0, 10);
     const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
@@ -2317,21 +3247,41 @@ async function initGame() {
     totalTentatives += tentatives;
     totalReussites += reussites;
 
-    console.log(`📊 Item "${key}": Tentatives=${tentatives}, Réussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
+    console.log(`📊 Item ID ${key} (${item.Hiragana || item.Katakana}): Tentatives=${tentatives}, Réussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
   });
   statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
   console.log('📈 Pourcentage global de réussite:', statsCache.globalPourcentage.toFixed(2) + '%');
   console.log('📊 Stats par item:', 
     Object.fromEntries(
-      Object.entries(statsCache.items).map(([key, stats]) => [key, `${stats.pourcentage.toFixed(2)}%`])
+      Object.entries(statsCache.items).map(([key, stats]) => {
+        const item = HiraganaList.find(i => i.ID == key);
+        return [item ? `${item.Hiragana || item.Katakana} (ID ${key})` : key, `${stats.pourcentage.toFixed(2)}%`];
+      })
     ));
 
   niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  updateRevisionButtonState();
+  updateApprendreButtonState();
+  setTimeout(() => {
+  updateMenuButtonStates();
+}, 100);
+  // NOUVEAU : Basculer automatiquement en mode révision si apprentissage bloqué
+  if (isApprentissageBloque()) {
+/*  forceRevisionMode();  */
+}
+ 
   nextQuestion();
+  gameDataLoaded = true;
+  const panda = document.querySelector(".panda-logo");
+  panda.style.opacity = "1";
+  document.getElementById("loadingText").textContent = "Touchez le panda pour entrer !";
+ 
+  panda.style.pointerEvents = "auto";
+  
 }
 function nextQuestion() {
 document.getElementById("result").innerText = "";
@@ -2346,10 +3296,37 @@ parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
 if (kanas.length === 0) {
 const nouveauNiveau = determineNiveauActif(HiraganaList);
 if (nouveauNiveau !== niveauActif) {
-niveauActif = nouveauNiveau;
+
+const ancienGroupe = getNiveauGroupe(niveauActif);
+const nouveauGroupe = getNiveauGroupe(nouveauNiveau);  
+niveauActif = nouveauNiveau;  
 document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
 renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
 updateLevelProgress(HiraganaList, niveauActif);
+updateRevisionButtonState();  
+updateApprendreButtonState(); // Nouvelle ligne  
+// Ajouter ici
+if (niveauActif === 4 && !hasShownLevel4Menu) {
+    const menu = document.getElementById('menu');
+    const menuMessage = document.getElementById('menu-message');
+    menu.classList.add('active');
+    menuMessage.innerText = '🎮 Mode révisions débloqué 🎮';
+    hasShownLevel4Menu = true;
+}
+if (nouveauGroupe > ancienGroupe && nouveauGroupe >= 3 && isApprentissageBloque() && !hasShownBlockedMenu) {
+  // Passer automatiquement en mode révision AVANT d'afficher le menu
+  setTimeout(() => {
+    forceRevisionMode();
+    // Puis afficher le menu après un court délai
+    setTimeout(() => {
+      const menu = document.getElementById('menu');
+      const menuMessage = document.getElementById('menu-message');
+      menu.classList.add('active');
+      menuMessage.innerText = 'Mode Apprendre bloqué';
+      hasShownBlockedMenu = true;
+    }, 500);
+  }, 3000);
+} 
 nextQuestion();
 return;
 }
@@ -2483,7 +3460,8 @@ updateStarsForHiragana(parseInt(current.ID), newValidation);
 
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == current.ID);
 if (hiraganaIndex !== -1) {
-HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+  HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+  validationCache[current.ID] = newValidation; // ✅ AJOUTER CETTE LIGNE
 }
 
 let emoji = "", resultText = "";
@@ -2586,20 +3564,25 @@ sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
 document.body.appendChild(sakura);
 setTimeout(() => sakura.remove(), 4000);
 }
-
 const validatedCount = getValidatedCountForLevel(niveauActif);
-if (validatedCount === 0) {
-playFireworkSound();
-} else if (validatedCount === 1) {
-playfireworksound2();
-} else if (validatedCount === 2) {
-playfireworksound3();
+const itemCount = getItemCountForLevel(niveauActif);
+console.log("🎯 nbre d'items dans le niveau =", itemCount, "niveau =", niveauActif);
+console.log("🎯 nbre d'items validés =", validatedCount, "niveau =", niveauActif);  
+
+
+if (validatedCount === itemCount-1) {
+  playLevelUp();
+  triggerLevelUpAnimation(document.body);
 } else if (validatedCount === 3) {
 playfireworksound4();
-} else if (validatedCount === 4) {
-playLevelUp();
-triggerLevelUpAnimation(document.body);
+} else if (validatedCount === 2) {
+playfireworksound3();
+} else if (validatedCount === 1) {
+playfireworksound2();
+} else if (validatedCount === 0) {
+playFireworkSound();
 }
+ 
 }
 
 function triggerLevelUpAnimation(container) {
@@ -2630,7 +3613,7 @@ fill: 'forwards'
 
 const msgWrapper = document.createElement("div");
 msgWrapper.style.position = "fixed";
-msgWrapper.style.top = "30%";
+msgWrapper.style.top = "40%";
 msgWrapper.style.left = "0";
 msgWrapper.style.width = "100vw";
 msgWrapper.style.textAlign = "center";
@@ -2639,9 +3622,9 @@ msgWrapper.style.pointerEvents = "none";
 document.body.appendChild(msgWrapper);
 
 const msg = document.createElement("div");
-msg.innerText = "レベルアップ！";
+msg.innerText = "🍃LEVEL UP!🎋"; /*⭐⭐⭐ */
 msg.style.display = "inline-block";
-msg.style.fontSize = "5em";
+msg.style.fontSize = "3em";
 msg.style.fontWeight = "bold";
 msg.style.color = "#8B6F47";
 msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #FDC1C5";
@@ -2653,7 +3636,7 @@ msg.animate([
 { transform: "translateY(0)", opacity: 1 },
 { transform: "translateY(-40px)", opacity: 0 }
 ], {
-duration: 5000,
+duration: 3000,
 easing: "ease-out"
 }).onfinish = () => msgWrapper.remove();
 
@@ -2674,12 +3657,12 @@ function startRevisionQuestion() {
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) <= niveauActif && 
+    parseInt(h.Niveau || 1) < niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
     h.Hiragana && h.Romaji
   );
   const katakanaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) <= niveauActif && 
+    parseInt(h.Niveau || 1) < niveauActif && 
     !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
     revisionKatakanaTable[h.Katakana] &&
     h.Katakana && h.Romaji
@@ -2689,30 +3672,98 @@ function startRevisionQuestion() {
     ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: item.Katakana }))
   ];
 
+  console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
+
   if (availableItems.length === 0) {
-    document.getElementById("revision-message").textContent = "Aucun item disponible pour ce niveau";
+    document.getElementById("revision-message").textContent = 
+      niveauActif < 4 ? 
+      "Mode révision disponible à partir du niveau 4" : 
+      "Aucun item disponible pour révision";
     document.getElementById("revision-message").style.color = "#dc3545";
     return;
   }
 
-  // Pondération basée sur l'inverse du pourcentage
-  const weights = availableItems.map(item => {
-    const key = item.Hiragana || item.Katakana;
-    const stats = statsCache.items[key] || { pourcentage: 0 };
-    return stats.pourcentage === 0 ? 10 : 100 / (stats.pourcentage || 1);
-  });
-  const totalWeight = weights.reduce((a, b) => a + b, 0);
-  let random = Math.random() * totalWeight;
-  let selectedItem = availableItems[0];
+  // Tampon des 3 derniers tirages - convertir en numbers
+  const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]').map(id => parseInt(id));
 
-  for (let i = 0; i < availableItems.length; i++) {
-    random -= weights[i];
-    if (random <= 0) {
-      selectedItem = availableItems[i];
-      break;
+  let selectedItem;
+  const RANDOM_RATIO = 0.2; // 20% pour tirage aléatoire pur
+
+  if (Math.random() < RANDOM_RATIO) {
+    // 🎲 TIRAGE ALÉATOIRE PUR (20%) - Filtré seulement par le tampon
+    const randomItems = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
+    const finalRandomItems = randomItems.length >= 4 ? randomItems : availableItems;
+    
+    selectedItem = finalRandomItems[Math.floor(Math.random() * finalRandomItems.length)];
+    
+    console.log(`🎲 TIRAGE ALÉATOIRE (20%)`);
+    console.log(`📋 Items disponibles pour tirage aléatoire: ${finalRandomItems.length}/${availableItems.length}`);
+    console.log(`🔍 Items filtrés par tampon:`, finalRandomItems.map(item => `${item.key}(ID:${item.ID})`).join(', '));
+    
+  } else {
+    // ⚖️ TIRAGE PONDÉRÉ (80%) - Filtré par Validation ≤ 10 + tampon
+    const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) < seuilValidation);
+    const weightedItems = validationFilteredItems.filter(item => !recentItems.includes(parseInt(item.ID)));
+    
+    let finalWeightedItems;
+    
+    if (weightedItems.length >= 4) {
+      // Cas idéal : assez d'items respectant validation ≤ 10 ET hors tampon
+      finalWeightedItems = weightedItems;
+    } else if (weightedItems.length > 0) {
+      // Peu d'items mais au moins quelques-uns : on les garde
+      finalWeightedItems = weightedItems;
+    } else {
+      // Aucun item respectant les deux contraintes
+      // PRIORITÉ : éviter le tampon (libérer contrainte validation ≤ 10)
+      const itemsHorsTampon = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
+      if (itemsHorsTampon.length > 0) {
+        finalWeightedItems = itemsHorsTampon;
+        console.log(`⚠️ FALLBACK 1 - Libération contrainte Validation ≤ 10 pour éviter tampon`);
+      } else {
+        // Dernier recours : prendre tous les items (même dans le tampon)
+        finalWeightedItems = availableItems;
+        console.log(`⚠️ FALLBACK 2 - Tous les items utilisés (tampon ignoré)`);
+      }
     }
+
+    // Tirage pondéré sur les items finaux
+    const weights = finalWeightedItems.map(item => {
+      const stats = statsCache.items[parseInt(item.ID)] || { pourcentage: 0 };
+      const pourcentage = stats.pourcentage;
+      return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
+    });
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let random = Math.random() * totalWeight;
+    for (let i = 0; i < finalWeightedItems.length; i++) {
+      random -= weights[i];
+      if (random <= 0) {
+        selectedItem = finalWeightedItems[i];
+        break;
+      }
+    }
+    
+    console.log(`⚖️ TIRAGE PONDÉRÉ (80%)`);
+    console.log(`📋 Items disponibles (Validation ≤ 10 + tampon): ${finalWeightedItems.length}/${availableItems.length}`);
+    console.log(`🔍 Items respectant Validation ≤ 10:`, 
+      validationFilteredItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0})`)
+        .join(', '));
+    console.log(`🚫 Items exclus par tampon:`, recentItems.join(', '));
+    console.log(`✅ Items finaux pour pondération:`, 
+      finalWeightedItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0},${(statsCache.items[parseInt(item.ID)]?.pourcentage || 0).toFixed(1)}%)`)
+        .join(', '));
   }
 
+  // Mettre à jour le tampon - s'assurer que c'est un number
+  recentItems.push(parseInt(selectedItem.ID));
+  if (recentItems.length > 3) recentItems.shift(); // Garder seulement les 3 derniers
+  localStorage.setItem('recentRevisionItems', JSON.stringify(recentItems));
+
+  // Log pour vérification
+  console.log(`🎯 Question sélectionnée: "${selectedItem.key}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
+  console.log(`🔍 Tampon récent:`, recentItems);
+
+  // Configurer la question
   revisionMode.currentQuestion = selectedItem.key;
   const table = selectedItem.type === 'hiragana' ? revisionRomajiTable : revisionKatakanaTable;
   const tableEntry = table[selectedItem.key];
@@ -2746,9 +3797,12 @@ function startRevisionQuestion() {
   if (firstCard) firstCard.classList.add("pulsing");
 
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
-  console.log(`📊 Pourcentage item: ${(statsCache.items[selectedItem.key]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
-}
-  
+  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+  updateUnlockProgress();
+}  
+function isRevisionModeAvailable() {
+  return niveauActif >= 4;
+}  
 function updateRevisionFeedback() {
   // Reset toutes les classes
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
@@ -2882,7 +3936,7 @@ function initRevisionKeyboard() {
 
       if (revisionMode.input.length >= totalLength) {
         const isCorrect = revisionMode.input === revisionMode.fullCorrect;
-        const key = revisionMode.currentQuestion;
+        const key = revisionMode.currentItem.ID;
 
         // Mettre à jour statsCache
         statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
@@ -2896,37 +3950,57 @@ function initRevisionKeyboard() {
         const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
         statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-        // Log des stats mises à jour
-        console.log(`📊 Mise à jour pour "${key}": Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
+        console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-        // Mettre à jour Validation
+        // Modification de la validation en mode révision (SANS vérification de blocage)
         const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
         if (hiraganaIndex !== -1) {
           const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-          HiraganaList[hiraganaIndex].Validation = isCorrect 
-            ? Math.min(5, currentValidation + 1).toString()
-            : Math.max(0, currentValidation - 1).toString();
+          
+          let newValidation;
+          if (isCorrect) {
+            newValidation = currentValidation + 1; // Pas de plafonnement
+          } else {
+            newValidation = Math.max(5, currentValidation - 2);
+          }
+          
+          HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+          validationCache[revisionMode.currentItem.ID] = newValidation;
+          
+          // ✅ POINT 4 : Recalculer le déficit initial si mauvaise réponse
+          if (!isCorrect && wasBlockedWhenEnteringRevision) {
+            deficitInitialRevision = calculerDeficitValidation();
+            console.log(`🔄 Déficit recalculé après erreur: ${deficitInitialRevision} points`);
+          }
+          
+          console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
         }
 
-        // Appeler API en arrière-plan
+        // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
           id: parseInt(revisionMode.currentItem.ID), 
           scorePoints: isCorrect ? 1 : 0,
           tentatives: statsCache.items[key].tentatives,
-          reussites: statsCache.items[key].reussites
+          reussites: statsCache.items[key].reussites,
+          isRevisionMode: true
         }).catch(error => console.error('Erreur sauvegarde stats:', error));
+
+        // ✅ POINT 5 : Mettre à jour la barre de déblocage
+        if (wasBlockedWhenEnteringRevision) {
+          updateUnlockProgress();
+        }
 
         // Afficher feedback
         if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `🌸 Parfait !${katakanaDisplay} 🌸`;
-          document.getElementById("revision-message").style.color = "#28a745";
+          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `${katakanaDisplay}`;
+          document.getElementById("revision-message").style.color = "#8B6F47";
           playZenBell();
         } else {
           document.getElementById("revision-message").textContent = isHighLevel 
             ? "Faux" 
-            : `❌ ERREUR : ${revisionMode.fullCorrect}${katakanaDisplay}`;
-          document.getElementById("revision-message").style.color = "#dc3545";
+            : `👉 Bonne réponse : ${revisionMode.fullCorrect}${katakanaDisplay}`;
+          document.getElementById("revision-message").style.color = "#8B6F47";
           playSoftError();
         }
 
@@ -2943,6 +4017,7 @@ function initRevisionKeyboard() {
     });
   });
 }
+  
 // Appeler l'initialisation au chargement de la page
 window.addEventListener('load', () => {
   initRevisionKeyboard();
@@ -2962,4 +4037,45 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </body>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const panda = document.querySelector(".panda-logo");
+    if (panda) {
+      panda.addEventListener("click", () => {
+        // Masquer l’écran d’accueil définitivement
+        document.getElementById("welcome").classList.add("hidden");
+        loadDifficulty();
+        
+        updateMenuMessage();
+         // ✅ Mettre à jour le bouton Apprendre
+        updateApprendreButtonState();
+        // Afficher le bouton menu une fois sorti de l'accueil
+        const menuBtn = document.querySelector(".hamburger");
+        if (menuBtn) menuBtn.classList.remove("hidden");
+        // Ouvrir ton menu principal
+        const menu = document.querySelector(".menu");
+        if (menu) menu.classList.add("active");
+        niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  nextQuestion();      
+  updateRevisionButtonState();
+  updateApprendreButtonState();
+      });
+    }
+  });
+  document.addEventListener("DOMContentLoaded", () => {
+  const panda = document.querySelector(".panda-logo");
+  const menuBtn = document.querySelector(".hamburger");
+
+  // Masquer le menu tant qu'on est sur l'accueil
+  if (menuBtn) menuBtn.classList.add("hidden");
+
+  // Désactiver le clic sur le panda tant que les données ne sont pas chargées
+  panda.style.pointerEvents = "none"; 
+  panda.style.opacity = "0.2"; // optionnel, pour indiquer que c'est inactif
+});
+</script>
+  
 </html>
