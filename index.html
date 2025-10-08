@@ -1992,6 +1992,11 @@ function showSection(sectionId) {
         }
       }, 500);
     }
+    // Si on quitte le mode révision
+  if (sectionId !== 'mode2') { // 'mode2' est l'ID de la section révision
+    revisionMode.isActive = false;
+    hasUnlockedInRevision = false; // Réinitialiser pour la prochaine session
+  }
   }
 
   // NOUVEAU : Vérifier systématiquement l'état du bouton Apprendre à chaque passage par le menu
@@ -2022,6 +2027,7 @@ function showSection(sectionId) {
   deficitInitialRevision = calculerDeficitValidation();
   console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
 }
+    hasUnlockedInRevision = false; // Réinitialiser à l'entrée
     revisionMode.isActive = true;
     setTimeout(() => {
       initRevisionKeyboard();
@@ -2065,6 +2071,7 @@ function updateMenuMessage() {
 <script>
 let wasBlockedWhenEnteringRevision = false;
 let deficitInitialRevision = 0;  
+let hasUnlockedInRevision = false; // Nouvelle variable pour suivre le déblocage  
 let gameDataLoaded = false; // Nouvelle variable globale  
 let HiraganaList = [];
 let current = {};
@@ -2198,16 +2205,29 @@ function updateUnlockProgress() {
   
   const isBlocked = isApprentissageBloque();
   
+  // Si on est en mode révision et qu'on a déjà débloqué, masquer la barre
+  if (revisionMode.isActive && hasUnlockedInRevision) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  // Si on est en mode révision mais non bloqué au départ, masquer la barre
   if (revisionMode.isActive && !wasBlockedWhenEnteringRevision) {
     container.style.display = 'none';
     return;
   }
   
+  // Si pas bloqué, masquer la barre
   if (!isBlocked) {
     container.style.display = 'none';
+    // Marquer comme débloqué si en mode révision
+    if (revisionMode.isActive) {
+      hasUnlockedInRevision = true; // Enregistrer le déblocage
+    }
     return;
   }
   
+  // Afficher la barre si bloqué et non débloqué
   container.style.display = 'block';
   
   const deficitActuel = calculerDeficitValidation();
@@ -4078,6 +4098,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
