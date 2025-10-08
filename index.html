@@ -2063,6 +2063,7 @@ function updateMenuMessage() {
 }
   </script>
 <script>
+let hasUnlockedDuringRevision = false;  
 let wasBlockedWhenEnteringRevision = false;
 let deficitInitialRevision = 0;  
 let gameDataLoaded = false; // Nouvelle variable globale  
@@ -2193,40 +2194,45 @@ function calculerDeficitMaximum() {
 function updateUnlockProgress() {
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
-  
   if (!container || !fill) return;
-  
+
   const isBlocked = isApprentissageBloque();
-  
-  if (revisionMode.isActive && !wasBlockedWhenEnteringRevision) {
+
+  // ✅ Si on est en mode révision et qu'on n'était pas bloqué au départ
+  // ou qu'on a déjà débloqué pendant cette session, on masque définitivement la barre
+  if (revisionMode.isActive && (!wasBlockedWhenEnteringRevision || hasUnlockedDuringRevision)) {
     container.style.display = 'none';
     return;
   }
-  
+
   if (!isBlocked) {
     container.style.display = 'none';
     return;
   }
-  
+
   container.style.display = 'block';
-  
+
   const deficitActuel = calculerDeficitValidation();
-  
-  // Calcul inversé : 100% au début, 0% au déblocage
   const pourcentage = deficitInitialRevision > 0 
     ? (deficitActuel / deficitInitialRevision * 100) 
     : 0;
-  
   fill.style.width = `${pourcentage}%`;
-  
+
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
   } else {
     fill.classList.remove('proche-deblocage');
   }
-  
+
+  // ✅ Nouveau : si on atteint le déblocage, on mémorise l’état pour ne plus réafficher la barre
+  if (pourcentage <= 0) {
+    hasUnlockedDuringRevision = true;
+    container.style.display = 'none';
+  }
+
   console.log(`📊 Barre de déblocage: ${deficitActuel}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%)`);
 }
+
   
 function isGroupeDebloque(groupeId) {
   if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
@@ -4079,6 +4085,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
