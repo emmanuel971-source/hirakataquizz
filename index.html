@@ -3948,7 +3948,7 @@ function initRevisionKeyboard() {
           validationCache[revisionMode.currentItem.ID] = newValidation;
           
           // ✅ POINT 4 : Recalculer le déficit initial si mauvaise réponse
-          if (!isCorrect && wasBlockedWhenEnteringRevision) {
+          if (!isCorrect && wasBlockedWhenEnteringRevision && !hasUnlockedThisRevisionSession) {
             deficitInitialRevision = calculerDeficitValidation();
             console.log(`🔄 Déficit recalculé après erreur: ${deficitInitialRevision} points`);
           }
@@ -3966,9 +3966,9 @@ function initRevisionKeyboard() {
         }).catch(error => console.error('Erreur sauvegarde stats:', error));
 
         // ✅ POINT 5 : Mettre à jour la barre de déblocage
-        if (wasBlockedWhenEnteringRevision) {
-          updateUnlockProgress();
-        }
+      if (wasBlockedWhenEnteringRevision && !hasUnlockedThisRevisionSession) {
+  updateUnlockProgress();
+}
 
         // Afficher feedback
         if (isCorrect) {
@@ -4057,6 +4057,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
