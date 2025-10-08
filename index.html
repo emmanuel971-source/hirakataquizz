@@ -1994,21 +1994,20 @@ function showSection(sectionId) {
     }
   }
 
-  // NOUVEAU : Vérifier systématiquement l'état du bouton Apprendre à chaque passage par le menu
-  if (sectionId === 'menu-section') {
-    updateApprendreButtonState();
-    updateMenuSectionMessage();
-  }
-
   // Vérifier si on essaie d'accéder au mode révision
   if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
     console.log('Mode révision non disponible');
     return;
   }
-
-  // SUPPRIMER la redirection automatique vers le mode révision
-  // Le bouton bloqué ne doit plus rediriger, il doit juste être inopérant
-  
+   if (sectionId === 'menu-section') {
+    updateMenuSectionMessage();
+  } 
+  // NOUVEAU : Vérifier si on essaie d'accéder au quiz bloqué
+  if (sectionId === 'quiz' && isApprentissageBloque()) {
+    console.log('Mode apprentissage bloqué - redirection vers révision');
+    sectionId = 'mode2'; // Forcer la redirection vers le mode révision
+  }
+ 
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
@@ -2018,10 +2017,6 @@ function showSection(sectionId) {
   if (sectionId === 'mode2') {
     // NOUVEAU : Capturer l'état du blocage à l'entrée en mode révision
     wasBlockedWhenEnteringRevision = isApprentissageBloque();
-    if (wasBlockedWhenEnteringRevision) {
-  deficitInitialRevision = calculerDeficitValidation();
-  console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
-}
     revisionMode.isActive = true;
     setTimeout(() => {
       initRevisionKeyboard();
@@ -2063,6 +2058,8 @@ function updateMenuMessage() {
 }
   </script>
 <script>
+let wasBlockedWhenEnteringRevision = false;
+const DEFICIT_THRESHOLD_TO_REBLOCK = 5; // Déficit nécessaire pour rebloquer après déblocage
 let wasBlockedWhenEnteringRevision = false;
 let deficitInitialRevision = 0;  
 let gameDataLoaded = false; // Nouvelle variable globale  
@@ -2196,11 +2193,27 @@ function updateUnlockProgress() {
   
   if (!container || !fill) return;
   
+  const deficitActuel = calculerDeficitValidation();
   const isBlocked = isApprentissageBloque();
   
+  // NOUVELLE LOGIQUE : Ne pas afficher la barre si on est en session de révision
+  // et que le mode n'était pas bloqué à l'entrée
   if (revisionMode.isActive && !wasBlockedWhenEnteringRevision) {
     container.style.display = 'none';
     return;
+  }
+  
+  // NOUVELLE LOGIQUE : Si on était bloqué à l'entrée mais qu'on a débloqué (déficit = 0)
+  // ne réafficher la barre que si le déficit atteint le seuil de reblocage
+  if (revisionMode.isActive && wasBlockedWhenEnteringRevision) {
+    // Si le déficit est à 0, on considère qu'on a débloqué
+    // On ne réaffichera la barre que si le déficit remonte au-dessus du seuil
+    if (deficitActuel > 0 && deficitActuel < DEFICIT_THRESHOLD_TO_REBLOCK) {
+      // Zone tampon : on a débloqué mais pas encore assez de déficit pour rebloquer
+      container.style.display = 'none';
+      console.log(`🛡️ Zone tampon : déficit ${deficitActuel} < seuil ${DEFICIT_THRESHOLD_TO_REBLOCK}`);
+      return;
+    }
   }
   
   if (!isBlocked) {
@@ -2210,22 +2223,20 @@ function updateUnlockProgress() {
   
   container.style.display = 'block';
   
-  const deficitActuel = calculerDeficitValidation();
+  const deficitMaximum = calculerDeficitMaximum();
   
-  // Calcul inversé : 100% au début, 0% au déblocage
-  const pourcentage = deficitInitialRevision > 0 
-    ? (deficitActuel / deficitInitialRevision * 100) 
-    : 0;
+  const pourcentage = deficitMaximum > 0 ? (deficitActuel / deficitMaximum * 100) : 0;
   
   fill.style.width = `${pourcentage}%`;
   
+  // Animation spéciale si proche du déblocage
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
   } else {
     fill.classList.remove('proche-deblocage');
   }
   
-  console.log(`📊 Barre de déblocage: ${deficitActuel}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%)`);
+  console.log(`📊 Déficit: ${deficitActuel}/${deficitMaximum} (${pourcentage.toFixed(1)}%)`);
 }
   
 function isGroupeDebloque(groupeId) {
@@ -3968,14 +3979,10 @@ function initRevisionKeyboard() {
           HiraganaList[hiraganaIndex].Validation = newValidation.toString();
           validationCache[revisionMode.currentItem.ID] = newValidation;
           
-          // ✅ POINT 4 : Recalculer le déficit initial si mauvaise réponse
-          if (!isCorrect && wasBlockedWhenEnteringRevision) {
-            deficitInitialRevision = calculerDeficitValidation();
-            console.log(`🔄 Déficit recalculé après erreur: ${deficitInitialRevision} points`);
-          }
-          
           console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
         }
+
+        // SUPPRIMER updateUnlockProgress() ici - la barre ne doit plus se mettre à jour pendant la session
 
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
@@ -3985,11 +3992,6 @@ function initRevisionKeyboard() {
           reussites: statsCache.items[key].reussites,
           isRevisionMode: true
         }).catch(error => console.error('Erreur sauvegarde stats:', error));
-
-        // ✅ POINT 5 : Mettre à jour la barre de déblocage
-        if (wasBlockedWhenEnteringRevision) {
-          updateUnlockProgress();
-        }
 
         // Afficher feedback
         if (isCorrect) {
@@ -4079,3 +4081,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
