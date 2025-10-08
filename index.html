@@ -2059,6 +2059,7 @@ function updateMenuMessage() {
   </script>
 <script>
 let wasBlockedWhenEnteringRevision = false;
+let wasUnblockedDuringRevision = false;  
 const DEFICIT_THRESHOLD_TO_REBLOCK = 5; // Déficit nécessaire pour rebloquer après déblocage
 let deficitInitialRevision = 0;  
 let gameDataLoaded = false; // Nouvelle variable globale  
@@ -3981,7 +3982,10 @@ function initRevisionKeyboard() {
           console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
         }
 
-        // SUPPRIMER updateUnlockProgress() ici - la barre ne doit plus se mettre à jour pendant la session
+        // MISE À JOUR de la barre de déblocage uniquement si on était bloqué à l'entrée
+        if (wasBlockedWhenEnteringRevision) {
+          updateUnlockProgress();
+        }
 
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
@@ -4080,5 +4084,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
