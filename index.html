@@ -3948,17 +3948,13 @@ function initRevisionKeyboard() {
           validationCache[revisionMode.currentItem.ID] = newValidation;
           
           // ✅ POINT 4 : Recalculer le déficit initial si mauvaise réponse
-    // ✅ Ne recalculer / réafficher la barre que si on était bloqué à l'entrée
-// et que le déblocage n’a pas déjà eu lieu dans cette session
-if (!isCorrect && wasBlockedWhenEnteringRevision && !hasUnlockedThisRevisionSession) {
-  deficitInitialRevision = calculerDeficitValidation();
-  console.log(`🔄 Déficit recalculé après erreur: ${deficitInitialRevision} points`);
-}
-
-// ✅ Ne pas mettre à jour la barre si le joueur a déjà débloqué pendant cette session
-if (wasBlockedWhenEnteringRevision && !hasUnlockedThisRevisionSession) {
-  updateUnlockProgress();
-}
+          if (!isCorrect && wasBlockedWhenEnteringRevision) {
+            deficitInitialRevision = calculerDeficitValidation();
+            console.log(`🔄 Déficit recalculé après erreur: ${deficitInitialRevision} points`);
+          }
+          
+          console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
+        }
 
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
@@ -3997,7 +3993,7 @@ if (wasBlockedWhenEnteringRevision && !hasUnlockedThisRevisionSession) {
           startRevisionQuestion();
         }, isCorrect ? 2000 : 3000);
       }
- 
+    });
   });
 }
   
@@ -4016,7 +4012,6 @@ initGame();
 speechSynthesis.onvoiceschanged = () => {
 console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
-
 </script>
   
 </body>
@@ -4062,6 +4057,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
