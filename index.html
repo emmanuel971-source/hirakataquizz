@@ -2066,6 +2066,8 @@ function updateMenuMessage() {
 let hasUnlockedDuringRevision = false;  
 let wasBlockedWhenEnteringRevision = false;
 let deficitInitialRevision = 0;  
+let hasUnlockedThisRevisionSession = false; // Une fois débloqué, ne plus jamais réafficher la barre pendant cette session
+let revisionSessionInitialized = false;     // Évite de réinitialiser les drapeaux à chaque question  
 let gameDataLoaded = false; // Nouvelle variable globale  
 let HiraganaList = [];
 let current = {};
@@ -2198,24 +2200,30 @@ function updateUnlockProgress() {
 
   const isBlocked = isApprentissageBloque();
 
-  // ✅ Si on est en mode révision et qu'on n'était pas bloqué au départ
-  // ou qu'on a déjà débloqué pendant cette session, on masque définitivement la barre
-  if (revisionMode.isActive && (!wasBlockedWhenEnteringRevision || hasUnlockedDuringRevision)) {
+  // ✅ Si en révision et non bloqué à l'entrée, ou déjà débloqué pendant la session → ne plus rien afficher
+  if (revisionMode.isActive && (!wasBlockedWhenEnteringRevision || hasUnlockedThisRevisionSession)) {
     container.style.display = 'none';
     return;
   }
 
+  // ✅ Si on vient de se débloquer pendant la révision → mémoriser et cacher définitivement
   if (!isBlocked) {
+    if (revisionMode.isActive && wasBlockedWhenEnteringRevision && !hasUnlockedThisRevisionSession) {
+      hasUnlockedThisRevisionSession = true;
+      console.log('🔓 Déblocage détecté pendant la session de révision — masquer la barre définitivement');
+    }
     container.style.display = 'none';
     return;
   }
 
+  // Sinon (toujours bloqué)
   container.style.display = 'block';
 
   const deficitActuel = calculerDeficitValidation();
   const pourcentage = deficitInitialRevision > 0 
-    ? (deficitActuel / deficitInitialRevision * 100) 
+    ? (deficitActuel / deficitInitialRevision * 100)
     : 0;
+
   fill.style.width = `${pourcentage}%`;
 
   if (pourcentage < 10 && pourcentage > 0) {
@@ -2224,13 +2232,7 @@ function updateUnlockProgress() {
     fill.classList.remove('proche-deblocage');
   }
 
-  // ✅ Nouveau : si on atteint le déblocage, on mémorise l’état pour ne plus réafficher la barre
-  if (pourcentage <= 0) {
-    hasUnlockedDuringRevision = true;
-    container.style.display = 'none';
-  }
-
-  console.log(`📊 Barre de déblocage: ${deficitActuel}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%)`);
+  console.log(`📊 Barre de déblocage: ${deficitActuel}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%)`);
 }
 
   
@@ -3660,6 +3662,15 @@ easing: "ease-in-out"
 }
 
 function startRevisionQuestion() {
+  // --- 🟢 Initialisation unique lors de l'entrée en mode révision ---
+  if (revisionMode.isActive && !revisionSessionInitialized) {
+    revisionSessionInitialized = true;
+    wasBlockedWhenEnteringRevision = isApprentissageBloque();
+    deficitInitialRevision = wasBlockedWhenEnteringRevision ? calculerDeficitValidation() : 0;
+    hasUnlockedThisRevisionSession = false;
+    console.log(`🔁 Entrée mode révision — wasBlocked=${wasBlockedWhenEnteringRevision}, déficitInitial=${deficitInitialRevision}`);
+  }
+
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
@@ -3689,56 +3700,34 @@ function startRevisionQuestion() {
     return;
   }
 
-  // Tampon des 3 derniers tirages - convertir en numbers
   const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]').map(id => parseInt(id));
-
   let selectedItem;
-  const RANDOM_RATIO = 0.2; // 20% pour tirage aléatoire pur
+  const RANDOM_RATIO = 0.2;
 
   if (Math.random() < RANDOM_RATIO) {
-    // 🎲 TIRAGE ALÉATOIRE PUR (20%) - Filtré seulement par le tampon
     const randomItems = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
     const finalRandomItems = randomItems.length >= 4 ? randomItems : availableItems;
-    
     selectedItem = finalRandomItems[Math.floor(Math.random() * finalRandomItems.length)];
-    
-    console.log(`🎲 TIRAGE ALÉATOIRE (20%)`);
-    console.log(`📋 Items disponibles pour tirage aléatoire: ${finalRandomItems.length}/${availableItems.length}`);
-    console.log(`🔍 Items filtrés par tampon:`, finalRandomItems.map(item => `${item.key}(ID:${item.ID})`).join(', '));
-    
   } else {
-    // ⚖️ TIRAGE PONDÉRÉ (80%) - Filtré par Validation ≤ 10 + tampon
     const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) < seuilValidation);
     const weightedItems = validationFilteredItems.filter(item => !recentItems.includes(parseInt(item.ID)));
-    
     let finalWeightedItems;
-    
+
     if (weightedItems.length >= 4) {
-      // Cas idéal : assez d'items respectant validation ≤ 10 ET hors tampon
       finalWeightedItems = weightedItems;
     } else if (weightedItems.length > 0) {
-      // Peu d'items mais au moins quelques-uns : on les garde
       finalWeightedItems = weightedItems;
     } else {
-      // Aucun item respectant les deux contraintes
-      // PRIORITÉ : éviter le tampon (libérer contrainte validation ≤ 10)
       const itemsHorsTampon = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
-      if (itemsHorsTampon.length > 0) {
-        finalWeightedItems = itemsHorsTampon;
-        console.log(`⚠️ FALLBACK 1 - Libération contrainte Validation ≤ 10 pour éviter tampon`);
-      } else {
-        // Dernier recours : prendre tous les items (même dans le tampon)
-        finalWeightedItems = availableItems;
-        console.log(`⚠️ FALLBACK 2 - Tous les items utilisés (tampon ignoré)`);
-      }
+      finalWeightedItems = itemsHorsTampon.length > 0 ? itemsHorsTampon : availableItems;
     }
 
-    // Tirage pondéré sur les items finaux
     const weights = finalWeightedItems.map(item => {
       const stats = statsCache.items[parseInt(item.ID)] || { pourcentage: 0 };
       const pourcentage = stats.pourcentage;
       return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
     });
+
     const totalWeight = weights.reduce((a, b) => a + b, 0);
     let random = Math.random() * totalWeight;
     for (let i = 0; i < finalWeightedItems.length; i++) {
@@ -3748,28 +3737,12 @@ function startRevisionQuestion() {
         break;
       }
     }
-    
-    console.log(`⚖️ TIRAGE PONDÉRÉ (80%)`);
-    console.log(`📋 Items disponibles (Validation ≤ 10 + tampon): ${finalWeightedItems.length}/${availableItems.length}`);
-    console.log(`🔍 Items respectant Validation ≤ 10:`, 
-      validationFilteredItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0})`)
-        .join(', '));
-    console.log(`🚫 Items exclus par tampon:`, recentItems.join(', '));
-    console.log(`✅ Items finaux pour pondération:`, 
-      finalWeightedItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0},${(statsCache.items[parseInt(item.ID)]?.pourcentage || 0).toFixed(1)}%)`)
-        .join(', '));
   }
 
-  // Mettre à jour le tampon - s'assurer que c'est un number
   recentItems.push(parseInt(selectedItem.ID));
-  if (recentItems.length > 3) recentItems.shift(); // Garder seulement les 3 derniers
+  if (recentItems.length > 3) recentItems.shift();
   localStorage.setItem('recentRevisionItems', JSON.stringify(recentItems));
 
-  // Log pour vérification
-  console.log(`🎯 Question sélectionnée: "${selectedItem.key}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
-  console.log(`🔍 Tampon récent:`, recentItems);
-
-  // Configurer la question
   revisionMode.currentQuestion = selectedItem.key;
   const table = selectedItem.type === 'hiragana' ? revisionRomajiTable : revisionKatakanaTable;
   const tableEntry = table[selectedItem.key];
@@ -3802,10 +3775,10 @@ function startRevisionQuestion() {
   const firstCard = document.getElementById(`revision-card-0`);
   if (firstCard) firstCard.classList.add("pulsing");
 
-  console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
-  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+  // ✅ Met à jour la barre (si applicable)
   updateUnlockProgress();
-}  
+}
+
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
 }  
@@ -3975,13 +3948,17 @@ function initRevisionKeyboard() {
           validationCache[revisionMode.currentItem.ID] = newValidation;
           
           // ✅ POINT 4 : Recalculer le déficit initial si mauvaise réponse
-          if (!isCorrect && wasBlockedWhenEnteringRevision) {
-            deficitInitialRevision = calculerDeficitValidation();
-            console.log(`🔄 Déficit recalculé après erreur: ${deficitInitialRevision} points`);
-          }
-          
-          console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
-        }
+    // ✅ Ne recalculer / réafficher la barre que si on était bloqué à l'entrée
+// et que le déblocage n’a pas déjà eu lieu dans cette session
+if (!isCorrect && wasBlockedWhenEnteringRevision && !hasUnlockedThisRevisionSession) {
+  deficitInitialRevision = calculerDeficitValidation();
+  console.log(`🔄 Déficit recalculé après erreur: ${deficitInitialRevision} points`);
+}
+
+// ✅ Ne pas mettre à jour la barre si le joueur a déjà débloqué pendant cette session
+if (wasBlockedWhenEnteringRevision && !hasUnlockedThisRevisionSession) {
+  updateUnlockProgress();
+}
 
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
@@ -4085,6 +4062,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 </script>
   
 </html>
+
 
 
 
