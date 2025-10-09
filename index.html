@@ -2020,13 +2020,18 @@ function showSection(sectionId) {
   document.getElementById(sectionId).classList.add('active');
   
   // Démarrer le mode révisions si c'est le mode sélectionné
-  if (sectionId === 'mode2') {
-    // NOUVEAU : Capturer l'état du blocage à l'entrée en mode révision
-    wasBlockedWhenEnteringRevision = isApprentissageBloque();
-    if (wasBlockedWhenEnteringRevision) {
-  deficitInitialRevision = calculerDeficitValidation();
-  console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
-}
+if (sectionId === 'mode2') {
+  // MODIFICATION : Capturer le déficit initial à 6 si c'est un nouveau blocage
+  wasBlockedWhenEnteringRevision = isApprentissageBloque();
+  if (wasBlockedWhenEnteringRevision) {
+    const deficitActuel = calculerDeficitValidation();
+    // Si le déficit est > 6, c'est un nouveau blocage, on capture le déficit
+    // Sinon on garde l'ancien (en cours de déblocage)
+    if (deficitActuel > 6 || deficitInitialRevision === 0) {
+      deficitInitialRevision = Math.max(6, deficitActuel); // Au moins 6 pour la progression
+    }
+    console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points (actuel: ${deficitActuel})`);
+  }
     hasUnlockedInRevision = false; // Réinitialiser à l'entrée
     revisionMode.isActive = true;
     setTimeout(() => {
@@ -2222,7 +2227,7 @@ function updateUnlockProgress() {
     container.style.display = 'none';
     // Marquer comme débloqué si en mode révision
     if (revisionMode.isActive) {
-      hasUnlockedInRevision = true; // Enregistrer le déblocage
+      hasUnlockedInRevision = true;
     }
     return;
   }
@@ -2232,20 +2237,24 @@ function updateUnlockProgress() {
   
   const deficitActuel = calculerDeficitValidation();
   
-  // Calcul inversé : 100% au début, 0% au déblocage
-  const pourcentage = deficitInitialRevision > 0 
-    ? (deficitActuel / deficitInitialRevision * 100) 
+  // MODIFICATION : Barre de progression inversée avec déficit initial à 6
+  // Quand déficit = 6 → barre à 100%
+  // Quand déficit = 0 → barre à 0% (déblocage)
+  const deficitMax = Math.max(6, deficitInitialRevision); // Au moins 6 pour le calcul
+  const pourcentage = deficitMax > 0 
+    ? (deficitActuel / deficitMax * 100) 
     : 0;
   
   fill.style.width = `${pourcentage}%`;
   
-  if (pourcentage < 10 && pourcentage > 0) {
+  // Animation de proximité quand déficit < 2
+  if (deficitActuel < 2 && deficitActuel > 0) {
     fill.classList.add('proche-deblocage');
   } else {
     fill.classList.remove('proche-deblocage');
   }
   
-  console.log(`📊 Barre de déblocage: ${deficitActuel}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%)`);
+  console.log(`📊 Barre de déblocage: ${deficitActuel} points restants (${pourcentage.toFixed(1)}%) - Objectif: 0`);
 }
   
 function isGroupeDebloque(groupeId) {
@@ -2268,8 +2277,41 @@ function isGroupeDebloque(groupeId) {
 }
 function isApprentissageBloque() {
   const groupeActuel = getNiveauGroupe(niveauActif);
-  return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
-}  
+  
+  // Groupes 1-2 : jamais bloqués
+  if (groupeActuel <= 2) return false;
+  
+  // Groupe 3-5 : seuil normal (déficit > 0)
+  if (groupeActuel <= 5) {
+    return !isGroupeDebloque(groupeActuel);
+  }
+  
+  // Groupe 6+ : nouveau système avec hystérésis
+  const deficit = calculerDeficitValidation();
+  
+  // Vérifier l'état actuel du blocage
+  const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
+  
+  if (wasBlocked) {
+    // Si déjà bloqué : débloquer UNIQUEMENT si déficit = 0
+    const shouldUnblock = (deficit === 0);
+    if (shouldUnblock) {
+      localStorage.setItem('apprentissageBloque', 'false');
+      console.log('🔓 Déblocage - Déficit = 0');
+      return false;
+    }
+    return true;
+  } else {
+    // Si débloqué : bloquer si déficit > 6
+    const shouldBlock = (deficit > 6);
+    if (shouldBlock) {
+      localStorage.setItem('apprentissageBloque', 'true');
+      console.log('🔒 Blocage - Déficit > 6 points');
+      return true;
+    }
+    return false;
+  }
+}
 // Initialisation du contexte audio (à placer au début du script, une seule fois)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -3230,7 +3272,11 @@ async function initGame() {
   } else {
     HiraganaList = data;
   }
-
+  // Dans initGame(), après le chargement des données
+// Initialiser l'état de blocage si pas encore fait
+if (localStorage.getItem('apprentissageBloque') === null) {
+  localStorage.setItem('apprentissageBloque', 'false');
+}
   // Log des données brutes pour vérifier les clés
   console.log('📥 Données brutes de l\'API (getHiraganas):', JSON.stringify(HiraganaList.slice(0, 3), null, 2));
 
@@ -4098,6 +4144,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
