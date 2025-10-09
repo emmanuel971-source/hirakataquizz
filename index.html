@@ -2200,7 +2200,6 @@ function calculerDeficitMaximum() {
 function updateUnlockProgress() {
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
-
   if (!container || !fill) return;
 
   const isBlocked = isApprentissageBloque();
@@ -2236,7 +2235,7 @@ function updateUnlockProgress() {
 
   fill.style.width = `${pourcentage}%`;
 
-  // Si déficit = 0, débloquer immédiatement
+  // Déblocage uniquement si déficit = 0
   if (deficitActuel === 0) {
     container.style.display = 'none';
     hasUnlockedInRevision = true;
@@ -2280,7 +2279,7 @@ function isApprentissageBloque() {
   // Pour les niveaux > 5 : bloquer si déficit > 6
   else {
     const deficit = calculerDeficitValidation();
-    return deficit > 2;
+    return deficit > 2; // Bloqué uniquement si déficit > 2
   }
 }
   
@@ -4121,6 +4120,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
