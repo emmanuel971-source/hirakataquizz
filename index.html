@@ -3988,7 +3988,7 @@ function initRevisionKeyboard() {
         console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-        // Modification de la validation en mode révision (SANS vérification de blocage)
+        // Modification de la validation en mode révision
         const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
         if (hiraganaIndex !== -1) {
           const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
@@ -4003,7 +4003,7 @@ function initRevisionKeyboard() {
           HiraganaList[hiraganaIndex].Validation = newValidation.toString();
           validationCache[revisionMode.currentItem.ID] = newValidation;
           
-          // ✅ POINT 4 : Recalculer le déficit initial si mauvaise réponse
+          // Recalculer le déficit initial si mauvaise réponse
           if (!isCorrect && wasBlockedWhenEnteringRevision) {
             deficitInitialRevision = calculerDeficitValidation();
             console.log(`🔄 Déficit recalculé après erreur: ${deficitInitialRevision} points`);
@@ -4021,10 +4021,13 @@ function initRevisionKeyboard() {
           isRevisionMode: true
         }).catch(error => console.error('Erreur sauvegarde stats:', error));
 
-        // ✅ POINT 5 : Mettre à jour la barre de déblocage
+        // Mettre à jour la barre de déblocage
         if (wasBlockedWhenEnteringRevision) {
           updateUnlockProgress();
         }
+        
+        // Mettre à jour l'état du bouton Apprendre
+        updateApprendreButtonState();
 
         // Afficher feedback
         if (isCorrect) {
@@ -4113,6 +4116,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
