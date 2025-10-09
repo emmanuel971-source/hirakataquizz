@@ -2203,32 +2203,29 @@ function updateUnlockProgress() {
   if (!container || !fill) return;
 
   const deficitActuel = calculerDeficitValidation();
-  const isBlocked = deficitActuel > 2; // recalcul local fiable
+  const isBlocked = deficitActuel > 2; // recalcul local
 
-  // 🔹 Si on est en mode révision et qu'on a déjà débloqué
-  if (revisionMode.isActive && hasUnlockedInRevision) {
-    container.style.display = 'none';
-    return;
+  // 🔹 Verrou : garder la valeur maximale atteinte à l’entrée
+  if (!deficitInitialRevision || deficitActuel > deficitInitialRevision) {
+    deficitInitialRevision = deficitActuel;
   }
 
-  // 🔹 Si on est en mode révision mais non bloqué au départ
-  if (revisionMode.isActive && !wasBlockedWhenEnteringRevision) {
-    container.style.display = 'none';
-    return;
-  }
-
-  // 🔹 Cas principal : affichage de la barre pendant tout le blocage
-  if (isBlocked || (deficitActuel > 0 && deficitActuel < 3)) {
+  // 🔹 Affichage cohérent : visible dès qu’il reste un déficit > 0
+  if (isBlocked || (deficitActuel > 0 && deficitActuel <= deficitInitialRevision)) {
     container.style.display = 'block';
   } else {
     container.style.display = 'none';
   }
 
-  // 🔹 Calcul du pourcentage
-  const pourcentage = deficitInitialRevision > 0
-    ? (deficitActuel / deficitInitialRevision * 100)
-    : 0;
+  // 🔹 Calcul du pourcentage actuel
+  let pourcentage = 0;
+  if (deficitInitialRevision > 0) {
+    pourcentage = (deficitActuel / deficitInitialRevision) * 100;
+    pourcentage = Math.min(Math.max(pourcentage, 0), 100); // bornes 0–100
+  }
 
+  // 🔹 Appliquer une transition fluide
+  fill.style.transition = 'width 0.4s ease';
   fill.style.width = `${pourcentage}%`;
 
   // 🔹 Gestion du déblocage uniquement quand déficit = 0
@@ -2247,7 +2244,7 @@ function updateUnlockProgress() {
     fill.classList.remove('proche-deblocage');
   }
 
-  console.log(`📊 Barre de déblocage affichée — déficit actuel: ${deficitActuel}, initial: ${deficitInitialRevision}, ${pourcentage.toFixed(1)}%`);
+  console.log(`📊 Déficit actuel: ${deficitActuel}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%)`);
 }
 
   
@@ -4126,6 +4123,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
