@@ -2268,8 +2268,23 @@ function isGroupeDebloque(groupeId) {
 }
 function isApprentissageBloque() {
   const groupeActuel = getNiveauGroupe(niveauActif);
-  return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
-}  
+  
+  // Pas de blocage avant le groupe 3
+  if (groupeActuel < 3) return false;
+  
+  // Vérifier si le groupe actuel est débloqué
+  const isGroupeValide = isGroupeDebloque(groupeActuel);
+  
+  // Si le niveau est supérieur à 5, vérifier si le déficit dépasse 6 points
+  if (niveauActif > 5) {
+    const deficit = calculerDeficitValidation();
+    return !isGroupeValide && deficit > 6;
+  }
+  
+  // Pour les niveaux 5 et moins, conserver le comportement actuel
+  return !isGroupeValide;
+}
+  
 // Initialisation du contexte audio (à placer au début du script, une seule fois)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -4098,6 +4113,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
