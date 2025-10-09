@@ -2278,10 +2278,17 @@ function isApprentissageBloque() {
     return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
   }
   // Pour les niveaux > 5 : bloquer si déficit > 6
-  else {
-    const deficit = calculerDeficitValidation();
-    return deficit > 2;
+else {
+  const deficit = calculerDeficitValidation();
+
+  // Si on est déjà bloqué, on reste bloqué tant que déficit > 0
+  if (hasShownBlockedMenu) {
+    return deficit > 0;
   }
+
+  // Si on n'était pas bloqué, on bloque dès que déficit > 2
+  return deficit > 2;
+}
 }
   
 // Initialisation du contexte audio (à placer au début du script, une seule fois)
@@ -4121,3 +4128,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
