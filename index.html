@@ -2286,29 +2286,31 @@ function isApprentissageBloque() {
     return !isGroupeDebloque(groupeActuel);
   }
   
-  // Groupe 6+ : nouveau système avec hystérésis
+  // Groupe 6+ : système avec hystérésis
   const deficit = calculerDeficitValidation();
   
-  // Vérifier l'état actuel du blocage
+  // Récupérer l'état de blocage précédent
   const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
   
+  console.log(`🔍 Vérification blocage - Niveau: ${niveauActif}, Groupe: ${groupeActuel}, Déficit: ${deficit}, Était bloqué: ${wasBlocked}`);
+  
   if (wasBlocked) {
-    // Si déjà bloqué : débloquer UNIQUEMENT si déficit = 0
-    const shouldUnblock = (deficit === 0);
-    if (shouldUnblock) {
+    // ✅ SI DÉJÀ BLOQUÉ : ne débloquer QUE si déficit = 0
+    if (deficit === 0) {
       localStorage.setItem('apprentissageBloque', 'false');
-      console.log('🔓 Déblocage - Déficit = 0');
+      console.log('🔓 DÉBLOCAGE - Déficit atteint 0');
       return false;
     }
+    console.log(`🔒 Reste bloqué - Déficit: ${deficit}/0`);
     return true;
   } else {
-    // Si débloqué : bloquer si déficit > 6
-    const shouldBlock = (deficit > 6);
-    if (shouldBlock) {
+    // ✅ SI DÉBLOQUÉ : ne bloquer QUE si déficit > 6
+    if (deficit > 6) {
       localStorage.setItem('apprentissageBloque', 'true');
-      console.log('🔒 Blocage - Déficit > 6 points');
+      console.log(`🔒 BLOCAGE - Déficit dépasse 6 (${deficit})`);
       return true;
     }
+    console.log(`✅ Reste débloqué - Déficit: ${deficit}/6`);
     return false;
   }
 }
@@ -3327,6 +3329,20 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
     ));
 
   niveauActif = determineNiveauActif(HiraganaList);
+  // ✅ NOUVEAU : Initialiser l'état de blocage selon le niveau actuel
+const groupeActuel = getNiveauGroupe(niveauActif);
+if (groupeActuel <= 5) {
+  // Niveaux 1-5 : on ne stocke pas l'état (logique classique)
+  localStorage.removeItem('apprentissageBloque');
+} else {
+  // Niveaux 6+ : initialiser si pas encore fait
+  if (localStorage.getItem('apprentissageBloque') === null) {
+    const deficit = calculerDeficitValidation();
+    // Initialiser à "bloqué" seulement si déficit > 6
+    localStorage.setItem('apprentissageBloque', deficit > 6 ? 'true' : 'false');
+    console.log(`🎯 Initialisation état blocage: ${deficit > 6 ? 'BLOQUÉ' : 'DÉBLOQUÉ'} (déficit: ${deficit})`);
+  }
+}
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
@@ -3371,7 +3387,19 @@ renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
 updateLevelProgress(HiraganaList, niveauActif);
 updateRevisionButtonState();  
 updateApprendreButtonState(); // Nouvelle ligne  
-// Ajouter ici
+// ✅ AJOUTER ICI (après updateApprendreButtonState()) :
+    
+    // Réinitialiser l'état de blocage quand on change de groupe
+    if (nouveauGroupe !== ancienGroupe) {
+      if (nouveauGroupe <= 5) {
+        localStorage.removeItem('apprentissageBloque');
+        console.log(`🔄 Passage au groupe ${nouveauGroupe} - État de blocage réinitialisé`);
+      } else if (nouveauGroupe >= 6 && ancienGroupe < 6) {
+        // Premier passage au groupe 6+ : initialiser à débloqué
+        localStorage.setItem('apprentissageBloque', 'false');
+        console.log(`🎯 Entrée dans le système hystérésis (groupe ${nouveauGroupe}) - État: DÉBLOQUÉ`);
+      }
+    }
 if (niveauActif === 4 && !hasShownLevel4Menu) {
     const menu = document.getElementById('menu');
     const menuMessage = document.getElementById('menu-message');
@@ -4033,7 +4061,9 @@ function initRevisionKeyboard() {
           
           HiraganaList[hiraganaIndex].Validation = newValidation.toString();
           validationCache[revisionMode.currentItem.ID] = newValidation;
-          
+          // ✅ NOUVEAU : Logger le déficit après chaque réponse
+const deficitApres = calculerDeficitValidation();
+console.log(`📊 Après réponse ${isCorrect ? 'correcte' : 'incorrecte'}: Validation ${currentValidation}→${newValidation}, Déficit total: ${deficitApres}`);
           // ✅ POINT 4 : Recalculer le déficit initial si mauvaise réponse
           if (!isCorrect && wasBlockedWhenEnteringRevision) {
             deficitInitialRevision = calculerDeficitValidation();
@@ -4144,6 +4174,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
