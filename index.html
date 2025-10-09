@@ -2200,53 +2200,58 @@ function calculerDeficitMaximum() {
 function updateUnlockProgress() {
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
-  
+
   if (!container || !fill) return;
-  
+
   const isBlocked = isApprentissageBloque();
-  
+
   // Si on est en mode révision et qu'on a déjà débloqué, masquer la barre
   if (revisionMode.isActive && hasUnlockedInRevision) {
     container.style.display = 'none';
     return;
   }
-  
+
   // Si on est en mode révision mais non bloqué au départ, masquer la barre
   if (revisionMode.isActive && !wasBlockedWhenEnteringRevision) {
     container.style.display = 'none';
     return;
   }
-  
+
   // Si pas bloqué, masquer la barre
   if (!isBlocked) {
     container.style.display = 'none';
-    // Marquer comme débloqué si en mode révision
     if (revisionMode.isActive) {
-      hasUnlockedInRevision = true; // Enregistrer le déblocage
+      hasUnlockedInRevision = true;
     }
     return;
   }
-  
+
   // Afficher la barre si bloqué et non débloqué
   container.style.display = 'block';
-  
+
   const deficitActuel = calculerDeficitValidation();
-  
-  // Calcul inversé : 100% au début, 0% au déblocage
-  const pourcentage = deficitInitialRevision > 0 
-    ? (deficitActuel / deficitInitialRevision * 100) 
+  const pourcentage = deficitInitialRevision > 0
+    ? (deficitActuel / deficitInitialRevision * 100)
     : 0;
-  
+
   fill.style.width = `${pourcentage}%`;
-  
+
+  // Si déficit = 0, débloquer immédiatement
+  if (deficitActuel === 0) {
+    container.style.display = 'none';
+    hasUnlockedInRevision = true;
+    updateApprendreButtonState(); // Mettre à jour le bouton
+  }
+
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
   } else {
     fill.classList.remove('proche-deblocage');
   }
-  
+
   console.log(`📊 Barre de déblocage: ${deficitActuel}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%)`);
 }
+
   
 function isGroupeDebloque(groupeId) {
   if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
@@ -2268,8 +2273,17 @@ function isGroupeDebloque(groupeId) {
 }
 function isApprentissageBloque() {
   const groupeActuel = getNiveauGroupe(niveauActif);
-  return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
-}  
+  // Pour les niveaux ≤ 5 : logique actuelle
+  if (niveauActif <= 5) {
+    return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
+  }
+  // Pour les niveaux > 5 : bloquer si déficit > 6
+  else {
+    const deficit = calculerDeficitValidation();
+    return deficit > 2;
+  }
+}
+  
 // Initialisation du contexte audio (à placer au début du script, une seule fois)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -3674,6 +3688,12 @@ easing: "ease-in-out"
 }
 
 function startRevisionQuestion() {
+  // Capturer le déficit initial si le mode "Apprendre" était bloqué
+if (wasBlockedWhenEnteringRevision) {
+  deficitInitialRevision = calculerDeficitValidation();
+  console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
+}
+
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
@@ -3922,6 +3942,9 @@ function updateRevisionFeedback() {
       }
     }
   }
+if (wasBlockedWhenEnteringRevision) {
+  updateUnlockProgress();
+}  
 }
   
       
@@ -4096,8 +4119,9 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   panda.style.pointerEvents = "none"; 
   panda.style.opacity = "0.2"; // optionnel, pour indiquer que c'est inactif
 });
-</script> 
+</script>  
 </html>
+
 
 
 
