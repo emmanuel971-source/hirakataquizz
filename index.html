@@ -2203,7 +2203,8 @@ function updateUnlockProgress() {
 
   if (!container || !fill) return;
 
-  const isBlocked = isApprentissageBloque();
+  const deficitActuel = calculerDeficitValidation();
+  const isBlocked = deficitActuel > 2; // ✅ recalculé ici directement
 
   // Si on est en mode révision et qu'on a déjà débloqué, masquer la barre
   if (revisionMode.isActive && hasUnlockedInRevision) {
@@ -2217,31 +2218,25 @@ function updateUnlockProgress() {
     return;
   }
 
-  // Si pas bloqué, masquer la barre
-  if (!isBlocked) {
+  // Si pas bloqué (déficit ≤ 2), on affiche encore la barre tant que déficit > 0
+  if (!isBlocked && deficitActuel > 0) {
+    container.style.display = 'block';
+  }
+
+  // Si déficit = 0, débloquer réellement
+  if (deficitActuel === 0) {
     container.style.display = 'none';
-    if (revisionMode.isActive) {
-      hasUnlockedInRevision = true;
-    }
+    hasUnlockedInRevision = true;
+    updateApprendreButtonState(); // Mettre à jour le bouton
     return;
   }
 
-  // Afficher la barre si bloqué et non débloqué
-  container.style.display = 'block';
-
-  const deficitActuel = calculerDeficitValidation();
+  // Mettre à jour la largeur de la barre
   const pourcentage = deficitInitialRevision > 0
     ? (deficitActuel / deficitInitialRevision * 100)
     : 0;
 
   fill.style.width = `${pourcentage}%`;
-
-  // Si déficit = 0, débloquer immédiatement
-  if (deficitActuel === 0) {
-    container.style.display = 'none';
-    hasUnlockedInRevision = true;
-    updateApprendreButtonState(); // Mettre à jour le bouton
-  }
 
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
@@ -4128,5 +4123,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
