@@ -3677,11 +3677,7 @@ easing: "ease-in-out"
 }
 
 function startRevisionQuestion() {
-  // Capturer le déficit initial si le mode "Apprendre" était bloqué
-if (niveauActif > 5) {
-  deficitInitialRevision = calculerDeficitValidation();
-  console.log(`Déficit initial capturé: ${deficitInitialRevision} points`);
-}
+
   // Capturer le déficit initial si le mode "Apprendre" était bloqué
 if (wasBlockedWhenEnteringRevision) {
   deficitInitialRevision = calculerDeficitValidation();
@@ -3689,6 +3685,11 @@ if (wasBlockedWhenEnteringRevision) {
 }
 
   const niveauActif = determineNiveauActif(HiraganaList);
+    // Capturer le déficit initial si le mode "Apprendre" était bloqué
+if (niveauActif > 5) {
+  deficitInitialRevision = calculerDeficitValidation();
+  console.log(`Déficit initial capturé: ${deficitInitialRevision} points`);
+}
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
     parseInt(h.Niveau || 1) < niveauActif && 
@@ -4115,6 +4116,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
