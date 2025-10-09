@@ -2280,7 +2280,7 @@ function isApprentissageBloque() {
   // Pour les niveaux > 5 : bloquer si déficit > 6
   else {
     const deficit = calculerDeficitValidation();
-    return deficit > 6;
+    return deficit > 2;
   }
 }
   
@@ -4121,6 +4121,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
