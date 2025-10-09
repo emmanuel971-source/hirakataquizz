@@ -2277,7 +2277,7 @@ function isApprentissageBloque() {
   if (niveauActif <= 5) {
     return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
   }
-  // Pour les niveaux > 5 : bloquer si déficit > 6
+  // Pour les niveaux > 5 : bloquer si déficit > 2
 else {
   const deficit = calculerDeficitValidation();
 
@@ -4128,4 +4128,5 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
