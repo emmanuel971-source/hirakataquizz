@@ -2020,26 +2020,20 @@ function showSection(sectionId) {
   document.getElementById(sectionId).classList.add('active');
   
   // Démarrer le mode révisions si c'est le mode sélectionné
- if (sectionId === 'mode2') {
-  const currentlyBlocked = isApprentissageBloque();
-
-  // ✅ On ne redéfinit le déficit initial QUE s’il n’est pas déjà fixé
-  if (currentlyBlocked && (!deficitInitialRevision || !wasBlockedWhenEnteringRevision)) {
-    deficitInitialRevision = calculerDeficitValidation();
-    console.log(`🎯 Déficit initial fixé: ${deficitInitialRevision} points`);
-  }
-
-  wasBlockedWhenEnteringRevision = currentlyBlocked;
-  hasUnlockedInRevision = false;
-  revisionMode.isActive = true;
-
-  setTimeout(() => {
-    initRevisionKeyboard();
-    startRevisionQuestion();
-    updateUnlockProgress(); // ✅ affiche correctement la barre dès l’entrée
-  }, 100);
+  if (sectionId === 'mode2') {
+    // NOUVEAU : Capturer l'état du blocage à l'entrée en mode révision
+    wasBlockedWhenEnteringRevision = isApprentissageBloque();
+    if (wasBlockedWhenEnteringRevision) {
+  deficitInitialRevision = calculerDeficitValidation();
+  console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
 }
- else {
+    hasUnlockedInRevision = false; // Réinitialiser à l'entrée
+    revisionMode.isActive = true;
+    setTimeout(() => {
+      initRevisionKeyboard();
+      startRevisionQuestion();
+    }, 100);
+  } else {
     revisionMode.isActive = false;
     // Remettre à false quand on quitte le mode révision
     wasBlockedWhenEnteringRevision = false;
@@ -2206,53 +2200,53 @@ function calculerDeficitMaximum() {
 function updateUnlockProgress() {
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
+  
   if (!container || !fill) return;
-
-  const deficitActuel = calculerDeficitValidation();
-  const isBlocked = deficitActuel > 2; // recalcul local
-
-  // 🔹 Verrou : garder la valeur maximale atteinte à l’entrée
-  if (!deficitInitialRevision || deficitActuel > deficitInitialRevision) {
-    deficitInitialRevision = deficitActuel;
-  }
-
-  // 🔹 Affichage cohérent : visible dès qu’il reste un déficit > 0
-  if (isBlocked || (deficitActuel > 0 && deficitActuel <= deficitInitialRevision)) {
-    container.style.display = 'block';
-  } else {
+  
+  const isBlocked = isApprentissageBloque();
+  
+  // Si on est en mode révision et qu'on a déjà débloqué, masquer la barre
+  if (revisionMode.isActive && hasUnlockedInRevision) {
     container.style.display = 'none';
-  }
-
-  // 🔹 Calcul du pourcentage actuel
-  let pourcentage = 0;
-  if (deficitInitialRevision > 0) {
-    pourcentage = (deficitActuel / deficitInitialRevision) * 100;
-    pourcentage = Math.min(Math.max(pourcentage, 0), 100); // bornes 0–100
-  }
-
-  // 🔹 Appliquer une transition fluide
-  fill.style.transition = 'width 0.4s ease';
-  fill.style.width = `${pourcentage}%`;
-
-  // 🔹 Gestion du déblocage uniquement quand déficit = 0
-  if (deficitActuel === 0) {
-    container.style.display = 'none';
-    hasUnlockedInRevision = true;
-    updateApprendreButtonState();
-    console.log('✅ Déficit ramené à 0 — mode Apprendre débloqué');
     return;
   }
-
-  // 🔹 Effet visuel proche du déblocage
+  
+  // Si on est en mode révision mais non bloqué au départ, masquer la barre
+  if (revisionMode.isActive && !wasBlockedWhenEnteringRevision) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  // Si pas bloqué, masquer la barre
+  if (!isBlocked) {
+    container.style.display = 'none';
+    // Marquer comme débloqué si en mode révision
+    if (revisionMode.isActive) {
+      hasUnlockedInRevision = true; // Enregistrer le déblocage
+    }
+    return;
+  }
+  
+  // Afficher la barre si bloqué et non débloqué
+  container.style.display = 'block';
+  
+  const deficitActuel = calculerDeficitValidation();
+  
+  // Calcul inversé : 100% au début, 0% au déblocage
+  const pourcentage = deficitInitialRevision > 0 
+    ? (deficitActuel / deficitInitialRevision * 100) 
+    : 0;
+  
+  fill.style.width = `${pourcentage}%`;
+  
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
   } else {
     fill.classList.remove('proche-deblocage');
   }
-
-  console.log(`📊 Déficit actuel: ${deficitActuel}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%)`);
+  
+  console.log(`📊 Barre de déblocage: ${deficitActuel}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%)`);
 }
-
   
 function isGroupeDebloque(groupeId) {
   if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
@@ -2274,24 +2268,8 @@ function isGroupeDebloque(groupeId) {
 }
 function isApprentissageBloque() {
   const groupeActuel = getNiveauGroupe(niveauActif);
-  // Pour les niveaux ≤ 5 : logique actuelle
-  if (niveauActif <= 5) {
-    return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
-  }
-  // Pour les niveaux > 5 : bloquer si déficit > 2
-else {
-  const deficit = calculerDeficitValidation();
-
-  // Si on est déjà bloqué, on reste bloqué tant que déficit > 0
-  if (hasShownBlockedMenu) {
-    return deficit > 0;
-  }
-
-  // Si on n'était pas bloqué, on bloque dès que déficit > 2
-  return deficit > 2;
-}
-}
-  
+  return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
+}  
 // Initialisation du contexte audio (à placer au début du script, une seule fois)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -3696,12 +3674,6 @@ easing: "ease-in-out"
 }
 
 function startRevisionQuestion() {
-  // Capturer le déficit initial si le mode "Apprendre" était bloqué
-if (wasBlockedWhenEnteringRevision) {
-  deficitInitialRevision = calculerDeficitValidation();
-  console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
-}
-
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
@@ -3950,9 +3922,6 @@ function updateRevisionFeedback() {
       }
     }
   }
-if (wasBlockedWhenEnteringRevision) {
-  updateUnlockProgress();
-}  
 }
   
       
@@ -4127,8 +4096,9 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   panda.style.pointerEvents = "none"; 
   panda.style.opacity = "0.2"; // optionnel, pour indiquer que c'est inactif
 });
-</script>  
+</script> 
 </html>
+
 
 
 
