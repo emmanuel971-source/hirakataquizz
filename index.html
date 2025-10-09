@@ -2020,20 +2020,26 @@ function showSection(sectionId) {
   document.getElementById(sectionId).classList.add('active');
   
   // Démarrer le mode révisions si c'est le mode sélectionné
-  if (sectionId === 'mode2') {
-    // NOUVEAU : Capturer l'état du blocage à l'entrée en mode révision
-    wasBlockedWhenEnteringRevision = isApprentissageBloque();
-    if (wasBlockedWhenEnteringRevision) {
-  deficitInitialRevision = calculerDeficitValidation();
-  console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
+ if (sectionId === 'mode2') {
+  const currentlyBlocked = isApprentissageBloque();
+
+  // ✅ On ne redéfinit le déficit initial QUE s’il n’est pas déjà fixé
+  if (currentlyBlocked && (!deficitInitialRevision || !wasBlockedWhenEnteringRevision)) {
+    deficitInitialRevision = calculerDeficitValidation();
+    console.log(`🎯 Déficit initial fixé: ${deficitInitialRevision} points`);
+  }
+
+  wasBlockedWhenEnteringRevision = currentlyBlocked;
+  hasUnlockedInRevision = false;
+  revisionMode.isActive = true;
+
+  setTimeout(() => {
+    initRevisionKeyboard();
+    startRevisionQuestion();
+    updateUnlockProgress(); // ✅ affiche correctement la barre dès l’entrée
+  }, 100);
 }
-    hasUnlockedInRevision = false; // Réinitialiser à l'entrée
-    revisionMode.isActive = true;
-    setTimeout(() => {
-      initRevisionKeyboard();
-      startRevisionQuestion();
-    }, 100);
-  } else {
+ else {
     revisionMode.isActive = false;
     // Remettre à false quand on quitte le mode révision
     wasBlockedWhenEnteringRevision = false;
@@ -4123,6 +4129,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
