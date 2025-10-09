@@ -2200,51 +2200,54 @@ function calculerDeficitMaximum() {
 function updateUnlockProgress() {
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
-
   if (!container || !fill) return;
 
   const deficitActuel = calculerDeficitValidation();
-  const isBlocked = deficitActuel > 2; // ✅ recalculé ici directement
+  const isBlocked = deficitActuel > 2; // recalcul local fiable
 
-  // Si on est en mode révision et qu'on a déjà débloqué, masquer la barre
+  // 🔹 Si on est en mode révision et qu'on a déjà débloqué
   if (revisionMode.isActive && hasUnlockedInRevision) {
     container.style.display = 'none';
     return;
   }
 
-  // Si on est en mode révision mais non bloqué au départ, masquer la barre
+  // 🔹 Si on est en mode révision mais non bloqué au départ
   if (revisionMode.isActive && !wasBlockedWhenEnteringRevision) {
     container.style.display = 'none';
     return;
   }
 
-  // Si pas bloqué (déficit ≤ 2), on affiche encore la barre tant que déficit > 0
-  if (!isBlocked && deficitActuel > 0) {
+  // 🔹 Cas principal : affichage de la barre pendant tout le blocage
+  if (isBlocked || (deficitActuel > 0 && deficitActuel < 3)) {
     container.style.display = 'block';
-  }
-
-  // Si déficit = 0, débloquer réellement
-  if (deficitActuel === 0) {
+  } else {
     container.style.display = 'none';
-    hasUnlockedInRevision = true;
-    updateApprendreButtonState(); // Mettre à jour le bouton
-    return;
   }
 
-  // Mettre à jour la largeur de la barre
+  // 🔹 Calcul du pourcentage
   const pourcentage = deficitInitialRevision > 0
     ? (deficitActuel / deficitInitialRevision * 100)
     : 0;
 
   fill.style.width = `${pourcentage}%`;
 
+  // 🔹 Gestion du déblocage uniquement quand déficit = 0
+  if (deficitActuel === 0) {
+    container.style.display = 'none';
+    hasUnlockedInRevision = true;
+    updateApprendreButtonState();
+    console.log('✅ Déficit ramené à 0 — mode Apprendre débloqué');
+    return;
+  }
+
+  // 🔹 Effet visuel proche du déblocage
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
   } else {
     fill.classList.remove('proche-deblocage');
   }
 
-  console.log(`📊 Barre de déblocage: ${deficitActuel}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%)`);
+  console.log(`📊 Barre de déblocage affichée — déficit actuel: ${deficitActuel}, initial: ${deficitInitialRevision}, ${pourcentage.toFixed(1)}%`);
 }
 
   
@@ -4123,6 +4126,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
