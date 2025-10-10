@@ -2238,12 +2238,14 @@ function updateUnlockProgress() {
 
   fill.style.width = `${pourcentage}%`;
 
-  // Si on a gagné assez de points pour atteindre 0
-  if (pointsGagnesEnRevision >= deficitInitialRevision) {
-    container.style.display = 'none';
-    hasUnlockedInRevision = true;
-    updateApprendreButtonState();
-  }
+// Si on a gagné assez de points pour atteindre 0
+if (pointsGagnesEnRevision >= deficitInitialRevision) {
+  container.style.display = 'none';
+  hasUnlockedInRevision = true;
+  localStorage.setItem('apprentissageBloque', 'false'); // ✅ Déblocage explicite
+  updateApprendreButtonState();
+  console.log('🎉 DÉBLOCAGE ! Déficit ramené à 0');
+}
 
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
@@ -3859,7 +3861,7 @@ if (wasBlockedWhenEnteringRevision) {
 
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
   console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
-  updateUnlockProgress();
+//  updateUnlockProgress();
 }  
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
@@ -4023,33 +4025,35 @@ const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentIt
 if (hiraganaIndex !== -1) {
   const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
   
-  let newValidation;
-  let pointsGagnes = 0; // Points gagnés/perdus pour CETTE question
-  
-  if (isCorrect) {
-    newValidation = currentValidation + 1;
-    // Calculer les points gagnés pour cette réponse
-    if (currentValidation < seuilValidation) {
-      pointsGagnes = 1; // On gagne 1 point si on était sous le seuil
-    }
-  } else {
-    newValidation = Math.max(5, currentValidation - 2);
-    // Calculer les points perdus pour cette réponse
-    if (currentValidation >= seuilValidation) {
-      pointsGagnes = Math.min(0, seuilValidation - newValidation); // Négatif si on perd des points
-    } else {
-      pointsGagnes = currentValidation - newValidation; // Toujours négatif
-    }
+let newValidation;
+let pointsGagnes = 0; // Points gagnés/perdus pour CETTE question
+
+if (isCorrect) {
+  newValidation = currentValidation + 1;
+  // ✅ On gagne des points SEULEMENT si on passe d'un état "sous le seuil" à un état "plus proche du seuil"
+  if (currentValidation < seuilValidation) {
+    pointsGagnes = 1; // Chaque +1 de validation réduit le déficit de 1
   }
+  // Si déjà au-dessus du seuil, ça ne change rien au déficit
+} else {
+  newValidation = Math.max(5, currentValidation - 2);
+  // ✅ On perd des points si la validation descend en dessous du seuil
+  const oldDeficit = Math.max(0, seuilValidation - currentValidation);
+  const newDeficit = Math.max(0, seuilValidation - newValidation);
+  pointsGagnes = oldDeficit - newDeficit; // Négatif si le déficit augmente
+}
+
+HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+validationCache[revisionMode.currentItem.ID] = newValidation;
+
+// ✅ Mettre à jour le compteur de progression
+if (wasBlockedWhenEnteringRevision) {
+  pointsGagnesEnRevision += pointsGagnes;
+  console.log(`📊 Validation: ${currentValidation}→${newValidation} | Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
   
-  HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-  validationCache[revisionMode.currentItem.ID] = newValidation;
-  
-  // ✅ Mettre à jour le compteur de progression
-  if (wasBlockedWhenEnteringRevision) {
-    pointsGagnesEnRevision += pointsGagnes;
-    console.log(`📊 Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
-  }
+  // ✅ IMPORTANT : Mettre à jour la barre IMMÉDIATEMENT après chaque réponse
+  updateUnlockProgress();
+}
   
   console.log(`🔒 Mode révision - Validation: ${newValidation} (était: ${currentValidation})`);
 }
@@ -4155,6 +4159,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
