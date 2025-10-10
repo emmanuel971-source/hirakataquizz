@@ -2020,13 +2020,13 @@ function showSection(sectionId) {
   document.getElementById(sectionId).classList.add('active');
   
   // Démarrer le mode révisions si c'est le mode sélectionné
-  if (sectionId === 'mode2') {
-    // NOUVEAU : Capturer l'état du blocage à l'entrée en mode révision
-    wasBlockedWhenEnteringRevision = isApprentissageBloque();
-    if (wasBlockedWhenEnteringRevision) {
-  deficitInitialRevision = calculerDeficitValidation();
-  console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
-}
+if (sectionId === 'mode2') {
+  wasBlockedWhenEnteringRevision = isApprentissageBloque();
+  if (wasBlockedWhenEnteringRevision) {
+    deficitInitialRevision = calculerDeficitValidation();
+    pointsGagnesEnRevision = 0; // ✅ RESET du compteur à l'entrée
+    console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
+  }
     hasUnlockedInRevision = false; // Réinitialiser à l'entrée
     revisionMode.isActive = true;
     setTimeout(() => {
@@ -2069,6 +2069,8 @@ function updateMenuMessage() {
 }
   </script>
 <script>
+let deficitInitialRevision = 0;
+let pointsGagnesEnRevision = 0; // ✅ NOUVEAU : compteur de progression  
 let wasBlockedWhenEnteringRevision = false;
 let deficitInitialRevision = 0;  
 let hasUnlockedInRevision = false; // Nouvelle variable pour suivre le déblocage  
@@ -2229,20 +2231,20 @@ function updateUnlockProgress() {
   // Afficher la barre si bloqué et non débloqué
   container.style.display = 'block';
 
-  const deficitActuel = calculerDeficitValidation();
+  // ✅ UTILISER LE COMPTEUR au lieu de recalculer
+  const deficitRestant = Math.max(0, deficitInitialRevision - pointsGagnesEnRevision);
   const pourcentage = deficitInitialRevision > 0
-    ? (deficitActuel / deficitInitialRevision * 100)
+    ? (deficitRestant / deficitInitialRevision * 100)
     : 0;
 
   fill.style.width = `${pourcentage}%`;
 
-  // Si déficit = 0, débloquer immédiatement
- if (deficitActuel === 0) {
-  container.style.display = 'none';
-  hasUnlockedInRevision = true;
-  localStorage.setItem('apprentissageBloque', 'false'); // ✅ Déblocage explicite
-  updateApprendreButtonState();
-}
+  // Si on a gagné assez de points pour atteindre 0
+  if (pointsGagnesEnRevision >= deficitInitialRevision) {
+    container.style.display = 'none';
+    hasUnlockedInRevision = true;
+    updateApprendreButtonState();
+  }
 
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
@@ -2250,9 +2252,8 @@ function updateUnlockProgress() {
     fill.classList.remove('proche-deblocage');
   }
 
-  console.log(`📊 Barre de déblocage: ${deficitActuel}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%)`);
+  console.log(`📊 Barre: ${deficitRestant}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%) | Points gagnés: ${pointsGagnesEnRevision}`);
 }
-
   
 function isGroupeDebloque(groupeId) {
   if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
@@ -4018,28 +4019,41 @@ function initRevisionKeyboard() {
         console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
         // Modification de la validation en mode révision (SANS vérification de blocage)
-        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
-        if (hiraganaIndex !== -1) {
-          const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-          
-          let newValidation;
-          if (isCorrect) {
-            newValidation = currentValidation + 1; // Pas de plafonnement
-          } else {
-            newValidation = Math.max(5, currentValidation - 2);
-          }
-          
-          HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-          validationCache[revisionMode.currentItem.ID] = newValidation;
-          
-          // ✅ POINT 4 : Recalculer le déficit initial si mauvaise réponse
-          if (!isCorrect && wasBlockedWhenEnteringRevision) {
-            deficitInitialRevision = calculerDeficitValidation();
-            console.log(`🔄 Déficit recalculé après erreur: ${deficitInitialRevision} points`);
-          }
-          
-          console.log(`🔒 Mode révision - Validation mise à jour: ${newValidation} (était: ${currentValidation}) - Cache mis à jour`);
-        }
+// Modification de la validation en mode révision
+const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+if (hiraganaIndex !== -1) {
+  const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+  
+  let newValidation;
+  let pointsGagnes = 0; // Points gagnés/perdus pour CETTE question
+  
+  if (isCorrect) {
+    newValidation = currentValidation + 1;
+    // Calculer les points gagnés pour cette réponse
+    if (currentValidation < seuilValidation) {
+      pointsGagnes = 1; // On gagne 1 point si on était sous le seuil
+    }
+  } else {
+    newValidation = Math.max(5, currentValidation - 2);
+    // Calculer les points perdus pour cette réponse
+    if (currentValidation >= seuilValidation) {
+      pointsGagnes = Math.min(0, seuilValidation - newValidation); // Négatif si on perd des points
+    } else {
+      pointsGagnes = currentValidation - newValidation; // Toujours négatif
+    }
+  }
+  
+  HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+  validationCache[revisionMode.currentItem.ID] = newValidation;
+  
+  // ✅ Mettre à jour le compteur de progression
+  if (wasBlockedWhenEnteringRevision) {
+    pointsGagnesEnRevision += pointsGagnes;
+    console.log(`📊 Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
+  }
+  
+  console.log(`🔒 Mode révision - Validation: ${newValidation} (était: ${currentValidation})`);
+}
 
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
@@ -4142,6 +4156,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
