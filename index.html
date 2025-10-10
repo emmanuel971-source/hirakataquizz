@@ -2237,11 +2237,12 @@ function updateUnlockProgress() {
   fill.style.width = `${pourcentage}%`;
 
   // Si déficit = 0, débloquer immédiatement
-  if (deficitActuel === 0) {
-    container.style.display = 'none';
-    hasUnlockedInRevision = true;
-    updateApprendreButtonState(); // Mettre à jour le bouton
-  }
+ if (deficitActuel === 0) {
+  container.style.display = 'none';
+  hasUnlockedInRevision = true;
+  localStorage.setItem('apprentissageBloque', 'false'); // ✅ Déblocage explicite
+  updateApprendreButtonState();
+}
 
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
@@ -2277,10 +2278,27 @@ function isApprentissageBloque() {
   if (niveauActif <= 5) {
     return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
   }
-  // Pour les niveaux > 5 : bloquer si déficit > 6
+  // Pour les niveaux > 5 : bloquer si déficit > 2, débloquer SEULEMENT si déficit = 0
   else {
     const deficit = calculerDeficitValidation();
-    return deficit > 2;
+    // Si actuellement bloqué, ne débloquer que si déficit = 0
+    const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
+    
+    if (wasBlocked) {
+      // Déjà bloqué : on ne débloque QUE si déficit = 0
+      const shouldUnblock = deficit === 0;
+      if (shouldUnblock) {
+        localStorage.setItem('apprentissageBloque', 'false');
+      }
+      return !shouldUnblock;
+    } else {
+      // Pas encore bloqué : on bloque si déficit > 2
+      const shouldBlock = deficit > 2;
+      if (shouldBlock) {
+        localStorage.setItem('apprentissageBloque', 'true');
+      }
+      return shouldBlock;
+    }
   }
 }
   
@@ -3293,7 +3311,10 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
         return [item ? `${item.Hiragana || item.Katakana} (ID ${key})` : key, `${stats.pourcentage.toFixed(2)}%`];
       })
     ));
-
+  // Initialiser l'état de blocage si pas déjà fait
+if (!localStorage.getItem('apprentissageBloque')) {
+  localStorage.setItem('apprentissageBloque', 'false');
+}
   niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
@@ -4121,6 +4142,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
