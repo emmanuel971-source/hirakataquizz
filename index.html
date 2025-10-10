@@ -3714,10 +3714,11 @@ easing: "ease-in-out"
 
 function startRevisionQuestion() {
   // Capturer le déficit initial si le mode "Apprendre" était bloqué
-if (wasBlockedWhenEnteringRevision) {
-  deficitInitialRevision = calculerDeficitValidation();
-  console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
-}
+// ❌ SUPPRIMER TOUT CE BLOC
+// if (wasBlockedWhenEnteringRevision) {
+//   deficitInitialRevision = calculerDeficitValidation();
+//   console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
+// }
 
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
@@ -4163,6 +4164,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
