@@ -2027,13 +2027,14 @@ if (sectionId === 'mode2') {
     pointsGagnesEnRevision = 0; // ✅ RESET du compteur à l'entrée
     console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
   }
-    hasUnlockedInRevision = false; // Réinitialiser à l'entrée
-    revisionMode.isActive = true;
-    setTimeout(() => {
-      initRevisionKeyboard();
-      startRevisionQuestion();
-    }, 100);
-  } else {
+  hasUnlockedInRevision = false;
+  revisionMode.isActive = true;
+  setTimeout(() => {
+    initRevisionKeyboard();
+    startRevisionQuestion();
+    // ✅ La barre s'affichera via startRevisionQuestion()
+  }, 100);
+} else {
     revisionMode.isActive = false;
     // Remettre à false quand on quitte le mode révision
     wasBlockedWhenEnteringRevision = false;
@@ -2238,22 +2239,23 @@ function updateUnlockProgress() {
 
   fill.style.width = `${pourcentage}%`;
 
-// Si on a gagné assez de points pour atteindre 0
-if (pointsGagnesEnRevision >= deficitInitialRevision) {
-  container.style.display = 'none';
-  hasUnlockedInRevision = true;
-  localStorage.setItem('apprentissageBloque', 'false'); // ✅ Déblocage explicite
-  updateApprendreButtonState();
-  console.log('🎉 DÉBLOCAGE ! Déficit ramené à 0');
-}
+  // ✅ LOG pour debug
+  console.log(`📊 updateUnlockProgress appelé | Déficit restant: ${deficitRestant}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%) | Points gagnés: ${pointsGagnesEnRevision}`);
+
+  // Si on a gagné assez de points pour atteindre 0
+  if (pointsGagnesEnRevision >= deficitInitialRevision) {
+    container.style.display = 'none';
+    hasUnlockedInRevision = true;
+    localStorage.setItem('apprentissageBloque', 'false');
+    updateApprendreButtonState();
+    console.log('🎉 DÉBLOCAGE ! Déficit ramené à 0');
+  }
 
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
   } else {
     fill.classList.remove('proche-deblocage');
   }
-
-  console.log(`📊 Barre: ${deficitRestant}/${deficitInitialRevision} points restants (${pourcentage.toFixed(1)}%) | Points gagnés: ${pointsGagnesEnRevision}`);
 }
   
 function isGroupeDebloque(groupeId) {
@@ -3861,7 +3863,8 @@ if (wasBlockedWhenEnteringRevision) {
 
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
   console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
-//  updateUnlockProgress();
+ // ✅ Afficher la barre à chaque nouvelle question (sans la recalculer)
+  updateUnlockProgress();
 }  
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
@@ -3965,9 +3968,10 @@ function updateRevisionFeedback() {
       }
     }
   }
-if (wasBlockedWhenEnteringRevision) {
-  updateUnlockProgress();
-}  
+// ❌ SUPPRIMER CES LIGNES
+// if (wasBlockedWhenEnteringRevision) {
+//   updateUnlockProgress();
+// }
 }
   
       
@@ -4159,6 +4163,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
