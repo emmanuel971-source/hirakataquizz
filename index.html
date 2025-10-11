@@ -1787,14 +1787,24 @@
 
  /* MODE REVISIONS  - CARTES TABLETTES */
 @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+.char-cards-container {
+    display: flex;
+    flex-wrap: wrap; /* Permet le retour à la ligne */
+    justify-content: center; /* Centre les cartes */
+    gap: 10px; /* Espacement entre les cartes */
+    width: 95%; /* Largeur adaptée */
+    margin: 0 auto; /* Centre le conteneur */
+  }
+
+  
 .char-card {
   
   display: inline-flex;
   padding: 5px;
   margin: 5px;
   border-radius: 8px; /* Même rayon que les cartes hiragana */
-  min-width: 600px;
-  min-height: 600px;
+  min-width: 200px;
+  min-height: 200px;
   text-align: center;
   font-size: 1.2em;
   font-weight: bold;
@@ -1876,6 +1886,11 @@
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
   <h2>🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
+  <!-- Ajoute ce conteneur -->
+  <div class="char-cards-container">
+    <!-- Les .char-card seront générés ici -->
+  </div>
+
 <div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
   <div class="unlock-progress-bar">
     <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
@@ -4239,6 +4254,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
