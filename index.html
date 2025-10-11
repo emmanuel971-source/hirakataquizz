@@ -1627,7 +1627,9 @@
 /* MODE REVISIONS  - TABLETTES */
  @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
   #revision-question {
-   
+   height: auto;
+  min-height: 100vh;
+  overflow: visible;
     font-size: 1em;
     margin-top: 15px;  /*Pousse la carte plus bas */
   }
@@ -4254,6 +4256,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
