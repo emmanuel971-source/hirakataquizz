@@ -1342,32 +1342,7 @@
   transform: translateY(0);
 }
 
-/* BOUTONS MENUS - VERSION TABLETTES*/
-@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
-  .menu .arcade-button {
-    width: 300px !important;
-    font-size: 2.6em !important;
-    padding: 0.2em 1em !important;
-    line-height: 30px !important; /* ? Centre le texte */
-    height: 30px !important; /* ? Hauteur fixe pour TOUS */
-    max-height: 30px !important; /* ? Remplace l'ancien 2.5em */
-    border: 5px solid transparent;
-   
-  }
-  
-  /* Correction spécifique Chrome */
-  @supports (-webkit-appearance: none) {
-    .menu .arcade-button {
-      width: min(80vw, 600px) !important; /* Plus conservateur */
-      height: 20px !important; /* ? Hauteur fixe */
-      max-height: 20px !important; /* ? Remplace l'ancien max-height */
-      line-height: 20px !important; /* ? Centre le texte verticalement */
-      padding: 0.2em 1em !important; /* ? Supprime padding vertical */
-      border: 5px solid transparent;
-      
-    }
-  }
-}
+
     
 /* BOUTONS MENUS - VERSION SMARTPHONES*/
     @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
@@ -1396,7 +1371,32 @@
   }
 }
 
-
+/* BOUTONS MENUS - VERSION TABLETTES*/
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  .menu .arcade-button {
+    width: 300px !important;
+    font-size: 2.6em !important;
+    padding: 0.2em 1em !important;
+    line-height: 30px !important; /* ? Centre le texte */
+    height: 30px !important; /* ? Hauteur fixe pour TOUS */
+    max-height: 30px !important; /* ? Remplace l'ancien 2.5em */
+    border: 5px solid transparent;
+   
+  }
+  
+  /* Correction spécifique Chrome */
+  @supports (-webkit-appearance: none) {
+    .menu .arcade-button {
+      width: min(80vw, 600px) !important; /* Plus conservateur */
+      height: 30px !important; /* ? Hauteur fixe */
+      max-height: 30px !important; /* ? Remplace l'ancien max-height */
+      line-height: 30px !important; /* ? Centre le texte verticalement */
+      padding: 0.2em 1em !important; /* ? Supprime padding vertical */
+      border: 5px solid transparent;
+      
+    }
+  }
+}
     .section {
       display: none;
     }
@@ -4219,6 +4219,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
