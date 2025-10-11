@@ -1624,6 +1624,61 @@
   }
 }
 
+/* MODE REVISIONS  - TABLETTES */
+ @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  #revision-question {
+   
+    font-size: 1em;
+    margin-top: 15px;  /*Pousse la carte plus bas */
+  }
+  
+#revision-input-display {
+    height: 23px; /* Hauteur fixe */   
+    font-size: 1.8em;
+    width: 80%;
+    padding: 05px;
+    position: fixed;
+    bottom: calc(85vw + 83px); /*  au-dessus du clavier */
+    left: 50%;
+    transform: translateX(-50%);
+  /*   z-index: 1000; S'assurer que l'élément est au-dessus */
+  }
+  
+  #revision-message {
+    line-height: 1.0;
+    font-size: 1.0em; /* Beaucoup plus grand pour la réponse ! */
+    margin-bottom: 12px;
+    font-weight: bold; /* Pour une meilleure visibilité */
+  }
+   
+   .revision-keyboard {
+    
+    gap: 7px;
+    grid-template-columns: repeat(5, 1fr);
+    width: 85%;
+    padding: 0 5px;
+    position: fixed;
+    bottom: calc(60px - 5vw); /* laisse la place pour bouton hamburgeur 40px + 2x 10 px car keyboard 95% */ 
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .revision-key {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    min-width: 50px;
+    font-size: clamp(2.5em, 8vw, 5em);
+    font-weight: bold;
+    line-height: 1;
+  }
+}
+
+
+
+
+
+    
 /* ? NOUVEAUX STYLES POUR LES CARTES  MODES REVISION- DESKTOP  */
 .char-card {
   display: inline-flex;
@@ -4164,6 +4219,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
