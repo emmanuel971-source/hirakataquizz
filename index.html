@@ -1786,25 +1786,22 @@
    } 
   }
 
- /* MODE REVISIONS  - CARTES TABLETTES */
+/* MODE REVISIONS - CARTES TABLETTES */
 @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
-.char-card {
-  
-  display: inline-flex;
-  padding: 5px;
-  margin: 5px;
-  border-radius: 8px; /* Même rayon que les cartes hiragana */
-  min-width: 300px;
-  min-height: 300px;
-  text-align: center;
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #8B6F47;
-  text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
-
-
-   } 
-  }   
+  .char-card {
+    display: inline-flex;
+    padding: 20px;        /* ✅ Augmenté */
+    margin: 8px;          /* ✅ Augmenté */
+    border-radius: 12px;  
+    min-width: 100px;     /* ✅ Valeur réaliste */
+    min-height: 100px;    /* ✅ Valeur réaliste */
+    text-align: center;
+    font-size: 3.5em;     /* ✅ PLUS GRAND qu'en desktop */
+    font-weight: bold;
+    color: #8B6F47;
+    text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
+  } 
+} 
     
   
 /* TITRE MODE REVISIONS - MOBILES  */
@@ -4240,5 +4237,6 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
