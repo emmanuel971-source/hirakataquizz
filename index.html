@@ -1594,11 +1594,17 @@
   /*   z-index: 1000; S'assurer que l'élément est au-dessus */
   }
   
-  #revision-message {
+ #revision-message {
+    position: fixed;
+    bottom: calc(85vw + 110px); /* Juste au-dessus de l'input */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    text-align: center;
     line-height: 1.0;
-    font-size: 1.0em; /* Beaucoup plus grand pour la réponse ! */
-    margin-bottom: 12px;
-    font-weight: bold; /* Pour une meilleure visibilité */
+    font-size: 1.0em;
+    margin-bottom: 0; /* Retire le margin */
+    font-weight: bold;
   }
    
    .revision-keyboard {
@@ -1645,10 +1651,16 @@
   }
   
   #revision-message {
+    position: fixed;
+    bottom: calc(60vw + 170px); /* Juste au-dessus de l'input */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    text-align: center;
     line-height: 1.0;
-    font-size: 1.0em; /* Beaucoup plus grand pour la réponse ! */
-    margin-bottom: 12px;
-    font-weight: bold; /* Pour une meilleure visibilité */
+    font-size: 1.0em;
+    margin-bottom: 0;
+    font-weight: bold;
   }
    
    .revision-keyboard {
@@ -1749,13 +1761,14 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
   }
   50% { 
-    transform: scale(1.08); /* Plus prononcé que 1.05 */
+    transform: scale(1.08);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 8px rgba(139, 111, 71, 0.3);
   }
   100% { 
     transform: scale(1); 
-    box-shadow: 0 6px 12px rgba(0,
-
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+  }
+}
 /* Style de base pour le titre mode révision*/
 #mode2 .title {
    margin: 0.5em 0;
@@ -1773,10 +1786,10 @@
   padding: 5px;
   margin: 5px;
   border-radius: 8px; /* Même rayon que les cartes hiragana */
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 60px;
+  min-height: 60px;
   text-align: center;
-  font-size: 1.2em;
+  font-size: 2.2em;
   font-weight: bold;
   color: #8B6F47;
   text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
@@ -1793,10 +1806,10 @@
   padding: 5px;
   margin: 5px;
   border-radius: 8px; /* Même rayon que les cartes hiragana */
-  min-width: 600px;
-  min-height: 600px;
+  min-width: 100px;
+  min-height: 100px;
   text-align: center;
-  font-size: 1.2em;
+  font-size: 4em;
   font-weight: bold;
   color: #8B6F47;
   text-shadow: 0 0 3px rgba(139, 111, 71, 0.3);
@@ -4239,6 +4252,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
