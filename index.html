@@ -79,9 +79,9 @@
       }
     }
 /* H2 TABLETTES */
-    @media (min-width: 600px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+    @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
       h2 {
-        font-size: 3em;
+        font-size: 2.5em;
         margin: 0.15em 0;
       }
     }
@@ -280,6 +280,40 @@
   position: relative;
 }
 }
+/* BARRE DE DEBLOCAGE DU MODE REVISION - TABLETTES */  
+/* Responsive : sur mobile → occupe 90% de la largeur */
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+#unlock-progress-container,
+.unlock-progress-container {
+  margin: 5px auto;            /* Centrer le container */
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  max-width: 400px;             /* Largeur max sur desktop */
+  width: 100%;                  /* S'adapte à l'espace dispo */
+  box-sizing: border-box;
+}
+
+/* La barre */
+.unlock-progress-bar {
+  position: relative;
+  height: 8px; /* Légèrement plus fine */
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+}
+
+/* Le remplissage */
+.unlock-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+}
+
 
 
     
@@ -1803,8 +1837,8 @@
 .char-card {
   
   display: inline-flex;
-  padding: 5px;
-  margin: 5px;
+  padding: 3px;
+  margin: 3px;
   border-radius: 8px; /* Même rayon que les cartes hiragana */
   min-width: 100px;
   min-height: 100px;
@@ -4252,6 +4286,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
