@@ -1877,31 +1877,30 @@
     <div class="hamburger-bar"></div>
   </div>
 </button>
-  <!-- Menu -->
+<!-- Menu -->
 <nav class="menu" id="menu">
   <div id="menu-message" class="menu-message"></div>
-  <button class="arcade-button" onclick="showSection('quiz')">Apprendre</button>
-  <button class="arcade-button" id="revision-button" onclick="showSection('mode2')">Mode révisions</button>
-  <button class="arcade-button" onclick="showSection('options')">Options</button>
-  <button class="arcade-button" onclick="toggleMenu()">Fermer</button>
+  <button class="arcade-button" onclick="showSection('quiz')" data-i18n="menu_learn">Apprendre</button>
+  <button class="arcade-button" id="revision-button" onclick="showSection('mode2')" data-i18n="menu_revision">Mode révisions</button>
+  <button class="arcade-button" onclick="showSection('options')" data-i18n="menu_options">Options</button>
+  <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>
 </nav>
 
 <!-- Section Page d'accueil -->
 <div id="welcome" class="section active">
   <div class="panda-logo" onclick="">🐼</div>
-
-  <h1 class="welcome-title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
-  <p class="welcome-subtitle">Apprenez à Lire le Japonais</p>
-    <div class="loading-dots" id="loadingText">(Chargement... )</div>
+  <h1 class="welcome-title" data-i18n="welcome_title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
+  <p class="welcome-subtitle" data-i18n="welcome_subtitle">Apprenez à Lire le Japonais</p>
+  <div class="loading-dots" id="loadingText">(Chargement... )</div>
 </div>
   <!-- Section Menu -->
 
 
-  <!-- Section Quiz (contenu actuel) -->
-  <div id="quiz" class="section">
-    <h1>🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>
-    <div id="progressBarContainer"></div>
-    <div class="level" id="levelDisplay">Niveau actuel : 1</div>
+<!-- Section Quiz -->
+<div id="quiz" class="section">
+  <h1 data-i18n="quiz_title">🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>
+  <div id="progressBarContainer"></div>
+  <div class="level" id="levelDisplay">Niveau actuel : 1</div>
     <div class="level-hiraganas">
       <div class="hiraganas-grid" id="hiraganaCards"></div>
     </div>
@@ -1913,16 +1912,16 @@
       </div>
       <div>
         <div class="result" id="result"></div>
-        <button class="arcade-button" id="continueBtn" onclick="nextQuestion()">🌱 OK... j’ai capté 🌱</button>
-        <button class="arcade-button" id="boutonInstaller">Ajouter à l'écran d'accueil</button>
-      </div>
+  <button class="arcade-button" id="continueBtn" onclick="nextQuestion()" data-i18n="quiz_continue">🌱 OK... j'ai capté 🌱</button>
+  <button class="arcade-button" id="boutonInstaller" data-i18n="quiz_install">Ajouter à l'écran d'accueil</button>
+</div>
     </div>
   </div>
 
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-  <h2>🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
+  <h2 data-i18n="revision_title">🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
 <div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
   <div class="unlock-progress-bar">
     <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
@@ -1964,39 +1963,260 @@
 
 <!-- Section Options -->
 <div id="options" class="section">
-  <h1>Options</h1>
-  <!-- Menu principal Options -->
+  <h1 data-i18n="options_title">Options</h1>
   <div class="options-menu">
-    <button class="arcade-button" onclick="showSubOptions('difficulty')">Difficulté</button>
-    <button class="arcade-button" onclick="showSubOptions('sound')">Son</button>
-    <button class="arcade-button" onclick="showSubOptions('language')">Langue</button>
+    <button class="arcade-button" onclick="showSubOptions('difficulty')" data-i18n="options_difficulty">Difficulté</button>
+    <button class="arcade-button" onclick="showSubOptions('sound')" data-i18n="options_sound">Son</button>
+    <button class="arcade-button" onclick="showSubOptions('language')" data-i18n="options_language">Langue</button>
   </div>
 
   <!-- Sous-rubrique Difficulté -->
   <div id="options-difficulty" class="options-sub hidden">
-    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
-    <h2>Difficulté</h2>
-    <button class="arcade-button" onclick="setDifficulty(6)">Facile (6)</button>
-    <button class="arcade-button" onclick="setDifficulty(8)">Moyen (8)</button>
-    <button class="arcade-button" onclick="setDifficulty(10)">Hard (10)</button>
+    <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
+    <h2 data-i18n="options_difficulty">Difficulté</h2>
+    <button class="arcade-button" onclick="setDifficulty(6)" data-i18n="difficulty_easy">Facile (6)</button>
+    <button class="arcade-button" onclick="setDifficulty(8)" data-i18n="difficulty_medium">Moyen (8)</button>
+    <button class="arcade-button" onclick="setDifficulty(10)" data-i18n="difficulty_hard">Hard (10)</button>
   </div>
 
   <!-- Sous-rubrique Son -->
   <div id="options-sound" class="options-sub hidden">
-    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
-    <h2>Son</h2>
+    <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
+    <h2 data-i18n="options_sound">Son</h2>
     <p>🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)</p>
   </div>
-
-  <!-- Sous-rubrique Langue -->
-  <div id="options-language" class="options-sub hidden">
-    <button class="arcade-button" onclick="backToOptions()">← Retour</button>
-    <h2>Langue</h2>
-    <p>🌍 Ici tu pourras ajouter un sélecteur FR / EN / JP</p>
-  </div>
+<!-- Sous-rubrique Langue -->
+<div id="options-language" class="options-sub hidden">
+  <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button>
+  <h2 data-i18n="options_language">Langue</h2>
+  <button class="arcade-button" onclick="setLanguage('fr')">🇫🇷 Français</button>
+  <button class="arcade-button" onclick="setLanguage('en')">🇬🇧 English</button>
+  <button class="arcade-button" onclick="setLanguage('es')">🇪🇸 Español</button>
+</div>
 </div>
 
   <script>
+    // === SYSTÈME DE TRADUCTION ===
+const translations = {
+  fr: {
+    // Menu
+    menu_learn: "Apprendre",
+    menu_revision: "Mode révisions",
+    menu_options: "Options",
+    menu_close: "Fermer",
+    
+    // Page d'accueil
+    welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
+    welcome_subtitle: "Apprenez à Lire le Japonais",
+    welcome_loading: "Chargement...",
+    welcome_touch: "Touchez le panda pour entrer !",
+    
+    // Quiz
+    quiz_title: "🎌⛩️ Apprenez les Kanas ⛩️🎌",
+    quiz_level: "Niveau actuel :",
+    quiz_continue: "🌱 OK... j'ai capté 🌱",
+    quiz_install: "Ajouter à l'écran d'accueil",
+    
+    // Révisions
+    revision_title: "🎌⛩️ Réviser les Kanas ⛩️🎌",
+    
+    // Options
+    options_title: "Options",
+    options_difficulty: "Difficulté",
+    options_sound: "Son",
+    options_language: "Langue",
+    options_back: "← Retour",
+    
+    // Difficulté
+    difficulty_easy: "Facile (6)",
+    difficulty_medium: "Moyen (8)",
+    difficulty_hard: "Hard (10)",
+    difficulty_set: "Difficulté réglée sur :",
+    
+    // Messages
+    msg_perfect: "Parfait !",
+    msg_validated: "Validé ! 🎉",
+    msg_almost: "Presque...",
+    msg_notquite: "Pas tout à fait...",
+    msg_correct: "👉 Bonne réponse :",
+    msg_level_up: "🍃LEVEL UP!🎋",
+    
+    // Messages menu
+    menu_msg_blocked: "Mode Apprendre bloqué",
+    menu_msg_unblocked: "Mode Apprendre débloqué !",
+    menu_msg_still_blocked: "Mode Apprendre encore bloqué",
+    menu_msg_revision_unlocked: "🎮 Mode révisions débloqué 🎮",
+    
+    // Révision disponibilité
+    revision_available_level4: "Mode révision disponible à partir du niveau 4",
+    revision_no_items: "Aucun item disponible pour révision"
+  },
+  
+  en: {
+    // Menu
+    menu_learn: "Learn",
+    menu_revision: "Revision Mode",
+    menu_options: "Options",
+    menu_close: "Close",
+    
+    // Welcome page
+    welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
+    welcome_subtitle: "Learn to Read Japanese",
+    welcome_loading: "Loading...",
+    welcome_touch: "Touch the panda to enter!",
+    
+    // Quiz
+    quiz_title: "🎌⛩️ Learn the Kanas ⛩️🎌",
+    quiz_level: "Current level:",
+    quiz_continue: "🌱 OK... got it 🌱",
+    quiz_install: "Add to home screen",
+    
+    // Revision
+    revision_title: "🎌⛩️ Review the Kanas ⛩️🎌",
+    
+    // Options
+    options_title: "Options",
+    options_difficulty: "Difficulty",
+    options_sound: "Sound",
+    options_language: "Language",
+    options_back: "← Back",
+    
+    // Difficulty
+    difficulty_easy: "Easy (6)",
+    difficulty_medium: "Medium (8)",
+    difficulty_hard: "Hard (10)",
+    difficulty_set: "Difficulty set to:",
+    
+    // Messages
+    msg_perfect: "Perfect!",
+    msg_validated: "Validated! 🎉",
+    msg_almost: "Almost...",
+    msg_notquite: "Not quite...",
+    msg_correct: "👉 Correct answer:",
+    msg_level_up: "🍃LEVEL UP!🎋",
+    
+    // Menu messages
+    menu_msg_blocked: "Learn Mode blocked",
+    menu_msg_unblocked: "Learn Mode unblocked!",
+    menu_msg_still_blocked: "Learn Mode still blocked",
+    menu_msg_revision_unlocked: "🎮 Revision mode unlocked 🎮",
+    
+    // Revision availability
+    revision_available_level4: "Revision mode available from level 4",
+    revision_no_items: "No items available for revision"
+  },
+  
+  es: {
+    // Menu
+    menu_learn: "Aprender",
+    menu_revision: "Modo revisión",
+    menu_options: "Opciones",
+    menu_close: "Cerrar",
+    
+    // Página de bienvenida
+    welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
+    welcome_subtitle: "Aprende a Leer Japonés",
+    welcome_loading: "Cargando...",
+    welcome_touch: "¡Toca el panda para entrar!",
+    
+    // Quiz
+    quiz_title: "🎌⛩️ Aprende los Kanas ⛩️🎌",
+    quiz_level: "Nivel actual:",
+    quiz_continue: "🌱 OK... lo entendí 🌱",
+    quiz_install: "Añadir a pantalla de inicio",
+    
+    // Revisión
+    revision_title: "🎌⛩️ Revisar los Kanas ⛩️🎌",
+    
+    // Opciones
+    options_title: "Opciones",
+    options_difficulty: "Dificultad",
+    options_sound: "Sonido",
+    options_language: "Idioma",
+    options_back: "← Volver",
+    
+    // Dificultad
+    difficulty_easy: "Fácil (6)",
+    difficulty_medium: "Medio (8)",
+    difficulty_hard: "Difícil (10)",
+    difficulty_set: "Dificultad ajustada a:",
+    
+    // Mensajes
+    msg_perfect: "¡Perfecto!",
+    msg_validated: "¡Validado! 🎉",
+    msg_almost: "Casi...",
+    msg_notquite: "No del todo...",
+    msg_correct: "👉 Respuesta correcta:",
+    msg_level_up: "🍃¡SUBIDA DE NIVEL!🎋",
+    
+    // Mensajes del menú
+    menu_msg_blocked: "Modo Aprender bloqueado",
+    menu_msg_unblocked: "¡Modo Aprender desbloqueado!",
+    menu_msg_still_blocked: "Modo Aprender aún bloqueado",
+    menu_msg_revision_unlocked: "🎮 Modo revisión desbloqueado 🎮",
+    
+    // Disponibilidad revisión
+    revision_available_level4: "Modo revisión disponible desde el nivel 4",
+    revision_no_items: "No hay elementos disponibles para revisión"
+  }
+};
+
+// Langue actuelle (par défaut français)
+let currentLanguage = localStorage.getItem('appLanguage') || 'fr';
+
+// Fonction pour obtenir une traduction
+function t(key) {
+  return translations[currentLanguage][key] || translations['fr'][key] || key;
+}
+
+// Fonction pour changer de langue
+function setLanguage(lang) {
+  if (translations[lang]) {
+    currentLanguage = lang;
+    localStorage.setItem('appLanguage', lang);
+    updateAllTexts();
+  }
+}
+// Fonction pour mettre à jour tous les textes de l'interface
+function updateAllTexts() {
+  // Mettre à jour tous les éléments avec data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(element => {
+    const key = element.getAttribute('data-i18n');
+    element.textContent = t(key);
+  });
+  
+  // Mettre à jour le niveau actuel
+  const levelDisplay = document.getElementById("levelDisplay");
+  if (levelDisplay) {
+    levelDisplay.innerText = `${t('quiz_level')} ${niveauActif}`;
+  }
+  
+  // Mettre à jour les titres des sections
+  updateSectionTitles();
+  
+  // Mettre à jour les messages du menu si visible
+  updateMenuMessage();
+  
+  // Mettre à jour le message de chargement si présent
+  const loadingText = document.getElementById("loadingText");
+  if (loadingText && loadingText.textContent.includes("Chargement") || loadingText.textContent.includes("Loading") || loadingText.textContent.includes("Cargando")) {
+    if (gameDataLoaded) {
+      loadingText.textContent = t('welcome_touch');
+    } else {
+      loadingText.textContent = `(${t('welcome_loading')})`;
+    }
+  }
+}
+
+// Fonction auxiliaire pour mettre à jour les titres
+function updateSectionTitles() {
+  // Titre page d'accueil
+  const welcomeTitle = document.querySelector('.welcome-title');
+  if (welcomeTitle) welcomeTitle.textContent = t('welcome_title');
+  
+  const welcomeSubtitle = document.querySelector('.welcome-subtitle');
+  if (welcomeSubtitle) welcomeSubtitle.textContent = t('welcome_subtitle');
+}    
      // Ajout du support pour les événements tactiles
     document.querySelectorAll('.revision-key').forEach(key => {
       key.addEventListener('touchstart', function() {
@@ -2066,7 +2286,7 @@ function setDifficulty(value) {
   // ✅ Mettre à jour le bouton Apprendre
   updateApprendreButtonState();
 
-  alert("Difficulté réglée sur : " + value);
+alert(`${t('difficulty_set')} ${value}`);
 
  niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
@@ -2092,7 +2312,7 @@ function showSection(sectionId) {
         const menu = document.getElementById('menu');
         const menuMessage = document.getElementById('menu-message');
         menu.classList.add('active');
-        menuMessage.innerText = 'Mode Apprendre bloqué';
+        menuMessage.innerText = t('menu_msg_blocked'); // ✅ MODIFIÉ
         hasShownBlockedMenu = true;
       }, 500);
     } else if (!isNowBlocked && wasBlocked) {
@@ -2101,7 +2321,7 @@ function showSection(sectionId) {
         const menu = document.getElementById('menu');
         const menuMessage = document.getElementById('menu-message');
         menu.classList.add('active');
-        menuMessage.innerText = 'Mode Apprendre débloqué !';
+        menuMessage.innerText = t('menu_msg_unblocked'); // ✅ MODIFIÉ
         hasShownBlockedMenu = false;
         hasShownUnblockedMenu = true;
       }, 500);
@@ -2110,7 +2330,7 @@ function showSection(sectionId) {
       setTimeout(() => {
         const menuMessage = document.getElementById('menu-message');
         if (menuMessage) {
-          menuMessage.innerText = 'Mode Apprendre encore bloqué';
+          menuMessage.innerText = t('menu_msg_still_blocked'); // ✅ MODIFIÉ
         }
       }, 500);
     }
@@ -2179,16 +2399,16 @@ function forceRevisionMode() {
   }, 100);
 }    
 function updateMenuMessage() {
+  const menuMessage = document.getElementById('menu-message');
+  if (menuMessage && menuMessage.innerText === '') {
+    // Messages neutres multilingues (les emojis sont universels)
     const messages = [
-        '⛩️ Welcome to Kanas-Zen-Garden ⛩️',
-        '🎌 Welcome to Kanas-Zen-Garden 🎌',
-        '🍃 Welcome to Kanas-Zen-Garden 🍵',
-
+      '⛩️ Kanas-Zen-Garden ⛩️',
+      '🎌 Kanas-Zen-Garden 🎌',
+      '🍃 Kanas-Zen-Garden 🍵',
     ];
-    const menuMessage = document.getElementById('menu-message');
-    if (menuMessage && menuMessage.innerText === '') {
-        menuMessage.innerText = messages[Math.floor(Math.random() * messages.length)];
-    }
+    menuMessage.innerText = messages[Math.floor(Math.random() * messages.length)];
+  }
 }
   </script>
 <script>
@@ -2242,18 +2462,11 @@ let hasShownBlockedMenu = false;
 let hasShownUnblockedMenu = false;
 function startApp() {
   if (!gameDataLoaded) {
-    document.getElementById("loadingText").textContent = "Chargement en cours.";
+    document.getElementById("loadingText").textContent = t('welcome_loading'); // ✅ MODIFIÉ
     return;
   }
-
-  // ❌ On ne masque plus l’accueil automatiquement
-  // ❌ On n’ouvre plus le menu automatiquement
-
-  // ✅ On met simplement à jour le message du menu pour plus tard
-  updateMenuMessage();
   
-
-  // Le menu restera masqué jusqu'à ce que le panda soit cliqué
+  updateMenuMessage();
 }
 function updateMenuSectionMessage() {
   const messages = [
@@ -3441,8 +3654,8 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
 if (!localStorage.getItem('apprentissageBloque')) {
   localStorage.setItem('apprentissageBloque', 'false');
 }
-  niveauActif = determineNiveauActif(HiraganaList);
-  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+   niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`; // ✅ MODIFIÉ
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   updateRevisionButtonState();
@@ -3459,7 +3672,7 @@ if (!localStorage.getItem('apprentissageBloque')) {
   gameDataLoaded = true;
   const panda = document.querySelector(".panda-logo");
   panda.style.opacity = "1";
-  document.getElementById("loadingText").textContent = "Touchez le panda pour entrer !";
+    document.getElementById("loadingText").textContent = t('welcome_touch'); // ✅ MODIFIÉ
  
   panda.style.pointerEvents = "auto";
   
@@ -3645,25 +3858,25 @@ if (hiraganaIndex !== -1) {
   validationCache[current.ID] = newValidation; // ✅ AJOUTER CETTE LIGNE
 }
 
-let emoji = "", resultText = "";
-if (score === 1) {
-const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"];
-emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-resultText = isFinalValidation ? "Validé ! 🎉" : "Parfait !";
-if (!isFinalValidation) {
-playMarioCoin();
-}
-} else if (score === 0.5) {
-const emojisMid = ["🪨", "🌿", "🪵", "🍃", "🌳", "🎋"];
-emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
-resultText = "Presque...";
-playSuccess90s();
-} else {
-const emojisBad = ["🙈", "🙊", "🪨", "🌊", "🍂", "🍁"];
-emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
-resultText = "Pas tout à fait...";
-playFail();
-}
+  let emoji = "", resultText = "";
+  if (score === 1) {
+    const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"];
+    emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
+    resultText = isFinalValidation ? t('msg_validated') : t('msg_perfect'); // ✅ MODIFIÉ
+    if (!isFinalValidation) {
+      playMarioCoin();
+    }
+  } else if (score === 0.5) {
+    const emojisMid = ["🪨", "🌿", "🪵", "🍃", "🌳", "🎋"];
+    emoji = emojisMid[Math.floor(Math.random() * emojisMid.length)];
+    resultText = t('msg_almost'); // ✅ MODIFIÉ
+    playSuccess90s();
+  } else {
+    const emojisBad = ["🙈", "🙊", "🪨", "🌊", "🍂", "🍁"];
+    emoji = emojisBad[Math.floor(Math.random() * emojisBad.length)];
+    resultText = t('msg_notquite'); // ✅ MODIFIÉ
+    playFail();
+  }
 
 document.getElementById("result").innerHTML = `
 <div class="result-line">${emoji} ${resultText} ${emoji}</div>
@@ -3802,9 +4015,9 @@ msgWrapper.style.zIndex = 9999;
 msgWrapper.style.pointerEvents = "none";
 document.body.appendChild(msgWrapper);
 
-const msg = document.createElement("div");
-msg.innerText = "🍃LEVEL UP!🎋"; /*⭐⭐⭐ */
-msg.style.display = "inline-block";
+  const msg = document.createElement("div");
+  msg.innerText = t('msg_level_up'); // ✅ MODIFIÉ
+  msg.style.display = "inline-block";
 msg.style.fontSize = "3em";
 msg.style.fontWeight = "bold";
 msg.style.color = "#8B6F47";
@@ -3862,11 +4075,11 @@ function startRevisionQuestion() {
 
   console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
 
-  if (availableItems.length === 0) {
+ if (availableItems.length === 0) {
     document.getElementById("revision-message").textContent = 
       niveauActif < 4 ? 
-      "Mode révision disponible à partir du niveau 4" : 
-      "Aucun item disponible pour révision";
+      t('revision_available_level4') :  // ✅ MODIFIÉ
+      t('revision_no_items');            // ✅ MODIFIÉ
     document.getElementById("revision-message").style.color = "#dc3545";
     return;
   }
@@ -4236,6 +4449,7 @@ window.addEventListener('load', () => {
   // Démarrage du jeu
 window.onload = () => {
 initGame();
+updateAllTexts(); // ✅ AJOUTER CETTE LIGNE  
 };
 // S'assurer que les voix sont bien chargées
 speechSynthesis.onvoiceschanged = () => {
@@ -4272,6 +4486,8 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   updateApprendreButtonState();
       });
     }
+      // ✅ AJOUTER CETTE LIGNE pour charger la langue au démarrage
+  updateAllTexts();
   });
   document.addEventListener("DOMContentLoaded", () => {
   const panda = document.querySelector(".panda-logo");
@@ -4286,6 +4502,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
