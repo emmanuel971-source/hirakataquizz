@@ -2190,6 +2190,11 @@ function setLanguage(lang) {
     }
     
     updateAllTexts();
+    if (revisionMode.isActive) {
+  startRevisionQuestion();
+} else {
+  nextQuestion();
+}
   }
 }
 // Fonction pour mettre à jour tous les textes de l'interface
@@ -3774,7 +3779,9 @@ const modes = [
 const mode = modes[Math.floor(Math.random() * modes.length)];
 targetFields = [mode.options1, mode.options2];
 
-document.getElementById("question").innerText = current[mode.question];
+document.getElementById("question").innerText = (mode.question === 'Katakana') 
+  ? getLocalizedKatakana(current) 
+  : current[mode.question];
 renderChoices("choices1", generateChoices(mode.options1), "first");
 renderChoices("choices2", generateChoices(mode.options2), "second");
 }
@@ -3788,7 +3795,10 @@ const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau) === 
     }
     return item[fieldName];
   };
-const values = [current[field], ...others.sort(() => 0.5 - Math.random()).slice(0, 3).map(k => k[field])];
+const values = [
+  getValue(current, field), 
+  ...others.sort(() => 0.5 - Math.random()).slice(0, 3).map(k => getValue(k, field))
+];
 return values.sort(() => 0.5 - Math.random());
 }
 
@@ -4101,7 +4111,7 @@ function startRevisionQuestion() {
   );
   const availableItems = [
     ...hiraganaItems.map(item => ({ ...item, type: 'hiragana', key: item.Hiragana })), 
-    ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: item.Katakana }))
+    ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: getLocalizedKatakana(item) }))
   ];
 
   console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
@@ -4533,3 +4543,4 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
