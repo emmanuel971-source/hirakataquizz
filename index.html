@@ -2168,12 +2168,27 @@ let currentLanguage = localStorage.getItem('appLanguage') || 'fr';
 function t(key) {
   return translations[currentLanguage][key] || translations['fr'][key] || key;
 }
-
+// Fonction pour obtenir la bonne valeur Katakana selon la langue
+function getLocalizedKatakana(item) {
+  if (currentLanguage === 'en' && item.KatakanaEN) {
+    return item.KatakanaEN;
+  } else if (currentLanguage === 'es' && item.KatakanaES) {
+    return item.KatakanaES;
+  }
+  return item.Katakana; // Fallback sur français
+}
 // Fonction pour changer de langue
 function setLanguage(lang) {
   if (translations[lang]) {
     currentLanguage = lang;
     localStorage.setItem('appLanguage', lang);
+    
+    // ✅ NOUVEAU : Régénérer les tables Katakana avec la nouvelle langue
+    if (HiraganaList.length > 0) {
+      revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
+      console.log(`🔄 Table katakana régénérée pour langue ${lang}:`, Object.keys(revisionKatakanaTable).length, "entrées");
+    }
+    
     updateAllTexts();
   }
 }
@@ -2698,7 +2713,7 @@ function generateRevisionKatakanaTable(hiraganaList) {
   let invalidItems = 0;
   
   hiraganaList.forEach((item, index) => {
-    const katakana = item.Katakana; // Assumant colonne "Katakana" dans ta Sheet
+    const katakana = getLocalizedKatakana(item); // ✅ NOUVEAU
     const romaji = item.Romaji;
     
     if (!katakana || !romaji) {
@@ -3766,6 +3781,13 @@ renderChoices("choices2", generateChoices(mode.options2), "second");
 
 function generateChoices(field) {
 const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau) === niveauActif);
+    // ✅ NOUVEAU : Gérer les Katakana localisés
+  const getValue = (item, fieldName) => {
+    if (fieldName === 'Katakana') {
+      return getLocalizedKatakana(item);
+    }
+    return item[fieldName];
+  };
 const values = [current[field], ...others.sort(() => 0.5 - Math.random()).slice(0, 3).map(k => k[field])];
 return values.sort(() => 0.5 - Math.random());
 }
@@ -3800,8 +3822,16 @@ container.appendChild(btn);
 async function checkAnswer() {
 if (selections.first && selections.second && !isAnswered) {
 isAnswered = true;
-const correct1 = current[targetFields[0]];
-const correct2 = current[targetFields[1]];
+// ✅ NOUVEAU : Utiliser getLocalizedKatakana pour les Katakana
+const getValue = (fieldName) => {
+  if (fieldName === 'Katakana') {
+    return getLocalizedKatakana(current);
+  }
+  return current[fieldName];
+};
+
+const correct1 = getValue(targetFields[0]);
+const correct2 = getValue(targetFields[1]);
 let score = 0;
 const containers = [document.getElementById("choices1"), document.getElementById("choices2")];
 const correctAnswers = [correct1, correct2];
@@ -4339,7 +4369,7 @@ function initRevisionKeyboard() {
       const niveau = parseInt(revisionMode.currentItem.Niveau || 1);
       const isHighLevel = niveau > 38;
       const isMultiChar = revisionMode.romajiSegments.length >= 2;
-      const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${revisionMode.currentItem.Katakana})` : '';
+      const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
 
       if (revisionMode.input.length >= totalLength) {
         const isCorrect = revisionMode.input === revisionMode.fullCorrect;
@@ -4503,6 +4533,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
