@@ -3793,13 +3793,6 @@ return values.sort(() => 0.5 - Math.random());
 }
 
 function renderChoices(id, options, slot) {
-  // ✅ NOUVEAU : Gérer les Katakana localisés
-  const getValue = (item, fieldName) => {
-    if (fieldName === 'Katakana') {
-      return getLocalizedKatakana(item);
-    }
-    return item[fieldName];
-  };
 const container = document.getElementById(id);
 container.innerHTML = "";
 options.forEach(text => {
@@ -4540,46 +4533,3 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
