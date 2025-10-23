@@ -3924,7 +3924,10 @@ document.getElementById("result").innerHTML = `
 <div class="result-line highlight">
 👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
 </div>`;
-
+if (isCorrect) {
+  triggerSakuraBurst(document.getElementById('result')); // Nouvelle fonction
+  playZenBell();
+}
 // 🔊 Jouer le fichier MP3 correspondant au Hiragana
 if (current && current.Hiragana) {
 const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
@@ -3959,7 +3962,18 @@ console.error('Erreur lors de la sauvegarde:', error);
 });
 }
 }
-
+function triggerSakuraBurst(container) {
+  for (let i = 0; i < 20; i++) {
+    const petal = document.createElement('div');
+    petal.className = 'sakura';
+    petal.style.left = '50%';
+    petal.style.top = '50%';
+    petal.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`;
+    petal.style.animation = `burst 1s ease-out ${Math.random() * 0.5}s`;
+    container.appendChild(petal);
+    setTimeout(() => petal.remove(), 1000);
+  }
+}
 function triggerLightFirework(card) {
 const halo = document.createElement("div");
 halo.style.position = "absolute";
@@ -4543,4 +4557,5 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
