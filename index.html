@@ -4147,30 +4147,24 @@ renderHiraganaCards(list, niveau);
 // Fonction pour appeler l'API
 async function callAPI(action, data = null) {
   try {
-    if (action === 'updateStats') {
-      const params = new URLSearchParams({
-        action,
-        id: data.id,
-        scorePoints: data.scorePoints,
-        tentatives: data.tentatives,
-        reussites: data.reussites,
-        isRevisionMode: data.isRevisionMode || false // ✅ NOUVEAU PARAMÈTRE
+    let params = new URLSearchParams({ action });
+
+    if (data) {
+      Object.entries(data).forEach(([key, value]) => {
+        params.append(key, value);
       });
-      const url = `${WEB_APP_URL}?${params}`;
-      console.log(`🔍 Appel updateStats: ${url}`);
-      await fetch(url, { mode: 'no-cors' });
-      return { success: true };
-    } else {
-      const url = `${WEB_APP_URL}?action=${action}`;
-      console.log(`🔍 Appel API: ${action} -> ${url}`);
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      const result = await response.json();
-      console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
-      return result;
     }
+
+    const url = `${WEB_APP_URL}?${params.toString()}`;
+    console.log(`🔍 Appel API: ${action} -> ${url}`);
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const result = await response.json();
+    console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
+    return result;
   } catch (error) {
     logError(`Erreur API (${action}): ${error.message}`);
     console.error(`⚠️ Détails erreur:`, error);
@@ -5112,6 +5106,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
