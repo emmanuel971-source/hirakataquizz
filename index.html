@@ -2012,6 +2012,7 @@
   <button class="arcade-button" id="revision-button" onclick="showSection('mode2')" data-i18n="menu_revision">Mode révisions</button>
   <button class="arcade-button" onclick="showSection('options')" data-i18n="menu_options">Options</button>
   <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>
+  <button class="arcade-button" onclick="showSection('account')" data-i18n="account_title">Options</button>
 </nav>
 
 <!-- Section Page d'accueil -->
@@ -2409,7 +2410,88 @@ const translations = {
     // Disponibilidad revisión
     revision_available_level4: "Modo revisión disponible desde el nivel 4",
     revision_no_items: "No hay elementos disponibles para revisión"
-  }
+  },
+  // ========================================
+// TRADUCTIONS À AJOUTER DANS L'OBJET translations
+// ========================================
+
+// Dans translations.fr :
+fr: {
+  // ... traductions existantes ...
+  
+  // Mon compte
+  account_title: "Mon compte",
+  account_change_device: "📱 Changer d'appareil",
+  
+  // Création de compte
+  create_account_title: "Bienvenue ! 🌸",
+  create_account_subtitle: "Choisissons ton pseudo zen",
+  create_account_regenerate: "🔄 Autre pseudo",
+  create_account_validate: "✅ Je valide ce pseudo",
+  create_account_pin_label: "Sécurise ton compte avec ta date de naissance (JJMM)",
+  create_account_pin_example: "Exemple : né(e) le 12 mai → 1205",
+  create_account_confirm: "🎌 Valider mon compte",
+  create_account_back: "← Changer de pseudo",
+  
+  // Connexion
+  login_title: "Connexion 🔐",
+  login_subtitle: "Retrouve ton compte",
+  login_pseudo_label: "Ton pseudo",
+  login_pin_label: "Ton PIN (JJMM)",
+  login_connect: "🎋 Me connecter",
+},
+
+// Dans translations.en :
+en: {
+  // ... traductions existantes ...
+  
+  // My account
+  account_title: "My Account",
+  account_change_device: "📱 Change Device",
+  
+  // Account creation
+  create_account_title: "Welcome! 🌸",
+  create_account_subtitle: "Choose your zen nickname",
+  create_account_regenerate: "🔄 Another nickname",
+  create_account_validate: "✅ I validate this nickname",
+  create_account_pin_label: "Secure your account with your birth date (DDMM)",
+  create_account_pin_example: "Example: born May 12th → 1205",
+  create_account_confirm: "🎌 Validate my account",
+  create_account_back: "← Change nickname",
+  
+  // Login
+  login_title: "Login 🔐",
+  login_subtitle: "Find your account",
+  login_pseudo_label: "Your nickname",
+  login_pin_label: "Your PIN (DDMM)",
+  login_connect: "🎋 Connect",
+},
+
+// Dans translations.es :
+es: {
+  // ... traductions existantes ...
+  
+  // Mi cuenta
+  account_title: "Mi Cuenta",
+  account_change_device: "📱 Cambiar de Dispositivo",
+  
+  // Creación de cuenta
+  create_account_title: "¡Bienvenido! 🌸",
+  create_account_subtitle: "Elige tu apodo zen",
+  create_account_regenerate: "🔄 Otro apodo",
+  create_account_validate: "✅ Valido este apodo",
+  create_account_pin_label: "Asegura tu cuenta con tu fecha de nacimiento (DDMM)",
+  create_account_pin_example: "Ejemplo: nacido el 12 de mayo → 1205",
+  create_account_confirm: "🎌 Validar mi cuenta",
+  create_account_back: "← Cambiar apodo",
+  
+  // Conexión
+  login_title: "Conexión 🔐",
+  login_subtitle: "Encuentra tu cuenta",
+  login_pseudo_label: "Tu apodo",
+  login_pin_label: "Tu PIN (DDMM)",
+  login_connect: "🎋 Conectarme",
+}
 };
 
 // Langue actuelle (par défaut français)
@@ -4794,6 +4876,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
