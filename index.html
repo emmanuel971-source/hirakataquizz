@@ -2560,6 +2560,260 @@ function updateSectionTitles() {
         }, 300); // Correspond à la durée de l'animation (0.3s)
       });
     });
+// ========================================
+// GESTION UTILISATEUR - À AJOUTER DANS <script>
+// ========================================
+
+// Variables globales utilisateur
+let currentUser = null;
+let currentPseudoProposal = null;
+let userToken = null;
+
+// ========================================
+// INITIALISATION AU CHARGEMENT
+// ========================================
+async function initUserSystem() {
+  // Vérifier si un token existe déjà
+  userToken = localStorage.getItem('userToken');
+  
+  if (userToken) {
+    // L'utilisateur a déjà un compte
+    const result = await callAPI('getUserByToken', { token: userToken });
+    
+    if (result.success) {
+      currentUser = result.user;
+      console.log('✅ Utilisateur connecté:', currentUser.pseudo);
+      updateAccountDisplay();
+    } else {
+      // Token invalide, demander création de compte
+      console.warn('⚠️ Token invalide, création de compte nécessaire');
+      localStorage.removeItem('userToken');
+      userToken = null;
+    }
+  }
+  
+  // Si pas de token valide, l'utilisateur verra la page d'accueil
+  // et pourra cliquer sur le panda pour créer son compte
+}
+
+// ========================================
+// GÉNÉRATION DE PSEUDO
+// ========================================
+async function generateNewPseudo() {
+  const pseudoText = document.getElementById('pseudo-text');
+  const errorDiv = document.getElementById('create-error');
+  const validateBtn = document.getElementById('validate-pseudo-btn');
+  
+  // Animation de chargement
+  pseudoText.textContent = '🔄';
+  validateBtn.disabled = true;
+  errorDiv.style.display = 'none';
+  
+  try {
+    const result = await callAPI('generatePseudo');
+    
+    if (result.success) {
+      currentPseudoProposal = result;
+      pseudoText.textContent = result.pseudo;
+      validateBtn.disabled = false;
+      console.log('✅ Pseudo généré:', result.pseudo);
+    } else {
+      errorDiv.textContent = result.error || 'Erreur lors de la génération';
+      errorDiv.style.display = 'block';
+      pseudoText.textContent = '❌';
+      console.error('❌ Erreur génération pseudo:', result.error);
+    }
+  } catch (error) {
+    errorDiv.textContent = 'Erreur de connexion';
+    errorDiv.style.display = 'block';
+    pseudoText.textContent = '❌';
+    console.error('❌ Erreur:', error);
+  }
+}
+
+// ========================================
+// AFFICHER LA SAISIE DU PIN
+// ========================================
+function showPinInput() {
+  if (!currentPseudoProposal) {
+    alert('Veuillez générer un pseudo d\'abord');
+    return;
+  }
+  
+  document.getElementById('validate-pseudo-btn').style.display = 'none';
+  document.querySelector('button[onclick="generateNewPseudo()"]').style.display = 'none';
+  document.getElementById('pin-input-section').style.display = 'block';
+  document.getElementById('pin-input').focus();
+}
+
+// ========================================
+// MASQUER LA SAISIE DU PIN
+// ========================================
+function hidePinInput() {
+  document.getElementById('validate-pseudo-btn').style.display = 'block';
+  document.querySelector('button[onclick="generateNewPseudo()"]').style.display = 'block';
+  document.getElementById('pin-input-section').style.display = 'none';
+  document.getElementById('pin-input').value = '';
+}
+
+// ========================================
+// VALIDER LE COMPTE (création finale)
+// ========================================
+async function validateAccount() {
+  const pinInput = document.getElementById('pin-input');
+  const pin = pinInput.value.trim();
+  const errorDiv = document.getElementById('create-error');
+  
+  // Validation du PIN
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+    errorDiv.textContent = 'Le PIN doit contenir exactement 4 chiffres';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Générer un token unique
+  userToken = crypto.randomUUID();
+  
+  try {
+    const result = await callAPI('assignPseudo', {
+      token: userToken,
+      pseudo: currentPseudoProposal.pseudo,
+      jpnWord: currentPseudoProposal.jpnWord,
+      engWord: currentPseudoProposal.engWord,
+      pin: pin
+    });
+    
+    if (result.success) {
+      // Sauvegarder le token localement
+      localStorage.setItem('userToken', userToken);
+      currentUser = result.user;
+      
+      console.log('✅ Compte créé avec succès:', currentUser.pseudo);
+      
+      // Afficher message de succès et rediriger
+      errorDiv.style.display = 'none';
+      document.getElementById('pseudo-text').textContent = '✅ Compte créé !';
+      
+      // Rediriger vers le menu après 1.5s
+      setTimeout(() => {
+        showSection('menu-section');
+        updateAccountDisplay();
+      }, 1500);
+      
+    } else {
+      errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
+      errorDiv.style.display = 'block';
+      console.error('❌ Erreur création compte:', result.error);
+    }
+  } catch (error) {
+    errorDiv.textContent = 'Erreur de connexion';
+    errorDiv.style.display = 'block';
+    console.error('❌ Erreur:', error);
+  }
+}
+
+// ========================================
+// CONNEXION (changement d'appareil)
+// ========================================
+async function loginUser() {
+  const pseudo = document.getElementById('login-pseudo').value.trim();
+  const pin = document.getElementById('login-pin').value.trim();
+  const errorDiv = document.getElementById('login-error');
+  const successDiv = document.getElementById('login-success');
+  
+  // Réinitialiser les messages
+  errorDiv.style.display = 'none';
+  successDiv.style.display = 'none';
+  
+  // Validation
+  if (!pseudo || !pin) {
+    errorDiv.textContent = 'Veuillez remplir tous les champs';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+    errorDiv.textContent = 'Le PIN doit contenir 4 chiffres';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  try {
+    // 1. Authentifier l'utilisateur
+    const authResult = await callAPI('authenticateUser', { pseudo, pin });
+    
+    if (!authResult.success) {
+      errorDiv.textContent = authResult.error || 'Pseudo ou PIN incorrect';
+      errorDiv.style.display = 'block';
+      return;
+    }
+    
+    // 2. Générer un nouveau token
+    const newToken = crypto.randomUUID();
+    
+    // 3. Mettre à jour le token dans la base
+    const updateResult = await callAPI('updateUserToken', {
+      pseudo,
+      pin,
+      newToken
+    });
+    
+    if (updateResult.success) {
+      // Sauvegarder le nouveau token localement
+      userToken = newToken;
+      localStorage.setItem('userToken', newToken);
+      currentUser = authResult.user;
+      currentUser.token = newToken;
+      
+      console.log('✅ Connexion réussie:', currentUser.pseudo);
+      
+      successDiv.textContent = `Bienvenue ${currentUser.pseudo} ! 🎌`;
+      successDiv.style.display = 'block';
+      
+      // Rediriger vers le menu après 1.5s
+      setTimeout(() => {
+        showSection('menu-section');
+        updateAccountDisplay();
+      }, 1500);
+      
+    } else {
+      errorDiv.textContent = 'Erreur lors de la mise à jour du token';
+      errorDiv.style.display = 'block';
+    }
+    
+  } catch (error) {
+    errorDiv.textContent = 'Erreur de connexion';
+    errorDiv.style.display = 'block';
+    console.error('❌ Erreur connexion:', error);
+  }
+}
+
+// ========================================
+// AFFICHER LA PAGE DE CONNEXION
+// ========================================
+function showChangeDevice() {
+  showSection('login');
+}
+
+// ========================================
+// METTRE À JOUR L'AFFICHAGE DU COMPTE
+// ========================================
+function updateAccountDisplay() {
+  if (currentUser) {
+    document.getElementById('account-pseudo').textContent = currentUser.pseudo;
+    document.getElementById('account-level').textContent = currentUser.niveau_atteint || niveauActif;
+  }
+}
+
+// ========================================
+// RETOUR AU MENU
+// ========================================
+function backToMenu() {
+  showSection('menu-section');
+  toggleMenu();
+}
+    
+    
 function toggleMenu() {
   const menu = document.getElementById('menu');
   menu.classList.toggle('active');
@@ -3928,6 +4182,10 @@ let revisionRomajiTable = {};
 
 // Modifier votre fonction initGame existante
 async function initGame() {
+  // 1. Initialiser le système utilisateur
+  await initUserSystem();
+  
+  // 2. Charger les données de jeu (code existant)
   const data = await callAPI('getHiraganas');
   if (data.error) {
     logError('Erreur lors du chargement: ' + data.error);
@@ -3937,7 +4195,6 @@ async function initGame() {
     HiraganaList = data;
   }
 
-  // Log des données brutes pour vérifier les clés
   console.log('📥 Données brutes de l\'API (getHiraganas):', JSON.stringify(HiraganaList.slice(0, 3), null, 2));
 
   revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
@@ -3948,19 +4205,18 @@ async function initGame() {
 
   // Initialiser statsCache
   statsCache.items = {};
-  // Ajouter après l'initialisation de statsCache dans initGame()
-validationCache = {};
-HiraganaList.forEach(item => {
-  const validation = parseInt(item.Validation || 0);
-  validationCache[item.ID] = validation;
-});
-console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).length, 'items');
+  validationCache = {};
+  HiraganaList.forEach(item => {
+    const validation = parseInt(item.Validation || 0);
+    validationCache[item.ID] = validation;
+  });
+  console.log('📄 Cache validation initialisée:', Object.keys(validationCache).length, 'items');
+  
   let totalTentatives = 0, totalReussites = 0;
   HiraganaList.forEach(item => {
-    // Log des clés disponibles pour cet item
-    console.log(`🔍 Clés de l\'item ID ${item.ID}:`, Object.keys(item));
+    console.log(`🔍 Clés de l'item ID ${item.ID}:`, Object.keys(item));
 
-    const key = item.ID; // Utiliser l'ID comme clé
+    const key = item.ID;
     if (!key) {
       console.warn(`⚠️ Item sans ID:`, item);
       return;
@@ -3978,39 +4234,33 @@ console.log('🔄 Cache validation initialisée:', Object.keys(validationCache).
   statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
   console.log('📈 Pourcentage global de réussite:', statsCache.globalPourcentage.toFixed(2) + '%');
-  console.log('📊 Stats par item:', 
-    Object.fromEntries(
-      Object.entries(statsCache.items).map(([key, stats]) => {
-        const item = HiraganaList.find(i => i.ID == key);
-        return [item ? `${item.Hiragana || item.Katakana} (ID ${key})` : key, `${stats.pourcentage.toFixed(2)}%`];
-      })
-    ));
-  // Initialiser l'état de blocage si pas déjà fait
-if (!localStorage.getItem('apprentissageBloque')) {
-  localStorage.setItem('apprentissageBloque', 'false');
-}
-   niveauActif = determineNiveauActif(HiraganaList);
-  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`; // ✅ MODIFIÉ
+  
+  if (!localStorage.getItem('apprentissageBloque')) {
+    localStorage.setItem('apprentissageBloque', 'false');
+  }
+  
+  niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   updateRevisionButtonState();
   updateApprendreButtonState();
+  
   setTimeout(() => {
-  updateMenuButtonStates();
-}, 100);
-  // NOUVEAU : Basculer automatiquement en mode révision si apprentissage bloqué
+    updateMenuButtonStates();
+  }, 100);
+
   if (isApprentissageBloque()) {
-/*  forceRevisionMode();  */
-}
+    // Code existant
+  }
  
   nextQuestion();
   gameDataLoaded = true;
+  
   const panda = document.querySelector(".panda-logo");
   panda.style.opacity = "1";
-    document.getElementById("loadingText").textContent = t('welcome_touch'); // ✅ MODIFIÉ
- 
+  document.getElementById("loadingText").textContent = t('welcome_touch');
   panda.style.pointerEvents = "auto";
-  
 }
 function nextQuestion() {
 document.getElementById("result").innerText = "";
@@ -4815,35 +5065,40 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
   
 </body>
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const panda = document.querySelector(".panda-logo");
-    if (panda) {
-      panda.addEventListener("click", () => {
-        // Masquer l’écran d’accueil définitivement
-        document.getElementById("welcome").classList.add("hidden");
-        loadDifficulty();
-        
-        updateMenuMessage();
-         // ✅ Mettre à jour le bouton Apprendre
-        updateApprendreButtonState();
-        // Afficher le bouton menu une fois sorti de l'accueil
-        const menuBtn = document.querySelector(".hamburger");
-        if (menuBtn) menuBtn.classList.remove("hidden");
-        // Ouvrir ton menu principal
+document.addEventListener("DOMContentLoaded", () => {
+  const panda = document.querySelector(".panda-logo");
+  if (panda) {
+    panda.addEventListener("click", () => {
+      document.getElementById("welcome").classList.add("hidden");
+      loadDifficulty();
+      updateMenuMessage();
+      updateApprendreButtonState();
+      
+      const menuBtn = document.querySelector(".hamburger");
+      if (menuBtn) menuBtn.classList.remove("hidden");
+      
+      // Si pas de compte, afficher création de compte
+      if (!userToken || !currentUser) {
+        showSection('create-account');
+        generateNewPseudo(); // Générer le premier pseudo automatiquement
+      } else {
+        // Sinon afficher le menu
         const menu = document.querySelector(".menu");
         if (menu) menu.classList.add("active");
-        niveauActif = determineNiveauActif(HiraganaList);
-  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-  updateLevelProgress(HiraganaList, niveauActif);
-  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  nextQuestion();      
-  updateRevisionButtonState();
-  updateApprendreButtonState();
-      });
-    }
-      // ✅ AJOUTER CETTE LIGNE pour charger la langue au démarrage
+      }
+      
+      niveauActif = determineNiveauActif(HiraganaList);
+      document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+      updateLevelProgress(HiraganaList, niveauActif);
+      renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+      nextQuestion();      
+      updateRevisionButtonState();
+      updateApprendreButtonState();
+    });
+  }
+  
   updateAllTexts();
-  });
+});
   document.addEventListener("DOMContentLoaded", () => {
   const panda = document.querySelector(".panda-logo");
   const menuBtn = document.querySelector(".hamburger");
@@ -4857,6 +5112,7 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 });
 </script>  
 </html>
+
 
 
 
