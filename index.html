@@ -4559,17 +4559,7 @@ callAPI('updateStats', {
   scorePoints: score, 
   isRevisionMode: revisionMode.isActive 
 })
-.then(response => {
-if (response.error) {
-console.warn('Erreur sauvegarde:', response.error);
-} else {
-console.log('✅ Score sauvegardé en arrière-plan');
-}
-})
-
-.catch(error => {
-console.error('Erreur lors de la sauvegarde:', error);
-})if (result.success) {
+if (result.success) {
   // Re-merge localement l'item updaté (sans re-fetch tout)
   const itemIndex = HiraganaList.findIndex(h => h.ID == current.ID); // ou revisionMode.currentItem.ID
   if (itemIndex !== -1) {
@@ -4580,7 +4570,18 @@ console.error('Erreur lors de la sauvegarde:', error);
   // Refresh UI (cartes, progress bar, etc.)
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-}  ;
+}  
+.then(response => {
+if (response.error) {
+console.warn('Erreur sauvegarde:', response.error);
+} else {
+console.log('✅ Score sauvegardé en arrière-plan');
+}
+})
+
+.catch(error => {
+console.error('Erreur lors de la sauvegarde:', error);
+});
 }
 }
 
@@ -5185,6 +5186,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
