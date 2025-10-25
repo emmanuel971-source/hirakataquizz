@@ -4548,7 +4548,7 @@ async function checkAnswer() {
     // Appel API pour synchroniser les stats avec le serveur
     const result = await callAPI('updateStats', { 
       token: userToken,
-      id: currentItemId, // Utiliser l'ID sauvegardé
+      id: currentItemId, 
       scorePoints: score, 
       isRevisionMode: revisionMode.isActive 
     });
@@ -4592,17 +4592,18 @@ async function checkAnswer() {
     // Passer à la question suivante
     if (!revisionMode.isActive) {
       if (score === 1) {
-        // Pour score=1, on a déjà déclenché nextQuestion via setTimeout
+        setTimeout(() => {
+          nextQuestion();
+        }, 1500);
       } else {
         document.getElementById("continueBtn").style.visibility = "visible";
       }
     } else {
-      // En mode révision, pas de nextQuestion automatique
       document.getElementById("continueBtn").style.visibility = "visible";
     }
 
-    // Réinitialiser input
-    document.getElementById("answerInput").value = "";
+    // Supprimer la réinitialisation de answerInput (inutilisé dans ton interface)
+    // document.getElementById("answerInput").value = ""; // Commenté car non pertinent
   }
 }
 function triggerLightFirework(card) {
@@ -5206,6 +5207,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
