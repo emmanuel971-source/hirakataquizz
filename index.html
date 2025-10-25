@@ -2827,37 +2827,48 @@ async function loadUserProgress() {
     const stats = userStats.stats || {};
     let mergedCount = 0;
     
+    // Merge stats dans HiraganaList
     HiraganaList.forEach(item => {
-      const itemStats = stats[item.ID] || { validation: 0, tentatives: 0, reussites: 0 };
-      if (item.Validation !== itemStats.validation) { // Seulement si changé
+      const itemStats = stats[item.ID.toString()] || { validation: 0, tentatives: 0, reussites: 0 };
+      // Forcer l’ajout des propriétés si absentes
+      if (item.Validation !== itemStats.validation || 
+          item.Tentatives !== itemStats.tentatives || 
+          item['Réussites'] !== itemStats.reussites) {
         item.Validation = itemStats.validation;
         item.Tentatives = itemStats.tentatives;
-        item['Réussites'] = itemStats.reussites; // Note : clé avec accent
+        item['Réussites'] = itemStats.reussites;
         mergedCount++;
       }
     });
     
-    console.log(`📊 Progrès user chargé: ${mergedCount} items mis à jour | Niveau initial du serveur: ${userStats.niveau_atteint}`);
+    console.log(`📊 Progrès user chargé: ${mergedCount} items mis à jour | Niveau serveur: ${userStats.niveau_atteint}`);
     
-    // Recalculer niveauActif basé sur les stats mergées
+    // Recalculer niveauActif
     niveauActif = determineNiveauActif(HiraganaList);
     if (userStats.niveau_atteint > niveauActif) {
-      niveauActif = userStats.niveau_atteint; // Fallback si recalcul < serveur (sécurité)
+      niveauActif = userStats.niveau_atteint; // Fallback si serveur plus haut
+      console.log(`🔄 Niveau forcé à ${niveauActif} (serveur)`);
     }
     
-    // Update UI
+    // Régénérer tables avec stats mergées
+    revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
+    revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
+    console.log(`📚 Tables régénérées après merge: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
+    
+    // Rafraîchir UI
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-    renderHiraganaCards(HiraganaList, niveauActif); // Re-render cartes avec étoiles
-    updateMenuButtonStates(); // Refresh blocages etc.
+    renderHiraganaCards(HiraganaList, niveauActif); // Afficher étoiles
+    updateMenuButtonStates();
     
   } else {
-    console.warn('⚠️ Erreur chargement stats user:', userStats.error);
-    // Fallback : niveau 1 si erreur
+    console.error('⚠️ Erreur chargement stats user:', userStats.error);
+    // Fallback niveau 1
     niveauActif = 1;
+    document.getElementById("levelDisplay").innerText = `${t('quiz_level')} 1`;
   }
-}   
+} 
     
 function toggleMenu() {
   const menu = document.getElementById('menu');
@@ -4221,89 +4232,75 @@ let revisionRomajiTable = {};
 
 // Modifier votre fonction initGame existante
 async function initGame() {
-  // 1. Initialiser le système utilisateur
-  await initUserSystem();
-  if (userToken) {
-  await loadUserProgress(); // Charge stats si token déjà en local (reload)
-}
-  // 2. Charger les données de jeu (code existant)
-  const data = await callAPI('getHiraganas');
-  if (data.error) {
-    logError('Erreur lors du chargement: ' + data.error);
-    console.warn('⚠️ Utilisation de HiraganaList par défaut ou vide');
-    HiraganaList = HiraganaList || [];
-  } else {
-    HiraganaList = data;
-    revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
-    revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-  }
+  try {
+    // Réinitialiser l'état du jeu
+    gameDataLoaded = false;
+    console.log('🛠️ Initialisation du jeu...');
 
-  console.log('📥 Données brutes de l\'API (getHiraganas):', JSON.stringify(HiraganaList.slice(0, 3), null, 2));
+    // Charger les données de base des hiraganas (sans stats)
+    const data = await callAPI('getHiraganas');
+    if (!data || data.length === 0) {
+      throw new Error('Aucune donnée Hiragana reçue');
+    }
+    
+    // Initialiser HiraganaList
+    HiraganaList = data.map(item => ({
+      ...item,
+      Validation: 0, // Valeur par défaut, sera mergée plus tard
+      Tentatives: 0,
+      Réussites: 0
+    }));
+    console.log(`📊 HiraganaList initialisée: ${HiraganaList.length} items`);
 
-  revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
-  revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-  
-  console.log("📚 Table romaji générée:", Object.keys(revisionRomajiTable).length, "entrées");
-  console.log("📚 Table katakana générée:", Object.keys(revisionKatakanaTable).length, "entrées");
+    // Initialiser le système utilisateur (vérifie localStorage, userToken, currentUser)
+    await initUserSystem();
+    console.log(`👤 Système user initialisé: token=${userToken || 'aucun'}`);
 
-  // Initialiser statsCache
-  statsCache.items = {};
-  validationCache = {};
-  HiraganaList.forEach(item => {
-    const validation = parseInt(item.Validation || 0);
-    validationCache[item.ID] = validation;
-  });
-  console.log('📄 Cache validation initialisée:', Object.keys(validationCache).length, 'items');
-  
-  let totalTentatives = 0, totalReussites = 0;
-  HiraganaList.forEach(item => {
-    console.log(`🔍 Clés de l'item ID ${item.ID}:`, Object.keys(item));
-
-    const key = item.ID;
-    if (!key) {
-      console.warn(`⚠️ Item sans ID:`, item);
-      return;
+    // Charger les stats per-user si connecté
+    if (userToken) {
+      await loadUserProgress(); // Merge stats_json dans HiraganaList et régénère tables
+    } else {
+      // Si pas de user, générer tables avec stats par défaut (0)
+      revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
+      revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
+      console.log(`📚 Tables initialisées sans user: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
     }
 
-    const tentatives = parseInt(item.Tentatives || 0, 10);
-    const reussites = parseInt(item['Réussites'] || 0, 10);
-    const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
-    statsCache.items[key] = { tentatives, reussites, pourcentage };
-    totalTentatives += tentatives;
-    totalReussites += reussites;
+    // Déterminer le niveau actif
+    niveauActif = determineNiveauActif(HiraganaList);
+    console.log(`🎮 Niveau actif calculé: ${niveauActif}`);
 
-    console.log(`📊 Item ID ${key} (${item.Hiragana || item.Katakana}): Tentatives=${tentatives}, Réussites=${reussites}, Pourcentage=${pourcentage.toFixed(2)}%`);
-  });
-  statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+    // Initialiser l'UI
+    document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+    updateLevelProgress(HiraganaList, niveauActif);
+    renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+    renderHiraganaCards(HiraganaList, niveauActif); // Afficher cartes avec étoiles
+    updateMenuButtonStates(); // Déblocage des niveaux
+    console.log('🖼️ UI initialisée');
 
-  console.log('📈 Pourcentage global de réussite:', statsCache.globalPourcentage.toFixed(2) + '%');
-  
-  if (!localStorage.getItem('apprentissageBloque')) {
-    localStorage.setItem('apprentissageBloque', 'false');
+    // Gestion du logo panda et texte de bienvenue (si présents)
+    const panda = document.querySelector(".panda-logo");
+    const loadingText = document.getElementById("loadingText");
+    if (panda && loadingText) {
+      panda.style.opacity = "1";
+      loadingText.textContent = t('welcome_touch');
+      panda.style.pointerEvents = "auto";
+      console.log('🐼 Logo panda affiché avec texte de bienvenue');
+    } else {
+      console.warn('⚠️ .panda-logo ou loadingText non trouvé dans le DOM');
+    }
+
+    // Marquer le jeu comme chargé
+    gameDataLoaded = true;
+    console.log('✅ initGame terminé avec succès');
+
+    // Afficher la section menu
+    showSection('menu');
+  } catch (error) {
+    console.error('❌ Erreur dans initGame:', error.message);
+    showError(t('error_loading_game') + ': ' + error.message);
+    gameDataLoaded = false;
   }
-  
-  niveauActif = determineNiveauActif(HiraganaList);
-  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
-  updateLevelProgress(HiraganaList, niveauActif);
-  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  updateRevisionButtonState();
-  updateApprendreButtonState();
-  
-  setTimeout(() => {
-    updateMenuButtonStates();
-  }, 100);
-
-  if (isApprentissageBloque()) {
-    // Code existant
-  }
- 
-  nextQuestion();
-  gameDataLoaded = true;
-  
-  const panda = document.querySelector(".panda-logo");
-  panda.style.opacity = "1";
-  document.getElementById("loadingText").textContent = t('welcome_touch');
-  panda.style.pointerEvents = "auto";
 }
 function nextQuestion() {
 document.getElementById("result").innerText = "";
@@ -5211,6 +5208,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
