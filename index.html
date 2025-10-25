@@ -4435,6 +4435,7 @@ container.appendChild(btn);
 }
 
 // File d'attente globale pour les mises à jour API
+// File d'attente globale pour les mises à jour API
 let pendingUpdates = [];
 
 async function queueUpdateStats(params) {
@@ -4446,7 +4447,6 @@ async function queueUpdateStats(params) {
         const result = await callAPI('updateStats', update);
         if (result.success) {
           console.log(`✅ File: Stats synchronisées pour item ${update.id}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
-          // Synchroniser avec les données du serveur
           const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
           if (hiraganaIndex !== -1) {
             HiraganaList[hiraganaIndex].Validation = result.newValidation;
@@ -4455,7 +4455,6 @@ async function queueUpdateStats(params) {
             validationCache[update.id] = result.newValidation;
             console.log(`🔄 HiraganaList[${hiraganaIndex}] synchronisé avec serveur:`, HiraganaList[hiraganaIndex]);
           }
-          // Vérifier si level up côté serveur
           if (result.newLevel && result.newLevel > niveauActif) {
             niveauActif = result.newLevel;
             console.log(`📈 Level up détecté (serveur): Niveau ${niveauActif}`);
@@ -4464,17 +4463,15 @@ async function queueUpdateStats(params) {
             renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
             renderHiraganaCards(HiraganaList, niveauActif);
             updateMenuButtonStates();
-            showMessage(t('level_up_message', { level: niveauActif }));
+            triggerLevelUpAnimation(document.body); // Appeler l'animation pour level up serveur
           }
         } else {
           console.error(`❌ File: Erreur API updateStats pour item ${update.id}: ${result.error}`);
-          // Optionnel : Stocker pour réessayer plus tard
         }
       } catch (error) {
         console.error(`❌ File: Erreur réseau updateStats pour item ${update.id}: ${error.message}`);
-        // Optionnel : Stocker pour réessayer
       }
-      pendingUpdates.shift(); // Retirer l'élément traité
+      pendingUpdates.shift();
     }
   }
 }
@@ -4483,7 +4480,6 @@ async function checkAnswer() {
   if (selections.first && selections.second && !isAnswered) {
     isAnswered = true;
 
-    // ✅ NOUVEAU : Utiliser getLocalizedKatakana pour les Katakana
     const getValue = (fieldName) => {
       if (fieldName === 'Katakana') {
         return getLocalizedKatakana(current);
@@ -4498,14 +4494,12 @@ async function checkAnswer() {
     const correctAnswers = [correct1, correct2];
     const userSelections = [selections.first, selections.second];
 
-    // Retirer l'effet de halo
     containers.forEach(container => {
       container.querySelectorAll("button").forEach(btn => {
         btn.classList.remove("clicked-glow", "correct", "incorrect");
       });
     });
 
-    // Appliquer les classes pour les voiles
     containers.forEach((container, index) => {
       const buttons = container.querySelectorAll("button");
       buttons.forEach(btn => {
@@ -4525,7 +4519,6 @@ async function checkAnswer() {
       });
     });
 
-    // Calculer la nouvelle validation
     const currentValidation = parseInt(current.Validation || 0);
     let newValidation = currentValidation;
     if (score === 1) {
@@ -4537,11 +4530,9 @@ async function checkAnswer() {
     }
     const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
 
-    // Sauvegarder l'ID de l'item courant AVANT tout changement
     const currentItemId = parseInt(current.ID);
     console.log(`📝 Réponse pour item ${currentItemId} (score: ${score})`);
 
-    // Mettre à jour les stats localement (pour UI réactive)
     updateStarsForHiragana(currentItemId, newValidation);
     const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
     if (hiraganaIndex !== -1) {
@@ -4552,7 +4543,6 @@ async function checkAnswer() {
       console.log(`🔄 HiraganaList[${hiraganaIndex}] mis à jour localement:`, HiraganaList[hiraganaIndex]);
     }
 
-    // Afficher le résultat
     let emoji = "", resultText = "";
     if (score === 1) {
       const emojisOK = ["🌸", "🎍", "🍵", "🪴", "💮", "🌺", "🌼", "🪷"];
@@ -4579,7 +4569,6 @@ async function checkAnswer() {
         👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
       </div>`;
 
-    // Jouer le son
     if (current && current.Hiragana) {
       const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
       const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
@@ -4590,7 +4579,6 @@ async function checkAnswer() {
       console.warn("❗ Aucun Hiragana à prononcer.");
     }
 
-    // Mettre à jour l'UI immédiatement
     const previousNiveau = niveauActif;
     niveauActif = determineNiveauActif(HiraganaList);
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
@@ -4598,11 +4586,12 @@ async function checkAnswer() {
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
     renderHiraganaCards(HiraganaList, niveauActif);
     updateMenuButtonStates();
+
+    // Si level up local, déclencher l'animation
     if (niveauActif > previousNiveau) {
-      showMessage(t('level_up_message', { level: niveauActif }));
+      triggerLevelUpAnimation(document.body);
     }
 
-    // Ajouter la mise à jour à la file d'attente (en arrière-plan)
     queueUpdateStats({
       token: userToken,
       id: currentItemId,
@@ -4610,12 +4599,11 @@ async function checkAnswer() {
       isRevisionMode: revisionMode.isActive
     });
 
-    // Passer à la question suivante
     if (!revisionMode.isActive) {
       if (score === 1) {
         setTimeout(() => {
           nextQuestion();
-        }, 1500);
+        }, niveauActif > previousNiveau ? 4000 : 1500); // Attendre plus longtemps si level up
       } else {
         document.getElementById("continueBtn").style.visibility = "visible";
       }
@@ -5225,6 +5213,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
