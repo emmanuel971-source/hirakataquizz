@@ -4553,36 +4553,61 @@ setTimeout(nextQuestion, 1500);
 document.getElementById("continueBtn").style.visibility = "visible";
 }
 
-callAPI('updateStats', { 
-  token: userToken,
-  id: parseInt(current.ID), 
-  scorePoints: score, 
-  isRevisionMode: revisionMode.isActive 
-})
-if (result.success) {
-  // Re-merge localement l'item updaté (sans re-fetch tout)
-  const itemIndex = HiraganaList.findIndex(h => h.ID == current.ID); // ou revisionMode.currentItem.ID
-  if (itemIndex !== -1) {
-    HiraganaList[itemIndex].Validation = result.newValidation;
-    // Update statsCache etc. si besoin
-  }
-  niveauActif = determineNiveauActif(HiraganaList); // Recalcul si level up
-  // Refresh UI (cartes, progress bar, etc.)
-  updateLevelProgress(HiraganaList, niveauActif);
-  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-}  
-.then(response => {
-if (response.error) {
-console.warn('Erreur sauvegarde:', response.error);
-} else {
-console.log('✅ Score sauvegardé en arrière-plan');
-}
-})
+// Appel API pour mettre à jour les stats
+  const result = await callAPI('updateStats', { 
+    token: userToken,
+    id: parseInt(current.ID), 
+    scorePoints: score, 
+    isRevisionMode: revisionMode.isActive 
+  });
 
-.catch(error => {
-console.error('Erreur lors de la sauvegarde:', error);
-});
-}
+  // Gestion de la réponse API
+  if (result.success) {
+    console.log(`✅ Stats mises à jour pour item ${current.ID}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
+    
+    // Mettre à jour HiraganaList localement
+    const itemIndex = HiraganaList.findIndex(h => h.ID == current.ID);
+    if (itemIndex !== -1) {
+      HiraganaList[itemIndex].Validation = result.newValidation;
+      HiraganaList[itemIndex].Tentatives = (HiraganaList[itemIndex].Tentatives || 0) + 1;
+      HiraganaList[itemIndex]['Réussites'] = (HiraganaList[itemIndex]['Réussites'] || 0) + score;
+      console.log(`🔄 HiraganaList[${itemIndex}] mis à jour:`, HiraganaList[itemIndex]);
+    } else {
+      console.warn(`⚠️ Item ID ${current.ID} non trouvé dans HiraganaList`);
+    }
+
+    // Recalculer niveauActif si changement de niveau
+    const previousNiveau = niveauActif;
+    niveauActif = determineNiveauActif(HiraganaList);
+    if (result.newLevel && result.newLevel > niveauActif) {
+      niveauActif = result.newLevel; // Prendre le niveau du serveur si plus haut (sécurité)
+      console.log(`📈 Level up détecté: Niveau ${niveauActif}`);
+    }
+
+    // Rafraîchir l'UI
+    document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+    updateLevelProgress(HiraganaList, niveauActif);
+    renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+    renderHiraganaCards(HiraganaList, niveauActif); // Réafficher cartes avec étoiles
+    updateMenuButtonStates(); // Mettre à jour boutons (déblocage niveaux)
+
+    // Si level up, optionnel : animation ou message
+    if (niveauActif > previousNiveau) {
+      showMessage(t('level_up_message', { level: niveauActif }));
+    }
+
+    // Passer à l'item suivant
+    if (!revisionMode.isActive) {
+      selectNewQuestion(HiraganaList, niveauActif);
+      displayQuestion(current);
+    }
+  } else {
+    console.error(`❌ Erreur API updateStats: ${result.error}`);
+    showError(t('error_updating_stats') + ': ' + result.error);
+  }
+
+  // Réinitialiser input
+  document.getElementById("answerInput").value = "";
 }
 
 function triggerLightFirework(card) {
@@ -5186,6 +5211,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
