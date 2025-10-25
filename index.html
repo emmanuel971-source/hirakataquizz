@@ -4434,6 +4434,51 @@ container.appendChild(btn);
 });
 }
 
+// File d'attente globale pour les mises à jour API
+let pendingUpdates = [];
+
+async function queueUpdateStats(params) {
+  pendingUpdates.push(params);
+  if (pendingUpdates.length === 1) {
+    while (pendingUpdates.length > 0) {
+      const update = pendingUpdates[0];
+      try {
+        const result = await callAPI('updateStats', update);
+        if (result.success) {
+          console.log(`✅ File: Stats synchronisées pour item ${update.id}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
+          // Synchroniser avec les données du serveur
+          const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
+          if (hiraganaIndex !== -1) {
+            HiraganaList[hiraganaIndex].Validation = result.newValidation;
+            HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
+            HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + update.scorePoints;
+            validationCache[update.id] = result.newValidation;
+            console.log(`🔄 HiraganaList[${hiraganaIndex}] synchronisé avec serveur:`, HiraganaList[hiraganaIndex]);
+          }
+          // Vérifier si level up côté serveur
+          if (result.newLevel && result.newLevel > niveauActif) {
+            niveauActif = result.newLevel;
+            console.log(`📈 Level up détecté (serveur): Niveau ${niveauActif}`);
+            document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+            updateLevelProgress(HiraganaList, niveauActif);
+            renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+            renderHiraganaCards(HiraganaList, niveauActif);
+            updateMenuButtonStates();
+            showMessage(t('level_up_message', { level: niveauActif }));
+          }
+        } else {
+          console.error(`❌ File: Erreur API updateStats pour item ${update.id}: ${result.error}`);
+          // Optionnel : Stocker pour réessayer plus tard
+        }
+      } catch (error) {
+        console.error(`❌ File: Erreur réseau updateStats pour item ${update.id}: ${error.message}`);
+        // Optionnel : Stocker pour réessayer
+      }
+      pendingUpdates.shift(); // Retirer l'élément traité
+    }
+  }
+}
+
 async function checkAnswer() {
   if (selections.first && selections.second && !isAnswered) {
     isAnswered = true;
@@ -4496,7 +4541,7 @@ async function checkAnswer() {
     const currentItemId = parseInt(current.ID);
     console.log(`📝 Réponse pour item ${currentItemId} (score: ${score})`);
 
-    // Mettre à jour les stats localement (avant API pour UI rapide)
+    // Mettre à jour les stats localement (pour UI réactive)
     updateStarsForHiragana(currentItemId, newValidation);
     const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
     if (hiraganaIndex !== -1) {
@@ -4545,49 +4590,25 @@ async function checkAnswer() {
       console.warn("❗ Aucun Hiragana à prononcer.");
     }
 
-    // Appel API pour synchroniser les stats avec le serveur
-    const result = await callAPI('updateStats', { 
-      token: userToken,
-      id: currentItemId, 
-      scorePoints: score, 
-      isRevisionMode: revisionMode.isActive 
-    });
-
-    // Gestion de la réponse API
-    if (result.success) {
-      console.log(`✅ Stats synchronisées pour item ${currentItemId}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
-      
-      // Mettre à jour HiraganaList avec les données du serveur
-      if (hiraganaIndex !== -1) {
-        HiraganaList[hiraganaIndex].Validation = result.newValidation;
-        HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
-        HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + score;
-        console.log(`🔄 HiraganaList[${hiraganaIndex}] synchronisé:`, HiraganaList[hiraganaIndex]);
-      }
-
-      // Recalculer niveauActif
-      const previousNiveau = niveauActif;
-      niveauActif = determineNiveauActif(HiraganaList);
-      if (result.newLevel && result.newLevel > niveauActif) {
-        niveauActif = result.newLevel;
-        console.log(`📈 Level up détecté: Niveau ${niveauActif}`);
-      }
-
-      // Rafraîchir l'UI
-      document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
-      updateLevelProgress(HiraganaList, niveauActif);
-      renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-      renderHiraganaCards(HiraganaList, niveauActif);
-      updateMenuButtonStates();
-
-      // Message de level up
-      if (niveauActif > previousNiveau) {
-        showMessage(t('level_up_message', { level: niveauActif }));
-      }
-    } else {
-      console.error(`❌ Erreur API updateStats: ${result.error}`);
-      showError(t('error_updating_stats') + ': ' + result.error);
+    // Mettre à jour l'UI immédiatement
+    const previousNiveau = niveauActif;
+    niveauActif = determineNiveauActif(HiraganaList);
+    document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+    updateLevelProgress(HiraganaList, niveauActif);
+    renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+    renderHiraganaCards(HiraganaList, niveauActif);
+    updateMenuButtonStates();
+    if (niveauActif > previousNiveau) {
+      showMessage(t('level_up_message', { level: niveauActif }));
     }
+
+    // Ajouter la mise à jour à la file d'attente (en arrière-plan)
+    queueUpdateStats({
+      token: userToken,
+      id: currentItemId,
+      scorePoints: score,
+      isRevisionMode: revisionMode.isActive
+    });
 
     // Passer à la question suivante
     if (!revisionMode.isActive) {
@@ -4601,9 +4622,6 @@ async function checkAnswer() {
     } else {
       document.getElementById("continueBtn").style.visibility = "visible";
     }
-
-    // Supprimer la réinitialisation de answerInput (inutilisé dans ton interface)
-    // document.getElementById("answerInput").value = ""; // Commenté car non pertinent
   }
 }
 function triggerLightFirework(card) {
@@ -5207,6 +5225,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
