@@ -2582,6 +2582,7 @@ async function initUserSystem() {
     
     if (result.success) {
       currentUser = result.user;
+      await loadUserProgress();
       console.log('✅ Utilisateur connecté:', currentUser.pseudo);
       updateAccountDisplay();
     } else {
@@ -2595,7 +2596,7 @@ async function initUserSystem() {
   // Si pas de token valide, l'utilisateur verra la page d'accueil
   // et pourra cliquer sur le panda pour créer son compte
 }
-
+await loadUserProgress();
 // ========================================
 // GÉNÉRATION DE PSEUDO
 // ========================================
@@ -2763,6 +2764,7 @@ async function loginUser() {
       userToken = newToken;
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
+      await loadUserProgress();
       currentUser.token = newToken;
       
       console.log('✅ Connexion réussie:', currentUser.pseudo);
@@ -2812,7 +2814,33 @@ function backToMenu() {
   showSection('menu-section');
   toggleMenu();
 }
+// Nouvelle fonction : Charger progrès per-user et merger
+async function loadUserProgress() {
+  if (!userToken) return;
+  
+  const userStats = await callAPI('getUserStats', { token: userToken });
+  if (userStats.success) {
+    const stats = userStats.stats || {};
     
+    HiraganaList.forEach(item => {
+      const itemStats = stats[item.ID] || { validation: 0, tentatives: 0, reussites: 0 };
+      item.Validation = itemStats.validation;
+      item.Tentatives = itemStats.tentatives;
+      item.Réussites = itemStats.reussites;
+    });
+    
+    // Set niveau initial du user, puis recalcule pour cohérence
+    niveauActif = userStats.niveau_atteint || determineNiveauActif(HiraganaList);
+    niveauActif = determineNiveauActif(HiraganaList); // Recalcul final
+    
+    console.log(`📊 Progrès user chargé: Niveau ${niveauActif}`);
+    document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+    updateLevelProgress(HiraganaList, niveauActif);
+    renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  } else {
+    console.warn('⚠️ Erreur chargement stats user:', userStats.error);
+  }
+}    
     
 function toggleMenu() {
   const menu = document.getElementById('menu');
@@ -4187,6 +4215,8 @@ async function initGame() {
     HiraganaList = HiraganaList || [];
   } else {
     HiraganaList = data;
+    revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
+    revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
   }
 
   console.log('📥 Données brutes de l\'API (getHiraganas):', JSON.stringify(HiraganaList.slice(0, 3), null, 2));
@@ -4504,7 +4534,12 @@ setTimeout(nextQuestion, 1500);
 document.getElementById("continueBtn").style.visibility = "visible";
 }
 
-callAPI('updateStats', { id: parseInt(current.ID), scorePoints: score })
+callAPI('updateStats', { 
+  token: userToken,
+  id: parseInt(current.ID), 
+  scorePoints: score, 
+  isRevisionMode: revisionMode.isActive 
+})
 .then(response => {
 if (response.error) {
 console.warn('Erreur sauvegarde:', response.error);
@@ -4903,10 +4938,12 @@ function updateRevisionFeedback() {
       }
     }
   }
-// ❌ SUPPRIMER CES LIGNES
-// if (wasBlockedWhenEnteringRevision) {
-//   updateUnlockProgress();
-// }
+callAPI('updateStats', { 
+  token: userToken,
+  id: parseInt(revisionMode.currentItem.ID), 
+  scorePoints: isCorrect ? 1 : 0,
+  isRevisionMode: true
+});
 }
   
       
@@ -4999,12 +5036,11 @@ if (wasBlockedWhenEnteringRevision) {
 
         // Appeler API en arrière-plan avec le flag mode révision
         callAPI('updateStats', { 
-          id: parseInt(revisionMode.currentItem.ID), 
-          scorePoints: isCorrect ? 1 : 0,
-          tentatives: statsCache.items[key].tentatives,
-          reussites: statsCache.items[key].reussites,
-          isRevisionMode: true
-        }).catch(error => console.error('Erreur sauvegarde stats:', error));
+  token: userToken,
+  id: parseInt(current.ID), 
+  scorePoints: score, 
+  isRevisionMode: revisionMode.isActive 
+}).catch(error => console.error('Erreur sauvegarde stats:', error));
 
         // ✅ POINT 5 : Mettre à jour la barre de déblocage
         if (wasBlockedWhenEnteringRevision) {
@@ -5106,6 +5142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
