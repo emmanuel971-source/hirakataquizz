@@ -2688,7 +2688,7 @@ async function validateAccount() {
       // Sauvegarder le token localement
       localStorage.setItem('userToken', userToken);
       currentUser = result.user;
-      
+      await loadUserProgress();
       console.log('✅ Compte créé avec succès:', currentUser.pseudo);
       
       // Afficher message de succès et rediriger
@@ -2815,32 +2815,49 @@ function backToMenu() {
   toggleMenu();
 }
 // Nouvelle fonction : Charger progrès per-user et merger
+// Amélioration de loadUserProgress() : Ajoute logs et defaults
 async function loadUserProgress() {
-  if (!userToken) return;
+  if (!userToken) {
+    console.warn('⚠️ Pas de token - Stats non chargées');
+    return;
+  }
   
   const userStats = await callAPI('getUserStats', { token: userToken });
   if (userStats.success) {
     const stats = userStats.stats || {};
+    let mergedCount = 0;
     
     HiraganaList.forEach(item => {
       const itemStats = stats[item.ID] || { validation: 0, tentatives: 0, reussites: 0 };
-      item.Validation = itemStats.validation;
-      item.Tentatives = itemStats.tentatives;
-      item.Réussites = itemStats.reussites;
+      if (item.Validation !== itemStats.validation) { // Seulement si changé
+        item.Validation = itemStats.validation;
+        item.Tentatives = itemStats.tentatives;
+        item['Réussites'] = itemStats.reussites; // Note : clé avec accent
+        mergedCount++;
+      }
     });
     
-    // Set niveau initial du user, puis recalcule pour cohérence
-    niveauActif = userStats.niveau_atteint || determineNiveauActif(HiraganaList);
-    niveauActif = determineNiveauActif(HiraganaList); // Recalcul final
+    console.log(`📊 Progrès user chargé: ${mergedCount} items mis à jour | Niveau initial du serveur: ${userStats.niveau_atteint}`);
     
-    console.log(`📊 Progrès user chargé: Niveau ${niveauActif}`);
+    // Recalculer niveauActif basé sur les stats mergées
+    niveauActif = determineNiveauActif(HiraganaList);
+    if (userStats.niveau_atteint > niveauActif) {
+      niveauActif = userStats.niveau_atteint; // Fallback si recalcul < serveur (sécurité)
+    }
+    
+    // Update UI
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+    renderHiraganaCards(HiraganaList, niveauActif); // Re-render cartes avec étoiles
+    updateMenuButtonStates(); // Refresh blocages etc.
+    
   } else {
     console.warn('⚠️ Erreur chargement stats user:', userStats.error);
+    // Fallback : niveau 1 si erreur
+    niveauActif = 1;
   }
-}    
+}   
     
 function toggleMenu() {
   const menu = document.getElementById('menu');
@@ -4206,7 +4223,9 @@ let revisionRomajiTable = {};
 async function initGame() {
   // 1. Initialiser le système utilisateur
   await initUserSystem();
-  
+  if (userToken) {
+  await loadUserProgress(); // Charge stats si token déjà en local (reload)
+}
   // 2. Charger les données de jeu (code existant)
   const data = await callAPI('getHiraganas');
   if (data.error) {
@@ -4547,6 +4566,18 @@ console.warn('Erreur sauvegarde:', response.error);
 console.log('✅ Score sauvegardé en arrière-plan');
 }
 })
+if (result.success) {
+  // Re-merge localement l'item updaté (sans re-fetch tout)
+  const itemIndex = HiraganaList.findIndex(h => h.ID == current.ID); // ou revisionMode.currentItem.ID
+  if (itemIndex !== -1) {
+    HiraganaList[itemIndex].Validation = result.newValidation;
+    // Update statsCache etc. si besoin
+  }
+  niveauActif = determineNiveauActif(HiraganaList); // Recalcul si level up
+  // Refresh UI (cartes, progress bar, etc.)
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+}  
 .catch(error => {
 console.error('Erreur lors de la sauvegarde:', error);
 });
@@ -4943,7 +4974,19 @@ callAPI('updateStats', {
   id: parseInt(revisionMode.currentItem.ID), 
   scorePoints: isCorrect ? 1 : 0,
   isRevisionMode: true
-});
+})
+if (result.success) {
+  // Re-merge localement l'item updaté (sans re-fetch tout)
+  const itemIndex = HiraganaList.findIndex(h => h.ID == current.ID); // ou revisionMode.currentItem.ID
+  if (itemIndex !== -1) {
+    HiraganaList[itemIndex].Validation = result.newValidation;
+    // Update statsCache etc. si besoin
+  }
+  niveauActif = determineNiveauActif(HiraganaList); // Recalcul si level up
+  // Refresh UI (cartes, progress bar, etc.)
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+};
 }
   
       
@@ -5142,6 +5185,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
