@@ -5009,8 +5009,8 @@ function initRevisionKeyboard() {
   revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true)));
   const newRevisionKeys = document.querySelectorAll('.revision-key');
 
-  newRevisionKeys.forEach(key => {
-    key.addEventListener("click", () => {
+newRevisionKeys.forEach(key => {
+  key.addEventListener("click", async () => {  // ✅ Ajouter async
       if (!revisionMode.isActive) return;
 
       if (key.id === "revision-back") {
@@ -5089,12 +5089,30 @@ if (wasBlockedWhenEnteringRevision) {
 }
 
         // Appeler API en arrière-plan avec le flag mode révision
-callAPI('updateStats', { 
-  token: userToken,
-  id: parseInt(revisionMode.currentItem.ID),  // ✅ Utiliser revisionMode.currentItem
-  scorePoints: isCorrect ? 1 : 0,  // ✅ Utiliser isCorrect qui est défini juste au-dessus
-  isRevisionMode: true  // ✅ On est forcément en mode révision ici
-}).catch(error => console.error('Erreur sauvegarde stats:', error));
+// Appeler API et attendre la réponse
+try {
+  const result = await callAPI('updateStats', { 
+    token: userToken,
+    id: parseInt(revisionMode.currentItem.ID),
+    scorePoints: isCorrect ? 1 : 0,
+    isRevisionMode: true 
+  });
+  
+  if (result.success) {
+    console.log(`✅ Stats sauvegardées pour item ${revisionMode.currentItem.ID}: Validation=${result.newValidation}`);
+    
+    // Mettre à jour localement
+    const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+    if (hiraganaIndex !== -1) {
+      HiraganaList[hiraganaIndex].Validation = result.newValidation;
+      validationCache[revisionMode.currentItem.ID] = result.newValidation;
+    }
+  } else {
+    console.error('❌ Erreur sauvegarde stats:', result.error);
+  }
+} catch (error) {
+  console.error('❌ Erreur réseau sauvegarde stats:', error);
+}
 
         // ✅ POINT 5 : Mettre à jour la barre de déblocage
         if (wasBlockedWhenEnteringRevision) {
@@ -5196,6 +5214,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
