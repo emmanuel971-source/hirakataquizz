@@ -4997,13 +4997,7 @@ function updateRevisionFeedback() {
       }
     }
   }
-// Appeler API en arrière-plan avec le flag mode révision
-callAPI('updateStats', { 
-  token: userToken,
-  id: parseInt(current.ID), 
-  scorePoints: score, 
-  isRevisionMode: revisionMode.isActive 
-}).catch(error => console.error('Erreur sauvegarde stats:', error));
+
 }
   
       
@@ -5202,6 +5196,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
