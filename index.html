@@ -5089,11 +5089,11 @@ if (wasBlockedWhenEnteringRevision) {
 }
 
         // Appeler API en arrière-plan avec le flag mode révision
-        callAPI('updateStats', { 
+callAPI('updateStats', { 
   token: userToken,
-  id: parseInt(current.ID), 
-  scorePoints: score, 
-  isRevisionMode: revisionMode.isActive 
+  id: parseInt(revisionMode.currentItem.ID),  // ✅ Utiliser revisionMode.currentItem
+  scorePoints: isCorrect ? 1 : 0,  // ✅ Utiliser isCorrect qui est défini juste au-dessus
+  isRevisionMode: true  // ✅ On est forcément en mode révision ici
 }).catch(error => console.error('Erreur sauvegarde stats:', error));
 
         // ✅ POINT 5 : Mettre à jour la barre de déblocage
@@ -5196,6 +5196,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
