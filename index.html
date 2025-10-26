@@ -4444,7 +4444,16 @@ async function queueUpdateStats(params) {
     while (pendingUpdates.length > 0) {
       const update = pendingUpdates[0];
       try {
-        const result = await callAPI('updateStats', update);
+        // ✅ Construire l'objet avec tous les paramètres nécessaires
+        const apiParams = {
+          token: update.token,
+          id: update.id,
+          scorePoints: update.scorePoints,
+          isRevisionMode: update.isRevisionMode || false  // ✅ Ajouter ce paramètre
+        };
+        
+        const result = await callAPI('updateStats', apiParams);
+        
         if (result.success) {
           console.log(`✅ File: Stats synchronisées pour item ${update.id}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
           const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
@@ -4463,7 +4472,7 @@ async function queueUpdateStats(params) {
             renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
             renderHiraganaCards(HiraganaList, niveauActif);
             updateMenuButtonStates();
-            triggerLevelUpAnimation(document.body); // Appeler l'animation pour level up serveur
+            triggerLevelUpAnimation(document.body);
           }
         } else {
           console.error(`❌ File: Erreur API updateStats pour item ${update.id}: ${result.error}`);
@@ -4475,7 +4484,6 @@ async function queueUpdateStats(params) {
     }
   }
 }
-
 async function checkAnswer() {
   if (selections.first && selections.second && !isAnswered) {
     isAnswered = true;
@@ -5209,6 +5217,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
