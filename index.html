@@ -3184,50 +3184,26 @@ function updateUnlockProgress() {
 
   if (!container || !fill) return;
 
-  const isBlocked = isApprentissageBloque();
-
-  // Si on est en mode révision et qu'on a déjà débloqué, masquer la barre
-  if (revisionMode.isActive && hasUnlockedInRevision) {
+  if (!revisionMode.isActive || !wasBlockedWhenEnteringRevision || hasUnlockedInRevision) {
     container.style.display = 'none';
     return;
   }
 
-  // Si on est en mode révision mais non bloqué au départ, masquer la barre
-  if (revisionMode.isActive && !wasBlockedWhenEnteringRevision) {
-    container.style.display = 'none';
-    return;
-  }
-
-  // Si pas bloqué, masquer la barre
-  if (!isBlocked) {
-    container.style.display = 'none';
-    if (revisionMode.isActive) {
-      hasUnlockedInRevision = true;
-    }
-    return;
-  }
-
-  // Afficher la barre si bloqué et non débloqué
   container.style.display = 'block';
 
-  // ✅ UTILISER LE COMPTEUR au lieu de recalculer
   const deficitRestant = Math.max(0, deficitInitialRevision - pointsGagnesEnRevision);
-  const pourcentage = deficitInitialRevision > 0
-    ? (deficitRestant / deficitInitialRevision * 100)
-    : 0;
+  const pourcentage = deficitInitialRevision > 0 ? (deficitRestant / deficitInitialRevision * 100) : 0;
 
   fill.style.width = `${pourcentage}%`;
 
-  // ✅ LOG pour debug
-  console.log(`📊 updateUnlockProgress appelé | Déficit restant: ${deficitRestant}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%) | Points gagnés: ${pointsGagnesEnRevision}`);
+  console.log(`📊 Progress: ${deficitRestant}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%) | Points: ${pointsGagnesEnRevision}`);
 
-  // Si on a gagné assez de points pour atteindre 0
   if (pointsGagnesEnRevision >= deficitInitialRevision) {
     container.style.display = 'none';
     hasUnlockedInRevision = true;
     localStorage.setItem('apprentissageBloque', 'false');
     updateApprendreButtonState();
-    console.log('🎉 DÉBLOCAGE ! Déficit ramené à 0');
+    console.log('🎉 Déblocage atteint');
   }
 
   if (pourcentage < 10 && pourcentage > 0) {
@@ -3236,7 +3212,6 @@ function updateUnlockProgress() {
     fill.classList.remove('proche-deblocage');
   }
 }
-  
 function isGroupeDebloque(groupeId) {
   if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
   
@@ -4749,12 +4724,7 @@ easing: "ease-in-out"
 }
 
 function startRevisionQuestion() {
-  // Capturer le déficit initial si le mode "Apprendre" était bloqué
-// ❌ SUPPRIMER TOUT CE BLOC
-// if (wasBlockedWhenEnteringRevision) {
-//   deficitInitialRevision = calculerDeficitValidation();
-//   console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
-// }
+
 
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
@@ -5039,112 +5009,93 @@ function initRevisionKeyboard() {
       const isMultiChar = revisionMode.romajiSegments.length >= 2;
       const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
 
-      if (revisionMode.input.length >= totalLength) {
-        const isCorrect = revisionMode.input === revisionMode.fullCorrect;
-        const key = revisionMode.currentItem.ID;
+    if (revisionMode.input.length >= totalLength) {
+  const isCorrect = revisionMode.input === revisionMode.fullCorrect;
+  const key = revisionMode.currentItem.ID;
 
-        // Mettre à jour statsCache
-        statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-        statsCache.items[key].tentatives += 1;
-        statsCache.items[key].reussites += isCorrect ? 1 : 0;
-        statsCache.items[key].pourcentage = statsCache.items[key].tentatives > 0 
-          ? (statsCache.items[key].reussites / statsCache.items[key].tentatives * 100) : 0;
+  // Mettre à jour statsCache
+  statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+  statsCache.items[key].tentatives += 1;
+  statsCache.items[key].reussites += isCorrect ? 1 : 0;
+  statsCache.items[key].pourcentage = statsCache.items[key].tentatives > 0 
+    ? (statsCache.items[key].reussites / statsCache.items[key].tentatives * 100) : 0;
 
-        // Mettre à jour pourcentage global
-        const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
-        const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
-        statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+  // Mettre à jour pourcentage global
+  const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+  const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+  statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-        console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
-        console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
+  console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
+  console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-        // Modification de la validation en mode révision
-        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
-        if (hiraganaIndex !== -1) {
-          const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-          
-          let newValidation;
-          let pointsGagnes = 0;
+  // Modification de la validation en mode révision
+  const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+  if (hiraganaIndex !== -1) {
+    const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+    
+    let newValidation;
+    let pointsGagnes = 0;
 
-          if (isCorrect) {
-            newValidation = currentValidation + 1;
-            if (currentValidation < seuilValidation) {
-              pointsGagnes = 1;
-            }
-          } else {
-            newValidation = Math.max(5, currentValidation - 2);
-            const oldDeficit = Math.max(0, seuilValidation - currentValidation);
-            const newDeficit = Math.max(0, seuilValidation - newValidation);
-            pointsGagnes = oldDeficit - newDeficit;
-          }
-
-          HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-          validationCache[revisionMode.currentItem.ID] = newValidation;
-
-          if (wasBlockedWhenEnteringRevision) {
-            pointsGagnesEnRevision += pointsGagnes;
-            console.log(`📊 Validation: ${currentValidation}→${newValidation} | Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
-            updateUnlockProgress();
-          }
-          
-          console.log(`🔒 Mode révision - Validation: ${newValidation} (était: ${currentValidation})`);
-        }
-
-        // ✅ APPEL API - Placé ici après la définition de isCorrect
-        try {
-          const result = await callAPI('updateStats', { 
-            token: userToken,
-            id: parseInt(revisionMode.currentItem.ID),
-            scorePoints: isCorrect ? 1 : 0,
-            isRevisionMode: true 
-          });
-          
-          if (result.success) {
-            console.log(`✅ Stats sauvegardées pour item ${revisionMode.currentItem.ID}: Validation=${result.newValidation}`);
-            
-            // Mettre à jour avec la valeur du serveur si différente
-            if (result.newValidation !== undefined) {
-              const idx = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
-              if (idx !== -1) {
-                HiraganaList[idx].Validation = result.newValidation;
-                validationCache[revisionMode.currentItem.ID] = result.newValidation;
-              }
-            }
-          } else {
-            console.error('❌ Erreur sauvegarde stats:', result.error);
-          }
-        } catch (error) {
-          console.error('❌ Erreur réseau sauvegarde stats:', error);
-        }
-
-        // Mettre à jour la barre de déblocage
-        if (wasBlockedWhenEnteringRevision) {
-          updateUnlockProgress();
-        }
-
-        // Afficher feedback
-        if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `${katakanaDisplay}`;
-          document.getElementById("revision-message").style.color = "#8B6F47";
-          playZenBell();
-        } else {
-          document.getElementById("revision-message").textContent = isHighLevel 
-            ? "Faux" 
-            : `👉 Bonne réponse : ${revisionMode.fullCorrect}${katakanaDisplay}`;
-          document.getElementById("revision-message").style.color = "#8B6F47";
-          playSoftError();
-        }
-
-        // Jouer son MP3
-        const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
-        const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-        const audio = new Audio(audioUrl);
-        audio.play().catch(e => console.warn('Erreur audio:', e));
-
-        setTimeout(() => {
-          startRevisionQuestion();
-        }, isCorrect ? 2000 : 3000);
+    if (isCorrect) {
+      newValidation = currentValidation + 1;
+      if (currentValidation < seuilValidation) {
+        pointsGagnes = 1;
       }
+    } else {
+      newValidation = Math.max(5, currentValidation - 2);
+      const oldDeficit = Math.max(0, seuilValidation - currentValidation);
+      const newDeficit = Math.max(0, seuilValidation - newValidation);
+      pointsGagnes = oldDeficit - newDeficit;
+    }
+
+    HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+    validationCache[revisionMode.currentItem.ID] = newValidation;
+
+    if (wasBlockedWhenEnteringRevision) {
+      pointsGagnesEnRevision += pointsGagnes;
+      console.log(`📊 Validation: ${currentValidation}→${newValidation} | Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
+      updateUnlockProgress();
+    }
+    
+    console.log(`🔒 Mode révision - Validation: ${newValidation} (était: ${currentValidation})`);
+  }
+
+  // ✅ Mettre en file d'attente l'appel API (en background, sans attendre)
+  queueUpdateStats({
+    token: userToken,
+    id: parseInt(revisionMode.currentItem.ID),
+    scorePoints: isCorrect ? 1 : 0,
+    isRevisionMode: true
+  });
+
+  // Mettre à jour la barre de déblocage
+  if (wasBlockedWhenEnteringRevision) {
+    updateUnlockProgress();
+  }
+
+  // Afficher feedback
+  if (isCorrect) {
+    document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `${katakanaDisplay}`;
+    document.getElementById("revision-message").style.color = "#8B6F47";
+    playZenBell();
+  } else {
+    document.getElementById("revision-message").textContent = isHighLevel 
+      ? "Faux" 
+      : `👉 Bonne réponse : ${revisionMode.fullCorrect}${katakanaDisplay}`;
+    document.getElementById("revision-message").style.color = "#8B6F47";
+    playSoftError();
+  }
+
+  // Jouer son MP3
+  const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
+  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+  const audio = new Audio(audioUrl);
+  audio.play().catch(e => console.warn('Erreur audio:', e));
+
+  setTimeout(() => {
+    startRevisionQuestion();
+  }, isCorrect ? 2000 : 3000);
+}
     });
   });
 }
@@ -5217,6 +5168,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
