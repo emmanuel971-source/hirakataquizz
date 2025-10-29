@@ -4227,7 +4227,7 @@ async function initGame() {
   try {
     const data = await loadAllGameData();
 
-    // Données prêtes !
+    // === DONNÉES CHARGÉES ! ===
     HiraganaList = data.hiraganas.map(item => ({
       ...item,
       Validation: 0,
@@ -4235,13 +4235,22 @@ async function initGame() {
       Réussites: 0
     }));
 
-    PseudoWordList = data.pseudoWords; // ← Liste complète des mots
+    PseudoWordList = data.pseudoWords;
 
     setupEventListeners();
     showMenu();
 
   } catch (error) {
-    document.getElementById('loadingText').textContent = 'Échec du chargement';
+    // === VRAI ÉCHEC ===
+    loadingText.textContent = 'Impossible de charger le jeu. Réessayez.';
+    console.error('Init échouée:', error);
+
+    // Optionnel : bouton "Réessayer"
+    const retryBtn = document.createElement('button');
+    retryBtn.textContent = 'Réessayer';
+    retryBtn.onclick = () => location.reload();
+    retryBtn.style.marginTop = '10px';
+    document.getElementById('loadingContainer').appendChild(retryBtn);
   }
   try {
     // Réinitialiser l'état du jeu
@@ -4313,32 +4322,47 @@ async function initGame() {
     gameDataLoaded = false;
   }
 }
-async function loadAllGameData(onProgress) {
+async function loadAllGameData() {
   const progressBar = document.getElementById('loadingProgress');
   const loadingText = document.getElementById('loadingText');
   const loadingContainer = document.getElementById('loadingContainer');
 
+  // Réinitialisation
   progressBar.style.width = '0%';
-  loadingText.textContent = 'Analyse des données...';
+  loadingText.textContent = 'Connexion...';
   loadingContainer.style.display = 'flex';
 
-  try {
-    // 1. Vérifier le cache (optionnel)
-    const cached = localStorage.getItem('gameDataCache');
-    const manifestRes = await fetch(`${WEB_APP_URL}?action=getDataManifest`);
-    const manifest = await manifestRes.json();
+  let data = null;
 
-    if (cached) {
-      const cachedManifest = JSON.parse(cached).manifest;
-      if (cachedManifest.hash === manifest.hash) {
-        const data = JSON.parse(cached).data;
-        loadingContainer.style.display = 'none';
-        return data;
+  try {
+    // === 1. Vérifier cache ===
+    let useCache = false;
+    try {
+      const cached = localStorage.getItem('gameDataCache');
+      if (cached) {
+        const { manifest, data: cachedData } = JSON.parse(cached);
+        const manifestRes = await fetch(`${WEB_APP_URL}?action=getDataManifest`, { cache: 'no-store' });
+        const currentManifest = await manifestRes.json();
+
+        if (currentManifest.hash === manifest.hash) {
+          data = cachedData;
+          useCache = true;
+          loadingText.textContent = 'Données en cache';
+          progressBar.style.width = '100%';
+          await new Promise(r => setTimeout(r, 300)); // Petite pause visuelle
+          loadingContainer.style.display = 'none';
+          return data;
+        }
       }
+    } catch (e) {
+      console.warn('Cache ignoré:', e);
     }
 
-    // 2. Récupérer la taille totale
+    // === 2. Charger avec progression ===
+    loadingText.textContent = 'Analyse des données...';
+
     const sizeRes = await fetch(`${WEB_APP_URL}?action=getTotalDataSize`);
+    if (!sizeRes.ok) throw new Error('Impossible de récupérer la taille');
     const { totalSize, sizes } = await sizeRes.json();
 
     const datasets = [
@@ -4347,12 +4371,14 @@ async function loadAllGameData(onProgress) {
     ];
 
     let loadedTotal = 0;
-    const results = {};
+    data = {};
 
     for (const ds of datasets) {
       loadingText.textContent = `Chargement ${ds.name}...`;
 
       const response = await fetch(`${WEB_APP_URL}?action=${ds.action}`);
+      if (!response.ok) throw new Error(`Échec ${ds.action}`);
+
       const reader = response.body.getReader();
       let loaded = 0;
       const chunks = [];
@@ -4362,33 +4388,45 @@ async function loadAllGameData(onProgress) {
         if (done) break;
         chunks.push(value);
         loaded += value.length;
-
         loadedTotal += value.length;
+
         const percent = Math.min((loadedTotal / totalSize) * 100, 100);
         progressBar.style.width = `${percent}%`;
         loadingText.textContent = `Chargement ${Math.round(percent)}%`;
       }
 
       const blob = new Blob(chunks);
-      results[ds.name] = await blob.json();
+      data[ds.name] = await blob.json();
     }
 
-    // Cache pour la prochaine fois
-    localStorage.setItem('gameDataCache', JSON.stringify({
-      manifest,
-      data: results,
-      timestamp: new Date().getTime()
-    }));
+    // === 3. Sauvegarder en cache ===
+    try {
+      const manifestRes = await fetch(`${WEB_APP_URL}?action=getDataManifest`);
+      const manifest = await manifestRes.json();
+      localStorage.setItem('gameDataCache', JSON.stringify({
+        manifest,
+        data,
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      console.warn('Cache non sauvegardé:', e);
+    }
 
+    // === 4. Succès ! ===
+    loadingText.textContent = 'Prêt !';
+    progressBar.style.width = '100%';
+    await new Promise(r => setTimeout(r, 200));
     loadingContainer.style.display = 'none';
-    return results;
+
+    return data;
 
   } catch (error) {
     console.error('Erreur chargement:', error);
-    loadingText.textContent = 'Erreur de connexion';
-    throw error;
+    loadingText.textContent = 'Échec du chargement';
+    progressBar.style.width = '0%';
+    throw error; // Important : propager l'erreur
   }
-}  
+}
 function nextQuestion() {
 document.getElementById("result").innerText = "";
 document.getElementById("continueBtn").style.visibility = "hidden";
@@ -5280,6 +5318,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
