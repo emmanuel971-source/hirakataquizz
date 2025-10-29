@@ -2021,6 +2021,14 @@
   <h1 class="welcome-title" data-i18n="welcome_title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
   <p class="welcome-subtitle" data-i18n="welcome_subtitle">Apprenez à Lire le Japonais</p>
   <div class="loading-dots" id="loadingText">(Chargement... )</div>
+
+<!-- ✅ NOUVEAU : Barre de progression -->
+<div id="loading-progress-container" style="display: none; width: 80%; max-width: 400px; margin: 20px auto;">
+  <div style="background: rgba(139, 111, 71, 0.2); border-radius: 10px; overflow: hidden; height: 20px;">
+    <div id="loading-progress-fill" style="background: linear-gradient(90deg, #A8D5BA, #8B6F47); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+  </div>
+  <div id="loading-message" style="text-align: center; margin-top: 10px; font-size: 1em; color: #8B6F47;"></div>
+</div>
 </div>
   <!-- Section Menu -->
 
@@ -4206,75 +4214,244 @@ async function callAPI(action, data = null) {
 let revisionRomajiTable = {};
 
 // Modifier votre fonction initGame existante
+// Variable globale pour le chargement background
+let backgroundLoadingInProgress = false;
+
 async function initGame() {
   try {
-    // Réinitialiser l'état du jeu
     gameDataLoaded = false;
-    console.log('🛠️ Initialisation du jeu...');
-
-    // Charger les données de base des hiraganas (sans stats)
-    const data = await callAPI('getHiraganas');
-    if (!data || data.length === 0) {
-      throw new Error('Aucune donnée Hiragana reçue');
+    console.log('🛠️ Initialisation du jeu avec chunking...');
+    
+    // Masquer le texte "Chargement..." classique
+    document.getElementById("loadingText").style.display = "none";
+    
+    // Afficher la barre de progression
+    const progressContainer = document.getElementById('loading-progress-container');
+    progressContainer.style.display = 'block';
+    
+    // ==========================================
+    // PHASE 1 : DÉTECTION PROFIL (0-15%)
+    // ==========================================
+    updateLoadingProgress(5, "Connexion au serveur...");
+    
+    const token = localStorage.getItem('userToken');
+    const profileResult = await callAPI('getProfile', { token: token || '' });
+    
+    if (!profileResult.success) {
+      throw new Error('Erreur détection profil');
     }
     
-    // Initialiser HiraganaList
-    HiraganaList = data.map(item => ({
-      ...item,
-      Validation: 0, // Valeur par défaut, sera mergée plus tard
-      Tentatives: 0,
-      Réussites: 0
-    }));
-    console.log(`📊 HiraganaList initialisée: ${HiraganaList.length} items`);
-
-    // Initialiser le système utilisateur (vérifie localStorage, userToken, currentUser)
-    await initUserSystem();
-    console.log(`👤 Système user initialisé: token=${userToken || 'aucun'}`);
-
-    // Charger les stats per-user si connecté
-    if (userToken) {
-      await loadUserProgress(); // Merge stats_json dans HiraganaList et régénère tables
+    const profile = profileResult.profile;
+    console.log('👤 Profil détecté:', profile);
+    updateLoadingProgress(15, "Profil détecté !");
+    
+    // ==========================================
+    // PHASE 2 : CHARGEMENT PRIORITAIRE (15-60%)
+    // ==========================================
+    
+    if (profile.isNew) {
+      // 🆕 NEW USER : WordLists + Niveaux 1-3
+      updateLoadingProgress(20, "Chargement des listes de mots...");
+      const wordListsResult = await callAPI('getWordLists');
+      if (wordListsResult.success) {
+        // Stocker pour generatePseudo côté client si besoin
+        localStorage.setItem('wordLists', JSON.stringify(wordListsResult.words));
+        console.log(`📚 ${wordListsResult.count} mots chargés`);
+      }
+      
+      updateLoadingProgress(35, "Chargement niveaux 1-3...");
+      const chunk1Result = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: 3 });
+      
+      if (chunk1Result.success) {
+        HiraganaList = chunk1Result.data.map(item => ({
+          ...item,
+          Validation: 0,
+          Tentatives: 0,
+          Réussites: 0
+        }));
+        console.log(`📊 Chunk 1: ${chunk1Result.count} items chargés (niveaux ${chunk1Result.startLevel}-${chunk1Result.endLevel})`);
+      }
+      
+      updateLoadingProgress(60, "Prêt à jouer !");
+      
     } else {
-      // Si pas de user, générer tables avec stats par défaut (0)
-      revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
-      revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-      console.log(`📚 Tables initialisées sans user: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
+      // 🔁 RETURNING USER : Niveaux 1 à (niveau+2)
+      const maxLevel = Math.min(profile.niveau + 2, profile.totalLevels);
+      
+      updateLoadingProgress(25, `Chargement niveaux 1-${maxLevel}...`);
+      const chunkResult = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: maxLevel });
+      
+      if (chunkResult.success) {
+        HiraganaList = chunkResult.data.map(item => ({
+          ...item,
+          Validation: 0,
+          Tentatives: 0,
+          Réussites: 0
+        }));
+        console.log(`📊 Chunk returning user: ${chunkResult.count} items chargés (niveaux ${chunkResult.startLevel}-${chunkResult.endLevel})`);
+      }
+      
+      updateLoadingProgress(45, "Chargement de votre profil...");
+      await loadUserProgress(); // Charge stats et merge
+      
+      updateLoadingProgress(60, "Profil chargé !");
     }
-
-    // Déterminer le niveau actif
+    
+    // ==========================================
+    // PHASE 3 : INTERFACE JOUABLE (60-80%)
+    // ==========================================
+    updateLoadingProgress(70, "Initialisation de l'interface...");
+    
+    // Initialiser le système utilisateur
+    if (!profile.isNew) {
+      userToken = token;
+      const userResult = await callAPI('getUserByToken', { token: token });
+      if (userResult.success) {
+        currentUser = userResult.user;
+        updateAccountDisplay();
+      }
+    }
+    
+    // Déterminer niveau actif
     niveauActif = determineNiveauActif(HiraganaList);
     console.log(`🎮 Niveau actif calculé: ${niveauActif}`);
-
+    
     // Initialiser l'UI
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-    renderHiraganaCards(HiraganaList, niveauActif); // Afficher cartes avec étoiles
-    updateMenuButtonStates(); // Déblocage des niveaux
-    console.log('🖼️ UI initialisée');
-
-    // Gestion du logo panda et texte de bienvenue (si présents)
+    renderHiraganaCards(HiraganaList, niveauActif);
+    updateMenuButtonStates();
+    
+    updateLoadingProgress(80, "Presque prêt...");
+    
+    // ==========================================
+    // PHASE 4 : CHARGEMENT BACKGROUND (80-100%)
+    // ==========================================
+    gameDataLoaded = true;
+    updateLoadingProgress(90, "Finalisation...");
+    
+    // Afficher le panda et masquer la barre
     const panda = document.querySelector(".panda-logo");
     const loadingText = document.getElementById("loadingText");
     if (panda && loadingText) {
       panda.style.opacity = "1";
-      loadingText.textContent = t('welcome_touch');
       panda.style.pointerEvents = "auto";
-      console.log('🐼 Logo panda affiché avec texte de bienvenue');
-    } else {
-      console.warn('⚠️ .panda-logo ou loadingText non trouvé dans le DOM');
+      loadingText.textContent = t('welcome_touch');
+      loadingText.style.display = "block";
     }
-
-    // Marquer le jeu comme chargé
-    gameDataLoaded = true;
+    
+    updateLoadingProgress(100, "Chargement terminé !");
+    
+    // Masquer la barre après 500ms
+    setTimeout(() => {
+      progressContainer.style.display = 'none';
+    }, 500);
+    
     console.log('✅ initGame terminé avec succès');
-
-    // Afficher la section menu
-    showSection('menu');
+    
+    // ==========================================
+    // PHASE 5 : CHARGEMENT EN ARRIÈRE-PLAN
+    // ==========================================
+    loadRemainingDataInBackground(profile);
+    
   } catch (error) {
     console.error('❌ Erreur dans initGame:', error.message);
-    showError(t('error_loading_game') + ': ' + error.message);
+    document.getElementById('loading-message').textContent = 'Erreur : ' + error.message;
+    document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
+  }
+}
+
+// Fonction helper pour mettre à jour la barre
+function updateLoadingProgress(percent, message) {
+  const fill = document.getElementById('loading-progress-fill');
+  const msg = document.getElementById('loading-message');
+  
+  if (fill) fill.style.width = percent + '%';
+  if (msg) msg.textContent = message;
+  
+  console.log(`📊 ${percent}% - ${message}`);
+}
+
+// Chargement en arrière-plan des données restantes
+async function loadRemainingDataInBackground(profile) {
+  if (backgroundLoadingInProgress) return;
+  backgroundLoadingInProgress = true;
+  
+  console.log('🔄 Démarrage chargement background...');
+  
+  try {
+    if (profile.isNew) {
+      // Charger niveaux 4-46 par paquets de 10
+      for (let start = 4; start <= profile.totalLevels; start += 10) {
+        const end = Math.min(start + 9, profile.totalLevels);
+        console.log(`📥 Background: chargement niveaux ${start}-${end}...`);
+        
+        const chunkResult = await callAPI('getHiraganaChunk', { startLevel: start, endLevel: end });
+        
+        if (chunkResult.success) {
+          // Merger avec HiraganaList existante
+          const newItems = chunkResult.data.map(item => ({
+            ...item,
+            Validation: 0,
+            Tentatives: 0,
+            Réussites: 0
+          }));
+          
+          HiraganaList.push(...newItems);
+          console.log(`✅ Background: ${newItems.length} items ajoutés (total: ${HiraganaList.length})`);
+        }
+        
+        // Petit délai pour ne pas surcharger
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+    } else {
+      // Charger le reste des niveaux + WordLists (cas changement appareil)
+      const currentMax = Math.min(profile.niveau + 2, profile.totalLevels);
+      
+      if (currentMax < profile.totalLevels) {
+        console.log(`📥 Background: chargement niveaux ${currentMax + 1}-${profile.totalLevels}...`);
+        
+        const chunkResult = await callAPI('getHiraganaChunk', { 
+          startLevel: currentMax + 1, 
+          endLevel: profile.totalLevels 
+        });
+        
+        if (chunkResult.success) {
+          const newItems = chunkResult.data.map(item => ({
+            ...item,
+            Validation: 0,
+            Tentatives: 0,
+            Réussites: 0
+          }));
+          
+          HiraganaList.push(...newItems);
+          console.log(`✅ Background: ${newItems.length} items ajoutés (total: ${HiraganaList.length})`);
+        }
+      }
+      
+      // Charger WordLists pour futur changement d'appareil
+      console.log('📥 Background: chargement WordLists...');
+      const wordListsResult = await callAPI('getWordLists');
+      if (wordListsResult.success) {
+        localStorage.setItem('wordLists', JSON.stringify(wordListsResult.words));
+        console.log(`✅ Background: ${wordListsResult.count} mots stockés`);
+      }
+    }
+    
+    // Régénérer les tables de révision avec toutes les données
+    revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
+    revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
+    console.log(`📚 Tables régénérées: Romaji=${Object.keys(revisionRomajiTable).length}, Katakana=${Object.keys(revisionKatakanaTable).length}`);
+    
+    console.log('✅ Chargement background terminé !');
+    
+  } catch (error) {
+    console.error('❌ Erreur chargement background:', error.message);
+  } finally {
+    backgroundLoadingInProgress = false;
   }
 }
 function nextQuestion() {
@@ -5168,4 +5345,5 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
