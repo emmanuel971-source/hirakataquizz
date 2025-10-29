@@ -1,22 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  
-  <meta charset="utf-8">
-  <title>Hirakata Quizz</title>
-  <body>
-
-  <!-- CHARGEMENT -->
-  <div id="loadingContainer">
-    <div id="loadingText">Connexion...</div>
-    <div id="progressContainer">
-      <div id="loadingProgress"></div>
-    </div>
-  </div>
-
-
- 
-</body>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <base target="_top">
@@ -56,23 +40,6 @@
       opacity: 0.1;
       z-index: -1;
     }
-    #loadingContainer {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8); display: flex; flex-direction: column;
-  justify-content: center; align-items: center; z-index: 9999;
-  transition: opacity 0.5s ease-out;
-  font-family: sans-serif; color: white;
-}
-
-#loadingProgress {
-  height: 20px; background: #4CAF50; width: 0%;
-  border-radius: 10px; transition: width 0.3s ease-out;
-  margin-top: 10px;
-}
-
-#loadingText {
-  font-size: 1.2em; margin-bottom: 10px;
-}
 /* H1 DESKTOP */
     h1 {
       margin: 0.5em 0;
@@ -2028,7 +1995,6 @@
   </style>
 </head>
 <body>
-  
   <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">☰</button>  -->
 <!-- Bouton hamburger -->
 <button class="hamburger" onclick="toggleMenu()">
@@ -2281,16 +2247,7 @@
     </div>
   </div>
 </div>
-  <div id="loadingContainer" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;color:white;font-family:sans-serif;">
-  <div id="loadingText">Connexion...</div>
-  <div style="width:80%;height:20px;background:#333;border-radius:10px;overflow:hidden;margin-top:10px;">
-    <div id="loadingProgress" style="height:100%;background:#4CAF50;width:0%;transition:width 0.3s ease-out;"></div>
-  </div>
-</div>
   <script>
-    window.onload = function() {
-  ; // Maintenant le DOM est chargé
-};
     // === SYSTÈME DE TRADUCTION ===
 const translations = {
   fr: {
@@ -2619,13 +2576,9 @@ async function initUserSystem() {
   // Vérifier si un token existe déjà
   userToken = localStorage.getItem('userToken');
   
-  console.log('🔍 Vérification token dans localStorage:', userToken); // ✅ AJOUT
-  
   if (userToken) {
     // L'utilisateur a déjà un compte
     const result = await callAPI('getUserByToken', { token: userToken });
-    
-    console.log('🔍 Résultat getUserByToken:', result); // ✅ AJOUT
     
     if (result.success) {
       currentUser = result.user;
@@ -2638,8 +2591,6 @@ async function initUserSystem() {
       localStorage.removeItem('userToken');
       userToken = null;
     }
-  } else {
-    console.log('ℹ️ Aucun token trouvé - nouveau visiteur');
   }
   
   // Si pas de token valide, l'utilisateur verra la page d'accueil
@@ -2879,6 +2830,7 @@ async function loadUserProgress() {
     // Merge stats dans HiraganaList
     HiraganaList.forEach(item => {
       const itemStats = stats[item.ID.toString()] || { validation: 0, tentatives: 0, reussites: 0 };
+      // Forcer l’ajout des propriétés si absentes
       if (item.Validation !== itemStats.validation || 
           item.Tentatives !== itemStats.tentatives || 
           item['Réussites'] !== itemStats.reussites) {
@@ -2891,31 +2843,32 @@ async function loadUserProgress() {
     
     console.log(`📊 Progrès user chargé: ${mergedCount} items mis à jour | Niveau serveur: ${userStats.niveau_atteint}`);
     
+    // Recalculer niveauActif
     niveauActif = determineNiveauActif(HiraganaList);
     if (userStats.niveau_atteint > niveauActif) {
-      niveauActif = userStats.niveau_atteint;
+      niveauActif = userStats.niveau_atteint; // Fallback si serveur plus haut
       console.log(`🔄 Niveau forcé à ${niveauActif} (serveur)`);
     }
     
     // Régénérer tables avec stats mergées
     revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
     revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-    // ✅ CORRECTION
-    console.log(`📚 Tables régénérées après merge: Romaji=${Object.keys(revisionRomajiTable).length}, Katakana=${Object.keys(revisionKatakanaTable).length}`);
+    console.log(`📚 Tables régénérées après merge: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
     
     // Rafraîchir UI
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-    renderHiraganaCards(HiraganaList, niveauActif);
+    renderHiraganaCards(HiraganaList, niveauActif); // Afficher étoiles
     updateMenuButtonStates();
     
   } else {
     console.error('⚠️ Erreur chargement stats user:', userStats.error);
+    // Fallback niveau 1
     niveauActif = 1;
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} 1`;
   }
-}
+} 
     
 function toggleMenu() {
   const menu = document.getElementById('menu');
@@ -3321,12 +3274,14 @@ function generateRevisionRomajiTable(hiraganaList) {
     const hiragana = item.Hiragana;
     const romaji = item.Romaji;
     
+    // ✅ VÉRIFICATIONS ROBUSTES
     if (!hiragana || !romaji) {
       console.warn(`⚠️ Item ${index} ignoré - données manquantes:`, {hiragana, romaji});
       invalidItems++;
       return;
     }
     
+    // Convertir en string si ce n'est pas déjà le cas
     const hiraganaStr = String(hiragana).trim();
     const romajiStr = String(romaji).trim();
     
@@ -3337,6 +3292,7 @@ function generateRevisionRomajiTable(hiraganaList) {
     }
     
     try {
+      // Analyser le romaji pour créer les segments
       const segments = analyzeRomajiSegments(romajiStr);
       table[hiraganaStr] = {
         romaji: segments.segments,
@@ -3353,49 +3309,7 @@ function generateRevisionRomajiTable(hiraganaList) {
   });
   
   console.log(`📊 Génération table romaji: ${validItems} items valides, ${invalidItems} items ignorés`);
-  return table; // ✅ CORRECTION : Retourner l'objet table, pas sa longueur
-}
-
-function generateRevisionKatakanaTable(hiraganaList) {
-  const table = {};
-  let validItems = 0;
-  let invalidItems = 0;
-  
-  hiraganaList.forEach((item, index) => {
-    const katakana = getLocalizedKatakana(item);
-    const romaji = item.Romaji;
-    
-    if (!katakana || !romaji) {
-      console.warn(`⚠️ Item ${index} ignoré pour Katakana - données manquantes:`, {katakana, romaji});
-      invalidItems++;
-      return;
-    }
-    
-    const katakanaStr = String(katakana).trim();
-    const romajiStr = String(romaji).trim();
-    
-    if (katakanaStr === '' || romajiStr === '' || romajiStr === 'undefined' || romajiStr === 'null') {
-      invalidItems++;
-      return;
-    }
-    
-    try {
-      const segments = analyzeRomajiSegments(romajiStr);
-      table[katakanaStr] = {
-        romaji: segments.segments,
-        charCounts: segments.charCounts,
-        originalRomaji: romajiStr,
-        niveau: item.Niveau,
-        validation: item.Validation
-      };
-      validItems++;
-    } catch (error) {
-      invalidItems++;
-    }
-  });
-  
-  console.log(`📊 Génération table katakana: ${validItems} items valides, ${invalidItems} items ignorés`);
-  return table; // ✅ CORRECTION : Retourner l'objet table, pas sa longueur
+  return table;
 }
 function generateRevisionKatakanaTable(hiraganaList) {
   const table = {};
@@ -4258,7 +4172,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbytr2-BoXLffzQzq8DsH-upx6SpWGgdKe2fLp6UM_92K-FxD9g-X5FMWfiOyBt4KsdY/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwe2DTx0dMEDUR7dq_w3JjS41SgsSqgt8IhEcSeSDrVJiLS0su9NHFxx5YhZNNSKBc_kw/exec';
 // const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby1y-ThlFkq3WwR--BaPr8D4TlyQhoTdVVqSx3N87qbY9YzSwEWDn3YvjRLwo8ABbYk5g/exec';
 
 // Fonction pour appeler l'API
@@ -4293,207 +4207,74 @@ let revisionRomajiTable = {};
 
 // Modifier votre fonction initGame existante
 async function initGame() {
-  const loadingContainer = document.getElementById('loadingContainer');
-  const loadingText = document.getElementById('loadingText');
-
   try {
-    const data = await loadAllGameData();
+    // Réinitialiser l'état du jeu
+    gameDataLoaded = false;
+    console.log('🛠️ Initialisation du jeu...');
 
-    if (!data || !data.hiraganas || !data.pseudoWords) {
-      throw new Error('Données incomplètes');
+    // Charger les données de base des hiraganas (sans stats)
+    const data = await callAPI('getHiraganas');
+    if (!data || data.length === 0) {
+      throw new Error('Aucune donnée Hiragana reçue');
     }
-
-    HiraganaList = data.hiraganas.map(item => ({
+    
+    // Initialiser HiraganaList
+    HiraganaList = data.map(item => ({
       ...item,
-      Validation: 0,
+      Validation: 0, // Valeur par défaut, sera mergée plus tard
       Tentatives: 0,
       Réussites: 0
     }));
-    console.log(`HiraganaList: ${HiraganaList.length} items`);
+    console.log(`📊 HiraganaList initialisée: ${HiraganaList.length} items`);
 
-    PseudoWordList = data.pseudoWords;
-    console.log(`PseudoWordList: ${PseudoWordList.length} mots`); // ✅ CORRECTION
-
-    gameDataLoaded = false;
+    // Initialiser le système utilisateur (vérifie localStorage, userToken, currentUser)
     await initUserSystem();
-    console.log(`User token: ${userToken || 'aucun'}`);
+    console.log(`👤 Système user initialisé: token=${userToken || 'aucun'}`);
 
+    // Charger les stats per-user si connecté
     if (userToken) {
-      await loadUserProgress();
+      await loadUserProgress(); // Merge stats_json dans HiraganaList et régénère tables
     } else {
+      // Si pas de user, générer tables avec stats par défaut (0)
       revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
       revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-      // ✅ CORRECTION : Object.keys().length pour compter les entrées
-      console.log(`Tables: Romaji=${Object.keys(revisionRomajiTable).length}, Katakana=${Object.keys(revisionKatakanaTable).length}`);
+      console.log(`📚 Tables initialisées sans user: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
     }
 
+    // Déterminer le niveau actif
     niveauActif = determineNiveauActif(HiraganaList);
-    console.log(`Niveau: ${niveauActif}`);
+    console.log(`🎮 Niveau actif calculé: ${niveauActif}`);
 
+    // Initialiser l'UI
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-    renderHiraganaCards(HiraganaList, niveauActif);
-    updateMenuButtonStates();
+    renderHiraganaCards(HiraganaList, niveauActif); // Afficher cartes avec étoiles
+    updateMenuButtonStates(); // Déblocage des niveaux
+    console.log('🖼️ UI initialisée');
 
+    // Gestion du logo panda et texte de bienvenue (si présents)
     const panda = document.querySelector(".panda-logo");
+    const loadingText = document.getElementById("loadingText");
     if (panda && loadingText) {
       panda.style.opacity = "1";
       loadingText.textContent = t('welcome_touch');
       panda.style.pointerEvents = "auto";
+      console.log('🐼 Logo panda affiché avec texte de bienvenue');
+    } else {
+      console.warn('⚠️ .panda-logo ou loadingText non trouvé dans le DOM');
     }
 
+    // Marquer le jeu comme chargé
     gameDataLoaded = true;
-    console.log('✅ initGame succès');
-    // ✅ CORRECTION : Ne pas afficher le menu automatiquement
-    // showSection('menu');
+    console.log('✅ initGame terminé avec succès');
 
+    // Afficher la section menu
+    showSection('menu');
   } catch (error) {
-    console.error('❌ Erreur initGame:', error);
-    if (loadingText) {
-      loadingText.textContent = 'Impossible de charger. Réessayez.';
-    }
-    if (loadingContainer) {
-      const retryBtn = document.createElement('button');
-      retryBtn.textContent = 'Réessayer';
-      retryBtn.onclick = () => location.reload();
-      retryBtn.style.cssText = 'margin-top:10px; padding:8px 16px; font-size:1em; background:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer;';
-      loadingContainer.appendChild(retryBtn);
-    }
-  }
-}
-async function loadDataWithoutProgress() {
-  try {
-    const hiraganas = await callAPI('getHiraganas');
-    const pseudoWords = await callAPI('getPseudoWords');
-    console.log('Fallback sans progression: hiraganas chargés:', hiraganas.length);
-    return { hiraganas, pseudoWords };
-  } catch (e) {
-    console.error('Fallback échoué:', e);
-    throw e;
-  }
-}
-
-async function loadAllGameData() {
-  const loadingContainer = document.getElementById('loadingContainer');
-  const loadingText = document.getElementById('loadingText');
-  const loadingProgress = document.getElementById('loadingProgress');
-
-  if (!loadingContainer || !loadingText || !loadingProgress) {
-    console.warn('Éléments de chargement manquants → fallback sans progression');
-    return loadDataWithoutProgress();
-  }
-
-  loadingProgress.style.width = '0%';
-  loadingText.textContent = 'Connexion...';
-  loadingContainer.style.display = 'flex';
-
-  try {
-    // CACHE
-    const cached = localStorage.getItem('gameDataCache');
-    if (cached) {
-      const { manifest, data } = JSON.parse(cached);
-      const res = await fetch(`${WEB_APP_URL}?action=getDataManifest`, { cache: 'no-store' });
-      if (res.ok) {
-        const current = await res.json();
-        if (current.hash === manifest.hash) {
-          loadingText.textContent = 'Données en cache';
-          loadingProgress.style.width = '100%';
-          await new Promise(r => setTimeout(r, 300));
-          loadingContainer.style.display = 'none';
-          console.log('Cache utilisé avec succès');
-          return data;
-        }
-      }
-    }
-
-    // CHARGEMENT RÉEL
-    loadingText.textContent = 'Analyse...';
-    const sizeRes = await fetch(`${WEB_APP_URL}?action=getTotalDataSize`);
-    if (!sizeRes.ok) throw new Error('Taille indisponible');
-    
-    const sizeData = await sizeRes.json();
-    console.log('🔍 Réponse complète getTotalDataSize:', sizeData);
-    
-    // ✅ CORRECTION : Vérifier la structure réelle de la réponse
-    const totalSize = sizeData.totalSize || 1000000; // Valeur par défaut si manquante
-    const sizes = sizeData.sizes || { hiraganas: 500000, pseudoWords: 500000 }; // Valeurs par défaut
-    
-    console.log('Tailles reçues:', sizes);
-
-    const datasets = [
-      { name: 'hiraganas', action: 'getHiraganas', size: sizes.hiraganas || 500000 },
-      { name: 'pseudoWords', action: 'getPseudoWords', size: sizes.pseudoWords || 500000 }
-    ];
-
-    let loadedTotal = 0;
-    const result = {};
-
-    for (const ds of datasets) {
-      loadingText.textContent = `Chargement ${ds.name}...`;
-      const response = await fetch(`${WEB_APP_URL}?action=${ds.action}`);
-      if (!response.ok) throw new Error(`Échec ${ds.action}`);
-
-      const reader = response.body?.getReader();
-      
-      // ✅ CORRECTION : Gérer le cas où le reader n'est pas disponible
-      if (!reader) {
-        // Fallback : charger directement sans progression
-        result[ds.name] = await response.json();
-        loadedTotal = totalSize; // Simuler 100%
-        loadingProgress.style.width = '100%';
-        continue;
-      }
-
-      const chunks = [];
-      let loaded = 0;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        loaded += value.length;
-        loadedTotal += value.length;
-        const percent = Math.min((loadedTotal / totalSize) * 100, 100);
-        loadingProgress.style.width = `${percent}%`;
-        loadingText.textContent = `Chargement ${Math.round(percent)}%`;
-      }
-
-      const blob = new Blob(chunks);
-      const text = await blob.text();
-      result[ds.name] = JSON.parse(text);
-      console.log(`${ds.name} chargé:`, result[ds.name].length);
-    }
-
-    // CACHE
-    try {
-      const manifestRes = await fetch(`${WEB_APP_URL}?action=getDataManifest`);
-      if (manifestRes.ok) {
-        const manifest = await manifestRes.json();
-        localStorage.setItem('gameDataCache', JSON.stringify({ manifest, data: result }));
-        console.log('Cache mis à jour');
-      }
-    } catch (e) { console.warn('Cache non mis à jour:', e); }
-
-    loadingText.textContent = 'Prêt !';
-    loadingProgress.style.width = '100%';
-    await new Promise(r => setTimeout(r, 200));
-    loadingContainer.style.display = 'none';
-
-    return result;
-
-  } catch (error) {
-    console.error('Erreur chargement:', error);
-    loadingText.textContent = 'Échec du chargement';
-    
-    // ✅ AJOUT : Fallback automatique vers chargement sans progression
-    console.warn('Tentative de fallback vers chargement simple...');
-    try {
-      return await loadDataWithoutProgress();
-    } catch (fallbackError) {
-      console.error('Fallback échoué:', fallbackError);
-      throw error; // Propager l'erreur originale
-    }
+    console.error('❌ Erreur dans initGame:', error.message);
+    showError(t('error_loading_game') + ': ' + error.message);
+    gameDataLoaded = false;
   }
 }
 function nextQuestion() {
@@ -5387,48 +5168,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
