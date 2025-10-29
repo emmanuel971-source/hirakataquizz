@@ -40,6 +40,23 @@
       opacity: 0.1;
       z-index: -1;
     }
+    #loadingContainer {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8); display: flex; flex-direction: column;
+  justify-content: center; align-items: center; z-index: 9999;
+  transition: opacity 0.5s ease-out;
+  font-family: sans-serif; color: white;
+}
+
+#loadingProgress {
+  height: 20px; background: #4CAF50; width: 0%;
+  border-radius: 10px; transition: width 0.3s ease-out;
+  margin-top: 10px;
+}
+
+#loadingText {
+  font-size: 1.2em; margin-bottom: 10px;
+}
 /* H1 DESKTOP */
     h1 {
       margin: 0.5em 0;
@@ -4172,7 +4189,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwe2DTx0dMEDUR7dq_w3JjS41SgsSqgt8IhEcSeSDrVJiLS0su9NHFxx5YhZNNSKBc_kw/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyxKTUWTab6pETh6aI_Ev6C6h7ochLymFNJpUuPlrojTyxULNgBedgEa6hcm2YZ0loBAA/exec';
 // const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby1y-ThlFkq3WwR--BaPr8D4TlyQhoTdVVqSx3N87qbY9YzSwEWDn3YvjRLwo8ABbYk5g/exec';
 
 // Fonction pour appeler l'API
@@ -4207,6 +4224,25 @@ let revisionRomajiTable = {};
 
 // Modifier votre fonction initGame existante
 async function initGame() {
+  try {
+    const data = await loadAllGameData();
+
+    // Données prêtes !
+    HiraganaList = data.hiraganas.map(item => ({
+      ...item,
+      Validation: 0,
+      Tentatives: 0,
+      Réussites: 0
+    }));
+
+    PseudoWordList = data.pseudoWords; // ← Liste complète des mots
+
+    setupEventListeners();
+    showMenu();
+
+  } catch (error) {
+    document.getElementById('loadingText').textContent = 'Échec du chargement';
+  }
   try {
     // Réinitialiser l'état du jeu
     gameDataLoaded = false;
@@ -4277,6 +4313,82 @@ async function initGame() {
     gameDataLoaded = false;
   }
 }
+async function loadAllGameData(onProgress) {
+  const progressBar = document.getElementById('loadingProgress');
+  const loadingText = document.getElementById('loadingText');
+  const loadingContainer = document.getElementById('loadingContainer');
+
+  progressBar.style.width = '0%';
+  loadingText.textContent = 'Analyse des données...';
+  loadingContainer.style.display = 'flex';
+
+  try {
+    // 1. Vérifier le cache (optionnel)
+    const cached = localStorage.getItem('gameDataCache');
+    const manifestRes = await fetch(`${WEB_APP_URL}?action=getDataManifest`);
+    const manifest = await manifestRes.json();
+
+    if (cached) {
+      const cachedManifest = JSON.parse(cached).manifest;
+      if (cachedManifest.hash === manifest.hash) {
+        const data = JSON.parse(cached).data;
+        loadingContainer.style.display = 'none';
+        return data;
+      }
+    }
+
+    // 2. Récupérer la taille totale
+    const sizeRes = await fetch(`${WEB_APP_URL}?action=getTotalDataSize`);
+    const { totalSize, sizes } = await sizeRes.json();
+
+    const datasets = [
+      { name: 'hiraganas', action: 'getHiraganas', size: sizes.hiraganas },
+      { name: 'pseudoWords', action: 'getPseudoWords', size: sizes.pseudoWords }
+    ];
+
+    let loadedTotal = 0;
+    const results = {};
+
+    for (const ds of datasets) {
+      loadingText.textContent = `Chargement ${ds.name}...`;
+
+      const response = await fetch(`${WEB_APP_URL}?action=${ds.action}`);
+      const reader = response.body.getReader();
+      let loaded = 0;
+      const chunks = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+
+        loadedTotal += value.length;
+        const percent = Math.min((loadedTotal / totalSize) * 100, 100);
+        progressBar.style.width = `${percent}%`;
+        loadingText.textContent = `Chargement ${Math.round(percent)}%`;
+      }
+
+      const blob = new Blob(chunks);
+      results[ds.name] = await blob.json();
+    }
+
+    // Cache pour la prochaine fois
+    localStorage.setItem('gameDataCache', JSON.stringify({
+      manifest,
+      data: results,
+      timestamp: new Date().getTime()
+    }));
+
+    loadingContainer.style.display = 'none';
+    return results;
+
+  } catch (error) {
+    console.error('Erreur chargement:', error);
+    loadingText.textContent = 'Erreur de connexion';
+    throw error;
+  }
+}  
 function nextQuestion() {
 document.getElementById("result").innerText = "";
 document.getElementById("continueBtn").style.visibility = "hidden";
@@ -5168,6 +5280,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
