@@ -4,17 +4,6 @@
   
   <meta charset="utf-8">
   <title>Hirakata Quizz</title>
-  <style>
-    #loadingContainer {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
-      justify-content: center; align-items: center; z-index: 9999;
-      color: white; font-family: sans-serif; transition: opacity 0.5s;
-    }
-    #loadingText { font-size: 1.2em; margin-bottom: 10px; }
-    #progressContainer { width: 80%; height: 20px; background: #333; border-radius: 10px; overflow: hidden; }
-    #loadingProgress { height: 100%; background: #4CAF50; width: 0%; transition: width 0.3s ease-out; }
-  </style>
   <body>
 
   <!-- CHARGEMENT -->
@@ -25,10 +14,6 @@
     </div>
   </div>
 
-  <!-- Ton jeu -->
-  <div id="gameContainer" style="display:none;">
-    <!-- ... ton contenu ... -->
-  </div>
 
  
 </body>
@@ -2296,6 +2281,12 @@
     </div>
   </div>
 </div>
+  <div id="loadingContainer" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;color:white;font-family:sans-serif;">
+  <div id="loadingText">Connexion...</div>
+  <div style="width:80%;height:20px;background:#333;border-radius:10px;overflow:hidden;margin-top:10px;">
+    <div id="loadingProgress" style="height:100%;background:#4CAF50;width:0%;transition:width 0.3s ease-out;"></div>
+  </div>
+</div>
   <script>
     window.onload = function() {
   ; // Maintenant le DOM est chargé
@@ -4263,91 +4254,89 @@ async function initGame() {
   const loadingText = document.getElementById('loadingText');
 
   try {
-    // === CHARGEMENT UNIQUE AVEC PROGRESSION ===
     const data = await loadAllGameData();
 
-    // Vérifie que les données sont bien là
     if (!data || !data.hiraganas || !data.pseudoWords) {
-      throw new Error('Données incomplètes reçues du serveur');
+      throw new Error('Données incomplètes');
     }
 
-    // === 1. Initialiser HiraganaList ===
     HiraganaList = data.hiraganas.map(item => ({
       ...item,
       Validation: 0,
       Tentatives: 0,
       Réussites: 0
     }));
-    console.log(`HiraganaList initialisée: ${HiraganaList.length} items`);
+    console.log(`HiraganaList: ${HiraganaList.length} items`);
 
-    // === 2. Initialiser PseudoWordList ===
     PseudoWordList = data.pseudoWords;
-    console.log(`PseudoWordList initialisée: ${PseudoWordList.length} mots`);
+    console.log(`PseudoWordList: ${PseudoWordList.length} mots`);
 
-    // === 3. Système utilisateur ===
     gameDataLoaded = false;
     await initUserSystem();
-    console.log(`Système user initialisé: token=${userToken || 'aucun'}`);
+    console.log(`User token: ${userToken || 'aucun'}`);
 
-    // === 4. Charger stats utilisateur si connecté ===
     if (userToken) {
       await loadUserProgress();
     } else {
       revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
       revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-      console.log(`Tables sans user: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
+      console.log(`Tables: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
     }
 
-    // === 5. Niveau actif ===
     niveauActif = determineNiveauActif(HiraganaList);
-    console.log(`Niveau actif: ${niveauActif}`);
+    console.log(`Niveau: ${niveauActif}`);
 
-    // === 6. UI ===
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
     renderHiraganaCards(HiraganaList, niveauActif);
     updateMenuButtonStates();
 
-    // === 7. Logo panda ===
     const panda = document.querySelector(".panda-logo");
     if (panda && loadingText) {
       panda.style.opacity = "1";
       loadingText.textContent = t('welcome_touch');
       panda.style.pointerEvents = "auto";
-      console.log('Logo panda affiché');
     }
 
-    // === 8. Fin ===
     gameDataLoaded = true;
-    console.log('initGame terminé avec succès');
+    console.log('initGame succès');
     showSection('menu');
 
   } catch (error) {
-    console.error('Erreur dans initGame:', error);
+    console.error('Erreur initGame:', error);
     if (loadingText) {
-      loadingText.textContent = 'Impossible de charger le jeu. Réessayez.';
+      loadingText.textContent = 'Impossible de charger. Réessayez.';
     }
     if (loadingContainer) {
       const retryBtn = document.createElement('button');
       retryBtn.textContent = 'Réessayer';
       retryBtn.onclick = () => location.reload();
-      retryBtn.style.cssText = 'margin:10px; padding:8px 16px; font-size:1em; background:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer;';
+      retryBtn.style.cssText = 'margin-top:10px; padding:8px 16px; font-size:1em; background:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer;';
       loadingContainer.appendChild(retryBtn);
     }
   }
 }
+async function loadDataWithoutProgress() {
+  try {
+    const hiraganas = await callAPI('getHiraganas');
+    const pseudoWords = await callAPI('getPseudoWords');
+    console.log('Fallback sans progression: hiraganas chargés:', hiraganas.length);
+    return { hiraganas, pseudoWords };
+  } catch (e) {
+    console.error('Fallback échoué:', e);
+    throw e;
+  }
+}
+
 async function loadAllGameData() {
   const loadingContainer = document.getElementById('loadingContainer');
   const loadingText = document.getElementById('loadingText');
   const loadingProgress = document.getElementById('loadingProgress');
 
   if (!loadingContainer || !loadingText || !loadingProgress) {
-    console.error('Éléments de chargement manquants !');
-    // Fallback silencieux
-    const hiraganas = await callAPI('getHiraganas');
-    const pseudoWords = await callAPI('getPseudoWords');
-    return { hiraganas, pseudoWords };
+    console.warn('Éléments de chargement manquants → fallback sans progression');
+    return loadDataWithoutProgress();
   }
 
   loadingProgress.style.width = '0%';
@@ -4355,7 +4344,7 @@ async function loadAllGameData() {
   loadingContainer.style.display = 'flex';
 
   try {
-    // === CACHE ===
+    // CACHE
     const cached = localStorage.getItem('gameDataCache');
     if (cached) {
       const { manifest, data } = JSON.parse(cached);
@@ -4367,16 +4356,18 @@ async function loadAllGameData() {
           loadingProgress.style.width = '100%';
           await new Promise(r => setTimeout(r, 300));
           loadingContainer.style.display = 'none';
-          return data; // ← RETOUR CORRECT
+          console.log('Cache utilisé avec succès');
+          return data;
         }
       }
     }
 
-    // === CHARGEMENT RÉEL ===
+    // CHARGEMENT RÉEL
     loadingText.textContent = 'Analyse...';
     const sizeRes = await fetch(`${WEB_APP_URL}?action=getTotalDataSize`);
     if (!sizeRes.ok) throw new Error('Taille indisponible');
     const { totalSize, sizes } = await sizeRes.json();
+    console.log('Tailles reçues:', sizes);
 
     const datasets = [
       { name: 'hiraganas', action: 'getHiraganas', size: sizes.hiraganas },
@@ -4384,7 +4375,7 @@ async function loadAllGameData() {
     ];
 
     let loadedTotal = 0;
-    const result = {}; // ← Objet final
+    const result = {};
 
     for (const ds of datasets) {
       loadingText.textContent = `Chargement ${ds.name}...`;
@@ -4407,24 +4398,26 @@ async function loadAllGameData() {
       }
 
       const blob = new Blob(chunks);
-      result[ds.name] = await blob.json(); // ← Stocke ici
+      result[ds.name] = await blob.json();
+      console.log(`${ds.name} chargé:`, result[ds.name].length);
     }
 
-    // === CACHE ===
+    // CACHE
     try {
       const manifestRes = await fetch(`${WEB_APP_URL}?action=getDataManifest`);
       if (manifestRes.ok) {
         const manifest = await manifestRes.json();
         localStorage.setItem('gameDataCache', JSON.stringify({ manifest, data: result }));
+        console.log('Cache mis à jour');
       }
-    } catch (e) {}
+    } catch (e) { console.warn('Cache non mis à jour:', e); }
 
     loadingText.textContent = 'Prêt !';
     loadingProgress.style.width = '100%';
     await new Promise(r => setTimeout(r, 200));
     loadingContainer.style.display = 'none';
 
-    return result; // ← RETOUR FINAL
+    return result;
 
   } catch (error) {
     console.error('Erreur chargement:', error);
@@ -5323,6 +5316,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
