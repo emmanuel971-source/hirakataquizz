@@ -2619,9 +2619,13 @@ async function initUserSystem() {
   // Vérifier si un token existe déjà
   userToken = localStorage.getItem('userToken');
   
+  console.log('🔍 Vérification token dans localStorage:', userToken); // ✅ AJOUT
+  
   if (userToken) {
     // L'utilisateur a déjà un compte
     const result = await callAPI('getUserByToken', { token: userToken });
+    
+    console.log('🔍 Résultat getUserByToken:', result); // ✅ AJOUT
     
     if (result.success) {
       currentUser = result.user;
@@ -2634,6 +2638,8 @@ async function initUserSystem() {
       localStorage.removeItem('userToken');
       userToken = null;
     }
+  } else {
+    console.log('ℹ️ Aucun token trouvé - nouveau visiteur');
   }
   
   // Si pas de token valide, l'utilisateur verra la page d'accueil
@@ -2873,7 +2879,6 @@ async function loadUserProgress() {
     // Merge stats dans HiraganaList
     HiraganaList.forEach(item => {
       const itemStats = stats[item.ID.toString()] || { validation: 0, tentatives: 0, reussites: 0 };
-      // Forcer l’ajout des propriétés si absentes
       if (item.Validation !== itemStats.validation || 
           item.Tentatives !== itemStats.tentatives || 
           item['Réussites'] !== itemStats.reussites) {
@@ -2886,32 +2891,31 @@ async function loadUserProgress() {
     
     console.log(`📊 Progrès user chargé: ${mergedCount} items mis à jour | Niveau serveur: ${userStats.niveau_atteint}`);
     
-    // Recalculer niveauActif
     niveauActif = determineNiveauActif(HiraganaList);
     if (userStats.niveau_atteint > niveauActif) {
-      niveauActif = userStats.niveau_atteint; // Fallback si serveur plus haut
+      niveauActif = userStats.niveau_atteint;
       console.log(`🔄 Niveau forcé à ${niveauActif} (serveur)`);
     }
     
     // Régénérer tables avec stats mergées
     revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
     revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-    console.log(`📚 Tables régénérées après merge: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
+    // ✅ CORRECTION
+    console.log(`📚 Tables régénérées après merge: Romaji=${Object.keys(revisionRomajiTable).length}, Katakana=${Object.keys(revisionKatakanaTable).length}`);
     
     // Rafraîchir UI
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-    renderHiraganaCards(HiraganaList, niveauActif); // Afficher étoiles
+    renderHiraganaCards(HiraganaList, niveauActif);
     updateMenuButtonStates();
     
   } else {
     console.error('⚠️ Erreur chargement stats user:', userStats.error);
-    // Fallback niveau 1
     niveauActif = 1;
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} 1`;
   }
-} 
+}
     
 function toggleMenu() {
   const menu = document.getElementById('menu');
@@ -3317,14 +3321,12 @@ function generateRevisionRomajiTable(hiraganaList) {
     const hiragana = item.Hiragana;
     const romaji = item.Romaji;
     
-    // ✅ VÉRIFICATIONS ROBUSTES
     if (!hiragana || !romaji) {
       console.warn(`⚠️ Item ${index} ignoré - données manquantes:`, {hiragana, romaji});
       invalidItems++;
       return;
     }
     
-    // Convertir en string si ce n'est pas déjà le cas
     const hiraganaStr = String(hiragana).trim();
     const romajiStr = String(romaji).trim();
     
@@ -3335,7 +3337,6 @@ function generateRevisionRomajiTable(hiraganaList) {
     }
     
     try {
-      // Analyser le romaji pour créer les segments
       const segments = analyzeRomajiSegments(romajiStr);
       table[hiraganaStr] = {
         romaji: segments.segments,
@@ -3352,7 +3353,49 @@ function generateRevisionRomajiTable(hiraganaList) {
   });
   
   console.log(`📊 Génération table romaji: ${validItems} items valides, ${invalidItems} items ignorés`);
-  return table;
+  return table; // ✅ CORRECTION : Retourner l'objet table, pas sa longueur
+}
+
+function generateRevisionKatakanaTable(hiraganaList) {
+  const table = {};
+  let validItems = 0;
+  let invalidItems = 0;
+  
+  hiraganaList.forEach((item, index) => {
+    const katakana = getLocalizedKatakana(item);
+    const romaji = item.Romaji;
+    
+    if (!katakana || !romaji) {
+      console.warn(`⚠️ Item ${index} ignoré pour Katakana - données manquantes:`, {katakana, romaji});
+      invalidItems++;
+      return;
+    }
+    
+    const katakanaStr = String(katakana).trim();
+    const romajiStr = String(romaji).trim();
+    
+    if (katakanaStr === '' || romajiStr === '' || romajiStr === 'undefined' || romajiStr === 'null') {
+      invalidItems++;
+      return;
+    }
+    
+    try {
+      const segments = analyzeRomajiSegments(romajiStr);
+      table[katakanaStr] = {
+        romaji: segments.segments,
+        charCounts: segments.charCounts,
+        originalRomaji: romajiStr,
+        niveau: item.Niveau,
+        validation: item.Validation
+      };
+      validItems++;
+    } catch (error) {
+      invalidItems++;
+    }
+  });
+  
+  console.log(`📊 Génération table katakana: ${validItems} items valides, ${invalidItems} items ignorés`);
+  return table; // ✅ CORRECTION : Retourner l'objet table, pas sa longueur
 }
 function generateRevisionKatakanaTable(hiraganaList) {
   const table = {};
@@ -4269,7 +4312,7 @@ async function initGame() {
     console.log(`HiraganaList: ${HiraganaList.length} items`);
 
     PseudoWordList = data.pseudoWords;
-    console.log(`PseudoWordList: ${PseudoWordList.length} mots`);
+    console.log(`PseudoWordList: ${PseudoWordList.length} mots`); // ✅ CORRECTION
 
     gameDataLoaded = false;
     await initUserSystem();
@@ -4280,7 +4323,8 @@ async function initGame() {
     } else {
       revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
       revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-      console.log(`Tables: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
+      // ✅ CORRECTION : Object.keys().length pour compter les entrées
+      console.log(`Tables: Romaji=${Object.keys(revisionRomajiTable).length}, Katakana=${Object.keys(revisionKatakanaTable).length}`);
     }
 
     niveauActif = determineNiveauActif(HiraganaList);
@@ -4300,11 +4344,12 @@ async function initGame() {
     }
 
     gameDataLoaded = true;
-    console.log('initGame succès');
-    showSection('menu');
+    console.log('✅ initGame succès');
+    // ✅ CORRECTION : Ne pas afficher le menu automatiquement
+    // showSection('menu');
 
   } catch (error) {
-    console.error('Erreur initGame:', error);
+    console.error('❌ Erreur initGame:', error);
     if (loadingText) {
       loadingText.textContent = 'Impossible de charger. Réessayez.';
     }
@@ -5342,6 +5387,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
