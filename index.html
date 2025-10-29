@@ -4275,27 +4275,38 @@ async function initGame() {
       updateLoadingProgress(60, "Prêt à jouer !");
       
     } else {
-      // 🔁 RETURNING USER : Niveaux 1 à (niveau+2)
-      const maxLevel = Math.min(profile.niveau + 2, profile.totalLevels);
-      
-      updateLoadingProgress(25, `Chargement niveaux 1-${maxLevel}...`);
-      const chunkResult = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: maxLevel });
-      
-      if (chunkResult.success) {
-        HiraganaList = chunkResult.data.map(item => ({
-          ...item,
-          Validation: 0,
-          Tentatives: 0,
-          Réussites: 0
-        }));
-        console.log(`📊 Chunk returning user: ${chunkResult.count} items chargés (niveaux ${chunkResult.startLevel}-${chunkResult.endLevel})`);
-      }
-      
-      updateLoadingProgress(45, "Chargement de votre profil...");
-      await loadUserProgress(); // Charge stats et merge
-      
-      updateLoadingProgress(60, "Profil chargé !");
-    }
+ } else {
+  // 🔁 RETURNING USER : Niveaux 1 à (niveau+2)
+  const maxLevel = Math.min(profile.niveau + 2, profile.totalLevels);
+  
+  updateLoadingProgress(25, `Chargement niveaux 1-${maxLevel}...`);
+  const chunkResult = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: maxLevel });
+  
+  if (chunkResult.success) {
+    HiraganaList = chunkResult.data.map(item => ({
+      ...item,
+      Validation: 0,
+      Tentatives: 0,
+      Réussites: 0
+    }));
+    console.log(`📊 Chunk returning user: ${chunkResult.count} items chargés (niveaux ${chunkResult.startLevel}-${chunkResult.endLevel})`);
+  }
+  
+  // ✅ CORRECTION : Initialiser userToken et currentUser AVANT loadUserProgress
+  updateLoadingProgress(40, "Récupération de votre profil...");
+  userToken = token;
+  const userResult = await callAPI('getUserByToken', { token: token });
+  if (userResult.success) {
+    currentUser = userResult.user;
+    console.log('👤 Utilisateur récupéré:', currentUser.pseudo);
+  }
+  
+  // ✅ MAINTENANT loadUserProgress peut merger les stats
+  updateLoadingProgress(50, "Chargement de vos statistiques...");
+  await loadUserProgress(); // Merge stats_json dans HiraganaList
+  
+  updateLoadingProgress(60, "Profil chargé !");
+}
     
     // ==========================================
     // PHASE 3 : INTERFACE JOUABLE (60-80%)
@@ -4303,14 +4314,10 @@ async function initGame() {
     updateLoadingProgress(70, "Initialisation de l'interface...");
     
     // Initialiser le système utilisateur
-    if (!profile.isNew) {
-      userToken = token;
-      const userResult = await callAPI('getUserByToken', { token: token });
-      if (userResult.success) {
-        currentUser = userResult.user;
-        updateAccountDisplay();
-      }
-    }
+// ✅ Mettre à jour l'affichage du compte (pour new + returning)
+if (currentUser) {
+  updateAccountDisplay();
+}
     
     // Déterminer niveau actif
     niveauActif = determineNiveauActif(HiraganaList);
@@ -5345,5 +5352,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
