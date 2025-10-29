@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script defer src="code.js"></script>
+  
   <meta charset="utf-8">
   <title>Hirakata Quizz</title>
   <style>
@@ -2297,6 +2297,9 @@
   </div>
 </div>
   <script>
+    window.onload = function() {
+  initGame(); // Maintenant le DOM est chargé
+};
     // === SYSTÈME DE TRADUCTION ===
 const translations = {
   fr: {
@@ -5355,6 +5358,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
