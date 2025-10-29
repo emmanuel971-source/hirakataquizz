@@ -2298,7 +2298,7 @@
 </div>
   <script>
     window.onload = function() {
-  initGame(); // Maintenant le DOM est chargé
+  ; // Maintenant le DOM est chargé
 };
     // === SYSTÈME DE TRADUCTION ===
 const translations = {
@@ -4259,154 +4259,121 @@ let revisionRomajiTable = {};
 
 // Modifier votre fonction initGame existante
 async function initGame() {
-const loadingContainer = document.getElementById('loadingContainer');
+  const loadingContainer = document.getElementById('loadingContainer');
   const loadingText = document.getElementById('loadingText');
 
   try {
+    // === CHARGEMENT UNIQUE AVEC PROGRESSION ===
     const data = await loadAllGameData();
 
+    // Vérifie que les données sont bien là
+    if (!data || !data.hiraganas || !data.pseudoWords) {
+      throw new Error('Données incomplètes reçues du serveur');
+    }
+
+    // === 1. Initialiser HiraganaList ===
     HiraganaList = data.hiraganas.map(item => ({
       ...item,
       Validation: 0,
       Tentatives: 0,
       Réussites: 0
     }));
+    console.log(`HiraganaList initialisée: ${HiraganaList.length} items`);
 
+    // === 2. Initialiser PseudoWordList ===
     PseudoWordList = data.pseudoWords;
+    console.log(`PseudoWordList initialisée: ${PseudoWordList.length} mots`);
 
-    setupEventListeners();
-    showMenu();
-
-  } catch (error) {
-    if (loadingText) {
-      loadingText.textContent = 'Impossible de charger le jeu. Réessayez.';
-    }
-
-    // Bouton réessayer (sécurisé)
-    if (loadingContainer) {
-      const retryBtn = document.createElement('button');
-      retryBtn.textContent = 'Réessayer';
-      retryBtn.onclick = () => location.reload();
-      retryBtn.style.cssText = 'margin-top:10px; padding:8px 16px; font-size:1em;';
-      loadingContainer.appendChild(retryBtn);
-    }
-  }
-  try {
-    // Réinitialiser l'état du jeu
+    // === 3. Système utilisateur ===
     gameDataLoaded = false;
-    console.log('🛠️ Initialisation du jeu...');
-
-    // Charger les données de base des hiraganas (sans stats)
-    const data = await callAPI('getHiraganas');
-    if (!data || data.length === 0) {
-      throw new Error('Aucune donnée Hiragana reçue');
-    }
-    
-    // Initialiser HiraganaList
-    HiraganaList = data.map(item => ({
-      ...item,
-      Validation: 0, // Valeur par défaut, sera mergée plus tard
-      Tentatives: 0,
-      Réussites: 0
-    }));
-    console.log(`📊 HiraganaList initialisée: ${HiraganaList.length} items`);
-
-    // Initialiser le système utilisateur (vérifie localStorage, userToken, currentUser)
     await initUserSystem();
-    console.log(`👤 Système user initialisé: token=${userToken || 'aucun'}`);
+    console.log(`Système user initialisé: token=${userToken || 'aucun'}`);
 
-    // Charger les stats per-user si connecté
+    // === 4. Charger stats utilisateur si connecté ===
     if (userToken) {
-      await loadUserProgress(); // Merge stats_json dans HiraganaList et régénère tables
+      await loadUserProgress();
     } else {
-      // Si pas de user, générer tables avec stats par défaut (0)
       revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
       revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-      console.log(`📚 Tables initialisées sans user: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
+      console.log(`Tables sans user: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
     }
 
-    // Déterminer le niveau actif
+    // === 5. Niveau actif ===
     niveauActif = determineNiveauActif(HiraganaList);
-    console.log(`🎮 Niveau actif calculé: ${niveauActif}`);
+    console.log(`Niveau actif: ${niveauActif}`);
 
-    // Initialiser l'UI
+    // === 6. UI ===
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-    renderHiraganaCards(HiraganaList, niveauActif); // Afficher cartes avec étoiles
-    updateMenuButtonStates(); // Déblocage des niveaux
-    console.log('🖼️ UI initialisée');
+    renderHiraganaCards(HiraganaList, niveauActif);
+    updateMenuButtonStates();
 
-    // Gestion du logo panda et texte de bienvenue (si présents)
+    // === 7. Logo panda ===
     const panda = document.querySelector(".panda-logo");
-    const loadingText = document.getElementById("loadingText");
     if (panda && loadingText) {
       panda.style.opacity = "1";
       loadingText.textContent = t('welcome_touch');
       panda.style.pointerEvents = "auto";
-      console.log('🐼 Logo panda affiché avec texte de bienvenue');
-    } else {
-      console.warn('⚠️ .panda-logo ou loadingText non trouvé dans le DOM');
+      console.log('Logo panda affiché');
     }
 
-    // Marquer le jeu comme chargé
+    // === 8. Fin ===
     gameDataLoaded = true;
-    console.log('✅ initGame terminé avec succès');
-
-    // Afficher la section menu
+    console.log('initGame terminé avec succès');
     showSection('menu');
+
   } catch (error) {
-    console.error('❌ Erreur dans initGame:', error.message);
-    showError(t('error_loading_game') + ': ' + error.message);
-    gameDataLoaded = false;
+    console.error('Erreur dans initGame:', error);
+    if (loadingText) {
+      loadingText.textContent = 'Impossible de charger le jeu. Réessayez.';
+    }
+    if (loadingContainer) {
+      const retryBtn = document.createElement('button');
+      retryBtn.textContent = 'Réessayer';
+      retryBtn.onclick = () => location.reload();
+      retryBtn.style.cssText = 'margin:10px; padding:8px 16px; font-size:1em; background:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer;';
+      loadingContainer.appendChild(retryBtn);
+    }
   }
 }
 async function loadAllGameData() {
-  // === VÉRIFICATION DOM ===
   const loadingContainer = document.getElementById('loadingContainer');
   const loadingText = document.getElementById('loadingText');
   const loadingProgress = document.getElementById('loadingProgress');
 
   if (!loadingContainer || !loadingText || !loadingProgress) {
-    console.error('Éléments de chargement manquants dans le HTML !');
-    return loadDataWithoutProgress(); // Fallback silencieux
+    console.error('Éléments de chargement manquants !');
+    // Fallback silencieux
+    const hiraganas = await callAPI('getHiraganas');
+    const pseudoWords = await callAPI('getPseudoWords');
+    return { hiraganas, pseudoWords };
   }
 
-  // Réinitialisation
   loadingProgress.style.width = '0%';
   loadingText.textContent = 'Connexion...';
   loadingContainer.style.display = 'flex';
 
-  let data = null;
-
   try {
     // === CACHE ===
-    let useCache = false;
-    try {
-      const cached = localStorage.getItem('gameDataCache');
-      if (cached) {
-        const { manifest, data: cachedData } = JSON.parse(cached);
-        const manifestRes = await fetch(`${WEB_APP_URL}?action=getDataManifest`, { cache: 'no-store' });
-        if (!manifestRes.ok) throw new Error();
-        const currentManifest = await manifestRes.json();
-
-        if (currentManifest.hash === manifest.hash) {
-          data = cachedData;
-          useCache = true;
+    const cached = localStorage.getItem('gameDataCache');
+    if (cached) {
+      const { manifest, data } = JSON.parse(cached);
+      const res = await fetch(`${WEB_APP_URL}?action=getDataManifest`, { cache: 'no-store' });
+      if (res.ok) {
+        const current = await res.json();
+        if (current.hash === manifest.hash) {
           loadingText.textContent = 'Données en cache';
           loadingProgress.style.width = '100%';
           await new Promise(r => setTimeout(r, 300));
           loadingContainer.style.display = 'none';
-          return data;
+          return data; // ← RETOUR CORRECT
         }
       }
-    } catch (e) {
-      console.warn('Cache ignoré:', e);
     }
 
     // === CHARGEMENT RÉEL ===
-    loadingText.textContent = 'Analyse des données...';
-
+    loadingText.textContent = 'Analyse...';
     const sizeRes = await fetch(`${WEB_APP_URL}?action=getTotalDataSize`);
     if (!sizeRes.ok) throw new Error('Taille indisponible');
     const { totalSize, sizes } = await sizeRes.json();
@@ -4417,17 +4384,16 @@ async function loadAllGameData() {
     ];
 
     let loadedTotal = 0;
-    data = {};
+    const result = {}; // ← Objet final
 
     for (const ds of datasets) {
       loadingText.textContent = `Chargement ${ds.name}...`;
-
       const response = await fetch(`${WEB_APP_URL}?action=${ds.action}`);
       if (!response.ok) throw new Error(`Échec ${ds.action}`);
 
       const reader = response.body.getReader();
-      let loaded = 0;
       const chunks = [];
+      let loaded = 0;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -4435,35 +4401,34 @@ async function loadAllGameData() {
         chunks.push(value);
         loaded += value.length;
         loadedTotal += value.length;
-
         const percent = Math.min((loadedTotal / totalSize) * 100, 100);
         loadingProgress.style.width = `${percent}%`;
         loadingText.textContent = `Chargement ${Math.round(percent)}%`;
       }
 
       const blob = new Blob(chunks);
-      data[ds.name] = await blob.json();
+      result[ds.name] = await blob.json(); // ← Stocke ici
     }
 
     // === CACHE ===
     try {
       const manifestRes = await fetch(`${WEB_APP_URL}?action=getDataManifest`);
-      const manifest = await manifestRes.json();
-      localStorage.setItem('gameDataCache', JSON.stringify({ manifest, data, timestamp: Date.now() }));
-    } catch (e) { /* ignore */ }
+      if (manifestRes.ok) {
+        const manifest = await manifestRes.json();
+        localStorage.setItem('gameDataCache', JSON.stringify({ manifest, data: result }));
+      }
+    } catch (e) {}
 
-    // === SUCCÈS ===
     loadingText.textContent = 'Prêt !';
     loadingProgress.style.width = '100%';
     await new Promise(r => setTimeout(r, 200));
     loadingContainer.style.display = 'none';
 
-    return data;
+    return result; // ← RETOUR FINAL
 
   } catch (error) {
     console.error('Erreur chargement:', error);
     loadingText.textContent = 'Échec du chargement';
-    loadingProgress.style.width = '0%';
     throw error;
   }
 }
@@ -5358,6 +5323,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
