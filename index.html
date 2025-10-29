@@ -1,6 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script defer src="code.js"></script>
+  <meta charset="utf-8">
+  <title>Hirakata Quizz</title>
+  <style>
+    #loadingContainer {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+      justify-content: center; align-items: center; z-index: 9999;
+      color: white; font-family: sans-serif; transition: opacity 0.5s;
+    }
+    #loadingText { font-size: 1.2em; margin-bottom: 10px; }
+    #progressContainer { width: 80%; height: 20px; background: #333; border-radius: 10px; overflow: hidden; }
+    #loadingProgress { height: 100%; background: #4CAF50; width: 0%; transition: width 0.3s ease-out; }
+  </style>
+  <body>
+
+  <!-- CHARGEMENT -->
+  <div id="loadingContainer">
+    <div id="loadingText">Connexion...</div>
+    <div id="progressContainer">
+      <div id="loadingProgress"></div>
+    </div>
+  </div>
+
+  <!-- Ton jeu -->
+  <div id="gameContainer" style="display:none;">
+    <!-- ... ton contenu ... -->
+  </div>
+
+  <script src="code.js" defer></script>
+</body>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <base target="_top">
@@ -2012,6 +2043,7 @@
   </style>
 </head>
 <body>
+  
   <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">☰</button>  -->
 <!-- Bouton hamburger -->
 <button class="hamburger" onclick="toggleMenu()">
@@ -4224,10 +4256,12 @@ let revisionRomajiTable = {};
 
 // Modifier votre fonction initGame existante
 async function initGame() {
+const loadingContainer = document.getElementById('loadingContainer');
+  const loadingText = document.getElementById('loadingText');
+
   try {
     const data = await loadAllGameData();
 
-    // === DONNÉES CHARGÉES ! ===
     HiraganaList = data.hiraganas.map(item => ({
       ...item,
       Validation: 0,
@@ -4241,16 +4275,18 @@ async function initGame() {
     showMenu();
 
   } catch (error) {
-    // === VRAI ÉCHEC ===
-    loadingText.textContent = 'Impossible de charger le jeu. Réessayez.';
-    console.error('Init échouée:', error);
+    if (loadingText) {
+      loadingText.textContent = 'Impossible de charger le jeu. Réessayez.';
+    }
 
-    // Optionnel : bouton "Réessayer"
-    const retryBtn = document.createElement('button');
-    retryBtn.textContent = 'Réessayer';
-    retryBtn.onclick = () => location.reload();
-    retryBtn.style.marginTop = '10px';
-    document.getElementById('loadingContainer').appendChild(retryBtn);
+    // Bouton réessayer (sécurisé)
+    if (loadingContainer) {
+      const retryBtn = document.createElement('button');
+      retryBtn.textContent = 'Réessayer';
+      retryBtn.onclick = () => location.reload();
+      retryBtn.style.cssText = 'margin-top:10px; padding:8px 16px; font-size:1em;';
+      loadingContainer.appendChild(retryBtn);
+    }
   }
   try {
     // Réinitialiser l'état du jeu
@@ -4323,33 +4359,40 @@ async function initGame() {
   }
 }
 async function loadAllGameData() {
-  const progressBar = document.getElementById('loadingProgress');
-  const loadingText = document.getElementById('loadingText');
+  // === VÉRIFICATION DOM ===
   const loadingContainer = document.getElementById('loadingContainer');
+  const loadingText = document.getElementById('loadingText');
+  const loadingProgress = document.getElementById('loadingProgress');
+
+  if (!loadingContainer || !loadingText || !loadingProgress) {
+    console.error('Éléments de chargement manquants dans le HTML !');
+    return loadDataWithoutProgress(); // Fallback silencieux
+  }
 
   // Réinitialisation
-  progressBar.style.width = '0%';
+  loadingProgress.style.width = '0%';
   loadingText.textContent = 'Connexion...';
   loadingContainer.style.display = 'flex';
 
   let data = null;
 
   try {
-    // === 1. Vérifier cache ===
+    // === CACHE ===
     let useCache = false;
     try {
       const cached = localStorage.getItem('gameDataCache');
       if (cached) {
         const { manifest, data: cachedData } = JSON.parse(cached);
         const manifestRes = await fetch(`${WEB_APP_URL}?action=getDataManifest`, { cache: 'no-store' });
+        if (!manifestRes.ok) throw new Error();
         const currentManifest = await manifestRes.json();
 
         if (currentManifest.hash === manifest.hash) {
           data = cachedData;
           useCache = true;
           loadingText.textContent = 'Données en cache';
-          progressBar.style.width = '100%';
-          await new Promise(r => setTimeout(r, 300)); // Petite pause visuelle
+          loadingProgress.style.width = '100%';
+          await new Promise(r => setTimeout(r, 300));
           loadingContainer.style.display = 'none';
           return data;
         }
@@ -4358,11 +4401,11 @@ async function loadAllGameData() {
       console.warn('Cache ignoré:', e);
     }
 
-    // === 2. Charger avec progression ===
+    // === CHARGEMENT RÉEL ===
     loadingText.textContent = 'Analyse des données...';
 
     const sizeRes = await fetch(`${WEB_APP_URL}?action=getTotalDataSize`);
-    if (!sizeRes.ok) throw new Error('Impossible de récupérer la taille');
+    if (!sizeRes.ok) throw new Error('Taille indisponible');
     const { totalSize, sizes } = await sizeRes.json();
 
     const datasets = [
@@ -4391,7 +4434,7 @@ async function loadAllGameData() {
         loadedTotal += value.length;
 
         const percent = Math.min((loadedTotal / totalSize) * 100, 100);
-        progressBar.style.width = `${percent}%`;
+        loadingProgress.style.width = `${percent}%`;
         loadingText.textContent = `Chargement ${Math.round(percent)}%`;
       }
 
@@ -4399,22 +4442,16 @@ async function loadAllGameData() {
       data[ds.name] = await blob.json();
     }
 
-    // === 3. Sauvegarder en cache ===
+    // === CACHE ===
     try {
       const manifestRes = await fetch(`${WEB_APP_URL}?action=getDataManifest`);
       const manifest = await manifestRes.json();
-      localStorage.setItem('gameDataCache', JSON.stringify({
-        manifest,
-        data,
-        timestamp: Date.now()
-      }));
-    } catch (e) {
-      console.warn('Cache non sauvegardé:', e);
-    }
+      localStorage.setItem('gameDataCache', JSON.stringify({ manifest, data, timestamp: Date.now() }));
+    } catch (e) { /* ignore */ }
 
-    // === 4. Succès ! ===
+    // === SUCCÈS ===
     loadingText.textContent = 'Prêt !';
-    progressBar.style.width = '100%';
+    loadingProgress.style.width = '100%';
     await new Promise(r => setTimeout(r, 200));
     loadingContainer.style.display = 'none';
 
@@ -4423,8 +4460,8 @@ async function loadAllGameData() {
   } catch (error) {
     console.error('Erreur chargement:', error);
     loadingText.textContent = 'Échec du chargement';
-    progressBar.style.width = '0%';
-    throw error; // Important : propager l'erreur
+    loadingProgress.style.width = '0%';
+    throw error;
   }
 }
 function nextQuestion() {
@@ -5318,6 +5355,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
