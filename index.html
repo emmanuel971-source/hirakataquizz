@@ -2571,6 +2571,7 @@ function updateSectionTitles() {
 // ========================================
 // GESTION UTILISATEUR - À AJOUTER DANS <script>
 // ========================================
+
 // ========================================
 // GESTION POOL DE PSEUDOS - À REMPLACER DANS <script>
 // ========================================
@@ -2618,16 +2619,30 @@ async function loadPseudoPool() {
 // Fallback : charger les pseudos 1 par 1 (si l'API batch n'existe pas)
 async function loadPseudoPoolFallback() {
   console.log('⚠️ Fallback: chargement séquentiel des pseudos...');
-  const promises = [];
-  
-  for (let i = 0; i < POOL_SIZE; i++) {
-    promises.push(callAPI('generatePseudo'));
-  }
   
   try {
-    const results = await Promise.all(promises);
-    pseudoPool = results.filter(r => r.success);
-    console.log(`✅ Fallback: ${pseudoPool.length} pseudos chargés`);
+    // Charger 3 pseudos en parallèle, puis répéter
+    for (let batch = 0; batch < Math.ceil(POOL_SIZE / 3); batch++) {
+      const batchPromises = [];
+      const batchSize = Math.min(3, POOL_SIZE - pseudoPool.length);
+      
+      for (let i = 0; i < batchSize; i++) {
+        batchPromises.push(callAPI('generatePseudo'));
+      }
+      
+      const results = await Promise.all(batchPromises);
+      const validResults = results.filter(r => r.success);
+      pseudoPool.push(...validResults);
+      
+      console.log(`📦 Batch ${batch + 1}: ${validResults.length} pseudos ajoutés (total: ${pseudoPool.length})`);
+      
+      // Petit délai entre chaque batch pour ne pas surcharger
+      if (batch < Math.ceil(POOL_SIZE / 3) - 1) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+    
+    console.log(`✅ Fallback terminé: ${pseudoPool.length} pseudos chargés`);
   } catch (error) {
     console.error('❌ Erreur fallback:', error);
   }
@@ -2727,7 +2742,6 @@ function showCreateAccountSection() {
     }, 100);
   }
 }
-
 
 // ========================================
 // AFFICHER LA SAISIE DU PIN
@@ -4269,7 +4283,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwARdvpoRP80c5OTzrQPR1Iy9VRUsohU_CHETIAk9bXrBU5v1s78Pwqc1b-yTKB3icFRQ/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyenSgwQWqXADdYnTtKdSdRieebc3EGL7Qu1yalwYqGe6Wk5UL8uc5HlUww-7-cjYHW_Q/exec';
 // const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby1y-ThlFkq3WwR--BaPr8D4TlyQhoTdVVqSx3N87qbY9YzSwEWDn3YvjRLwo8ABbYk5g/exec';
 
 // Fonction pour appeler l'API
@@ -5441,6 +5455,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
