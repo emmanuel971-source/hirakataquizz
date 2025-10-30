@@ -2611,30 +2611,60 @@ let pseudoCache = [];
 let currentPseudoIndex = 0;
 
 // Générer un batch de 10 pseudos localement
+// Générer un batch de 10 pseudos localement
 function generatePseudoBatch() {
   const wordListsStr = localStorage.getItem('wordLists');
   if (!wordListsStr) {
-    console.error('❌ WordLists non disponibles');
+    console.error('❌ WordLists non disponibles dans localStorage');
     return [];
   }
   
-  const wordLists = JSON.parse(wordListsStr);
-  const batch = [];
-  
-  for (let i = 0; i < 10; i++) {
-    const jpnWord = wordLists.jpn[Math.floor(Math.random() * wordLists.jpn.length)];
-    const engWord = wordLists.eng[Math.floor(Math.random() * wordLists.eng.length)];
-    batch.push({
-      pseudo: jpnWord + engWord,
-      jpnWord: jpnWord,
-      engWord: engWord
-    });
+  let wordLists;
+  try {
+    wordLists = JSON.parse(wordListsStr);
+  } catch (e) {
+    console.error('❌ Erreur parsing wordLists:', e);
+    return [];
   }
   
-  console.log(`✅ Batch de ${batch.length} pseudos générés localement`);
-  return batch;
+  // 🔍 DEBUG : Afficher la structure
+  console.log('📦 Structure wordLists:', Object.keys(wordLists));
+  
+  // ✅ Adapter selon la structure réelle
+  // Si c'est un tableau d'objets {jpn: "...", eng: "..."}
+  if (Array.isArray(wordLists)) {
+    const batch = [];
+    for (let i = 0; i < 10; i++) {
+      const randomWord = wordLists[Math.floor(Math.random() * wordLists.length)];
+      batch.push({
+        pseudo: randomWord.jpn + randomWord.eng,
+        jpnWord: randomWord.jpn,
+        engWord: randomWord.eng
+      });
+    }
+    console.log(`✅ Batch de ${batch.length} pseudos générés (format array)`);
+    return batch;
+  }
+  
+  // Si c'est un objet {jpn: [...], eng: [...]}
+  if (wordLists.jpn && wordLists.eng) {
+    const batch = [];
+    for (let i = 0; i < 10; i++) {
+      const jpnWord = wordLists.jpn[Math.floor(Math.random() * wordLists.jpn.length)];
+      const engWord = wordLists.eng[Math.floor(Math.random() * wordLists.eng.length)];
+      batch.push({
+        pseudo: jpnWord + engWord,
+        jpnWord: jpnWord,
+        engWord: engWord
+      });
+    }
+    console.log(`✅ Batch de ${batch.length} pseudos générés (format objet)`);
+    return batch;
+  }
+  
+  console.error('❌ Structure wordLists non reconnue:', wordLists);
+  return [];
 }
-
 // Initialiser le cache au premier affichage de create-account
 function initPseudoCache() {
   if (pseudoCache.length === 0) {
@@ -5390,4 +5420,5 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
