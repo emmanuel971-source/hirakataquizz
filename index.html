@@ -4599,7 +4599,7 @@ async function initGame() {
     document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
   }
-}
+} // ← Cette accolade fermante manquait !
     
     // ==========================================
     // PHASE 3 : INTERFACE JOUABLE (60-80%)
@@ -5645,6 +5645,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
