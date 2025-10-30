@@ -2608,38 +2608,60 @@ async function initUserSystem() {
 // ========================================
 // GÉNÉRATION DE PSEUDO
 // ========================================
+// Variable globale pour le batch
+let pseudoBatch = [];
+
+// Fonction pour générer un pseudo localement
+function generateLocalPseudo(words) {
+  const { jpnWords, engWords } = words;
+  const jpn = jpnWords[Math.floor(Math.random() * jpnWords.length)];
+  const eng = engWords[Math.floor(Math.random() * engWords.length)];
+  return {
+    pseudo: `${jpn}${eng}`,
+    jpnWord: jpn,
+    engWord: eng
+  };
+}
+
+// Modifie generateNewPseudo() pour utiliser le batch local
 async function generateNewPseudo() {
   const pseudoText = document.getElementById('pseudo-text');
   const errorDiv = document.getElementById('create-error');
   const validateBtn = document.getElementById('validate-pseudo-btn');
-  
-  // Animation de chargement
+
+  // Animation de chargement (seulement si batch vide)
   pseudoText.textContent = '🔄';
   validateBtn.disabled = true;
   errorDiv.style.display = 'none';
-  
+
   try {
-    const result = await callAPI('generatePseudo');
-    
-    if (result.success) {
-      currentPseudoProposal = result;
-      pseudoText.textContent = result.pseudo;
-      validateBtn.disabled = false;
-      console.log('✅ Pseudo généré:', result.pseudo);
-    } else {
-      errorDiv.textContent = result.error || 'Erreur lors de la génération';
-      errorDiv.style.display = 'block';
-      pseudoText.textContent = '❌';
-      console.error('❌ Erreur génération pseudo:', result.error);
+    // Charger wordLists du localStorage (chargées dans initGame())
+    const storedWords = JSON.parse(localStorage.getItem('wordLists'));
+    if (!storedWords) {
+      throw new Error('Word lists non disponibles');
     }
+
+    // Si batch vide, générer 10 nouveaux
+    if (pseudoBatch.length === 0) {
+      for (let i = 0; i < 10; i++) {
+        pseudoBatch.push(generateLocalPseudo(storedWords));
+      }
+      console.log('✅ Batch de 10 pseudos généré localement');
+    }
+
+    // Prendre le premier du batch
+    currentPseudoProposal = pseudoBatch.shift();
+    pseudoText.textContent = currentPseudoProposal.pseudo;
+    validateBtn.disabled = false;
+    console.log('✅ Pseudo proposé:', currentPseudoProposal.pseudo);
+
   } catch (error) {
-    errorDiv.textContent = 'Erreur de connexion';
+    errorDiv.textContent = 'Erreur lors de la génération';
     errorDiv.style.display = 'block';
     pseudoText.textContent = '❌';
     console.error('❌ Erreur:', error);
   }
 }
-
 // ========================================
 // AFFICHER LA SAISIE DU PIN
 // ========================================
@@ -5352,6 +5374,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
