@@ -2571,14 +2571,109 @@ function updateSectionTitles() {
 // ========================================
 // GESTION UTILISATEUR - À AJOUTER DANS <script>
 // ========================================
+// ========================================
+// GESTION POOL DE PSEUDOS - À REMPLACER DANS <script>
+// ========================================
 
 // Variables globales utilisateur
 let currentUser = null;
 let currentPseudoProposal = null;
 let userToken = null;
 
+// 🆕 NOUVEAU : Pool de pseudos pré-chargés
+let pseudoPool = [];
+const POOL_SIZE = 10; // Nombre de pseudos à pré-charger
+let isLoadingPseudos = false;
+
 // ========================================
-// INITIALISATION AU CHARGEMENT
+// 🆕 CHARGER UN POOL DE PSEUDOS
+// ========================================
+async function loadPseudoPool() {
+  if (isLoadingPseudos) return; // Éviter les appels simultanés
+  
+  isLoadingPseudos = true;
+  console.log(`🔄 Chargement de ${POOL_SIZE} pseudos...`);
+  
+  try {
+    // Appel API pour générer plusieurs pseudos d'un coup
+    const result = await callAPI('generateMultiplePseudos', { count: POOL_SIZE });
+    
+    if (result.success && result.pseudos && result.pseudos.length > 0) {
+      pseudoPool = result.pseudos;
+      console.log(`✅ ${pseudoPool.length} pseudos chargés dans le pool`);
+    } else {
+      console.error('❌ Erreur chargement pool:', result.error);
+      // Fallback : charger 1 par 1 si l'API batch n'existe pas encore
+      await loadPseudoPoolFallback();
+    }
+  } catch (error) {
+    console.error('❌ Erreur réseau pool:', error);
+    // Fallback
+    await loadPseudoPoolFallback();
+  } finally {
+    isLoadingPseudos = false;
+  }
+}
+
+// Fallback : charger les pseudos 1 par 1 (si l'API batch n'existe pas)
+async function loadPseudoPoolFallback() {
+  console.log('⚠️ Fallback: chargement séquentiel des pseudos...');
+  const promises = [];
+  
+  for (let i = 0; i < POOL_SIZE; i++) {
+    promises.push(callAPI('generatePseudo'));
+  }
+  
+  try {
+    const results = await Promise.all(promises);
+    pseudoPool = results.filter(r => r.success);
+    console.log(`✅ Fallback: ${pseudoPool.length} pseudos chargés`);
+  } catch (error) {
+    console.error('❌ Erreur fallback:', error);
+  }
+}
+
+// ========================================
+// 🆕 GÉNÉRER NOUVEAU PSEUDO (VERSION OPTIMISÉE)
+// ========================================
+async function generateNewPseudo() {
+  const pseudoText = document.getElementById('pseudo-text');
+  const errorDiv = document.getElementById('create-error');
+  const validateBtn = document.getElementById('validate-pseudo-btn');
+  
+  errorDiv.style.display = 'none';
+  
+  // Si le pool est vide, recharger
+  if (pseudoPool.length === 0) {
+    pseudoText.textContent = '🔄';
+    validateBtn.disabled = true;
+    
+    await loadPseudoPool();
+    
+    if (pseudoPool.length === 0) {
+      errorDiv.textContent = 'Erreur de connexion';
+      errorDiv.style.display = 'block';
+      pseudoText.textContent = '❌';
+      return;
+    }
+  }
+  
+  // ✅ RÉCUPÉRATION INSTANTANÉE depuis le pool
+  currentPseudoProposal = pseudoPool.shift(); // Retirer le premier du pool
+  pseudoText.textContent = currentPseudoProposal.pseudo;
+  validateBtn.disabled = false;
+  
+  console.log(`✅ Pseudo affiché: ${currentPseudoProposal.pseudo} (${pseudoPool.length} restants dans le pool)`);
+  
+  // 🔄 Recharger le pool en arrière-plan si on descend sous 3 pseudos
+  if (pseudoPool.length < 3 && !isLoadingPseudos) {
+    console.log('🔄 Pool faible, rechargement en arrière-plan...');
+    loadPseudoPool(); // Async, ne bloque pas l'UI
+  }
+}
+
+// ========================================
+// 🆕 INITIALISATION PRÉ-CHARGEMENT
 // ========================================
 async function initUserSystem() {
   // Vérifier si un token existe déjà
@@ -2594,51 +2689,45 @@ async function initUserSystem() {
       console.log('✅ Utilisateur connecté:', currentUser.pseudo);
       updateAccountDisplay();
     } else {
-      // Token invalide, demander création de compte
       console.warn('⚠️ Token invalide, création de compte nécessaire');
       localStorage.removeItem('userToken');
       userToken = null;
+      
+      // 🆕 PRÉ-CHARGER LE POOL pour les nouveaux utilisateurs
+      loadPseudoPool();
     }
+  } else {
+    // 🆕 PRÉ-CHARGER LE POOL pour les nouveaux utilisateurs
+    console.log('🆕 Nouveau visiteur, pré-chargement du pool de pseudos...');
+    loadPseudoPool();
   }
-  
-  // Si pas de token valide, l'utilisateur verra la page d'accueil
-  // et pourra cliquer sur le panda pour créer son compte
 }
 
 // ========================================
-// GÉNÉRATION DE PSEUDO
+// AFFICHER LA PAGE DE CRÉATION (MODIFIÉE)
 // ========================================
-async function generateNewPseudo() {
-  const pseudoText = document.getElementById('pseudo-text');
-  const errorDiv = document.getElementById('create-error');
-  const validateBtn = document.getElementById('validate-pseudo-btn');
+// À appeler quand on affiche la section create-account
+function showCreateAccountSection() {
+  showSection('create-account');
   
-  // Animation de chargement
-  pseudoText.textContent = '🔄';
-  validateBtn.disabled = true;
-  errorDiv.style.display = 'none';
-  
-  try {
-    const result = await callAPI('generatePseudo');
+  // Si le pool est prêt, afficher immédiatement le premier pseudo
+  if (pseudoPool.length > 0) {
+    generateNewPseudo();
+  } else {
+    // Sinon attendre le chargement
+    document.getElementById('pseudo-text').textContent = '🔄';
+    document.getElementById('validate-pseudo-btn').disabled = true;
     
-    if (result.success) {
-      currentPseudoProposal = result;
-      pseudoText.textContent = result.pseudo;
-      validateBtn.disabled = false;
-      console.log('✅ Pseudo généré:', result.pseudo);
-    } else {
-      errorDiv.textContent = result.error || 'Erreur lors de la génération';
-      errorDiv.style.display = 'block';
-      pseudoText.textContent = '❌';
-      console.error('❌ Erreur génération pseudo:', result.error);
-    }
-  } catch (error) {
-    errorDiv.textContent = 'Erreur de connexion';
-    errorDiv.style.display = 'block';
-    pseudoText.textContent = '❌';
-    console.error('❌ Erreur:', error);
+    // Attendre que le pool soit chargé
+    const checkPool = setInterval(() => {
+      if (pseudoPool.length > 0) {
+        clearInterval(checkPool);
+        generateNewPseudo();
+      }
+    }, 100);
   }
 }
+
 
 // ========================================
 // AFFICHER LA SAISIE DU PIN
@@ -4180,7 +4269,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz-SjsnBw85PjnqgIFADl7Dc_8YxN_jmrHXkcetbKv8iGmK-8r_lFg9apr1H_rwVVyQeQ/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwARdvpoRP80c5OTzrQPR1Iy9VRUsohU_CHETIAk9bXrBU5v1s78Pwqc1b-yTKB3icFRQ/exec';
 // const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby1y-ThlFkq3WwR--BaPr8D4TlyQhoTdVVqSx3N87qbY9YzSwEWDn3YvjRLwo8ABbYk5g/exec';
 
 // Fonction pour appeler l'API
@@ -5352,6 +5441,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
