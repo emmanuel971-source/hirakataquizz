@@ -2571,7 +2571,195 @@ function updateSectionTitles() {
 // ========================================
 // GESTION UTILISATEUR - À AJOUTER DANS <script>
 // ========================================
+// ==========================================
+// 🆕 GESTION NEW USER (Pseudo en priorité)
+// ==========================================
+async function handleNewUserLoading(profile) {
+  console.log('🆕 NOUVEAU UTILISATEUR - Chargement prioritaire pseudo');
+  
+  // PHASE 2 : CHARGER UNIQUEMENT CE QUI EST NÉCESSAIRE POUR LE PSEUDO (10-30%)
+  updateLoadingProgress(15, "Chargement des listes de mots...");
+  
+  const wordListsResult = await callAPI('getWordLists');
+  if (wordListsResult.success) {
+    localStorage.setItem('wordLists', JSON.stringify(wordListsResult.words));
+    console.log(`📚 ${wordListsResult.count} mots chargés`);
+  }
+  
+  updateLoadingProgress(25, "Génération de vos pseudos...");
+  
+  // 🎯 CHARGER LE POOL DE PSEUDOS (priorité absolue)
+  await loadPseudoPool();
+  
+  updateLoadingProgress(30, "Pseudos prêts !");
+  
+  // ==========================================
+  // 🎉 LIBÉRER L'INTERFACE IMMÉDIATEMENT
+  // ==========================================
+  
+  // Masquer la barre de progression
+  const progressContainer = document.getElementById('loading-progress-container');
+  progressContainer.style.display = 'none';
+  
+  // Afficher le panda cliquable
+  const panda = document.querySelector(".panda-logo");
+  const loadingText = document.getElementById("loadingText");
+  if (panda && loadingText) {
+    panda.style.opacity = "1";
+    panda.style.pointerEvents = "auto";
+    loadingText.textContent = t('welcome_touch');
+    loadingText.style.display = "block";
+  }
+  
+  gameDataLoaded = true; // ✅ Permettre le clic sur le panda
+  console.log('✅ Interface débloquée - L\'utilisateur peut cliquer sur le panda');
+  
+  // ==========================================
+  // 🔄 CHARGER LES ITEMS EN ARRIÈRE-PLAN
+  // ==========================================
+  console.log('🔄 Démarrage chargement items en arrière-plan...');
+  loadItemsInBackground(profile);
+}
 
+// ==========================================
+// 🔁 GESTION RETURNING USER (Chargement classique)
+// ==========================================
+async function handleReturningUserLoading(profile, token) {
+  console.log('🔁 UTILISATEUR EXISTANT - Chargement standard');
+  
+  const maxLevel = Math.min(profile.niveau + 2, profile.totalLevels);
+  
+  updateLoadingProgress(25, `Chargement niveaux 1-${maxLevel}...`);
+  const chunkResult = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: maxLevel });
+  
+  if (chunkResult.success) {
+    HiraganaList = chunkResult.data.map(item => ({
+      ...item,
+      Validation: 0,
+      Tentatives: 0,
+      Réussites: 0
+    }));
+    console.log(`📊 Chunk: ${chunkResult.count} items chargés`);
+  }
+  
+  updateLoadingProgress(40, "Récupération de votre profil...");
+  userToken = token;
+  const userResult = await callAPI('getUserByToken', { token: token });
+  if (userResult.success) {
+    currentUser = userResult.user;
+    console.log('👤 Utilisateur récupéré:', currentUser.pseudo);
+  }
+  
+  updateLoadingProgress(50, "Chargement de vos statistiques...");
+  await loadUserProgress();
+  
+  updateLoadingProgress(70, "Initialisation de l'interface...");
+  
+  // Initialiser l'UI
+  niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  renderHiraganaCards(HiraganaList, niveauActif);
+  updateMenuButtonStates();
+  
+  if (currentUser) {
+    updateAccountDisplay();
+  }
+  
+  updateLoadingProgress(90, "Finalisation...");
+  
+  // Afficher le panda
+  const panda = document.querySelector(".panda-logo");
+  const loadingText = document.getElementById("loadingText");
+  if (panda && loadingText) {
+    panda.style.opacity = "1";
+    panda.style.pointerEvents = "auto";
+    loadingText.textContent = t('welcome_touch');
+    loadingText.style.display = "block";
+  }
+  
+  updateLoadingProgress(100, "Chargement terminé !");
+  gameDataLoaded = true;
+  itemsFullyLoaded = true;
+  
+  setTimeout(() => {
+    document.getElementById('loading-progress-container').style.display = 'none';
+  }, 500);
+  
+  // Charger le reste en arrière-plan
+  loadRemainingDataInBackground(profile);
+}
+
+// ==========================================
+// 🔄 CHARGER LES ITEMS EN ARRIÈRE-PLAN (New User)
+// ==========================================
+async function loadItemsInBackground(profile) {
+  if (backgroundLoadingInProgress) return;
+  backgroundLoadingInProgress = true;
+  
+  console.log('🔄 Chargement items en arrière-plan pendant la sélection du pseudo...');
+  
+  try {
+    // Charger niveaux 1-3 (minimum pour commencer à jouer)
+    console.log('📥 Background: Chargement niveaux 1-3...');
+    const chunk1Result = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: 3 });
+    
+    if (chunk1Result.success) {
+      HiraganaList = chunk1Result.data.map(item => ({
+        ...item,
+        Validation: 0,
+        Tentatives: 0,
+        Réussites: 0
+      }));
+      console.log(`✅ Background: ${chunk1Result.count} items chargés (niveaux 1-3)`);
+      
+      // Initialiser l'UI (silencieusement, l'utilisateur est sur la page de création)
+      niveauActif = 1;
+      revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
+      revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
+      
+      console.log('✅ UI prête en arrière-plan');
+    }
+    
+    // Attendre un peu pour ne pas surcharger pendant que l'utilisateur choisit
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Charger le reste des niveaux par paquets
+    for (let start = 4; start <= profile.totalLevels; start += 10) {
+      const end = Math.min(start + 9, profile.totalLevels);
+      console.log(`📥 Background: chargement niveaux ${start}-${end}...`);
+      
+      const chunkResult = await callAPI('getHiraganaChunk', { startLevel: start, endLevel: end });
+      
+      if (chunkResult.success) {
+        const newItems = chunkResult.data.map(item => ({
+          ...item,
+          Validation: 0,
+          Tentatives: 0,
+          Réussites: 0
+        }));
+        
+        HiraganaList.push(...newItems);
+        console.log(`✅ Background: ${newItems.length} items ajoutés (total: ${HiraganaList.length})`);
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    // Régénérer les tables avec toutes les données
+    revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
+    revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
+    
+    itemsFullyLoaded = true;
+    console.log('✅ TOUS les items sont chargés !');
+    
+  } catch (error) {
+    console.error('❌ Erreur chargement background:', error.message);
+  } finally {
+    backgroundLoadingInProgress = false;
+  }
+}
 // ========================================
 // GESTION POOL DE PSEUDOS - À REMPLACER DANS <script>
 // ========================================
@@ -2771,19 +2959,20 @@ function hidePinInput() {
 // ========================================
 // VALIDER LE COMPTE (création finale)
 // ========================================
+// ==========================================
+// 🆕 MODIFIER validateAccount() pour attendre les items
+// ==========================================
 async function validateAccount() {
   const pinInput = document.getElementById('pin-input');
   const pin = pinInput.value.trim();
   const errorDiv = document.getElementById('create-error');
   
-  // Validation du PIN
   if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
     errorDiv.textContent = 'Le PIN doit contenir exactement 4 chiffres';
     errorDiv.style.display = 'block';
     return;
   }
   
-  // Générer un token unique
   userToken = crypto.randomUUID();
   
   try {
@@ -2796,21 +2985,48 @@ async function validateAccount() {
     });
     
     if (result.success) {
-      // Sauvegarder le token localement
       localStorage.setItem('userToken', userToken);
       currentUser = result.user;
-      await loadUserProgress();
-      console.log('✅ Compte créé avec succès:', currentUser.pseudo);
       
-      // Afficher message de succès et rediriger
       errorDiv.style.display = 'none';
       document.getElementById('pseudo-text').textContent = '✅ Compte créé !';
       
-      // Rediriger vers le menu après 1.5s
+      console.log('✅ Compte créé avec succès:', currentUser.pseudo);
+      
+      // 🆕 ATTENDRE QUE LES ITEMS SOIENT CHARGÉS
+      if (!itemsFullyLoaded) {
+        document.getElementById('pseudo-text').textContent = '⏳ Préparation du jeu...';
+        console.log('⏳ Attente fin du chargement des items...');
+        
+        // Attendre max 10 secondes
+        const maxWait = 10000;
+        const startWait = Date.now();
+        
+        while (!itemsFullyLoaded && (Date.now() - startWait) < maxWait) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        
+        if (!itemsFullyLoaded) {
+          console.warn('⚠️ Timeout chargement items - démarrage avec items partiels');
+        }
+      }
+      
+      // Charger les stats utilisateur
+      await loadUserProgress();
+      
+      // Initialiser l'UI
+      niveauActif = determineNiveauActif(HiraganaList);
+      document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+      updateLevelProgress(HiraganaList, niveauActif);
+      renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+      renderHiraganaCards(HiraganaList, niveauActif);
+      updateMenuButtonStates();
+      updateAccountDisplay();
+      
+      // Rediriger vers le menu
       setTimeout(() => {
         showSection('menu-section');
-        updateAccountDisplay();
-      }, 1500);
+      }, 800);
       
     } else {
       errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
@@ -4320,10 +4536,28 @@ let revisionRomajiTable = {};
 // Variable globale pour le chargement background
 let backgroundLoadingInProgress = false;
 
+// ========================================
+// CHARGEMENT OPTIMISÉ - REMPLACE initGame()
+// ========================================
+
+let backgroundLoadingInProgress = false;
+let itemsFullyLoaded = false; // 🆕 Flag pour savoir si les items sont prêts
+
+// Fonction helper pour mettre à jour la barre
+function updateLoadingProgress(percent, message) {
+  const fill = document.getElementById('loading-progress-fill');
+  const msg = document.getElementById('loading-message');
+  
+  if (fill) fill.style.width = percent + '%';
+  if (msg) msg.textContent = message;
+  
+  console.log(`📊 ${percent}% - ${message}`);
+}
+
 async function initGame() {
   try {
     gameDataLoaded = false;
-    console.log('🛠️ Initialisation du jeu avec chunking...');
+    console.log('🛠️ Initialisation du jeu avec chargement optimisé...');
     
     // Masquer le texte "Chargement..." classique
     document.getElementById("loadingText").style.display = "none";
@@ -4333,7 +4567,7 @@ async function initGame() {
     progressContainer.style.display = 'block';
     
     // ==========================================
-    // PHASE 1 : DÉTECTION PROFIL (0-15%)
+    // PHASE 1 : DÉTECTION PROFIL (0-10%)
     // ==========================================
     updateLoadingProgress(5, "Connexion au serveur...");
     
@@ -4346,69 +4580,26 @@ async function initGame() {
     
     const profile = profileResult.profile;
     console.log('👤 Profil détecté:', profile);
-    updateLoadingProgress(15, "Profil détecté !");
+    updateLoadingProgress(10, "Profil détecté !");
     
     // ==========================================
-    // PHASE 2 : CHARGEMENT PRIORITAIRE (15-60%)
+    // 🆕 FORK : NEW USER vs RETURNING USER
     // ==========================================
     
     if (profile.isNew) {
-      // 🆕 NEW USER : WordLists + Niveaux 1-3
-      updateLoadingProgress(20, "Chargement des listes de mots...");
-      const wordListsResult = await callAPI('getWordLists');
-      if (wordListsResult.success) {
-        // Stocker pour generatePseudo côté client si besoin
-        localStorage.setItem('wordLists', JSON.stringify(wordListsResult.words));
-        console.log(`📚 ${wordListsResult.count} mots chargés`);
-      }
-      
-      updateLoadingProgress(35, "Chargement niveaux 1-3...");
-      const chunk1Result = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: 3 });
-      
-      if (chunk1Result.success) {
-        HiraganaList = chunk1Result.data.map(item => ({
-          ...item,
-          Validation: 0,
-          Tentatives: 0,
-          Réussites: 0
-        }));
-        console.log(`📊 Chunk 1: ${chunk1Result.count} items chargés (niveaux ${chunk1Result.startLevel}-${chunk1Result.endLevel})`);
-      }
-      
-      updateLoadingProgress(60, "Prêt à jouer !");
-      
-
- } else {
-  // 🔁 RETURNING USER : Niveaux 1 à (niveau+2)
-  const maxLevel = Math.min(profile.niveau + 2, profile.totalLevels);
-  
-  updateLoadingProgress(25, `Chargement niveaux 1-${maxLevel}...`);
-  const chunkResult = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: maxLevel });
-  
-  if (chunkResult.success) {
-    HiraganaList = chunkResult.data.map(item => ({
-      ...item,
-      Validation: 0,
-      Tentatives: 0,
-      Réussites: 0
-    }));
-    console.log(`📊 Chunk returning user: ${chunkResult.count} items chargés (niveaux ${chunkResult.startLevel}-${chunkResult.endLevel})`);
+      // 🆕 NOUVEAU UTILISATEUR : Priorité au pseudo !
+      await handleNewUserLoading(profile);
+    } else {
+      // 🔁 UTILISATEUR EXISTANT : Chargement classique
+      await handleReturningUserLoading(profile, token);
+    }
+    
+  } catch (error) {
+    console.error('❌ Erreur dans initGame:', error.message);
+    document.getElementById('loading-message').textContent = 'Erreur : ' + error.message;
+    document.getElementById('loading-message').style.color = '#dc3545';
+    gameDataLoaded = false;
   }
-  
-  // ✅ CORRECTION : Initialiser userToken et currentUser AVANT loadUserProgress
-  updateLoadingProgress(40, "Récupération de votre profil...");
-  userToken = token;
-  const userResult = await callAPI('getUserByToken', { token: token });
-  if (userResult.success) {
-    currentUser = userResult.user;
-    console.log('👤 Utilisateur récupéré:', currentUser.pseudo);
-  }
-  
-  // ✅ MAINTENANT loadUserProgress peut merger les stats
-  updateLoadingProgress(50, "Chargement de vos statistiques...");
-  await loadUserProgress(); // Merge stats_json dans HiraganaList
-  
-  updateLoadingProgress(60, "Profil chargé !");
 }
     
     // ==========================================
@@ -5455,6 +5646,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
