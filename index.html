@@ -4655,13 +4655,13 @@ if (currentUser) {
     // ==========================================
     loadRemainingDataInBackground(profile);
     
-  } catch (error) {
+   catch (error) {
     console.error('❌ Erreur dans initGame:', error.message);
     document.getElementById('loading-message').textContent = 'Erreur : ' + error.message;
     document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
   }
-/*}*/
+}
 
 // Fonction helper pour mettre à jour la barre
 function updateLoadingProgress(percent, message) {
@@ -5645,6 +5645,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
