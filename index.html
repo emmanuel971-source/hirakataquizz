@@ -2604,40 +2604,75 @@ async function initUserSystem() {
   // Si pas de token valide, l'utilisateur verra la page d'accueil
   // et pourra cliquer sur le panda pour créer son compte
 }
-
 // ========================================
-// GÉNÉRATION DE PSEUDO
+// CACHE DE PSEUDOS - À AJOUTER APRÈS currentUser, currentPseudoProposal, userToken
+// ========================================
+let pseudoCache = [];
+let currentPseudoIndex = 0;
+
+// Générer un batch de 10 pseudos localement
+function generatePseudoBatch() {
+  const wordListsStr = localStorage.getItem('wordLists');
+  if (!wordListsStr) {
+    console.error('❌ WordLists non disponibles');
+    return [];
+  }
+  
+  const wordLists = JSON.parse(wordListsStr);
+  const batch = [];
+  
+  for (let i = 0; i < 10; i++) {
+    const jpnWord = wordLists.jpn[Math.floor(Math.random() * wordLists.jpn.length)];
+    const engWord = wordLists.eng[Math.floor(Math.random() * wordLists.eng.length)];
+    batch.push({
+      pseudo: jpnWord + engWord,
+      jpnWord: jpnWord,
+      engWord: engWord
+    });
+  }
+  
+  console.log(`✅ Batch de ${batch.length} pseudos générés localement`);
+  return batch;
+}
+
+// Initialiser le cache au premier affichage de create-account
+function initPseudoCache() {
+  if (pseudoCache.length === 0) {
+    pseudoCache = generatePseudoBatch();
+    currentPseudoIndex = 0;
+  }
+}
+// ========================================
+// GÉNÉRATION DE PSEUDO - REMPLACER LA FONCTION EXISTANTE
 // ========================================
 async function generateNewPseudo() {
   const pseudoText = document.getElementById('pseudo-text');
   const errorDiv = document.getElementById('create-error');
   const validateBtn = document.getElementById('validate-pseudo-btn');
   
-  // Animation de chargement
-  pseudoText.textContent = '🔄';
-  validateBtn.disabled = true;
   errorDiv.style.display = 'none';
   
-  try {
-    const result = await callAPI('generatePseudo');
+  // Si cache vide ou épuisé, régénérer un batch
+  if (currentPseudoIndex >= pseudoCache.length) {
+    pseudoCache = generatePseudoBatch();
+    currentPseudoIndex = 0;
     
-    if (result.success) {
-      currentPseudoProposal = result;
-      pseudoText.textContent = result.pseudo;
-      validateBtn.disabled = false;
-      console.log('✅ Pseudo généré:', result.pseudo);
-    } else {
-      errorDiv.textContent = result.error || 'Erreur lors de la génération';
+    if (pseudoCache.length === 0) {
+      errorDiv.textContent = 'Erreur : listes de mots non chargées';
       errorDiv.style.display = 'block';
       pseudoText.textContent = '❌';
-      console.error('❌ Erreur génération pseudo:', result.error);
+      return;
     }
-  } catch (error) {
-    errorDiv.textContent = 'Erreur de connexion';
-    errorDiv.style.display = 'block';
-    pseudoText.textContent = '❌';
-    console.error('❌ Erreur:', error);
   }
+  
+  // Proposer le prochain pseudo du cache
+  currentPseudoProposal = pseudoCache[currentPseudoIndex];
+  currentPseudoIndex++;
+  
+  pseudoText.textContent = currentPseudoProposal.pseudo;
+  validateBtn.disabled = false;
+  
+  console.log(`🎯 Pseudo proposé: ${currentPseudoProposal.pseudo} (${currentPseudoIndex}/${pseudoCache.length} du cache)`);
 }
 
 // ========================================
@@ -3012,7 +3047,10 @@ function showSection(sectionId) {
     section.classList.remove('active');
   });
   document.getElementById(sectionId).classList.add('active');
-  
+  if (sectionId === 'create-account') {
+  initPseudoCache();
+  generateNewPseudo(); // Afficher le premier pseudo automatiquement
+}
   // Démarrer le mode révisions si c'est le mode sélectionné
 if (sectionId === 'mode2') {
   wasBlockedWhenEnteringRevision = isApprentissageBloque();
@@ -4180,7 +4218,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz-SjsnBw85PjnqgIFADl7Dc_8YxN_jmrHXkcetbKv8iGmK-8r_lFg9apr1H_rwVVyQeQ/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwI1_UA70pdmkWOXfzyNm-wNoUrXHBz1GPvveCmdLYnmduKIU6G8nxAX8_cHO8ThHL6cg/exec';
 // const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby1y-ThlFkq3WwR--BaPr8D4TlyQhoTdVVqSx3N87qbY9YzSwEWDn3YvjRLwo8ABbYk5g/exec';
 
 // Fonction pour appeler l'API
@@ -5352,3 +5390,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
