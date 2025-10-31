@@ -5376,33 +5376,34 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 document.addEventListener("DOMContentLoaded", () => {
   const panda = document.querySelector(".panda-logo");
   if (panda) {
-    panda.addEventListener("click", () => {
-      document.getElementById("welcome").classList.add("hidden");
-      loadDifficulty();
-      updateMenuMessage();
-      updateApprendreButtonState();
-      
-      const menuBtn = document.querySelector(".hamburger");
-      if (menuBtn) menuBtn.classList.remove("hidden");
-      
-      // Si pas de compte, afficher création de compte
-      if (!userToken || !currentUser) {
-        showSection('create-account');
-        generateNewPseudo(); // Générer le premier pseudo automatiquement
-      } else {
-        // Sinon afficher le menu
-        const menu = document.querySelector(".menu");
-        if (menu) menu.classList.add("active");
-      }
-      
-      niveauActif = determineNiveauActif(HiraganaList);
-      document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-      updateLevelProgress(HiraganaList, niveauActif);
-      renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-      nextQuestion();      
-      updateRevisionButtonState();
-      updateApprendreButtonState();
-    });
+   panda.addEventListener("click", () => {
+  document.getElementById("welcome").classList.add("hidden");
+  loadDifficulty();
+  updateMenuMessage();
+  updateApprendreButtonState();
+  
+  const menuBtn = document.querySelector(".hamburger");
+  if (menuBtn) menuBtn.classList.remove("hidden");
+  
+  // Si pas de compte, afficher création de compte SANS ouvrir le menu
+  if (!userToken || !currentUser) {
+    showSection('create-account');
+    generateNewPseudo(); // Générer le premier pseudo automatiquement
+    // ✅ NE PAS ouvrir le menu automatiquement
+  } else {
+    // Utilisateur existant : afficher le menu
+    const menu = document.querySelector(".menu");
+    if (menu) menu.classList.add("active");
+  }
+  
+  niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  nextQuestion();      
+  updateRevisionButtonState();
+  updateApprendreButtonState();
+});
   }
   
   updateAllTexts();
@@ -5420,5 +5421,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
