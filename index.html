@@ -3211,7 +3211,9 @@ if (sectionId === 'mode2') {
     // Remettre à false quand on quitte le mode révision
     wasBlockedWhenEnteringRevision = false;
   }
- /* toggleMenu(); */
+if (sectionId !== 'create-account') {
+  toggleMenu();
+}
 }
 
    
@@ -5531,6 +5533,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
