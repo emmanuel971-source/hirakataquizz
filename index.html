@@ -2212,7 +2212,23 @@
     </div>
   </div>
 </div>
+<!-- Zone de confirmation du PIN (cachée au début) -->
+<div id="pin-confirm-section" style="display: none;">
+  <div class="pin-confirm-box" style="background: rgba(168, 213, 186, 0.1); border: 2px solid #8B6F47; border-radius: 10px; padding: 20px; margin: 20px 0;">
+    <p style="font-size: 1.2em; margin-bottom: 10px;">📅 Confirmation de ta date de naissance</p>
+    <p style="font-size: 1.5em; font-weight: bold; color: #8B6F47; margin: 15px 0;" id="pin-confirm-text"></p>
+    <p style="font-size: 0.9em; color: #dc3545; font-weight: bold;">⚠️ Cette date te servira à récupérer ton compte en cas de besoin</p>
+  </div>
 
+  <div class="button-group">
+    <button class="arcade-button" onclick="confirmPinAndCreateAccount()" data-i18n="create_account_confirm_yes">
+      ✅ Oui, c'est correct
+    </button>
+    <button class="arcade-button" onclick="correctPin()" data-i18n="create_account_correct_pin">
+      ✏️ Non, corriger
+    </button>
+  </div>
+</div>
 <!-- Section Connexion (changement d'appareil) -->
 <div id="login" class="section">
   <h1 data-i18n="login_title">Connexion 🔐</h1>
@@ -2331,6 +2347,8 @@ const translations = {
   login_pseudo_label: "Ton pseudo",
   login_pin_label: "Ton PIN (JJMM)",
   login_connect: "🎋 Me connecter",
+  create_account_confirm_yes: "✅ Oui, c'est correct", // FR
+  create_account_correct_pin: "✏️ Non, corriger", // FR  
   },
   
   en: {
@@ -2406,6 +2424,8 @@ const translations = {
   login_pseudo_label: "Your nickname",
   login_pin_label: "Your PIN (DDMM)",
   login_connect: "🎋 Connect",
+  create_account_confirm_yes: "✅ Yes, that's correct", // EN
+  create_account_correct_pin: "✏️ No, correct it", // EN  
   },
   
   es: {
@@ -2479,7 +2499,9 @@ const translations = {
   login_subtitle: "Encuentra tu cuenta",
   login_pseudo_label: "Tu apodo",
   login_pin_label: "Tu PIN (DDMM)",
-  login_connect: "🎋 Conectarme"
+  login_connect: "🎋 Conectarme",
+  create_account_confirm_yes: "✅ Sí, es correcto", // ES
+  create_account_correct_pin: "✏️ No, corregir" // ES  
   }
 };
 
@@ -2708,6 +2730,9 @@ async function generateNewPseudo() {
 // ========================================
 // AFFICHER LA SAISIE DU PIN
 // ========================================
+// ========================================
+// AFFICHER LA SAISIE DU PIN (VERSION AMÉLIORÉE)
+// ========================================
 function showPinInput() {
   if (!currentPseudoProposal) {
     alert('Veuillez générer un pseudo d\'abord');
@@ -2718,6 +2743,10 @@ function showPinInput() {
   document.querySelector('button[onclick="generateNewPseudo()"]').style.display = 'none';
   document.getElementById('pin-input-section').style.display = 'block';
   document.getElementById('pin-input').focus();
+  
+  // Réinitialiser la confirmation si elle existe
+  const confirmSection = document.getElementById('pin-confirm-section');
+  if (confirmSection) confirmSection.style.display = 'none';
 }
 
 // ========================================
@@ -2731,7 +2760,7 @@ function hidePinInput() {
 }
 
 // ========================================
-// VALIDER LE COMPTE (création finale)
+// VALIDER LE COMPTE (VERSION AVEC CONFIRMATION)
 // ========================================
 async function validateAccount() {
   const pinInput = document.getElementById('pin-input');
@@ -2739,51 +2768,27 @@ async function validateAccount() {
   const errorDiv = document.getElementById('create-error');
   
   // Validation du PIN
-  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
-    errorDiv.textContent = 'Le PIN doit contenir exactement 4 chiffres';
+  const validation = validatePin(pin);
+  if (!validation.valid) {
+    errorDiv.textContent = validation.error;
     errorDiv.style.display = 'block';
+    pinInput.focus();
     return;
   }
   
-  // Générer un token unique
-  userToken = crypto.randomUUID();
+  errorDiv.style.display = 'none';
   
-  try {
-    const result = await callAPI('assignPseudo', {
-      token: userToken,
-      pseudo: currentPseudoProposal.pseudo,
-      jpnWord: currentPseudoProposal.jpnWord,
-      engWord: currentPseudoProposal.engWord,
-      pin: pin
-    });
-    
-    if (result.success) {
-      // Sauvegarder le token localement
-      localStorage.setItem('userToken', userToken);
-      currentUser = result.user;
-      await loadUserProgress();
-      console.log('✅ Compte créé avec succès:', currentUser.pseudo);
-      
-      // Afficher message de succès et rediriger
-      errorDiv.style.display = 'none';
-      document.getElementById('pseudo-text').textContent = '✅ Compte créé !';
-      
-      // Rediriger vers le menu après 1.5s
-      setTimeout(() => {
-        showSection('menu-section');
-        updateAccountDisplay();
-      }, 1500);
-      
-    } else {
-      errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
-      errorDiv.style.display = 'block';
-      console.error('❌ Erreur création compte:', result.error);
-    }
-  } catch (error) {
-    errorDiv.textContent = 'Erreur de connexion';
-    errorDiv.style.display = 'block';
-    console.error('❌ Erreur:', error);
-  }
+  // Afficher la confirmation
+  const dateInfo = formatPinToDate(pin);
+  document.getElementById('pin-confirm-text').textContent = 
+    `Tu es né(e) le ${dateInfo.day} ${dateInfo.monthName} ?`;
+  
+  // Masquer la saisie, afficher la confirmation
+  document.getElementById('pin-input-section').style.display = 'none';
+  document.getElementById('pin-confirm-section').style.display = 'block';
+  
+  // Stocker temporairement le PIN pour la confirmation
+  window.tempPin = pin;
 }
 
 // ========================================
@@ -2879,7 +2884,43 @@ function updateAccountDisplay() {
     document.getElementById('account-level').textContent = currentUser.niveau_atteint || niveauActif;
   }
 }
+// ========================================
+// VALIDATION ET FORMATAGE DATE DE NAISSANCE
+// ========================================
+function formatPinToDate(pin) {
+  if (!pin || pin.length !== 4) return null;
+  const day = pin.substring(0, 2);
+  const month = pin.substring(2, 4);
+  
+  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
+                  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const monthName = months[parseInt(month) - 1];
+  
+  return { day, month, monthName, formatted: `${day}/${month}` };
+}
 
+function validatePin(pin) {
+  if (!pin || pin.length !== 4) {
+    return { valid: false, error: 'Le PIN doit contenir exactement 4 chiffres' };
+  }
+  
+  if (!/^\d{4}$/.test(pin)) {
+    return { valid: false, error: 'Le PIN doit contenir uniquement des chiffres' };
+  }
+  
+  const day = parseInt(pin.substring(0, 2));
+  const month = parseInt(pin.substring(2, 4));
+  
+  if (day < 1 || day > 31) {
+    return { valid: false, error: 'Le jour doit être entre 01 et 31' };
+  }
+  
+  if (month < 1 || month > 12) {
+    return { valid: false, error: 'Le mois doit être entre 01 et 12' };
+  }
+  
+  return { valid: true };
+}
 // ========================================
 // RETOUR AU MENU
 // ========================================
@@ -2942,7 +2983,74 @@ async function loadUserProgress() {
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} 1`;
   }
 } 
+// ========================================
+// CONFIRMER ET CRÉER LE COMPTE
+// ========================================
+async function confirmPinAndCreateAccount() {
+  const pin = window.tempPin;
+  const errorDiv = document.getElementById('create-error');
+  
+  // Générer un token unique
+  userToken = crypto.randomUUID();
+  
+  try {
+    const result = await callAPI('assignPseudo', {
+      token: userToken,
+      pseudo: currentPseudoProposal.pseudo,
+      jpnWord: currentPseudoProposal.jpnWord,
+      engWord: currentPseudoProposal.engWord,
+      pin: pin
+    });
     
+    if (result.success) {
+      // Sauvegarder le token localement
+      localStorage.setItem('userToken', userToken);
+      currentUser = result.user;
+      await loadUserProgress();
+      console.log('✅ Compte créé avec succès:', currentUser.pseudo);
+      
+      // Afficher message de succès
+      document.getElementById('pseudo-text').textContent = '✅ Compte créé !';
+      document.getElementById('pin-confirm-section').style.display = 'none';
+      
+      // Rediriger vers le menu après 1.5s
+      setTimeout(() => {
+        showSection('menu-section');
+        updateAccountDisplay();
+      }, 1500);
+      
+    } else {
+      errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
+      errorDiv.style.display = 'block';
+      document.getElementById('pin-confirm-section').style.display = 'none';
+      document.getElementById('pin-input-section').style.display = 'block';
+      console.error('❌ Erreur création compte:', result.error);
+    }
+  } catch (error) {
+    errorDiv.textContent = 'Erreur de connexion';
+    errorDiv.style.display = 'block';
+    document.getElementById('pin-confirm-section').style.display = 'none';
+    document.getElementById('pin-input-section').style.display = 'block';
+    console.error('❌ Erreur:', error);
+  }
+  
+  // Nettoyer le PIN temporaire
+  delete window.tempPin;
+}
+
+// ========================================
+// CORRIGER LE PIN
+// ========================================
+function correctPin() {
+  // Retour à la saisie
+  document.getElementById('pin-confirm-section').style.display = 'none';
+  document.getElementById('pin-input-section').style.display = 'block';
+  document.getElementById('pin-input').value = window.tempPin || '';
+  document.getElementById('pin-input').focus();
+  
+  // Nettoyer le PIN temporaire
+  delete window.tempPin;
+}    
 function toggleMenu() {
   const menu = document.getElementById('menu');
   menu.classList.toggle('active');
@@ -5421,6 +5529,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
