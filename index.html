@@ -1992,6 +1992,101 @@
     width: 180px;
   }
 }
+/* Loader zen */
+.zen-loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #f5f5dc 0%, #e8e8d0 100%);
+}
+
+.zen-circle-loader {
+  width: 120px;
+  height: 120px;
+  border: 4px solid rgba(139, 111, 71, 0.2);
+  border-top-color: #8B6F47;
+  border-radius: 50%;
+  animation: zen-spin 1.5s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bamboo-leaf {
+  font-size: 3em;
+  animation: leaf-float 2s ease-in-out infinite;
+}
+
+@keyframes zen-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes leaf-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(180deg); }
+}
+
+.zen-loader-text {
+  margin-top: 30px;
+  font-size: 1.3em;
+  color: #8B6F47;
+  animation: pulse-text 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-text {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Écran de bienvenue */
+.welcome-animation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #A8D5BA 0%, #8B6F47 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-user-title {
+  font-size: 3em;
+  color: white;
+  text-shadow: 0 0 20px rgba(253, 193, 197, 0.8);
+  animation: welcome-fade-in 1s ease-out;
+  z-index: 10;
+}
+
+.welcome-user-subtitle {
+  font-size: 1.5em;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 20px;
+  animation: welcome-fade-in 1s ease-out 0.5s both;
+  z-index: 10;
+}
+
+@keyframes welcome-fade-in {
+  0% { 
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Réutiliser votre animation sakura existante */
+.sakura-rain {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}    
   </style>
 </head>
 <body>
@@ -2230,7 +2325,24 @@
   </div>
 </div>
 </div>
+<!-- Écran de chargement création compte -->
+<div id="account-creation-loader" class="section" style="display: none;">
+  <div class="zen-loader-container">
+    <div class="zen-circle-loader">
+      <div class="bamboo-leaf">🍃</div>
+    </div>
+    <p class="zen-loader-text">Préparation de ton jardin zen...</p>
+  </div>
+</div>
 
+<!-- Écran de bienvenue -->
+<div id="welcome-screen" class="section" style="display: none;">
+  <div class="welcome-animation-container">
+    <div class="sakura-rain"></div>
+    <h1 class="welcome-user-title"></h1>
+    <p class="welcome-user-subtitle">Ton voyage commence maintenant 🌸</p>
+  </div>
+</div>
 <!-- Section Connexion (changement d'appareil) -->
 <div id="login" class="section">
   <h1 data-i18n="login_title">Connexion 🔐</h1>
@@ -2992,7 +3104,12 @@ async function confirmPinAndCreateAccount() {
   const pin = window.tempPin;
   const errorDiv = document.getElementById('create-error');
   
-  // Générer un token unique
+  // ✅ NOUVEAU : Masquer la confirmation et afficher loader
+  document.getElementById('pin-confirm-section').style.display = 'none';
+  
+  // ✅ Afficher écran de chargement zen
+  showAccountCreationLoader();
+  
   userToken = crypto.randomUUID();
   
   try {
@@ -3005,41 +3122,58 @@ async function confirmPinAndCreateAccount() {
     });
     
     if (result.success) {
-      // Sauvegarder le token localement
       localStorage.setItem('userToken', userToken);
       currentUser = result.user;
       await loadUserProgress();
-      console.log('✅ Compte créé avec succès:', currentUser.pseudo);
       
-      // Afficher message de succès
-      document.getElementById('pseudo-text').textContent = '✅ Compte créé !';
-      document.getElementById('pin-confirm-section').style.display = 'none';
+      // ✅ NOUVEAU : Animation de bienvenue
+      showWelcomeAnimation(currentUser.pseudo);
       
-      // Rediriger vers le menu après 1.5s
+      // Rediriger après l'animation
       setTimeout(() => {
         showSection('menu-section');
         updateAccountDisplay();
-      }, 1500);
+      }, 3500); // Laisser temps pour l'animation
       
     } else {
+      // ✅ Cacher le loader en cas d'erreur
+      hideAccountCreationLoader();
       errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
       errorDiv.style.display = 'block';
-      document.getElementById('pin-confirm-section').style.display = 'none';
-      document.getElementById('pin-input-section').style.display = 'block';
-      console.error('❌ Erreur création compte:', result.error);
+      document.getElementById('pin-confirm-section').style.display = 'block';
     }
   } catch (error) {
+    hideAccountCreationLoader();
     errorDiv.textContent = 'Erreur de connexion';
     errorDiv.style.display = 'block';
-    document.getElementById('pin-confirm-section').style.display = 'none';
-    document.getElementById('pin-input-section').style.display = 'block';
-    console.error('❌ Erreur:', error);
+    document.getElementById('pin-confirm-section').style.display = 'block';
   }
   
-  // Nettoyer le PIN temporaire
   delete window.tempPin;
 }
+function showAccountCreationLoader() {
+  document.getElementById('account-creation-loader').style.display = 'flex';
+}
 
+function hideAccountCreationLoader() {
+  document.getElementById('account-creation-loader').style.display = 'none';
+}
+
+function showWelcomeAnimation(pseudo) {
+  hideAccountCreationLoader();
+  
+  const welcomeScreen = document.getElementById('welcome-screen');
+  const titleElement = document.querySelector('.welcome-user-title');
+  
+  titleElement.textContent = `Bienvenue ${pseudo} 🎌`;
+  welcomeScreen.style.display = 'flex';
+  
+  // Ajouter chute de sakura
+  triggerSakuraFall(welcomeScreen);
+  
+  // Son de bienvenue
+  playLevelUp();
+}
 // ========================================
 // CORRIGER LE PIN
 // ========================================
@@ -5533,6 +5667,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
