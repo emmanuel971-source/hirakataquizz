@@ -2086,6 +2086,177 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+/* ========================================
+   LOADER ZEN - RESPONSIVE
+   ======================================== */
+
+/* Desktop (votre fond d'origine #F8F1E9) */
+.zen-loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: #F8F1E9; /* ✅ Votre fond d'origine */
+  overflow: hidden; /* ✅ No scrolling */
+  z-index: 9999;
+}
+
+.zen-circle-loader {
+  width: 120px;
+  height: 120px;
+  border: 4px solid rgba(139, 111, 71, 0.2);
+  border-top-color: #8B6F47;
+  border-radius: 50%;
+  animation: zen-spin 1.5s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bamboo-leaf {
+  font-size: 3em;
+  animation: leaf-float 2s ease-in-out infinite;
+}
+
+.zen-loader-text {
+  margin-top: 30px;
+  font-size: 1.3em;
+  color: #8B6F47;
+  animation: pulse-text 1.5s ease-in-out infinite;
+  text-align: center;
+  padding: 0 20px;
+  max-width: 90%;
+}
+
+/* SMARTPHONES */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .zen-circle-loader {
+    width: 80px;
+    height: 80px;
+    border: 3px solid rgba(139, 111, 71, 0.2);
+    border-top-color: #8B6F47;
+  }
+
+  .bamboo-leaf {
+    font-size: 2em;
+  }
+
+  .zen-loader-text {
+    font-size: 1em;
+    margin-top: 20px;
+  }
+}
+
+/* TABLETTES */
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  .zen-circle-loader {
+    width: 100px;
+    height: 100px;
+  }
+
+  .bamboo-leaf {
+    font-size: 2.5em;
+  }
+
+  .zen-loader-text {
+    font-size: 1.2em;
+  }
+}
+
+/* ========================================
+   ÉCRAN DE BIENVENUE - RESPONSIVE
+   ======================================== */
+
+/* Desktop */
+.welcome-animation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: #F8F1E9; /* ✅ Votre fond d'origine */
+  overflow: hidden; /* ✅ No scrolling */
+  z-index: 9999;
+}
+
+.welcome-user-title {
+  font-size: 3em;
+  color: #8B6F47;
+  text-shadow: 0 0 20px rgba(253, 193, 197, 0.5);
+  animation: welcome-fade-in 1s ease-out;
+  z-index: 10;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.welcome-user-subtitle {
+  font-size: 1.5em;
+  color: #8B6F47;
+  opacity: 0.8;
+  margin-top: 20px;
+  animation: welcome-fade-in 1s ease-out 0.5s both;
+  z-index: 10;
+  text-align: center;
+}
+
+/* SMARTPHONES */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .welcome-user-title {
+    font-size: 1.8em;
+  }
+
+  .welcome-user-subtitle {
+    font-size: 1.1em;
+    margin-top: 15px;
+  }
+}
+
+/* TABLETTES */
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  .welcome-user-title {
+    font-size: 2.5em;
+  }
+
+  .welcome-user-subtitle {
+    font-size: 1.3em;
+  }
+}
+
+/* Animations communes (déjà dans votre CSS) */
+@keyframes zen-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes leaf-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(180deg); }
+}
+
+@keyframes pulse-text {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes welcome-fade-in {
+  0% { 
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% { 
+    opacity: 1;
+    transform: translateY(0);
+  }
 }    
   </style>
 </head>
@@ -3152,8 +3323,40 @@ async function confirmPinAndCreateAccount() {
   
   delete window.tempPin;
 }
+// ✅ Remplacer showAccountCreationLoader() par :
 function showAccountCreationLoader() {
-  document.getElementById('account-creation-loader').style.display = 'flex';
+  const messages = [
+    "🧘 Méditation en cours...",
+    "🍵 Préparation du thé matcha...",
+    "🌸 Plantation des cerisiers...",
+    "🎋 Arrangement du jardin zen...",
+    "🎌 Préparation de la cérémonie..."
+  ];
+  
+  const loaderScreen = document.getElementById('account-creation-loader');
+  const textElement = loaderScreen.querySelector('.zen-loader-text');
+  
+  // Message aléatoire
+  textElement.textContent = messages[Math.floor(Math.random() * messages.length)];
+  
+  loaderScreen.style.display = 'flex';
+}
+
+// ✅ Ajouter animation sakura adaptée à votre fonction existante
+function showWelcomeAnimation(pseudo) {
+  hideAccountCreationLoader();
+  
+  const welcomeScreen = document.getElementById('welcome-screen');
+  const titleElement = document.querySelector('.welcome-user-title');
+  
+  titleElement.textContent = `Bienvenue ${pseudo} 🎌`;
+  welcomeScreen.style.display = 'flex';
+  
+  // ✅ Utiliser votre fonction sakura existante (compatible responsive)
+  triggerSakuraFall(welcomeScreen);
+  
+  // Son de bienvenue
+  playLevelUp();
 }
 
 function hideAccountCreationLoader() {
@@ -5668,6 +5871,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
