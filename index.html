@@ -3276,10 +3276,8 @@ async function confirmPinAndCreateAccount() {
   const pin = window.tempPin;
   const errorDiv = document.getElementById('create-error');
   
-  // ✅ NOUVEAU : Masquer la confirmation et afficher loader
+  // ✅ Masquer la confirmation et afficher loader
   document.getElementById('pin-confirm-section').style.display = 'none';
-  
-  // ✅ Afficher écran de chargement zen
   showAccountCreationLoader();
   
   userToken = crypto.randomUUID();
@@ -3298,27 +3296,47 @@ async function confirmPinAndCreateAccount() {
       currentUser = result.user;
       await loadUserProgress();
       
-      // ✅ NOUVEAU : Animation de bienvenue
+      console.log('✅ Compte créé avec succès:', currentUser.pseudo);
+      
+      // ✅ Animation de bienvenue
       showWelcomeAnimation(currentUser.pseudo);
       
-      // Rediriger après l'animation
+      // ✅ CORRECTION ICI : Ouvrir le menu au lieu de chercher 'menu-section'
       setTimeout(() => {
-        showSection('menu-section');
+        // Masquer l'écran de bienvenue
+        document.getElementById('welcome-screen').style.display = 'none';
+        
+        // Retourner à la section welcome (fond zen)
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById('welcome').classList.add('active');
+        
+        // Masquer le panda et le texte de chargement
+        document.querySelector('.panda-logo').style.display = 'none';
+        document.getElementById('loadingText').style.display = 'none';
+        
+        // Afficher le bouton hamburger
+        document.querySelector('.hamburger').classList.remove('hidden');
+        
+        // Ouvrir le menu
+        toggleMenu();
+        
+        // Mettre à jour l'affichage du compte
         updateAccountDisplay();
-      }, 3500); // Laisser temps pour l'animation
+      }, 3500);
       
     } else {
-      // ✅ Cacher le loader en cas d'erreur
       hideAccountCreationLoader();
       errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
       errorDiv.style.display = 'block';
       document.getElementById('pin-confirm-section').style.display = 'block';
+      console.error('❌ Erreur création compte:', result.error);
     }
   } catch (error) {
     hideAccountCreationLoader();
     errorDiv.textContent = 'Erreur de connexion';
     errorDiv.style.display = 'block';
     document.getElementById('pin-confirm-section').style.display = 'block';
+    console.error('❌ Erreur:', error);
   }
   
   delete window.tempPin;
@@ -5871,6 +5889,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
