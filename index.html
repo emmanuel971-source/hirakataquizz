@@ -2920,6 +2920,7 @@ let currentPseudoIndex = 0;
 
 // Générer un batch de 10 pseudos localement
 // Générer un batch de 10 pseudos localement
+// ✅ VERSION FINALE avec vraie combinaison aléatoire
 function generatePseudoBatch() {
   const wordListsStr = localStorage.getItem('wordLists');
   if (!wordListsStr) {
@@ -2935,43 +2936,41 @@ function generatePseudoBatch() {
     return [];
   }
   
-  // 🔍 DEBUG : Afficher la structure
   console.log('📦 Structure wordLists:', Object.keys(wordLists));
   
-  // ✅ Adapter selon la structure réelle
-  // Si c'est un tableau d'objets {jpn: "...", eng: "..."}
+  // ✅ NOUVEAU : Extraire les listes jpn et eng
+  let jpnWords, engWords;
+  
   if (Array.isArray(wordLists)) {
-    const batch = [];
-    for (let i = 0; i < 10; i++) {
-      const randomWord = wordLists[Math.floor(Math.random() * wordLists.length)];
-      batch.push({
-        pseudo: randomWord.jpn + randomWord.eng,
-        jpnWord: randomWord.jpn,
-        engWord: randomWord.eng
-      });
-    }
-    console.log(`✅ Batch de ${batch.length} pseudos générés (format array)`);
-    return batch;
+    // Structure: [{jpn: "...", eng: "..."}, ...]
+    jpnWords = wordLists.map(item => item.jpn);
+    engWords = wordLists.map(item => item.eng);
+  } else if (wordLists.jpn && wordLists.eng) {
+    // Structure: {jpn: [...], eng: [...]}
+    jpnWords = wordLists.jpn;
+    engWords = wordLists.eng;
+  } else {
+    console.error('❌ Structure wordLists non reconnue:', wordLists);
+    return [];
   }
   
-  // Si c'est un objet {jpn: [...], eng: [...]}
-  if (wordLists.jpn && wordLists.eng) {
-    const batch = [];
-    for (let i = 0; i < 10; i++) {
-      const jpnWord = wordLists.jpn[Math.floor(Math.random() * wordLists.jpn.length)];
-      const engWord = wordLists.eng[Math.floor(Math.random() * wordLists.eng.length)];
-      batch.push({
-        pseudo: jpnWord + engWord,
-        jpnWord: jpnWord,
-        engWord: engWord
-      });
-    }
-    console.log(`✅ Batch de ${batch.length} pseudos générés (format objet)`);
-    return batch;
+  // ✅ GÉNÉRATION avec tirage aléatoire INDÉPENDANT
+  const batch = [];
+  for (let i = 0; i < 10; i++) {
+    const randomJpn = jpnWords[Math.floor(Math.random() * jpnWords.length)];
+    const randomEng = engWords[Math.floor(Math.random() * engWords.length)];
+    
+    batch.push({
+      pseudo: randomJpn + randomEng,
+      jpnWord: randomJpn,
+      engWord: randomEng
+    });
   }
   
-  console.error('❌ Structure wordLists non reconnue:', wordLists);
-  return [];
+  console.log(`✅ Batch de ${batch.length} pseudos générés avec combinaisons aléatoires`);
+  console.log('🎲 Exemples:', batch.slice(0, 3).map(p => p.pseudo));
+  
+  return batch;
 }
 // Initialiser le cache au premier affichage de create-account
 function initPseudoCache() {
@@ -4716,7 +4715,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwI1_UA70pdmkWOXfzyNm-wNoUrXHBz1GPvveCmdLYnmduKIU6G8nxAX8_cHO8ThHL6cg/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbycgSk69sgkWTM_71k8C9xypH0l915tV0XJasc0STgT6Fh2n0qzDTV-a6PQIPpvH_BABQ/exec';
 // const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby1y-ThlFkq3WwR--BaPr8D4TlyQhoTdVVqSx3N87qbY9YzSwEWDn3YvjRLwo8ABbYk5g/exec';
 
 // Fonction pour appeler l'API
@@ -5889,6 +5888,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
