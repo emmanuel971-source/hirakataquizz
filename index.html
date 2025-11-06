@@ -3631,21 +3631,38 @@ function showReturningUserWelcome(pseudo) {
   "Le cœur tranquille entend la musique du monde 🎐",
     "La discipline n’est pas une chaîne, mais une clé 🗝️",
     "Dans l’instant qui passe, tout l’éternel se cache 🕊️"
-  ];
+ ];
   
   const welcomeScreen = document.getElementById('welcome-screen');
   const titleElement = document.querySelector('.welcome-user-title');
   const subtitleElement = document.querySelector('.welcome-user-subtitle');
   
-  // Message aléatoire
+  console.log('🔍 Éléments trouvés:', {
+    welcomeScreen: welcomeScreen,
+    titleElement: titleElement,
+    subtitleElement: subtitleElement
+  });
+  
+  if (!welcomeScreen || !titleElement || !subtitleElement) {
+    console.error('❌ Éléments manquants dans le DOM !');
+    // Fallback : ouvrir directement le menu
+    toggleMenu();
+    return;
+  }
+  
   const randomMessage = messages[Math.floor(Math.random() * messages.length)];
   
   titleElement.textContent = `Welcome back ${pseudo} ! 🎌`;
   subtitleElement.textContent = randomMessage;
   
+  console.log('✅ Textes mis à jour:', {
+    title: titleElement.textContent,
+    subtitle: subtitleElement.textContent
+  });
+  
   welcomeScreen.style.display = 'flex';
   
-  // Petite chute de sakura (moins intense que pour new user)
+  // Petite chute de sakura
   for (let i = 0; i < 15; i++) {
     const sakura = document.createElement("div");
     sakura.className = "sakura";
@@ -3657,26 +3674,22 @@ function showReturningUserWelcome(pseudo) {
     setTimeout(() => sakura.remove(), 4000);
   }
   
-  // Son doux
   playZenBell();
   
-  // Ouvrir le menu après 2.5s
   setTimeout(() => {
+    console.log('⏰ Timeout atteint, fermeture écran bienvenue');
     welcomeScreen.style.display = 'none';
     
-    // Retourner à la section welcome (fond zen)
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.getElementById('welcome').classList.add('active');
     
-    // Masquer le panda et le texte de chargement
     document.querySelector('.panda-logo').style.display = 'none';
     document.getElementById('loadingText').style.display = 'none';
     
-    // Ouvrir le menu
     toggleMenu();
     updateAccountDisplay();
   }, 2500);
-}    
+}
   </script>
 <script>
 let pointsGagnesEnRevision = 0; // ✅ NOUVEAU : compteur de progression  
@@ -5967,6 +5980,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
