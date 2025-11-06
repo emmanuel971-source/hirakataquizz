@@ -2042,31 +2042,50 @@
 }
 
 /* Écran de bienvenue */
+/* Écran de bienvenue */
 .welcome-animation-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: linear-gradient(135deg, #A8D5BA 0%, #8B6F47 100%);
-  position: relative;
+  width: 100vw;
+  position: fixed; /* ✅ IMPORTANT */
+  top: 0;
+  left: 0;
+  background: #F8F1E9;
   overflow: hidden;
+  z-index: 9999; /* ✅ IMPORTANT */
+}
+
+#welcome-screen {
+  position: fixed; /* ✅ AJOUT */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998; /* ✅ AJOUT */
 }
 
 .welcome-user-title {
   font-size: 3em;
-  color: white;
-  text-shadow: 0 0 20px rgba(253, 193, 197, 0.8);
+  color: #8B6F47;
+  text-shadow: 0 0 20px rgba(253, 193, 197, 0.5);
   animation: welcome-fade-in 1s ease-out;
   z-index: 10;
+  text-align: center;
+  padding: 0 20px;
 }
 
 .welcome-user-subtitle {
   font-size: 1.5em;
-  color: rgba(255, 255, 255, 0.9);
+  color: #8B6F47;
+  opacity: 0.8;
   margin-top: 20px;
   animation: welcome-fade-in 1s ease-out 0.5s both;
   z-index: 10;
+  text-align: center;
+  padding: 0 20px; /* ✅ AJOUT pour mobile */
 }
 
 @keyframes welcome-fade-in {
@@ -3631,7 +3650,7 @@ function showReturningUserWelcome(pseudo) {
   "Le cœur tranquille entend la musique du monde 🎐",
     "La discipline n’est pas une chaîne, mais une clé 🗝️",
     "Dans l’instant qui passe, tout l’éternel se cache 🕊️"
- ];
+];
   
   const welcomeScreen = document.getElementById('welcome-screen');
   const titleElement = document.querySelector('.welcome-user-title');
@@ -3645,7 +3664,6 @@ function showReturningUserWelcome(pseudo) {
   
   if (!welcomeScreen || !titleElement || !subtitleElement) {
     console.error('❌ Éléments manquants dans le DOM !');
-    // Fallback : ouvrir directement le menu
     toggleMenu();
     return;
   }
@@ -3660,7 +3678,19 @@ function showReturningUserWelcome(pseudo) {
     subtitle: subtitleElement.textContent
   });
   
+  // ✅ CRITIQUE : Masquer TOUTES les autres sections d'abord
+  document.querySelectorAll('.section').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  
+  // ✅ PUIS afficher welcome-screen en force
+  welcomeScreen.classList.add('active');
   welcomeScreen.style.display = 'flex';
+  welcomeScreen.style.zIndex = '9999';
+  
+  console.log('👁️ Welcome screen display:', window.getComputedStyle(welcomeScreen).display);
+  console.log('👁️ Welcome screen z-index:', window.getComputedStyle(welcomeScreen).zIndex);
   
   // Petite chute de sakura
   for (let i = 0; i < 15; i++) {
@@ -3678,14 +3708,21 @@ function showReturningUserWelcome(pseudo) {
   
   setTimeout(() => {
     console.log('⏰ Timeout atteint, fermeture écran bienvenue');
+    welcomeScreen.classList.remove('active');
     welcomeScreen.style.display = 'none';
     
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById('welcome').classList.add('active');
+    // Retourner à la section welcome (fond zen)
+    const welcomeSection = document.getElementById('welcome');
+    welcomeSection.classList.add('active');
+    welcomeSection.style.display = 'flex';
     
-    document.querySelector('.panda-logo').style.display = 'none';
-    document.getElementById('loadingText').style.display = 'none';
+    // Masquer le panda et le texte de chargement
+    const panda = document.querySelector('.panda-logo');
+    const loadingText = document.getElementById('loadingText');
+    if (panda) panda.style.display = 'none';
+    if (loadingText) loadingText.style.display = 'none';
     
+    // Ouvrir le menu
     toggleMenu();
     updateAccountDisplay();
   }, 2500);
@@ -5980,6 +6017,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
