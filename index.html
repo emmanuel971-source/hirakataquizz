@@ -2276,6 +2276,26 @@
     opacity: 1;
     transform: translateY(0);
   }
+} 
+/* Responsive pour le returning user overlay */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  #returning-user-overlay h1 {
+    font-size: 1.8em !important;
+  }
+  
+  #returning-user-overlay p {
+    font-size: 1.1em !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  #returning-user-overlay h1 {
+    font-size: 2.5em !important;
+  }
+  
+  #returning-user-overlay p {
+    font-size: 1.3em !important;
+  }
 }    
   </style>
 </head>
@@ -3650,98 +3670,103 @@ function showReturningUserWelcome(pseudo) {
   "Le cœur tranquille entend la musique du monde 🎐",
     "La discipline n’est pas une chaîne, mais une clé 🗝️",
     "Dans l’instant qui passe, tout l’éternel se cache 🕊️"
- ];
+];
   
-  const welcomeScreen = document.getElementById('welcome-screen');
-  const titleElement = document.querySelector('.welcome-user-title');
-  const subtitleElement = document.querySelector('.welcome-user-subtitle');
-  
-  if (!welcomeScreen || !titleElement || !subtitleElement) {
-    console.error('❌ Éléments manquants dans le DOM !');
-    toggleMenu();
-    return;
-  }
+  // ✅ CRÉER UN OVERLAY TEMPORAIRE au lieu d'utiliser #welcome-screen
+  const overlay = document.createElement('div');
+  overlay.id = 'returning-user-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #F8F1E9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    overflow: hidden;
+  `;
   
   const randomMessage = messages[Math.floor(Math.random() * messages.length)];
   
-  titleElement.textContent = `Welcome back ${pseudo} ! 🎌`;
-  subtitleElement.textContent = randomMessage;
-  
-  // ✅ MASQUER TOUT
-  document.querySelectorAll('.section').forEach(s => {
-    s.classList.remove('active');
-    s.style.display = 'none';
-  });
-  
-  // ✅ FORCER STYLES EN INLINE (priorité maximale)
-  welcomeScreen.classList.add('active');
-  welcomeScreen.style.cssText = `
-    display: flex !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    z-index: 99999 !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    background: #F8F1E9 !important;
+  // Créer le titre
+  const title = document.createElement('h1');
+  title.style.cssText = `
+    font-size: 3em;
+    color: #8B6F47;
+    text-shadow: 0 0 20px rgba(253, 193, 197, 0.5);
+    animation: welcome-fade-in 1s ease-out;
+    text-align: center;
+    padding: 0 20px;
+    margin: 0 0 20px 0;
   `;
+  title.textContent = `Welcome back ${pseudo} ! 🎌`;
   
-  const container = welcomeScreen.querySelector('.welcome-animation-container');
-  if (container) {
-    container.style.cssText = `
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
-      width: 100% !important;
-      height: 100% !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-    `;
-  }
-  
-  // Forcer visibility des textes
-  titleElement.style.cssText = `
-    opacity: 1 !important;
-    visibility: visible !important;
+  // Créer le sous-titre
+  const subtitle = document.createElement('p');
+  subtitle.style.cssText = `
+    font-size: 1.5em;
+    color: #8B6F47;
+    opacity: 0.8;
+    animation: welcome-fade-in 1s ease-out 0.5s both;
+    text-align: center;
+    padding: 0 20px;
+    margin: 0;
   `;
-  subtitleElement.style.cssText = `
-    opacity: 1 !important;
-    visibility: visible !important;
-  `;
+  subtitle.textContent = randomMessage;
   
-  console.log('✅ Styles forcés appliqués');
+  overlay.appendChild(title);
+  overlay.appendChild(subtitle);
+  
+  // Ajouter au body
+  document.body.appendChild(overlay);
+  
+  console.log('✅ Overlay créé et ajouté au DOM');
   
   // Petite chute de sakura
   for (let i = 0; i < 15; i++) {
     const sakura = document.createElement("div");
     sakura.className = "sakura";
-    sakura.style.left = Math.random() * 100 + "vw";
-    sakura.style.top = "-10px";
-    sakura.style.animationDelay = Math.random() * 1.5 + "s";
-    sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
-    welcomeScreen.appendChild(sakura);
+    sakura.style.cssText = `
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #FDC1C5;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: sakuraFall ${2.5 + Math.random() * 1.5}s linear forwards;
+      animation-delay: ${Math.random() * 1.5}s;
+      left: ${Math.random() * 100}vw;
+      top: -10px;
+      z-index: 10;
+    `;
+    overlay.appendChild(sakura);
     setTimeout(() => sakura.remove(), 4000);
   }
   
   playZenBell();
   
   setTimeout(() => {
-    console.log('⏰ Timeout atteint, fermeture écran bienvenue');
-    welcomeScreen.classList.remove('active');
-    welcomeScreen.style.display = 'none';
+    console.log('⏰ Timeout atteint, fermeture overlay');
     
+    // Supprimer l'overlay
+    overlay.remove();
+    
+    // Retourner à la section welcome (fond zen)
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     const welcomeSection = document.getElementById('welcome');
     welcomeSection.classList.add('active');
-    welcomeSection.style.display = 'flex';
     
+    // Masquer le panda et le texte de chargement
     const panda = document.querySelector('.panda-logo');
     const loadingText = document.getElementById('loadingText');
     if (panda) panda.style.display = 'none';
     if (loadingText) loadingText.style.display = 'none';
     
+    // Ouvrir le menu
     toggleMenu();
     updateAccountDisplay();
   }, 2500);
@@ -6036,6 +6061,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
