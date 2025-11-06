@@ -3597,6 +3597,86 @@ function updateMenuMessage() {
     menuMessage.innerText = messages[Math.floor(Math.random() * messages.length)];
   }
 }
+// ========================================
+// BIENVENUE RETURNING USER
+// ========================================
+function showReturningUserWelcome(pseudo) {
+  const messages = [
+    "Un voyage de mille lieues commence toujours par un premier pas 🌸",
+    "La patience est la clé de la joie 🍃",
+    "Chaque jour est une nouvelle chance d'apprendre 🎋",
+     "Même un voyage de mille kilomètres commence par un pas 👣",
+    "Le vent ne laisse pas de trace, mais il transforme le ciel 🌬️"
+    "Le savoir est un trésor qui suit partout celui qui le possède 💎",
+    "Un petit progrès chaque jour mène au succès 🌱",
+    "La persévérance est la mère du succès 🏔️",
+    "Qui grimpe lentement grimpe sûrement 🧗",
+    "Rome ne s'est pas construite en un jour 🏛️",
+    "Le chemin est plus important que la destination 🛤️",
+    "Mieux vaut tard que jamais ⏰",
+    "Quand le vent cesse, les feuilles se reposent — ainsi va l’esprit apaisé 🍂",
+   "Dans la goutte de rosée, tout l’univers se reflète 💧",
+  "Le silence n’est pas vide — il est plein de réponses 🕊️",
+  "Une pierre immobile dans le ruisseau apprend le passage du temps ⛰️",
+      "Affûte ton esprit comme on polit un sabre — lentement, patiemment ⚔️",
+  "Ce n’est pas la force, mais la constance, qui fend la pierre 💧",
+  "Chaque jour, avance d’un pas invisible mais réel 👣",
+  "La fleur n’ouvre pas ses pétales en un seul matin 🌸",
+    "Chaque expert était autrefois un débutant 🌟",
+    "L'échec est le fondement de la réussite 🌸",
+     "Même l’ombre d’un arbre parle du soleil 🌳",
+  "La brume cache la montagne, mais la montagne demeure ⛰️",
+  "Le parfum du thé n’a pas besoin de paroles 🍵",
+  "Marcher sans but, c’est parfois trouver le chemin 🚶‍♂️",
+  "Le cœur tranquille entend la musique du monde 🎐",
+    "La discipline n’est pas une chaîne, mais une clé 🗝️",
+    "Dans l’instant qui passe, tout l’éternel se cache 🕊️"
+  ];
+  
+  const welcomeScreen = document.getElementById('welcome-screen');
+  const titleElement = document.querySelector('.welcome-user-title');
+  const subtitleElement = document.querySelector('.welcome-user-subtitle');
+  
+  // Message aléatoire
+  const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+  
+  titleElement.textContent = `Welcome back ${pseudo} ! 🎌`;
+  subtitleElement.textContent = randomMessage;
+  
+  welcomeScreen.style.display = 'flex';
+  
+  // Petite chute de sakura (moins intense que pour new user)
+  for (let i = 0; i < 15; i++) {
+    const sakura = document.createElement("div");
+    sakura.className = "sakura";
+    sakura.style.left = Math.random() * 100 + "vw";
+    sakura.style.top = "-10px";
+    sakura.style.animationDelay = Math.random() * 1.5 + "s";
+    sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
+    welcomeScreen.appendChild(sakura);
+    setTimeout(() => sakura.remove(), 4000);
+  }
+  
+  // Son doux
+  playZenBell();
+  
+  // Ouvrir le menu après 2.5s
+  setTimeout(() => {
+    welcomeScreen.style.display = 'none';
+    
+    // Retourner à la section welcome (fond zen)
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('welcome').classList.add('active');
+    
+    // Masquer le panda et le texte de chargement
+    document.querySelector('.panda-logo').style.display = 'none';
+    document.getElementById('loadingText').style.display = 'none';
+    
+    // Ouvrir le menu
+    toggleMenu();
+    updateAccountDisplay();
+  }, 2500);
+}    
   </script>
 <script>
 let pointsGagnesEnRevision = 0; // ✅ NOUVEAU : compteur de progression  
@@ -5852,15 +5932,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const menuBtn = document.querySelector(".hamburger");
   if (menuBtn) menuBtn.classList.remove("hidden");
   
-  // Si pas de compte, afficher création de compte SANS ouvrir le menu
+  // ✅ NOUVEAU : Différencier new user vs returning user
   if (!userToken || !currentUser) {
+    // 🆕 NEW USER : Création de compte
     showSection('create-account');
-    generateNewPseudo(); // Générer le premier pseudo automatiquement
-    // ✅ NE PAS ouvrir le menu automatiquement
+    generateNewPseudo();
   } else {
-    // Utilisateur existant : afficher le menu
-    const menu = document.querySelector(".menu");
-    if (menu) menu.classList.add("active");
+    // 🔁 RETURNING USER : Message de bienvenue + menu
+    showReturningUserWelcome(currentUser.pseudo);
   }
   
   niveauActif = determineNiveauActif(HiraganaList);
@@ -5888,6 +5967,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
