@@ -3650,17 +3650,11 @@ function showReturningUserWelcome(pseudo) {
   "Le cœur tranquille entend la musique du monde 🎐",
     "La discipline n’est pas une chaîne, mais une clé 🗝️",
     "Dans l’instant qui passe, tout l’éternel se cache 🕊️"
-];
+ ];
   
   const welcomeScreen = document.getElementById('welcome-screen');
   const titleElement = document.querySelector('.welcome-user-title');
   const subtitleElement = document.querySelector('.welcome-user-subtitle');
-  
-  console.log('🔍 Éléments trouvés:', {
-    welcomeScreen: welcomeScreen,
-    titleElement: titleElement,
-    subtitleElement: subtitleElement
-  });
   
   if (!welcomeScreen || !titleElement || !subtitleElement) {
     console.error('❌ Éléments manquants dans le DOM !');
@@ -3673,24 +3667,52 @@ function showReturningUserWelcome(pseudo) {
   titleElement.textContent = `Welcome back ${pseudo} ! 🎌`;
   subtitleElement.textContent = randomMessage;
   
-  console.log('✅ Textes mis à jour:', {
-    title: titleElement.textContent,
-    subtitle: subtitleElement.textContent
-  });
-  
-  // ✅ CRITIQUE : Masquer TOUTES les autres sections d'abord
+  // ✅ MASQUER TOUT
   document.querySelectorAll('.section').forEach(s => {
     s.classList.remove('active');
     s.style.display = 'none';
   });
   
-  // ✅ PUIS afficher welcome-screen en force
+  // ✅ FORCER STYLES EN INLINE (priorité maximale)
   welcomeScreen.classList.add('active');
-  welcomeScreen.style.display = 'flex';
-  welcomeScreen.style.zIndex = '9999';
+  welcomeScreen.style.cssText = `
+    display: flex !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99999 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: #F8F1E9 !important;
+  `;
   
-  console.log('👁️ Welcome screen display:', window.getComputedStyle(welcomeScreen).display);
-  console.log('👁️ Welcome screen z-index:', window.getComputedStyle(welcomeScreen).zIndex);
+  const container = welcomeScreen.querySelector('.welcome-animation-container');
+  if (container) {
+    container.style.cssText = `
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      height: 100% !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    `;
+  }
+  
+  // Forcer visibility des textes
+  titleElement.style.cssText = `
+    opacity: 1 !important;
+    visibility: visible !important;
+  `;
+  subtitleElement.style.cssText = `
+    opacity: 1 !important;
+    visibility: visible !important;
+  `;
+  
+  console.log('✅ Styles forcés appliqués');
   
   // Petite chute de sakura
   for (let i = 0; i < 15; i++) {
@@ -3711,18 +3733,15 @@ function showReturningUserWelcome(pseudo) {
     welcomeScreen.classList.remove('active');
     welcomeScreen.style.display = 'none';
     
-    // Retourner à la section welcome (fond zen)
     const welcomeSection = document.getElementById('welcome');
     welcomeSection.classList.add('active');
     welcomeSection.style.display = 'flex';
     
-    // Masquer le panda et le texte de chargement
     const panda = document.querySelector('.panda-logo');
     const loadingText = document.getElementById('loadingText');
     if (panda) panda.style.display = 'none';
     if (loadingText) loadingText.style.display = 'none';
     
-    // Ouvrir le menu
     toggleMenu();
     updateAccountDisplay();
   }, 2500);
@@ -6017,6 +6036,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
