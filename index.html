@@ -2296,318 +2296,6 @@
   #returning-user-overlay p {
     font-size: 1.3em !important;
   }
-} 
-/* ========================================
-   DASHBOARD DE PROGRESSION
-   ======================================== */
-
-.dashboard-content {
-  padding: 1em;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.global-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1em;
-  margin: 2em 0;
-}
-
-.stat-card {
-  background: #FFFFFF;
-  padding: 1.5em;
-  border-radius: 12px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
-  text-align: center;
-  transition: transform 0.3s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-}
-
-.stat-card.success {
-  background: linear-gradient(135deg, #d4edda, #c3e6cb);
-}
-
-.stat-card.warning {
-  background: linear-gradient(135deg, #fff3cd, #ffeeba);
-}
-
-.stat-card.danger {
-  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
-}
-
-.big-number {
-  font-size: 3em;
-  font-weight: bold;
-  color: #8B6F47;
-  margin: 0.2em 0;
-  text-shadow: 0 2px 4px rgba(139, 111, 71, 0.2);
-}
-
-.subtitle {
-  font-size: 0.9em;
-  opacity: 0.7;
-  color: #8B6F47;
-}
-
-.dashboard-section-title {
-  font-size: 1.8em;
-  color: #8B6F47;
-  margin: 2em 0 1em 0;
-  text-align: center;
-}
-
-.groupe-card {
-  background: #FFFFFF;
-  padding: 1.2em;
-  border-radius: 8px;
-  margin: 1em 0;
-  border-left: 5px solid #8B6F47;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.groupe-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateX(4px);
-}
-
-.groupe-card.completed {
-  border-left-color: #A8D5BA;
-  background: linear-gradient(135deg, #f0f8f0, #e8f5e9);
-}
-
-.groupe-card.incomplete {
-  border-left-color: #FDC1C5;
-}
-
-.groupe-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.8em;
-  font-weight: bold;
-  font-size: 1.1em;
-  color: #8B6F47;
-}
-
-.badge {
-  background: #8B6F47;
-  color: white;
-  padding: 0.4em 0.9em;
-  border-radius: 20px;
-  font-size: 0.85em;
-  font-weight: bold;
-}
-
-.progress-bar-thin {
-  height: 10px;
-  background: #E0E0E0;
-  border-radius: 5px;
-  overflow: hidden;
-  margin: 0.8em 0;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #FDC1C5, #A8D5BA);
-  transition: width 0.5s ease;
-}
-
-.deficit-detail {
-  margin-top: 0.8em;
-  padding: 0.6em;
-  background: rgba(253, 193, 197, 0.1);
-  border-radius: 6px;
-  color: #8B6F47;
-  font-size: 0.95em;
-}
-
-.success-badge {
-  margin-top: 0.8em;
-  padding: 0.6em;
-  background: rgba(168, 213, 186, 0.2);
-  border-radius: 6px;
-  color: #355E3B;
-  font-weight: bold;
-  text-align: center;
-}
-
-/* ========================================
-   HUD TEMPS RÉEL (MODE RÉVISION)
-   ======================================== */
-
-.hud-compact {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  background: rgba(255, 255, 255, 0.98);
-  padding: 1em;
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-  z-index: 100;
-  min-width: 180px;
-  backdrop-filter: blur(10px);
-}
-
-.hud-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0.5em 0;
-  padding: 0.4em 0;
-  border-bottom: 1px solid rgba(139, 111, 71, 0.1);
-}
-
-.hud-item:last-child {
-  border-bottom: none;
-}
-
-.hud-item .label {
-  font-size: 0.85em;
-  opacity: 0.7;
-  color: #8B6F47;
-}
-
-.hud-item .value {
-  font-size: 1.4em;
-  font-weight: bold;
-  color: #8B6F47;
-}
-
-.hud-item .value.success {
-  color: #28a745;
-  text-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
-}
-
-.hud-item .value.warning {
-  color: #ffc107;
-}
-
-.hud-item .value.danger {
-  color: #dc3545;
-}
-
-.hud-item .value.positive {
-  color: #28a745;
-}
-
-.hud-item .value.negative {
-  color: #dc3545;
-}
-
-/* Feedback instantané */
-#revision-instant-feedback {
-  position: fixed;
-  bottom: 140px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 1em 2em;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 1.1em;
-  z-index: 1000;
-  display: none;
-  max-width: 90%;
-  text-align: center;
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translate(-50%, 20px);
-    opacity: 0;
-  }
-  to {
-    transform: translate(-50%, 0);
-    opacity: 1;
-  }
-}
-
-.feedback-success {
-  background: #d4edda;
-  color: #155724;
-  border: 2px solid #c3e6cb;
-}
-
-.feedback-error {
-  background: #f8d7da;
-  color: #721c24;
-  border: 2px solid #f5c6cb;
-}
-
-/* ========================================
-   RESPONSIVE - DASHBOARD & HUD
-   ======================================== */
-
-@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-  .dashboard-content {
-    padding: 0.5em;
-  }
-  
-  .global-stats {
-    grid-template-columns: 1fr;
-    gap: 0.8em;
-    margin: 1em 0;
-  }
-  
-  .stat-card {
-    padding: 1em;
-  }
-  
-  .big-number {
-    font-size: 2.2em;
-  }
-  
-  .groupe-card {
-    padding: 0.8em;
-    margin: 0.8em 0;
-  }
-  
-  .groupe-header {
-    font-size: 1em;
-    flex-direction: column;
-    gap: 0.5em;
-    align-items: flex-start;
-  }
-  
-  .hud-compact {
-    top: 60px;
-    right: 10px;
-    padding: 0.6em;
-    min-width: 140px;
-    font-size: 0.85em;
-  }
-  
-  .hud-item .value {
-    font-size: 1.2em;
-  }
-  
-  #revision-instant-feedback {
-    bottom: 200px;
-    padding: 0.7em 1.2em;
-    font-size: 0.95em;
-  }
-}
-
-@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
-  .global-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .hud-compact {
-    top: 70px;
-    right: 15px;
-    font-size: 0.95em;
-  }
-  
-  #revision-instant-feedback {
-    bottom: 180px;
-    font-size: 1.05em;
-  }
 }    
   </style>
 </head>
@@ -2627,7 +2315,6 @@
   <div id="menu-message" class="menu-message"></div>
   <button class="arcade-button" onclick="showSection('quiz')" data-i18n="menu_learn">Apprendre</button>
   <button class="arcade-button" id="revision-button" onclick="showSection('mode2')" data-i18n="menu_revision">Mode révisions</button>
-  <button class="arcade-button" onclick="showSection('dashboard')" data-i18n="menu_dashboard">📊 Ma Progression</button>
   <button class="arcade-button" onclick="showSection('options')" data-i18n="menu_options">Options</button>
   <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>
   <button class="arcade-button" onclick="showSection('account')" data-i18n="account_title">Options</button>
@@ -2677,14 +2364,7 @@
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
   <h2 data-i18n="revision_title">🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
-  
-  <!-- ✅ NOUVEAU HUD -->
-  <div id="revision-hud" class="hud-compact" style="display: none;"></div>
-  
-  <!-- ✅ NOUVEAU Feedback instantané -->
-  <div id="revision-instant-feedback" style="display: none;"></div>
-  
-  <div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
+<div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
   <div class="unlock-progress-bar">
     <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
   </div>
@@ -2722,11 +2402,7 @@
   </div>
  <div id="revision-message"></div> 
 </div>
-<!-- Section Dashboard -->
-<div id="dashboard" class="section">
-  <h1 data-i18n="dashboard_title">📊 Ma Progression</h1>
-  <div id="dashboard-container" class="dashboard-content"></div>
-</div>
+
 <!-- Section Options -->
 <div id="options" class="section">
   <h1 data-i18n="options_title">Options</h1>
@@ -2998,9 +2674,6 @@ const translations = {
   login_connect: "🎋 Me connecter",
   create_account_confirm_yes: "✅ Oui, c'est correct", // FR
   create_account_correct_pin: "✏️ Non, corriger", // FR  
-
-    menu_dashboard: "📊 Ma Progression",
-    dashboard_title: "📊 Ma Progression",  
   },
   
   en: {
@@ -3078,9 +2751,6 @@ const translations = {
   login_connect: "🎋 Connect",
   create_account_confirm_yes: "✅ Yes, that's correct", // EN
   create_account_correct_pin: "✏️ No, correct it", // EN  
-
-     menu_dashboard: "📊 My Progress",
-    dashboard_title: "📊 My Progress",
   },
   
   es: {
@@ -3156,10 +2826,7 @@ const translations = {
   login_pin_label: "Tu PIN (DDMM)",
   login_connect: "🎋 Conectarme",
   create_account_confirm_yes: "✅ Sí, es correcto", // ES
-  create_account_correct_pin: "✏️ No, corregir",
-    
-        menu_dashboard: "📊 Mi Progreso",
-    dashboard_title: "📊 Mi Progreso"// ES  
+  create_account_correct_pin: "✏️ No, corregir" // ES  
   }
 };
 
@@ -3923,7 +3590,7 @@ if (sectionId === 'mode2') {
   wasBlockedWhenEnteringRevision = isApprentissageBloque();
   if (wasBlockedWhenEnteringRevision) {
     deficitInitialRevision = calculerDeficitValidation();
-    pointsGagnesEnRevision = 0;
+    pointsGagnesEnRevision = 0; // ✅ RESET du compteur à l'entrée
     console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
   }
   hasUnlockedInRevision = false;
@@ -3931,16 +3598,13 @@ if (sectionId === 'mode2') {
   setTimeout(() => {
     initRevisionKeyboard();
     startRevisionQuestion();
-    updateRevisionHUD(); // ✅ NOUVEAU
+    // ✅ La barre s'affichera via startRevisionQuestion()
   }, 100);
 } else {
-  revisionMode.isActive = false;
-  wasBlockedWhenEnteringRevision = false;
-  
-  // ✅ NOUVEAU : Masquer le HUD quand on quitte le mode révision
-  const hudElement = document.getElementById('revision-hud');
-  if (hudElement) hudElement.style.display = 'none';
-}
+    revisionMode.isActive = false;
+    // Remettre à false quand on quitte le mode révision
+    wasBlockedWhenEnteringRevision = false;
+  }
 if (sectionId !== 'create-account') {
   toggleMenu();
 }
@@ -5218,234 +4882,6 @@ function updateMenuButtonStates() {
   updateApprendreButtonState();
   updateRevisionButtonState();
 }  
-// ========================================
-// DASHBOARD DE PROGRESSION
-// ========================================
-
-function showProgressDashboard() {
-  console.log('🔍 DEBUG showProgressDashboard appelée');
-  console.log('📊 niveauActif:', niveauActif);
-  console.log('📊 HiraganaList length:', HiraganaList.length);
-  console.log('📊 seuilValidation:', seuilValidation);
-  
-  const deficit = calculerDeficitValidation();
-  console.log('📊 Déficit calculé:', deficit);
-  
-  const groupeActuel = getNiveauGroupe(niveauActif);
-  console.log('📊 Groupe actuel:', groupeActuel);
-  
-  const totalItemsPrecedents = HiraganaList.filter(h => parseInt(h.Niveau) < niveauActif).length;
-  console.log('📊 Total items précédents:', totalItemsPrecedents);
-  
-  // Vérifier statsCache
-  console.log('📊 statsCache:', statsCache);
-  
-  let html = `
-    <div class="dashboard">
-      <!-- Vue Globale -->
-      <div class="global-stats">
-        <div class="stat-card ${deficit === 0 ? 'success' : deficit > 10 ? 'danger' : 'warning'}">
-          <h3>Déficit Total</h3>
-          <div class="big-number">${deficit}</div>
-          <div class="subtitle">${deficit === 0 ? '✅ Aucun point à récupérer' : 'points à récupérer'}</div>
-        </div>
-        
-        <div class="stat-card">
-          <h3>Seuil Requis</h3>
-          <div class="big-number">${seuilValidation}</div>
-          <div class="subtitle">validation par item</div>
-        </div>
-        
-        <div class="stat-card ${statsCache.globalPourcentage >= 80 ? 'success' : statsCache.globalPourcentage >= 60 ? 'warning' : ''}">
-          <h3>Taux Global</h3>
-          <div class="big-number">${statsCache.globalPourcentage.toFixed(1)}%</div>
-          <div class="subtitle">de réussite en révision</div>
-        </div>
-        
-        <div class="stat-card">
-          <h3>Niveau Actuel</h3>
-          <div class="big-number">${niveauActif}</div>
-          <div class="subtitle">sur ${getMaxLevel(HiraganaList)} niveaux</div>
-        </div>
-      </div>
-      
-      <!-- Analyse par Groupe -->
-      <h3 class="dashboard-section-title">🎌 Analyse par Groupe</h3>
-  `;
-  
-  console.log('📊 Début analyse des groupes (1 à ' + (groupeActuel - 1) + ')');
-  
-  // Parcourir les groupes précédents
-  for (let g = 1; g < groupeActuel; g++) {
-    console.log('📊 Analyse groupe', g);
-    const groupeStats = analyzeGroupeDeficit(g);
-    console.log('📊 Stats groupe', g, ':', groupeStats);
-    
-    html += `
-      <div class="groupe-card ${groupeStats.deficit === 0 ? 'completed' : 'incomplete'}">
-        <div class="groupe-header">
-          <span>Groupe ${g} (Niveaux ${GROUPES[g].niveaux.join(', ')})</span>
-          <span class="badge">${groupeStats.itemsOK}/${groupeStats.totalItems}</span>
-        </div>
-        
-        <div class="progress-bar-thin">
-          <div class="progress-fill" style="width: ${groupeStats.pourcentage}%"></div>
-        </div>
-        
-        ${groupeStats.deficit > 0 ? `
-          <div class="deficit-detail">
-            ⚠️ ${groupeStats.deficit} points manquants
-            ${groupeStats.weakestItems.length > 0 ? `<br>📍 Items les plus faibles : ${groupeStats.weakestItems.join(', ')}` : ''}
-          </div>
-        ` : `
-          <div class="success-badge">✅ Groupe maîtrisé</div>
-        `}
-      </div>
-    `;
-  }
-  
-  // Groupe actuel
-  console.log('📊 Analyse groupe actuel', groupeActuel);
-  const currentGroupeStats = analyzeGroupeDeficit(groupeActuel);
-  console.log('📊 Stats groupe actuel:', currentGroupeStats);
-  
-  html += `
-    <div class="groupe-card incomplete" style="border-left-color: #FFC107;">
-      <div class="groupe-header">
-        <span>⭐ Groupe ${groupeActuel} (Niveaux ${GROUPES[groupeActuel].niveaux.join(', ')}) - EN COURS</span>
-        <span class="badge" style="background: #FFC107;">${currentGroupeStats.itemsOK}/${currentGroupeStats.totalItems}</span>
-      </div>
-      
-      <div class="progress-bar-thin">
-        <div class="progress-fill" style="width: ${currentGroupeStats.pourcentage}%; background: linear-gradient(90deg, #FFC107, #FFD54F);"></div>
-      </div>
-    </div>
-  `;
-  
-  html += `</div>`;
-  
-  console.log('📊 HTML généré (length):', html.length);
-  console.log('📊 Premier extrait HTML:', html.substring(0, 200));
-  
-  const container = document.getElementById('dashboard-container');
-  console.log('📊 Container trouvé:', container ? 'OUI' : 'NON');
-  
-  if (container) {
-    container.innerHTML = html;
-    console.log('✅ HTML injecté dans le container');
-  } else {
-    console.error('❌ Container #dashboard-container introuvable !');
-  }
-  
-  showSection('dashboard');
-  console.log('✅ showSection(dashboard) appelée');
-}
-function analyzeGroupeDeficit(groupeId) {
-  const niveaux = GROUPES[groupeId].niveaux;
-  let totalItems = 0;
-  let itemsOK = 0;
-  let deficit = 0;
-  const weakItems = [];
-  
-  niveaux.forEach(niveau => {
-    const items = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-    totalItems += items.length;
-    
-    items.forEach(item => {
-      const validation = parseInt(item.Validation || 0);
-      if (validation >= seuilValidation) {
-        itemsOK++;
-      } else {
-        const itemDeficit = seuilValidation - validation;
-        deficit += itemDeficit;
-        
-        // Garder les 3 items les plus faibles
-        if (weakItems.length < 3) {
-          weakItems.push({ char: item.Hiragana, deficit: itemDeficit });
-          weakItems.sort((a, b) => b.deficit - a.deficit);
-        } else if (itemDeficit > weakItems[2].deficit) {
-          weakItems[2] = { char: item.Hiragana, deficit: itemDeficit };
-          weakItems.sort((a, b) => b.deficit - a.deficit);
-        }
-      }
-    });
-  });
-  
-  return {
-    totalItems,
-    itemsOK,
-    deficit,
-    pourcentage: totalItems > 0 ? (itemsOK / totalItems * 100).toFixed(1) : 0,
-    weakestItems: weakItems.map(w => `${w.char}(-${w.deficit})`)
-  };
-}
-
-// ========================================
-// HUD TEMPS RÉEL (MODE RÉVISION)
-// ========================================
-
-function updateRevisionHUD() {
-  const hudElement = document.getElementById('revision-hud');
-  if (!revisionMode.isActive) {
-    hudElement.style.display = 'none';
-    return;
-  }
-  
-  hudElement.style.display = 'block';
-  
-  const deficit = calculerDeficitValidation();
-  const sessionDelta = pointsGagnesEnRevision;
-  
-  hudElement.innerHTML = `
-    <div class="hud-item">
-      <span class="label">Déficit</span>
-      <span class="value ${deficit === 0 ? 'success' : deficit > 10 ? 'danger' : 'warning'}">${deficit}</span>
-    </div>
-    
-    ${wasBlockedWhenEnteringRevision ? `
-      <div class="hud-item">
-        <span class="label">Session</span>
-        <span class="value ${sessionDelta > 0 ? 'positive' : sessionDelta < 0 ? 'negative' : ''}">${sessionDelta > 0 ? '+' : ''}${sessionDelta}</span>
-      </div>
-    ` : ''}
-    
-    <div class="hud-item">
-      <span class="label">Taux</span>
-      <span class="value ${statsCache.globalPourcentage >= 80 ? 'success' : statsCache.globalPourcentage >= 60 ? 'warning' : 'danger'}">${statsCache.globalPourcentage.toFixed(0)}%</span>
-    </div>
-  `;
-}
-
-function showRevisionFeedback(isCorrect, oldValidation, newValidation) {
-  const delta = newValidation - oldValidation;
-  const deltaDeficit = isCorrect && oldValidation < seuilValidation ? -1 : 
-                       !isCorrect && oldValidation <= seuilValidation ? +1 : 0;
-  
-  let message = '';
-  
-  if (isCorrect) {
-    if (oldValidation < seuilValidation) {
-      message = `✅ +1 point (${oldValidation}→${newValidation}) | Déficit ${deltaDeficit}`;
-    } else {
-      message = `✨ Déjà maîtrisé ! (maintien à ${newValidation})`;
-    }
-  } else {
-    if (oldValidation > 5) {
-      message = `❌ ${delta} point (${oldValidation}→${newValidation}) | Déficit ${deltaDeficit > 0 ? '+' : ''}${deltaDeficit}`;
-    } else {
-      message = `⚠️ Minimum atteint (${newValidation}) | Déficit ${deltaDeficit > 0 ? '+' : ''}${deltaDeficit}`;
-    }
-  }
-  
-  const feedbackEl = document.getElementById('revision-instant-feedback');
-  feedbackEl.textContent = message;
-  feedbackEl.className = isCorrect ? 'feedback-success' : 'feedback-error';
-  feedbackEl.style.display = 'block';
-  
-  setTimeout(() => {
-    feedbackEl.style.display = 'none';
-  }, 2500);
-}  
 function updateLevelProgress(list, niveau) {
 renderHiraganaCards(list, niveau);
 }
@@ -6328,8 +5764,6 @@ function startRevisionQuestion() {
   console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
  // ✅ Afficher la barre à chaque nouvelle question (sans la recalculer)
   updateUnlockProgress();
-  // ✅ NOUVEAU : Initialiser le HUD
-  updateRevisionHUD();
 }  
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
@@ -6467,7 +5901,7 @@ function initRevisionKeyboard() {
       const isMultiChar = revisionMode.romajiSegments.length >= 2;
       const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
 
-   if (revisionMode.input.length >= totalLength) {
+    if (revisionMode.input.length >= totalLength) {
   const isCorrect = revisionMode.input === revisionMode.fullCorrect;
   const key = revisionMode.currentItem.ID;
 
@@ -6478,10 +5912,15 @@ function initRevisionKeyboard() {
   statsCache.items[key].pourcentage = statsCache.items[key].tentatives > 0 
     ? (statsCache.items[key].reussites / statsCache.items[key].tentatives * 100) : 0;
 
+  // Mettre à jour pourcentage global
   const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
   const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
   statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
+  console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
+  console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
+
+  // Modification de la validation en mode révision
   const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
   if (hiraganaIndex !== -1) {
     const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
@@ -6501,9 +5940,6 @@ function initRevisionKeyboard() {
       pointsGagnes = oldDeficit - newDeficit;
     }
 
-    // ✅ NOUVEAU : Afficher feedback avant mise à jour
-    showRevisionFeedback(isCorrect, currentValidation, newValidation);
-
     HiraganaList[hiraganaIndex].Validation = newValidation.toString();
     validationCache[revisionMode.currentItem.ID] = newValidation;
 
@@ -6516,6 +5952,7 @@ function initRevisionKeyboard() {
     console.log(`🔒 Mode révision - Validation: ${newValidation} (était: ${currentValidation})`);
   }
 
+  // ✅ Mettre en file d'attente l'appel API (en background, sans attendre)
   queueUpdateStats({
     token: userToken,
     id: parseInt(revisionMode.currentItem.ID),
@@ -6523,14 +5960,12 @@ function initRevisionKeyboard() {
     isRevisionMode: true
   });
 
-  // ✅ NOUVEAU : Mettre à jour le HUD
-  updateRevisionHUD();
-
+  // Mettre à jour la barre de déblocage
   if (wasBlockedWhenEnteringRevision) {
     updateUnlockProgress();
   }
 
-  // Messages existants (sans modification)
+  // Afficher feedback
   if (isCorrect) {
     document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `${katakanaDisplay}`;
     document.getElementById("revision-message").style.color = "#8B6F47";
@@ -6543,6 +5978,7 @@ function initRevisionKeyboard() {
     playSoftError();
   }
 
+  // Jouer son MP3
   const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
   const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
   const audio = new Audio(audioUrl);
@@ -6624,8 +6060,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
-
-
 
 
 
