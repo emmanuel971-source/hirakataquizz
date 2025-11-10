@@ -5223,9 +5223,22 @@ function updateMenuButtonStates() {
 // ========================================
 
 function showProgressDashboard() {
+  console.log('🔍 DEBUG showProgressDashboard appelée');
+  console.log('📊 niveauActif:', niveauActif);
+  console.log('📊 HiraganaList length:', HiraganaList.length);
+  console.log('📊 seuilValidation:', seuilValidation);
+  
   const deficit = calculerDeficitValidation();
+  console.log('📊 Déficit calculé:', deficit);
+  
   const groupeActuel = getNiveauGroupe(niveauActif);
+  console.log('📊 Groupe actuel:', groupeActuel);
+  
   const totalItemsPrecedents = HiraganaList.filter(h => parseInt(h.Niveau) < niveauActif).length;
+  console.log('📊 Total items précédents:', totalItemsPrecedents);
+  
+  // Vérifier statsCache
+  console.log('📊 statsCache:', statsCache);
   
   let html = `
     <div class="dashboard">
@@ -5260,9 +5273,13 @@ function showProgressDashboard() {
       <h3 class="dashboard-section-title">🎌 Analyse par Groupe</h3>
   `;
   
+  console.log('📊 Début analyse des groupes (1 à ' + (groupeActuel - 1) + ')');
+  
   // Parcourir les groupes précédents
   for (let g = 1; g < groupeActuel; g++) {
+    console.log('📊 Analyse groupe', g);
     const groupeStats = analyzeGroupeDeficit(g);
+    console.log('📊 Stats groupe', g, ':', groupeStats);
     
     html += `
       <div class="groupe-card ${groupeStats.deficit === 0 ? 'completed' : 'incomplete'}">
@@ -5288,7 +5305,10 @@ function showProgressDashboard() {
   }
   
   // Groupe actuel
+  console.log('📊 Analyse groupe actuel', groupeActuel);
   const currentGroupeStats = analyzeGroupeDeficit(groupeActuel);
+  console.log('📊 Stats groupe actuel:', currentGroupeStats);
+  
   html += `
     <div class="groupe-card incomplete" style="border-left-color: #FFC107;">
       <div class="groupe-header">
@@ -5304,10 +5324,22 @@ function showProgressDashboard() {
   
   html += `</div>`;
   
-  document.getElementById('dashboard-container').innerHTML = html;
+  console.log('📊 HTML généré (length):', html.length);
+  console.log('📊 Premier extrait HTML:', html.substring(0, 200));
+  
+  const container = document.getElementById('dashboard-container');
+  console.log('📊 Container trouvé:', container ? 'OUI' : 'NON');
+  
+  if (container) {
+    container.innerHTML = html;
+    console.log('✅ HTML injecté dans le container');
+  } else {
+    console.error('❌ Container #dashboard-container introuvable !');
+  }
+  
   showSection('dashboard');
+  console.log('✅ showSection(dashboard) appelée');
 }
-
 function analyzeGroupeDeficit(groupeId) {
   const niveaux = GROUPES[groupeId].niveaux;
   let totalItems = 0;
@@ -6592,6 +6624,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
