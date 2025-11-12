@@ -5364,14 +5364,7 @@ async function queueUpdateStats(params) {
             HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
             HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + update.scorePoints;
             validationCache[update.id] = result.newValidation;
-        
-// Mise à jour statsCache (similaire à ci-dessus)
-const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-itemStats.tentatives += 1;
-itemStats.reussites += update.scorePoints;
-itemStats.pourcentage = itemStats.tentatives > 0 ? (itemStats.reussites / itemStats.tentatives * 100) : 0;
-statsCache.items[id] = itemStats;
-// Recalcul global...
+
             console.log(`🔄 HiraganaList[${hiraganaIndex}] synchronisé avec serveur:`, HiraganaList[hiraganaIndex]);
           }
           if (result.newLevel && result.newLevel > niveauActif) {
@@ -6103,6 +6096,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
