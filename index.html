@@ -5340,44 +5340,60 @@ container.appendChild(btn);
 // File d'attente globale pour les mises à jour API
 let pendingUpdates = [];
 
+// Variables globales (assure-toi qu'elles sont bien définies ailleurs)
+let pendingUpdates = [];
+// Autres variables nécessaires : HiraganaList, validationCache, statsCache, niveauActuel, etc.
+
 async function queueUpdateStats(params) {
+  // 1. Ajouter à la file
   pendingUpdates.push(params);
+
+  // 2. Traiter la file si c'est le premier élément
   if (pendingUpdates.length === 1) {
     while (pendingUpdates.length > 0) {
-      const update = pendingUpdates[0];
+      const update = pendingUpdates[0]; // On garde une référence
+      const id = update.id; // On extrait id une fois pour éviter les bugs
+
       try {
-        // ✅ Construire l'objet avec tous les paramètres nécessaires
+        // Construire les paramètres API
         const apiParams = {
           token: update.token,
-          id: update.id,
+          id: id,
           scorePoints: update.scorePoints,
-          isRevisionMode: update.isRevisionMode || false  // ✅ Ajouter ce paramètre
+          isRevisionMode: update.isRevisionMode || false
         };
-        
+
         const result = await callAPI('updateStats', apiParams);
-        
+
         if (result.success) {
-          console.log(`✅ File: Stats synchronisées pour item ${update.id}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
-          const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
+          console.log(`File: Stats synchronisées pour item ${id}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
+
+          // Mise à jour locale de HiraganaList
+          const hiraganaIndex = HiraganaList.findIndex(h => h.ID == id);
           if (hiraganaIndex !== -1) {
             HiraganaList[hiraganaIndex].Validation = result.newValidation;
-            validationCache[id] = result.newValidation;
-// Mise à jour statsCache (similaire à ci-dessus)
-const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-itemStats.tentatives += 1;
-itemStats.reussites += update.scorePoints;
-itemStats.pourcentage = itemStats.tentatives > 0 ? (itemStats.reussites / itemStats.tentatives * 100) : 0;
-statsCache.items[id] = itemStats;
-// Recalcul global...
             HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
             HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + update.scorePoints;
-            validationCache[update.id] = result.newValidation;
 
-            console.log(`🔄 HiraganaList[${hiraganaIndex}] synchronisé avec serveur:`, HiraganaList[hiraganaIndex]);
+            // Mise à jour du cache de validation
+            validationCache[id] = result.newValidation;
+
+            // Mise à jour statsCache
+            const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+            itemStats.tentatives += 1;
+            itemStats.reussites += update.scorePoints;
+            itemStats.pourcentage = itemStats.tentatives > 0 
+              ? Math.round((itemStats.reussites / itemStats.tentatives) * 100) 
+              : 0;
+            statsCache.items[id] = itemStats;
+
+            console.log(`HiraganaList[${hiraganaIndex}] synchronisé avec serveur:`, HiraganaList[hiraganaIndex]);
           }
+
+          // Gestion du level up
           if (result.newLevel && result.newLevel > niveauActif) {
             niveauActif = result.newLevel;
-            console.log(`📈 Level up détecté (serveur): Niveau ${niveauActif}`);
+            console.log(`Level up détecté (serveur): Niveau ${niveauActif}`);
             document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
             updateLevelProgress(HiraganaList, niveauActif);
             renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
@@ -5386,12 +5402,15 @@ statsCache.items[id] = itemStats;
             triggerLevelUpAnimation(document.body);
           }
         } else {
-          console.error(`❌ File: Erreur API updateStats pour item ${update.id}: ${result.error}`);
+          console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
         }
       } catch (error) {
-        console.error(`❌ File: Erreur réseau updateStats pour item ${update.id}: ${error.message}`);
+        // ERREUR CRITIQUE ICI : on utilise `id` qui est bien défini
+        console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
+      } finally {
+        // Toujours retirer l'élément, même en cas d'erreur
+        pendingUpdates.shift();
       }
-      pendingUpdates.shift();
     }
   }
 }
@@ -6104,6 +6123,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
