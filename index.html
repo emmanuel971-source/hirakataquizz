@@ -5361,6 +5361,14 @@ async function queueUpdateStats(params) {
           const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
           if (hiraganaIndex !== -1) {
             HiraganaList[hiraganaIndex].Validation = result.newValidation;
+            validationCache[id] = result.newValidation;
+// Mise à jour statsCache (similaire à ci-dessus)
+const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+itemStats.tentatives += 1;
+itemStats.reussites += update.scorePoints;
+itemStats.pourcentage = itemStats.tentatives > 0 ? (itemStats.reussites / itemStats.tentatives * 100) : 0;
+statsCache.items[id] = itemStats;
+// Recalcul global...
             HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
             HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + update.scorePoints;
             validationCache[update.id] = result.newValidation;
@@ -6096,6 +6104,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
