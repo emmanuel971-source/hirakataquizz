@@ -2296,7 +2296,97 @@
   #returning-user-overlay p {
     font-size: 1.3em !important;
   }
-}    
+} 
+/* 🌸 INFOS VALIDATION (MODE RÉVISION) - DESKTOP */
+.validation-bubble {
+  position: absolute;
+  top: -22px;
+  right: -22px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1em;
+  color: #8B6F47;
+  background: #FFFFFF;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25),
+              0 3px 6px rgba(0, 0, 0, 0.15),
+              inset 0 0 4px rgba(139, 111, 71, 0.15);
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+  transition: opacity 0.6s ease, transform 0.6s ease, background 0.6s ease;
+  z-index: 999;
+}
+
+/* ✅ État visible */
+.validation-bubble.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 🌙 Disparition */
+.validation-bubble.fade-out {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+/* 🌈 DÉGRADÉS ULTRA-DOUX (même palette que tes .char-correct/.incorrect) */
+.validation-bubble.green-1 { background: #f9fdf9; }
+.validation-bubble.green-2 { background: #f5faf5; }
+.validation-bubble.green-3 { background: #f0f8f0; }
+.validation-bubble.green-4 { background: #ebf5eb; }
+
+.validation-bubble.red-1 { background: #fdfafa; }
+.validation-bubble.red-2 { background: #fcf5f5; }
+.validation-bubble.red-3 { background: #faf0f1; }
+.validation-bubble.red-4 { background: #f8ebec; }
+
+/* ✨ Ajout léger d’ombre interne pour cohérence */
+.validation-bubble.green-1,
+.validation-bubble.green-2,
+.validation-bubble.green-3,
+.validation-bubble.green-4 {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25),
+              0 3px 6px rgba(0, 0, 0, 0.15),
+              inset 0 0 4px rgba(139, 195, 74, 0.2);
+}
+.validation-bubble.red-1,
+.validation-bubble.red-2,
+.validation-bubble.red-3,
+.validation-bubble.red-4 {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25),
+              0 3px 6px rgba(0, 0, 0, 0.15),
+              inset 0 0 4px rgba(253, 193, 197, 0.2);
+}
+
+/* 📱 SMARTPHONES */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .validation-bubble {
+    top: -14px;
+    right: -14px;
+    padding: 4px 7px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2),
+                0 1px 3px rgba(0, 0, 0, 0.1),
+                inset 0 0 3px rgba(139, 111, 71, 0.1);
+  }
+}
+
+/* 💻 TABLETTES */
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  .validation-bubble {
+    top: -20px;
+    right: -20px;
+    padding: 5px 8px;
+    border-radius: 8px;
+    font-size: 1.2em;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25),
+                0 3px 6px rgba(0, 0, 0, 0.15),
+                inset 0 0 4px rgba(139, 111, 71, 0.15);
+  }
+}
+    
   </style>
 </head>
 <body>
@@ -5673,6 +5763,43 @@ easing: "ease-in-out"
 });
 }
 }
+/**
+ * Affiche temporairement une bulle de validation à côté de la carte active.
+ * @param {HTMLElement} charCard - Élément .char-card à côté duquel afficher la bulle.
+ * @param {number} validation - Score de validation actuel.
+ * @param {number} seuil - Seuil de blocage du mode apprendre.
+ */
+function showValidationBubble(charCard, validation, seuil) {
+  const diff = validation - seuil;
+  const bubble = document.createElement("div");
+  bubble.classList.add("validation-bubble");
+
+  // 🌈 Couleur subtile selon le niveau de maîtrise
+  const absDiff = Math.abs(diff);
+  if (diff >= 4) bubble.classList.add("green-4");
+  else if (diff >= 2) bubble.classList.add("green-3");
+  else if (diff >= 0) bubble.classList.add("green-2");
+  else if (diff <= -4) bubble.classList.add("red-4");
+  else if (diff <= -2) bubble.classList.add("red-3");
+  else bubble.classList.add("red-2");
+
+  // Texte avec signe clair
+  bubble.textContent = diff > 0 ? `+${diff}` : diff;
+
+  charCard.style.position = "relative";
+  charCard.appendChild(bubble);
+
+  // Apparition
+  requestAnimationFrame(() => bubble.classList.add("show"));
+
+  // Disparition progressive
+  setTimeout(() => {
+    bubble.classList.remove("show");
+    bubble.classList.add("fade-out");
+    setTimeout(() => bubble.remove(), 600);
+  }, 1600);
+}
+
 
 function startRevisionQuestion() {
 
@@ -5816,6 +5943,15 @@ function startRevisionQuestion() {
   document.getElementById("revision-input-display").textContent = "";
   document.getElementById("revision-message").textContent = "";
 
+  // 💬 Affiche l’infobulle du déficit/avance de Validation sur la première carte
+const firstCard = document.getElementById(`revision-card-0`);
+if (firstCard && revisionMode.currentItem) {
+  const currentValidation = parseInt(revisionMode.currentItem.Validation || validationCache[revisionMode.currentItem.ID] || 0);
+  showValidationBubble(firstCard, currentValidation, seuilValidation);
+}
+
+
+  
   const firstCard = document.getElementById(`revision-card-0`);
   if (firstCard) firstCard.classList.add("pulsing");
 
@@ -6043,6 +6179,14 @@ function initRevisionKeyboard() {
   const audio = new Audio(audioUrl);
   audio.play().catch(e => console.warn('Erreur audio:', e));
 
+// 💬 Affiche mise à jour du score après la réponse
+const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
+if (currentCard) {
+  const newVal = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+  showValidationBubble(currentCard, newVal, seuilValidation);
+}
+
+      
   setTimeout(() => {
     startRevisionQuestion();
   }, isCorrect ? 2000 : 3000);
@@ -6119,6 +6263,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
