@@ -3228,6 +3228,8 @@ async function loginUser() {
   }
   
   try {
+    console.log('🔐 Tentative de connexion:', pseudo);
+    
     const authResult = await callAPI('authenticateUser', { pseudo, pin });
     
     if (!authResult.success) {
@@ -3245,33 +3247,31 @@ async function loginUser() {
     });
     
     if (updateResult.success) {
+      // ✅ ÉTAPE 1 : Sauvegarder le token
       userToken = newToken;
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
       
-      // ✅ RÉINITIALISER LE CONTEXTE DU JEU
+      console.log('✅ Token mis à jour, rechargement des données...');
+      
+      // ✅ ÉTAPE 2 : Réinitialiser le contexte du jeu
       resetGameContext();
       
-      // ✅ RECHARGER LES STATS ET RECALCULER LE NIVEAU
+      // ✅ ÉTAPE 3 : Recharger les stats (cela recalcule niveauActif)
       await loadUserProgress();
       
       currentUser.token = newToken;
       
-      console.log('✅ Connexion réussie:', currentUser.pseudo, '| Niveau actif:', niveauActif);
+      console.log('✅ Connexion réussie:', currentUser.pseudo);
+      console.log(`📊 Niveau actif: ${niveauActif}, Niveau atteint: ${currentUser.niveau_atteint}`);
       
       successDiv.textContent = `Bienvenue ${currentUser.pseudo} ! 🎌`;
       successDiv.style.display = 'block';
       
+      // ✅ ÉTAPE 4 : Retour au menu après 1.5s
       setTimeout(() => {
         showSection('menu-section');
-        
-        // ✅ FORCER UNE NOUVELLE QUESTION PROPRE
-        setTimeout(() => {
-          if (document.getElementById('quiz').classList.contains('active')) {
-            nextQuestion();
-          }
-        }, 100);
-        
+        toggleMenu(); // Ouvrir le menu
       }, 1500);
       
     } else {
@@ -3298,8 +3298,12 @@ function showChangeDevice() {
 function updateAccountDisplay() {
   if (currentUser) {
     document.getElementById('account-pseudo').textContent = currentUser.pseudo;
-    // ✅ Afficher le niveau ACTIF (en cours), pas le niveau atteint
-    document.getElementById('account-level').textContent = currentUser.niveau_actif || niveauActif;
+    
+    // ✅ Afficher "Niveau X en cours" avec le niveau ACTIF
+    const niveauAffiche = currentUser.niveau_actif || niveauActif;
+    document.getElementById('account-level').textContent = `${niveauAffiche} (en cours)`;
+    
+    console.log(`👤 Affichage compte: pseudo=${currentUser.pseudo}, niveau=${niveauAffiche}`);
   }
 }
 function resetGameContext() {
@@ -3382,26 +3386,22 @@ async function loadUserProgress() {
     const stats = userStats.stats || {};
     let mergedCount = 0;
     
-    // Merge stats dans HiraganaList
+    // ✅ ÉTAPE 1 : Merger les stats dans HiraganaList
     HiraganaList.forEach(item => {
-      const itemStats = stats[item.ID.toString()] || { validation: 0, tentatives: 0, reussites: 0 };
-      if (item.Validation !== itemStats.validation || 
-          item.Tentatives !== itemStats.tentatives || 
-          item['Réussites'] !== itemStats.reussites) {
-        item.Validation = itemStats.validation;
-        item.Tentatives = itemStats.tentatives;
-        item['Réussites'] = itemStats.reussites;
-        mergedCount++;
-      }
-    });
-
-    // Initialiser les caches
-    HiraganaList.forEach(item => {
-      const id = parseInt(item.ID);
-      validationCache[id] = parseInt(item.Validation || 0);
+      const itemId = item.ID.toString();
+      const itemStats = stats[itemId] || { validation: 0, tentatives: 0, reussites: 0 };
       
-      const tentatives = parseInt(item.Tentatives || 0);
-      const reussites = parseInt(item['Réussites'] || 0);
+      item.Validation = itemStats.validation;
+      item.Tentatives = itemStats.tentatives;
+      item['Réussites'] = itemStats.reussites;
+      mergedCount++;
+      
+      // ✅ Mettre à jour les caches immédiatement
+      const id = parseInt(item.ID);
+      validationCache[id] = parseInt(itemStats.validation);
+      
+      const tentatives = parseInt(itemStats.tentatives || 0);
+      const reussites = parseFloat(itemStats.reussites || 0);
       const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
       
       statsCache.items[id] = {
@@ -3411,49 +3411,59 @@ async function loadUserProgress() {
       };
     });
 
+    // ✅ Calcul du pourcentage global
     const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
     const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
     statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-    console.log(`📊 Progrès user chargé: ${mergedCount} items mis à jour`);
+    console.log(`📊 Progrès user chargé: ${mergedCount} items mergés`);
     
-    // ✅ CALCULER LE NIVEAU ACTIF (celui en cours, pas le dernier validé)
+    // ✅ ÉTAPE 2 : CALCULER LE NIVEAU ACTIF avec determineNiveauActif (qui utilise validationCache)
     niveauActif = determineNiveauActif(HiraganaList);
-    console.log(`🎯 Niveau ACTIF (en cours): ${niveauActif}`);
+    console.log(`🎯 Niveau ACTIF calculé: ${niveauActif}`);
     
-    // ✅ CALCULER LE NIVEAU MAX ATTEINT (dernier complété à 100%)
+    // ✅ ÉTAPE 3 : CALCULER LE NIVEAU MAX ATTEINT (dernier niveau 100% complété)
     let niveauMaxAtteint = 0;
-    for (let n = 1; n <= getMaxLevel(HiraganaList); n++) {
+    const maxLevel = getMaxLevel(HiraganaList);
+    
+    for (let n = 1; n <= maxLevel; n++) {
       const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === n);
       const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= 5);
       
+      // Un niveau est "atteint" si TOUS ses items sont validés >= 5
       if (itemsValides.length === itemsNiveau.length && itemsNiveau.length > 0) {
         niveauMaxAtteint = n;
+        console.log(`✅ Niveau ${n} complété (${itemsValides.length}/${itemsNiveau.length} items)`);
       } else {
-        break; // On s'arrête au premier niveau non complété
+        console.log(`⏸️ Niveau ${n} en cours (${itemsValides.length}/${itemsNiveau.length} items validés)`);
+        break; // On s'arrête au premier niveau incomplet
       }
     }
     
-    console.log(`🏆 Niveau MAX ATTEINT (complété): ${niveauMaxAtteint}`);
+    console.log(`🏆 Niveau MAX ATTEINT: ${niveauMaxAtteint}`);
+    console.log(`🎮 Niveau ACTIF (en cours): ${niveauActif}`);
     
-    // ✅ METTRE À JOUR currentUser
+    // ✅ ÉTAPE 4 : Mettre à jour currentUser
     if (currentUser) {
       currentUser.niveau_atteint = niveauMaxAtteint;
-      currentUser.niveau_actif = niveauActif; // ✅ NOUVEAU : stocker aussi le niveau actif
+      currentUser.niveau_actif = niveauActif;
+      console.log(`👤 currentUser mis à jour: atteint=${niveauMaxAtteint}, actif=${niveauActif}`);
     }
     
-    // Régénérer tables
+    // ✅ ÉTAPE 5 : Régénérer les tables de révision
     revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
     revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-    console.log(`📚 Tables régénérées`);
+    console.log(`📚 Tables régénérées: Romaji=${Object.keys(revisionRomajiTable).length}, Katakana=${Object.keys(revisionKatakanaTable).length}`);
     
-    // ✅ RAFRAÎCHIR UI avec le niveau ACTIF
+    // ✅ ÉTAPE 6 : Rafraîchir l'UI AVEC LE NIVEAU ACTIF
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
-    renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+    renderProgressBar(niveauActif, maxLevel);
     renderHiraganaCards(HiraganaList, niveauActif);
     updateMenuButtonStates();
     updateAccountDisplay();
+    
+    console.log('✅ loadUserProgress terminé avec succès');
     
   } else {
     console.error('⚠️ Erreur chargement stats user:', userStats.error);
@@ -6311,6 +6321,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
