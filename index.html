@@ -3214,11 +3214,9 @@ async function loginUser() {
   const errorDiv = document.getElementById('login-error');
   const successDiv = document.getElementById('login-success');
   
-  // Réinitialiser les messages
   errorDiv.style.display = 'none';
   successDiv.style.display = 'none';
   
-  // Validation
   if (!pseudo || !pin) {
     errorDiv.textContent = 'Veuillez remplir tous les champs';
     errorDiv.style.display = 'block';
@@ -3232,7 +3230,6 @@ async function loginUser() {
   }
   
   try {
-    // 1. Authentifier l'utilisateur
     const authResult = await callAPI('authenticateUser', { pseudo, pin });
     
     if (!authResult.success) {
@@ -3241,10 +3238,8 @@ async function loginUser() {
       return;
     }
     
-    // 2. Générer un nouveau token
     const newToken = crypto.randomUUID();
     
-    // 3. Mettre à jour le token dans la base
     const updateResult = await callAPI('updateUserToken', {
       pseudo,
       pin,
@@ -3252,11 +3247,13 @@ async function loginUser() {
     });
     
     if (updateResult.success) {
-      // Sauvegarder le nouveau token localement
       userToken = newToken;
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
+      
+      // ✅ RECHARGER LES STATS ET RECALCULER LE NIVEAU
       await loadUserProgress();
+      
       currentUser.token = newToken;
       
       console.log('✅ Connexion réussie:', currentUser.pseudo);
@@ -3264,10 +3261,16 @@ async function loginUser() {
       successDiv.textContent = `Bienvenue ${currentUser.pseudo} ! 🎌`;
       successDiv.style.display = 'block';
       
-      // Rediriger vers le menu après 1.5s
       setTimeout(() => {
-        showSection('menu-section');
+        // ✅ RAFRAÎCHIR L'UI COMPLÈTE
+        document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+        updateLevelProgress(HiraganaList, niveauActif);
+        renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+        renderHiraganaCards(HiraganaList, niveauActif);
+        updateMenuButtonStates();
         updateAccountDisplay();
+        
+        showSection('menu-section');
       }, 1500);
       
     } else {
@@ -3281,7 +3284,6 @@ async function loginUser() {
     console.error('❌ Erreur connexion:', error);
   }
 }
-
 // ========================================
 // AFFICHER LA PAGE DE CONNEXION
 // ========================================
@@ -3295,6 +3297,7 @@ function showChangeDevice() {
 function updateAccountDisplay() {
   if (currentUser) {
     document.getElementById('account-pseudo').textContent = currentUser.pseudo;
+    // ✅ Utiliser le niveau recalculé stocké dans currentUser
     document.getElementById('account-level').textContent = currentUser.niveau_atteint || niveauActif;
   }
 }
@@ -3358,7 +3361,6 @@ async function loadUserProgress() {
     // Merge stats dans HiraganaList
     HiraganaList.forEach(item => {
       const itemStats = stats[item.ID.toString()] || { validation: 0, tentatives: 0, reussites: 0 };
-      // Forcer l’ajout des propriétés si absentes
       if (item.Validation !== itemStats.validation || 
           item.Tentatives !== itemStats.tentatives || 
           item['Réussites'] !== itemStats.reussites) {
@@ -3368,56 +3370,73 @@ async function loadUserProgress() {
         mergedCount++;
       }
     });
-    // Après le merge des stats dans HiraganaList
-HiraganaList.forEach(item => {
-  const id = parseInt(item.ID);  // Assure-toi que ID est un number
-  validationCache[id] = parseInt(item.Validation || 0);
-  
-  const tentatives = parseInt(item.Tentatives || 0);
-  const reussites = parseInt(item['Réussites'] || 0);
-  const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
-  
-  statsCache.items[id] = {
-    tentatives: tentatives,
-    reussites: reussites,
-    pourcentage: pourcentage
-  };
-});
 
-// Calcul du pourcentage global
-const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
-const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
-statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+    // Initialiser les caches
+    HiraganaList.forEach(item => {
+      const id = parseInt(item.ID);
+      validationCache[id] = parseInt(item.Validation || 0);
+      
+      const tentatives = parseInt(item.Tentatives || 0);
+      const reussites = parseInt(item['Réussites'] || 0);
+      const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
+      
+      statsCache.items[id] = {
+        tentatives: tentatives,
+        reussites: reussites,
+        pourcentage: pourcentage
+      };
+    });
 
-console.log(`📊 Caches initialisés : ${Object.keys(validationCache).length} validations, ${Object.keys(statsCache.items).length} stats items | Global: ${statsCache.globalPourcentage.toFixed(2)}%`);
-    console.log(`📊 Progrès user chargé: ${mergedCount} items mis à jour | Niveau serveur: ${userStats.niveau_atteint}`);
+    // Calcul du pourcentage global
+    const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+    const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+    statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+
+    console.log(`📊 Caches initialisés : ${Object.keys(validationCache).length} validations, ${Object.keys(statsCache.items).length} stats items | Global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+    console.log(`📊 Progrès user chargé: ${mergedCount} items mis à jour`);
     
-    // Recalculer niveauActif
+    // ✅ RECALCULER LE NIVEAU CÔTÉ CLIENT
     niveauActif = determineNiveauActif(HiraganaList);
-    if (userStats.niveau_atteint > niveauActif) {
-      niveauActif = userStats.niveau_atteint; // Fallback si serveur plus haut
-      console.log(`🔄 Niveau forcé à ${niveauActif} (serveur)`);
+    
+    // ✅ TROUVER LE NIVEAU MAX ATTEINT (ID le plus élevé avec Validation >= 5)
+    let niveauMaxAtteint = 1;
+    const itemsValides = HiraganaList
+      .filter(item => parseInt(item.Validation || 0) >= 5)
+      .sort((a, b) => parseInt(b.Niveau) - parseInt(a.Niveau));
+    
+    if (itemsValides.length > 0) {
+      niveauMaxAtteint = parseInt(itemsValides[0].Niveau);
+    }
+    
+    // ✅ METTRE À JOUR currentUser avec le niveau calculé
+    if (currentUser) {
+      currentUser.niveau_atteint = niveauMaxAtteint;
+      console.log(`🎯 Niveau recalculé côté client: ${niveauMaxAtteint}`);
     }
     
     // Régénérer tables avec stats mergées
     revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
     revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-    console.log(`📚 Tables régénérées après merge: Romaji=${revisionRomajiTable.length}, Katakana=${revisionKatakanaTable.length}`);
+    console.log(`📚 Tables régénérées après merge: Romaji=${Object.keys(revisionRomajiTable).length}, Katakana=${Object.keys(revisionKatakanaTable).length}`);
     
     // Rafraîchir UI
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-    renderHiraganaCards(HiraganaList, niveauActif); // Afficher étoiles
+    renderHiraganaCards(HiraganaList, niveauActif);
     updateMenuButtonStates();
+    
+    // ✅ METTRE À JOUR L'AFFICHAGE DU COMPTE
+    updateAccountDisplay();
     
   } else {
     console.error('⚠️ Erreur chargement stats user:', userStats.error);
-    // Fallback niveau 1
     niveauActif = 1;
+    if (currentUser) currentUser.niveau_atteint = 1;
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} 1`;
+    updateAccountDisplay();
   }
-} 
+}
 // ========================================
 // CONFIRMER ET CRÉER LE COMPTE
 // ========================================
@@ -6263,6 +6282,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
