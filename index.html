@@ -3018,25 +3018,27 @@ let userToken = null;
 // INITIALISATION AU CHARGEMENT
 // ========================================
 async function initUserSystem() {
-  // Vérifier si un token existe déjà
   userToken = localStorage.getItem('userToken');
   
   if (userToken) {
-    // L'utilisateur a déjà un compte
     const result = await callAPI('getUserByToken', { token: userToken });
     
     if (result.success) {
       currentUser = result.user;
+      
+      // ✅ RÉINITIALISER LE CONTEXTE
+      resetGameContext();
+      
       await loadUserProgress();
       console.log('✅ Utilisateur connecté:', currentUser.pseudo);
       updateAccountDisplay();
     } else {
-      // Token invalide, demander création de compte
       console.warn('⚠️ Token invalide, création de compte nécessaire');
       localStorage.removeItem('userToken');
       userToken = null;
     }
   }
+}
   
   // Si pas de token valide, l'utilisateur verra la page d'accueil
   // et pourra cliquer sur le panda pour créer son compte
@@ -3251,26 +3253,29 @@ async function loginUser() {
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
       
+      // ✅ RÉINITIALISER LE CONTEXTE DU JEU
+      resetGameContext();
+      
       // ✅ RECHARGER LES STATS ET RECALCULER LE NIVEAU
       await loadUserProgress();
       
       currentUser.token = newToken;
       
-      console.log('✅ Connexion réussie:', currentUser.pseudo);
+      console.log('✅ Connexion réussie:', currentUser.pseudo, '| Niveau actif:', niveauActif);
       
       successDiv.textContent = `Bienvenue ${currentUser.pseudo} ! 🎌`;
       successDiv.style.display = 'block';
       
       setTimeout(() => {
-        // ✅ RAFRAÎCHIR L'UI COMPLÈTE
-        document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
-        updateLevelProgress(HiraganaList, niveauActif);
-        renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-        renderHiraganaCards(HiraganaList, niveauActif);
-        updateMenuButtonStates();
-        updateAccountDisplay();
-        
         showSection('menu-section');
+        
+        // ✅ FORCER UNE NOUVELLE QUESTION PROPRE
+        setTimeout(() => {
+          if (document.getElementById('quiz').classList.contains('active')) {
+            nextQuestion();
+          }
+        }, 100);
+        
       }, 1500);
       
     } else {
@@ -3297,10 +3302,33 @@ function showChangeDevice() {
 function updateAccountDisplay() {
   if (currentUser) {
     document.getElementById('account-pseudo').textContent = currentUser.pseudo;
-    // ✅ Utiliser le niveau recalculé stocké dans currentUser
-    document.getElementById('account-level').textContent = currentUser.niveau_atteint || niveauActif;
+    // ✅ Afficher le niveau ACTIF (en cours), pas le niveau atteint
+    document.getElementById('account-level').textContent = currentUser.niveau_actif || niveauActif;
   }
 }
+function resetGameContext() {
+  // ✅ Réinitialiser les variables de contexte
+  current = {};
+  selections = { first: null, second: null };
+  isAnswered = false;
+  previousCharacter = null;
+  
+  // ✅ Vider les choix affichés
+  const choices1 = document.getElementById("choices1");
+  const choices2 = document.getElementById("choices2");
+  if (choices1) choices1.innerHTML = "";
+  if (choices2) choices2.innerHTML = "";
+  
+  // ✅ Vider le résultat
+  const result = document.getElementById("result");
+  if (result) result.innerText = "";
+  
+  // ✅ Masquer le bouton continuer
+  const continueBtn = document.getElementById("continueBtn");
+  if (continueBtn) continueBtn.style.visibility = "hidden";
+  
+  console.log('🔄 Contexte du jeu réinitialisé');
+}    
 // ========================================
 // VALIDATION ET FORMATAGE DATE DE NAISSANCE
 // ========================================
@@ -3387,52 +3415,57 @@ async function loadUserProgress() {
       };
     });
 
-    // Calcul du pourcentage global
     const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
     const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
     statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-    console.log(`📊 Caches initialisés : ${Object.keys(validationCache).length} validations, ${Object.keys(statsCache.items).length} stats items | Global: ${statsCache.globalPourcentage.toFixed(2)}%`);
     console.log(`📊 Progrès user chargé: ${mergedCount} items mis à jour`);
     
-    // ✅ RECALCULER LE NIVEAU CÔTÉ CLIENT
+    // ✅ CALCULER LE NIVEAU ACTIF (celui en cours, pas le dernier validé)
     niveauActif = determineNiveauActif(HiraganaList);
+    console.log(`🎯 Niveau ACTIF (en cours): ${niveauActif}`);
     
-    // ✅ TROUVER LE NIVEAU MAX ATTEINT (ID le plus élevé avec Validation >= 5)
-    let niveauMaxAtteint = 1;
-    const itemsValides = HiraganaList
-      .filter(item => parseInt(item.Validation || 0) >= 5)
-      .sort((a, b) => parseInt(b.Niveau) - parseInt(a.Niveau));
-    
-    if (itemsValides.length > 0) {
-      niveauMaxAtteint = parseInt(itemsValides[0].Niveau);
+    // ✅ CALCULER LE NIVEAU MAX ATTEINT (dernier complété à 100%)
+    let niveauMaxAtteint = 0;
+    for (let n = 1; n <= getMaxLevel(HiraganaList); n++) {
+      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === n);
+      const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= 5);
+      
+      if (itemsValides.length === itemsNiveau.length && itemsNiveau.length > 0) {
+        niveauMaxAtteint = n;
+      } else {
+        break; // On s'arrête au premier niveau non complété
+      }
     }
     
-    // ✅ METTRE À JOUR currentUser avec le niveau calculé
+    console.log(`🏆 Niveau MAX ATTEINT (complété): ${niveauMaxAtteint}`);
+    
+    // ✅ METTRE À JOUR currentUser
     if (currentUser) {
       currentUser.niveau_atteint = niveauMaxAtteint;
-      console.log(`🎯 Niveau recalculé côté client: ${niveauMaxAtteint}`);
+      currentUser.niveau_actif = niveauActif; // ✅ NOUVEAU : stocker aussi le niveau actif
     }
     
-    // Régénérer tables avec stats mergées
+    // Régénérer tables
     revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
     revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-    console.log(`📚 Tables régénérées après merge: Romaji=${Object.keys(revisionRomajiTable).length}, Katakana=${Object.keys(revisionKatakanaTable).length}`);
+    console.log(`📚 Tables régénérées`);
     
-    // Rafraîchir UI
+    // ✅ RAFRAÎCHIR UI avec le niveau ACTIF
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
     renderHiraganaCards(HiraganaList, niveauActif);
     updateMenuButtonStates();
-    
-    // ✅ METTRE À JOUR L'AFFICHAGE DU COMPTE
     updateAccountDisplay();
     
   } else {
     console.error('⚠️ Erreur chargement stats user:', userStats.error);
     niveauActif = 1;
-    if (currentUser) currentUser.niveau_atteint = 1;
+    if (currentUser) {
+      currentUser.niveau_atteint = 0;
+      currentUser.niveau_actif = 1;
+    }
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} 1`;
     updateAccountDisplay();
   }
@@ -6282,6 +6315,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
