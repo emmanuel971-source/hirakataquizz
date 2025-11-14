@@ -3386,7 +3386,7 @@ async function loadUserProgress() {
     const stats = userStats.stats || {};
     let mergedCount = 0;
     
-    // ✅ ÉTAPE 1 : Merger les stats dans HiraganaList
+    // ✅ Merger les stats dans HiraganaList
     HiraganaList.forEach(item => {
       const itemId = item.ID.toString();
       const itemStats = stats[itemId] || { validation: 0, tentatives: 0, reussites: 0 };
@@ -3396,7 +3396,6 @@ async function loadUserProgress() {
       item['Réussites'] = itemStats.reussites;
       mergedCount++;
       
-      // ✅ Mettre à jour les caches immédiatement
       const id = parseInt(item.ID);
       validationCache[id] = parseInt(itemStats.validation);
       
@@ -3411,18 +3410,13 @@ async function loadUserProgress() {
       };
     });
 
-    // ✅ Calcul du pourcentage global
     const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
     const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
     statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
     console.log(`📊 Progrès user chargé: ${mergedCount} items mergés`);
     
-    // ✅ ÉTAPE 2 : CALCULER LE NIVEAU ACTIF avec determineNiveauActif (qui utilise validationCache)
-    niveauActif = determineNiveauActif(HiraganaList);
-    console.log(`🎯 Niveau ACTIF calculé: ${niveauActif}`);
-    
-    // ✅ ÉTAPE 3 : CALCULER LE NIVEAU MAX ATTEINT (dernier niveau 100% complété)
+    // ✅ Calculer le niveau MAX ATTEINT (niveaux 100% complétés)
     let niveauMaxAtteint = 0;
     const maxLevel = getMaxLevel(HiraganaList);
     
@@ -3430,32 +3424,31 @@ async function loadUserProgress() {
       const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === n);
       const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= 5);
       
-      // Un niveau est "atteint" si TOUS ses items sont validés >= 5
       if (itemsValides.length === itemsNiveau.length && itemsNiveau.length > 0) {
         niveauMaxAtteint = n;
-        console.log(`✅ Niveau ${n} complété (${itemsValides.length}/${itemsNiveau.length} items)`);
       } else {
-        console.log(`⏸️ Niveau ${n} en cours (${itemsValides.length}/${itemsNiveau.length} items validés)`);
-        break; // On s'arrête au premier niveau incomplet
+        break;
       }
     }
     
-    console.log(`🏆 Niveau MAX ATTEINT: ${niveauMaxAtteint}`);
-    console.log(`🎮 Niveau ACTIF (en cours): ${niveauActif}`);
+    // ✅ Calculer le niveau ACTIF (utilise la fonction corrigée)
+    niveauActif = determineNiveauActif(HiraganaList);
     
-    // ✅ ÉTAPE 4 : Mettre à jour currentUser
+    console.log(`🏆 Niveau MAX ATTEINT: ${niveauMaxAtteint} (tous les items à >=5)`);
+    console.log(`🎮 Niveau ACTIF: ${niveauActif} (premier niveau incomplet)`);
+    console.log(`🚫 Mode apprentissage bloqué: ${isApprentissageBloque()}`);
+    
+    // ✅ Mettre à jour currentUser
     if (currentUser) {
       currentUser.niveau_atteint = niveauMaxAtteint;
       currentUser.niveau_actif = niveauActif;
-      console.log(`👤 currentUser mis à jour: atteint=${niveauMaxAtteint}, actif=${niveauActif}`);
     }
     
-    // ✅ ÉTAPE 5 : Régénérer les tables de révision
+    // ✅ Régénérer les tables
     revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
     revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
-    console.log(`📚 Tables régénérées: Romaji=${Object.keys(revisionRomajiTable).length}, Katakana=${Object.keys(revisionKatakanaTable).length}`);
     
-    // ✅ ÉTAPE 6 : Rafraîchir l'UI AVEC LE NIVEAU ACTIF
+    // ✅ Rafraîchir l'UI
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, maxLevel);
@@ -3463,7 +3456,7 @@ async function loadUserProgress() {
     updateMenuButtonStates();
     updateAccountDisplay();
     
-    console.log('✅ loadUserProgress terminé avec succès');
+    console.log('✅ loadUserProgress terminé');
     
   } else {
     console.error('⚠️ Erreur chargement stats user:', userStats.error);
@@ -3476,6 +3469,7 @@ async function loadUserProgress() {
     updateAccountDisplay();
   }
 }
+
 // ========================================
 // CONFIRMER ET CRÉER LE COMPTE
 // ========================================
@@ -5006,20 +5000,18 @@ function determineNiveauActif(list) {
   if (!list || list.length === 0) return 1;
   let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
 
+  // ✅ NOUVEAU : Calculer le niveau actif SANS tenir compte du blocage
   for (let n = 1; n <= maxNiveau; n++) {
-    const groupeActuel = getNiveauGroupe(n);
-    
-    // Vérifier si le groupe est bloqué (à partir du groupe 3)
-    if (groupeActuel >= 3 && !isGroupeDebloque(groupeActuel)) {
-      return n;
-    }
-    
     const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
-    const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5);
+    const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5); // ✅ Seuil fixe à 5
+    
     if (kanjisValides.length < kanjisNiveau.length) {
+      console.log(`📍 Niveau actif déterminé: ${n} (${kanjisValides.length}/${kanjisNiveau.length} items validés à >=5)`);
       return n;
     }
   }
+  
+  console.log(`📍 Tous les niveaux sont complétés, niveau actif = ${maxNiveau}`);
   return maxNiveau;
 }
 function updateApprendreButtonState() {
@@ -6321,6 +6313,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
