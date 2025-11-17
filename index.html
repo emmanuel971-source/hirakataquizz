@@ -3268,10 +3268,33 @@ async function loginUser() {
       successDiv.textContent = `Bienvenue ${currentUser.pseudo} ! 🎌`;
       successDiv.style.display = 'block';
       
-      // ✅ ÉTAPE 4 : Retour au menu après 1.5s
+      // ✅ ÉTAPE 4 : Afficher la section welcome (fond zen)
       setTimeout(() => {
-        showSection('menu-section');
-        toggleMenu(); // Ouvrir le menu
+        // Masquer toutes les sections
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        
+        // Afficher la section welcome
+        const welcomeSection = document.getElementById('welcome');
+        welcomeSection.classList.add('active');
+        
+        // Masquer le panda et le texte de chargement
+        const panda = document.querySelector('.panda-logo');
+        const loadingText = document.getElementById('loadingText');
+        if (panda) panda.style.display = 'none';
+        if (loadingText) loadingText.style.display = 'none';
+        
+        // Masquer la section login
+        document.getElementById('login').classList.remove('active');
+        
+        // Afficher le bouton hamburger s'il était caché
+        const hamburger = document.querySelector('.hamburger');
+        if (hamburger) hamburger.classList.remove('hidden');
+        
+        // ✅ NOUVEAU : Ouvrir directement le menu
+        setTimeout(() => {
+          toggleMenu();
+        }, 100);
+        
       }, 1500);
       
     } else {
@@ -3740,37 +3763,46 @@ function showSection(sectionId) {
   // SUPPRIMER la redirection automatique vers le mode révision
   // Le bouton bloqué ne doit plus rediriger, il doit juste être inopérant
   
-  document.querySelectorAll('.section').forEach(section => {
+document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
   document.getElementById(sectionId).classList.add('active');
+  
   if (sectionId === 'create-account') {
-  initPseudoCache();
-  generateNewPseudo(); // Afficher le premier pseudo automatiquement
-}
-  // Démarrer le mode révisions si c'est le mode sélectionné
-if (sectionId === 'mode2') {
-  wasBlockedWhenEnteringRevision = isApprentissageBloque();
-  if (wasBlockedWhenEnteringRevision) {
-    deficitInitialRevision = calculerDeficitValidation();
-    pointsGagnesEnRevision = 0; // ✅ RESET du compteur à l'entrée
-    console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
+    initPseudoCache();
+    generateNewPseudo();
   }
-  hasUnlockedInRevision = false;
-  revisionMode.isActive = true;
-  setTimeout(() => {
-    initRevisionKeyboard();
-    startRevisionQuestion();
-    // ✅ La barre s'affichera via startRevisionQuestion()
-  }, 100);
-} else {
+  
+  // Démarrer le mode révisions si c'est le mode sélectionné
+  if (sectionId === 'mode2') {
+    wasBlockedWhenEnteringRevision = isApprentissageBloque();
+    if (wasBlockedWhenEnteringRevision) {
+      deficitInitialRevision = calculerDeficitValidation();
+      pointsGagnesEnRevision = 0;
+      console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
+    }
+    hasUnlockedInRevision = false;
+    revisionMode.isActive = true;
+    setTimeout(() => {
+      initRevisionKeyboard();
+      startRevisionQuestion();
+    }, 100);
+  } else {
     revisionMode.isActive = false;
-    // Remettre à false quand on quitte le mode révision
     wasBlockedWhenEnteringRevision = false;
   }
-if (sectionId !== 'create-account') {
-  toggleMenu();
-}
+  
+  // ✅ NOUVEAU : Générer une question quand on ouvre le mode Apprendre
+  if (sectionId === 'quiz') {
+    console.log('🎮 Ouverture mode Apprendre, génération d\'une question...');
+    setTimeout(() => {
+      nextQuestion();
+    }, 100);
+  }
+  
+  if (sectionId !== 'create-account') {
+    toggleMenu();
+  }
 }
 
    
@@ -6313,6 +6345,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
