@@ -4237,58 +4237,17 @@ document.querySelectorAll('.section').forEach(section => {
       nextQuestion();
     }, 100);
   }
-  
-  if (sectionId !== 'create-account') {
-    toggleMenu();
-  }
-    document.querySelectorAll('.section').forEach(section => {
-    section.classList.remove('active');
-  });
-  document.getElementById(sectionId).classList.add('active');
-  
-  if (sectionId === 'create-account') {
-    initPseudoCache();
-    generateNewPseudo();
-  }
-  
-  // Démarrer le mode révisions si c'est le mode sélectionné
-  if (sectionId === 'mode2') {
-    wasBlockedWhenEnteringRevision = isApprentissageBloque();
-    if (wasBlockedWhenEnteringRevision) {
-      deficitInitialRevision = calculerDeficitValidation();
-      pointsGagnesEnRevision = 0;
-      console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
-    }
-    hasUnlockedInRevision = false;
-    revisionMode.isActive = true;
-    setTimeout(() => {
-      initRevisionKeyboard();
-      startRevisionQuestion();
-    }, 100);
-  } else {
-    revisionMode.isActive = false;
-    wasBlockedWhenEnteringRevision = false;
-  }
-  
-  // Générer une question quand on ouvre le mode Apprendre
-  if (sectionId === 'quiz') {
-    console.log('🎮 Ouverture mode Apprendre, génération d\'une question...');
-    setTimeout(() => {
-      nextQuestion();
-    }, 100);
-  }
-  
-  // ✅ NOUVEAU : Générer les stats quand on ouvre la page stats
+    // ✅ NOUVEAU : Générer les stats quand on ouvre la page stats
   if (sectionId === 'stats') {
     console.log('📊 Ouverture page stats...');
     setTimeout(() => {
       generateStatsPage();
     }, 100);
   }
-  
   if (sectionId !== 'create-account') {
     toggleMenu();
   }
+
 }
 
 // ========================================
@@ -7077,6 +7036,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
