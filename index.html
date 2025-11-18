@@ -2386,7 +2386,285 @@
                 inset 0 0 4px rgba(139, 111, 71, 0.15);
   }
 }
-    
+/* ========================================
+   STATS PAGE - DESKTOP
+   ======================================== */
+
+.stats-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin: 2em auto;
+  max-width: 1000px;
+  padding: 0 1em;
+}
+
+.stat-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1.5em;
+  text-align: center;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  font-size: 2.5em;
+  margin-bottom: 0.2em;
+}
+
+.stat-value {
+  font-size: 2em;
+  font-weight: bold;
+  color: #8B6F47;
+  margin: 0.2em 0;
+}
+
+.stat-label {
+  font-size: 0.9em;
+  color: #8B6F47;
+  opacity: 0.7;
+}
+
+/* Points forts / Points faibles */
+.stats-strengths-weaknesses {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 2em auto;
+  max-width: 1000px;
+  padding: 0 1em;
+}
+
+.strength-section,
+.weakness-section {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1.5em;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.strength-section h3,
+.weakness-section h3 {
+  margin: 0 0 1em 0;
+  font-size: 1.3em;
+  color: #8B6F47;
+}
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.stats-list-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5em;
+  background: rgba(139, 111, 71, 0.05);
+  border-radius: 6px;
+  font-size: 0.95em;
+}
+
+.stats-list-item-name {
+  color: #8B6F47;
+  font-weight: 500;
+}
+
+.stats-list-item-value {
+  color: #8B6F47;
+  font-weight: bold;
+}
+
+/* Filtres */
+.stats-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 2em auto 1em auto;
+  max-width: 1000px;
+  padding: 0 1em;
+}
+
+.filter-btn {
+  font-size: 1em !important;
+  padding: 0.6em 1.2em !important;
+  min-width: auto !important;
+  height: auto !important;
+  line-height: normal !important;
+}
+
+.filter-btn.active {
+  background: rgba(168, 213, 186, 0.3) !important;
+  border-color: #A8D5BA !important;
+}
+
+/* Tableau */
+.stats-table-container {
+  margin: 1em auto 2em auto;
+  max-width: 1000px;
+  padding: 0 1em;
+  overflow-x: auto;
+}
+
+.stats-table {
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+  border-collapse: collapse;
+}
+
+.stats-table thead {
+  background: rgba(139, 111, 71, 0.1);
+}
+
+.stats-table th {
+  padding: 1em;
+  text-align: left;
+  font-weight: bold;
+  color: #8B6F47;
+  border-bottom: 2px solid rgba(139, 111, 71, 0.2);
+}
+
+.stats-table td {
+  padding: 0.8em 1em;
+  color: #8B6F47;
+  border-bottom: 1px solid rgba(139, 111, 71, 0.1);
+}
+
+.stats-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.stats-table tbody tr:hover {
+  background: rgba(139, 111, 71, 0.05);
+}
+
+/* Couleurs des statuts */
+.stats-table tbody tr.acquired {
+  background: rgba(168, 213, 186, 0.1);
+}
+
+.stats-table tbody tr.review {
+  background: rgba(255, 193, 7, 0.1);
+}
+
+.stats-table tbody tr.in-progress {
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.stats-table tbody tr.not-started {
+  opacity: 0.5;
+}
+
+/* ========================================
+   STATS PAGE - SMARTPHONES
+   ======================================== */
+
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .stats-overview {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 1em auto;
+  }
+
+  .stat-card {
+    padding: 1em;
+  }
+
+  .stat-icon {
+    font-size: 2em;
+  }
+
+  .stat-value {
+    font-size: 1.5em;
+  }
+
+  .stat-label {
+    font-size: 0.8em;
+  }
+
+  .stats-strengths-weaknesses {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin: 1em auto;
+  }
+
+  .strength-section,
+  .weakness-section {
+    padding: 1em;
+  }
+
+  .strength-section h3,
+  .weakness-section h3 {
+    font-size: 1.1em;
+  }
+
+  .stats-filters {
+    gap: 5px;
+    margin: 1em auto 0.5em auto;
+  }
+
+  .filter-btn {
+    font-size: 0.85em !important;
+    padding: 0.5em 0.8em !important;
+  }
+
+  .stats-table-container {
+    margin: 0.5em auto 1em auto;
+  }
+
+  .stats-table th,
+  .stats-table td {
+    padding: 0.6em 0.5em;
+    font-size: 0.85em;
+  }
+
+  .stats-table th {
+    font-size: 0.8em;
+  }
+}
+
+/* ========================================
+   STATS PAGE - TABLETTES
+   ======================================== */
+
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  .stats-overview {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .stat-icon {
+    font-size: 2.2em;
+  }
+
+  .stat-value {
+    font-size: 1.8em;
+  }
+
+  .stats-strengths-weaknesses {
+    gap: 15px;
+  }
+
+  .filter-btn {
+    font-size: 1.2em !important;
+    padding: 0.7em 1em !important;
+  }
+
+  .stats-table th,
+  .stats-table td {
+    padding: 0.9em;
+    font-size: 1em;
+  }
+}    
   </style>
 </head>
 <body>
@@ -2401,13 +2679,15 @@
   </div>
 </button>
 <!-- Menu -->
+
 <nav class="menu" id="menu">
   <div id="menu-message" class="menu-message"></div>
   <button class="arcade-button" onclick="showSection('quiz')" data-i18n="menu_learn">Apprendre</button>
   <button class="arcade-button" id="revision-button" onclick="showSection('mode2')" data-i18n="menu_revision">Mode révisions</button>
+  <button class="arcade-button" onclick="showSection('stats')" data-i18n="menu_stats">📊 Mes stats</button>
   <button class="arcade-button" onclick="showSection('options')" data-i18n="menu_options">Options</button>
+  <button class="arcade-button" onclick="showSection('account')" data-i18n="account_title">Mon compte</button>
   <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>
-  <button class="arcade-button" onclick="showSection('account')" data-i18n="account_title">Options</button>
 </nav>
 
 <!-- Section Page d'accueil -->
@@ -2641,7 +2921,8 @@
     <h1 class="welcome-user-title"></h1>
     <p class="welcome-user-subtitle">Ton voyage commence maintenant 🌸</p>
   </div>
-</div>  
+</div> 
+  
 </div>
 
 <!-- Section Connexion (changement d'appareil) -->
@@ -2685,6 +2966,92 @@
       </button>
     </div>
   </div>
+  <!-- Section Mes Stats -->
+<div id="stats" class="section">
+  <h1 data-i18n="stats_title">📊 Mes Statistiques</h1>
+  
+  <!-- Vue d'ensemble -->
+  <div class="stats-overview">
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-value" id="global-success-rate">0%</div>
+      <div class="stat-label" data-i18n="stats_success_rate">Taux de réussite</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-value" id="current-level-display">1</div>
+      <div class="stat-label" data-i18n="stats_current_level">Niveau actuel</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">🏆</div>
+      <div class="stat-value" id="mastered-items">0/0</div>
+      <div class="stat-label" data-i18n="stats_mastered_items">Items maîtrisés</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">📝</div>
+      <div class="stat-value" id="total-attempts">0</div>
+      <div class="stat-label" data-i18n="stats_total_attempts">Tentatives totales</div>
+    </div>
+  </div>
+  
+  <!-- Points forts / Points faibles -->
+  <div class="stats-strengths-weaknesses">
+    <div class="strength-section">
+      <h3>💪 <span data-i18n="stats_strengths">Tes points forts</span></h3>
+      <div id="strengths-list" class="stats-list"></div>
+    </div>
+    
+    <div class="weakness-section">
+      <h3>⚠️ <span data-i18n="stats_weaknesses">À travailler</span></h3>
+      <div id="weaknesses-list" class="stats-list"></div>
+    </div>
+  </div>
+  
+  <!-- Filtres -->
+  <div class="stats-filters">
+    <button class="arcade-button filter-btn active" data-filter="all" onclick="filterStats('all')">
+      <span data-i18n="stats_filter_all">Tous</span> <span id="count-all">(0)</span>
+    </button>
+    <button class="arcade-button filter-btn" data-filter="acquired" onclick="filterStats('acquired')">
+      ✅ <span data-i18n="stats_filter_acquired">Acquis</span> <span id="count-acquired">(0)</span>
+    </button>
+    <button class="arcade-button filter-btn" data-filter="review" onclick="filterStats('review')">
+      ⚠️ <span data-i18n="stats_filter_review">À réviser</span> <span id="count-review">(0)</span>
+    </button>
+    <button class="arcade-button filter-btn" data-filter="progress" onclick="filterStats('progress')">
+      🔄 <span data-i18n="stats_filter_progress">En cours</span> <span id="count-progress">(0)</span>
+    </button>
+    <button class="arcade-button filter-btn" data-filter="not-started" onclick="filterStats('not-started')">
+      💤 <span data-i18n="stats_filter_not_started">Non commencé</span> <span id="count-not-started">(0)</span>
+    </button>
+  </div>
+  
+  <!-- Tableau des items -->
+  <div class="stats-table-container">
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th data-i18n="stats_table_hiragana">Hiragana</th>
+          <th data-i18n="stats_table_katakana">Katakana</th>
+          <th data-i18n="stats_table_level">Niveau</th>
+          <th data-i18n="stats_table_status">Statut</th>
+          <th data-i18n="stats_table_attempts">Tentatives</th>
+          <th data-i18n="stats_table_percentage">%</th>
+        </tr>
+      </thead>
+      <tbody id="stats-table-body">
+        <!-- Généré dynamiquement -->
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="button-group">
+    <button class="arcade-button" onclick="backToMenu()" data-i18n="options_back">← Retour</button>
+  </div>
+</div>
 </div>
   <script>
     // === SYSTÈME DE TRADUCTION ===
@@ -2765,7 +3132,31 @@ const translations = {
   create_account_confirm_yes: "✅ Oui, c'est correct", // FR
   create_account_correct_pin: "✏️ Non, corriger", // FR  
   },
-  
+   // Stats
+    menu_stats: "📊 Mes stats",
+    stats_title: "📊 Mes Statistiques",
+    stats_success_rate: "Taux de réussite",
+    stats_current_level: "Niveau actuel",
+    stats_mastered_items: "Items maîtrisés",
+    stats_total_attempts: "Tentatives totales",
+    stats_strengths: "Tes points forts",
+    stats_weaknesses: "À travailler",
+    stats_filter_all: "Tous",
+    stats_filter_acquired: "Acquis",
+    stats_filter_review: "À réviser",
+    stats_filter_progress: "En cours",
+    stats_filter_not_started: "Non commencé",
+    stats_table_hiragana: "Hiragana",
+    stats_table_katakana: "Katakana",
+    stats_table_level: "Niveau",
+    stats_table_status: "Statut",
+    stats_table_attempts: "Tentatives",
+    stats_table_percentage: "%",
+    stats_status_acquired: "Acquis",
+    stats_status_review: "À réviser",
+    stats_status_progress: "En cours",
+    stats_status_not_started: "Non commencé",
+  },
   en: {
     // Menu
     menu_learn: "Learn",
@@ -2841,8 +3232,32 @@ const translations = {
   login_connect: "🎋 Connect",
   create_account_confirm_yes: "✅ Yes, that's correct", // EN
   create_account_correct_pin: "✏️ No, correct it", // EN  
+     // Stats
+    menu_stats: "📊 My stats",
+    stats_title: "📊 My Statistics",
+    stats_success_rate: "Success rate",
+    stats_current_level: "Current level",
+    stats_mastered_items: "Mastered items",
+    stats_total_attempts: "Total attempts",
+    stats_strengths: "Your strengths",
+    stats_weaknesses: "To practice",
+    stats_filter_all: "All",
+    stats_filter_acquired: "Acquired",
+    stats_filter_review: "To review",
+    stats_filter_progress: "In progress",
+    stats_filter_not_started: "Not started",
+    stats_table_hiragana: "Hiragana",
+    stats_table_katakana: "Katakana",
+    stats_table_level: "Level",
+    stats_table_status: "Status",
+    stats_table_attempts: "Attempts",
+    stats_table_percentage: "%",
+    stats_status_acquired: "Acquired",
+    stats_status_review: "To review",
+    stats_status_progress: "In progress",
+    stats_status_not_started: "Not started",
   },
-  
+
   es: {
     // Menu
     menu_learn: "Aprender",
@@ -2916,8 +3331,32 @@ const translations = {
   login_pin_label: "Tu PIN (DDMM)",
   login_connect: "🎋 Conectarme",
   create_account_confirm_yes: "✅ Sí, es correcto", // ES
-  create_account_correct_pin: "✏️ No, corregir" // ES  
-  }
+  create_account_correct_pin: "✏️ No, corregir",// ES  
+   // Stats
+    menu_stats: "📊 Mis estadísticas",
+    stats_title: "📊 Mis Estadísticas",
+    stats_success_rate: "Tasa de éxito",
+    stats_current_level: "Nivel actual",
+    stats_mastered_items: "Items dominados",
+    stats_total_attempts: "Intentos totales",
+    stats_strengths: "Tus puntos fuertes",
+    stats_weaknesses: "A practicar",
+    stats_filter_all: "Todos",
+    stats_filter_acquired: "Adquirido",
+    stats_filter_review: "A revisar",
+    stats_filter_progress: "En progreso",
+    stats_filter_not_started: "No comenzado",
+    stats_table_hiragana: "Hiragana",
+    stats_table_katakana: "Katakana",
+    stats_table_level: "Nivel",
+    stats_table_status: "Estado",
+    stats_table_attempts: "Intentos",
+    stats_table_percentage: "%",
+    stats_status_acquired: "Adquirido",
+    stats_status_review: "A revisar",
+    stats_status_progress: "En progreso",
+    stats_status_not_started: "No comenzado"
+  }  
 };
 
 // Langue actuelle (par défaut français)
@@ -6345,6 +6784,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
