@@ -3122,7 +3122,30 @@ const translations = {
   create_account_pin_example: "Exemple : né(e) le 12 mai → 1205",
   create_account_confirm: "🎌 Valider mon compte",
   create_account_back: "← Changer de pseudo",
-  
+     // Stats
+    menu_stats: "📊 Mes stats",
+    stats_title: "📊 Mes Statistiques",
+    stats_success_rate: "Taux de réussite",
+    stats_current_level: "Niveau actuel",
+    stats_mastered_items: "Items maîtrisés",
+    stats_total_attempts: "Tentatives totales",
+    stats_strengths: "Tes points forts",
+    stats_weaknesses: "À travailler",
+    stats_filter_all: "Tous",
+    stats_filter_acquired: "Acquis",
+    stats_filter_review: "À réviser",
+    stats_filter_progress: "En cours",
+    stats_filter_not_started: "Non commencé",
+    stats_table_hiragana: "Hiragana",
+    stats_table_katakana: "Katakana",
+    stats_table_level: "Niveau",
+    stats_table_status: "Statut",
+    stats_table_attempts: "Tentatives",
+    stats_table_percentage: "%",
+    stats_status_acquired: "Acquis",
+    stats_status_review: "À réviser",
+    stats_status_progress: "En cours",
+    stats_status_not_started: "Non commencé",
   // Connexion
   login_title: "Connexion 🔐",
   login_subtitle: "Retrouve ton compte",
@@ -3199,7 +3222,31 @@ const translations = {
   create_account_pin_example: "Example: born May 12th → 1205",
   create_account_confirm: "🎌 Validate my account",
   create_account_back: "← Change nickname",
-  
+      // Stats
+    menu_stats: "📊 My stats",
+    stats_title: "📊 My Statistics",
+    stats_success_rate: "Success rate",
+    stats_current_level: "Current level",
+    stats_mastered_items: "Mastered items",
+    stats_total_attempts: "Total attempts",
+    stats_strengths: "Your strengths",
+    stats_weaknesses: "To practice",
+    stats_filter_all: "All",
+    stats_filter_acquired: "Acquired",
+    stats_filter_review: "To review",
+    stats_filter_progress: "In progress",
+    stats_filter_not_started: "Not started",
+    stats_table_hiragana: "Hiragana",
+    stats_table_katakana: "Katakana",
+    stats_table_level: "Level",
+    stats_table_status: "Status",
+    stats_table_attempts: "Attempts",
+    stats_table_percentage: "%",
+    stats_status_acquired: "Acquired",
+    stats_status_review: "To review",
+    stats_status_progress: "In progress",
+    stats_status_not_started: "Not started",
+ 
   // Login
   login_title: "Login 🔐",
   login_subtitle: "Find your account",
@@ -3275,7 +3322,30 @@ const translations = {
   create_account_pin_example: "Ejemplo: nacido el 12 de mayo → 1205",
   create_account_confirm: "🎌 Validar mi cuenta",
   create_account_back: "← Cambiar apodo",
-  
+      // Stats
+    menu_stats: "📊 Mis estadísticas",
+    stats_title: "📊 Mis Estadísticas",
+    stats_success_rate: "Tasa de éxito",
+    stats_current_level: "Nivel actual",
+    stats_mastered_items: "Items dominados",
+    stats_total_attempts: "Intentos totales",
+    stats_strengths: "Tus puntos fuertes",
+    stats_weaknesses: "A practicar",
+    stats_filter_all: "Todos",
+    stats_filter_acquired: "Adquirido",
+    stats_filter_review: "A revisar",
+    stats_filter_progress: "En progreso",
+    stats_filter_not_started: "No comenzado",
+    stats_table_hiragana: "Hiragana",
+    stats_table_katakana: "Katakana",
+    stats_table_level: "Nivel",
+    stats_table_status: "Estado",
+    stats_table_attempts: "Intentos",
+    stats_table_percentage: "%",
+    stats_status_acquired: "Adquirido",
+    stats_status_review: "A revisar",
+    stats_status_progress: "En progreso",
+    stats_status_not_started: "No comenzado",
   // Conexión
   login_title: "Conexión 🔐",
   login_subtitle: "Encuentra tu cuenta",
@@ -4171,8 +4241,292 @@ document.querySelectorAll('.section').forEach(section => {
   if (sectionId !== 'create-account') {
     toggleMenu();
   }
+    document.querySelectorAll('.section').forEach(section => {
+    section.classList.remove('active');
+  });
+  document.getElementById(sectionId).classList.add('active');
+  
+  if (sectionId === 'create-account') {
+    initPseudoCache();
+    generateNewPseudo();
+  }
+  
+  // Démarrer le mode révisions si c'est le mode sélectionné
+  if (sectionId === 'mode2') {
+    wasBlockedWhenEnteringRevision = isApprentissageBloque();
+    if (wasBlockedWhenEnteringRevision) {
+      deficitInitialRevision = calculerDeficitValidation();
+      pointsGagnesEnRevision = 0;
+      console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
+    }
+    hasUnlockedInRevision = false;
+    revisionMode.isActive = true;
+    setTimeout(() => {
+      initRevisionKeyboard();
+      startRevisionQuestion();
+    }, 100);
+  } else {
+    revisionMode.isActive = false;
+    wasBlockedWhenEnteringRevision = false;
+  }
+  
+  // Générer une question quand on ouvre le mode Apprendre
+  if (sectionId === 'quiz') {
+    console.log('🎮 Ouverture mode Apprendre, génération d\'une question...');
+    setTimeout(() => {
+      nextQuestion();
+    }, 100);
+  }
+  
+  // ✅ NOUVEAU : Générer les stats quand on ouvre la page stats
+  if (sectionId === 'stats') {
+    console.log('📊 Ouverture page stats...');
+    setTimeout(() => {
+      generateStatsPage();
+    }, 100);
+  }
+  
+  if (sectionId !== 'create-account') {
+    toggleMenu();
+  }
+}
+}
+// ========================================
+// STATS PAGE - FUNCTIONS
+// ========================================
+
+let currentStatsData = []; // Stocker les données pour le filtrage
+
+/**
+ * Génère toutes les statistiques de la page
+ */
+function generateStatsPage() {
+  console.log('📊 Génération de la page stats...');
+  
+  // 1. Calculer les données de chaque item
+  currentStatsData = HiraganaList.map(item => {
+    const id = parseInt(item.ID);
+    const validation = validationCache[id] || 0;
+    const stats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+    
+    // Déterminer le statut
+    let statut = '';
+    let statutClass = '';
+    
+    if (validation >= seuilValidation) {
+      statut = t('stats_status_acquired');
+      statutClass = 'acquired';
+    } else if (validation >= 5) {
+      statut = t('stats_status_review');
+      statutClass = 'review';
+    } else if (stats.tentatives > 0) {
+      statut = t('stats_status_progress');
+      statutClass = 'in-progress';
+    } else {
+      statut = t('stats_status_not_started');
+      statutClass = 'not-started';
+    }
+    
+    return {
+      id: id,
+      hiragana: item.Hiragana,
+      katakana: getLocalizedKatakana(item),
+      niveau: parseInt(item.Niveau),
+      validation: validation,
+      statut: statut,
+      statutClass: statutClass,
+      tentatives: stats.tentatives,
+      reussites: stats.reussites,
+      pourcentage: stats.pourcentage
+    };
+  });
+  
+  // 2. Mettre à jour la vue d'ensemble
+  updateStatsOverview(currentStatsData);
+  
+  // 3. Mettre à jour les points forts/faibles
+  updateStrengthsWeaknesses(currentStatsData);
+  
+  // 4. Mettre à jour les compteurs des filtres
+  updateFilterCounts(currentStatsData);
+  
+  // 5. Afficher le tableau (tous par défaut)
+  renderStatsTable(currentStatsData, 'all');
+  
+  console.log('✅ Page stats générée avec succès');
 }
 
+/**
+ * Met à jour la section vue d'ensemble
+ */
+function updateStatsOverview(data) {
+  // Taux de réussite global
+  const globalRate = statsCache.globalPourcentage || 0;
+  document.getElementById('global-success-rate').textContent = globalRate.toFixed(1) + '%';
+  
+  // Niveau actuel
+  document.getElementById('current-level-display').textContent = niveauActif;
+  
+  // Items maîtrisés (validation >= seuilValidation)
+  const masteredCount = data.filter(item => item.validation >= seuilValidation).length;
+  const totalCount = data.length;
+  document.getElementById('mastered-items').textContent = `${masteredCount}/${totalCount}`;
+  
+  // Tentatives totales
+  const totalAttempts = data.reduce((sum, item) => sum + item.tentatives, 0);
+  document.getElementById('total-attempts').textContent = totalAttempts;
+}
+
+/**
+ * Met à jour les points forts et points faibles
+ */
+function updateStrengthsWeaknesses(data) {
+  // Grouper par niveau
+  const levelStats = {};
+  
+  data.forEach(item => {
+    if (!levelStats[item.niveau]) {
+      levelStats[item.niveau] = {
+        niveau: item.niveau,
+        totalTentatives: 0,
+        totalReussites: 0,
+        items: []
+      };
+    }
+    
+    levelStats[item.niveau].totalTentatives += item.tentatives;
+    levelStats[item.niveau].totalReussites += item.reussites;
+    levelStats[item.niveau].items.push(item);
+  });
+  
+  // Calculer le pourcentage par niveau
+  const levelPercentages = Object.values(levelStats)
+    .filter(level => level.totalTentatives > 0) // Seulement les niveaux pratiqués
+    .map(level => ({
+      niveau: level.niveau,
+      pourcentage: (level.totalReussites / level.totalTentatives * 100),
+      tentatives: level.totalTentatives
+    }))
+    .sort((a, b) => b.pourcentage - a.pourcentage);
+  
+  // Top 3 points forts
+  const strengths = levelPercentages.slice(0, 3);
+  const strengthsHTML = strengths.map(level => `
+    <div class="stats-list-item">
+      <span class="stats-list-item-name">Niveau ${level.niveau}</span>
+      <span class="stats-list-item-value">${level.pourcentage.toFixed(1)}%</span>
+    </div>
+  `).join('');
+  
+  document.getElementById('strengths-list').innerHTML = strengthsHTML || 
+    '<div style="text-align: center; opacity: 0.5; padding: 1em;">Aucune donnée disponible</div>';
+  
+  // Top 3 points faibles (inversé)
+  const weaknesses = levelPercentages.slice(-3).reverse();
+  const weaknessesHTML = weaknesses.map(level => `
+    <div class="stats-list-item">
+      <span class="stats-list-item-name">Niveau ${level.niveau}</span>
+      <span class="stats-list-item-value">${level.pourcentage.toFixed(1)}%</span>
+    </div>
+  `).join('');
+  
+  document.getElementById('weaknesses-list').innerHTML = weaknessesHTML || 
+    '<div style="text-align: center; opacity: 0.5; padding: 1em;">Aucune donnée disponible</div>';
+}
+
+/**
+ * Met à jour les compteurs des filtres
+ */
+function updateFilterCounts(data) {
+  const counts = {
+    all: data.length,
+    acquired: data.filter(item => item.statutClass === 'acquired').length,
+    review: data.filter(item => item.statutClass === 'review').length,
+    progress: data.filter(item => item.statutClass === 'in-progress').length,
+    'not-started': data.filter(item => item.statutClass === 'not-started').length
+  };
+  
+  document.getElementById('count-all').textContent = `(${counts.all})`;
+  document.getElementById('count-acquired').textContent = `(${counts.acquired})`;
+  document.getElementById('count-review').textContent = `(${counts.review})`;
+  document.getElementById('count-progress').textContent = `(${counts.progress})`;
+  document.getElementById('count-not-started').textContent = `(${counts['not-started']})`;
+}
+
+/**
+ * Filtre les stats selon le statut
+ */
+function filterStats(filter) {
+  console.log('🔍 Filtrage:', filter);
+  
+  // Mettre à jour l'état actif des boutons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+  
+  // Afficher le tableau filtré
+  renderStatsTable(currentStatsData, filter);
+}
+
+/**
+ * Affiche le tableau des stats
+ */
+function renderStatsTable(data, filter) {
+  const tbody = document.getElementById('stats-table-body');
+  
+  // Filtrer les données
+  let filtered = data;
+  if (filter !== 'all') {
+    filtered = data.filter(item => {
+      if (filter === 'acquired') return item.statutClass === 'acquired';
+      if (filter === 'review') return item.statutClass === 'review';
+      if (filter === 'progress') return item.statutClass === 'in-progress';
+      if (filter === 'not-started') return item.statutClass === 'not-started';
+      return true;
+    });
+  }
+  
+  // Trier par niveau puis par ID
+  filtered.sort((a, b) => {
+    if (a.niveau !== b.niveau) return a.niveau - b.niveau;
+    return a.id - b.id;
+  });
+  
+  // Générer le HTML
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; opacity: 0.5; padding: 2em;">
+          Aucun item dans cette catégorie
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tbody.innerHTML = filtered.map(item => {
+    // Icône de statut
+    let statutIcon = '';
+    if (item.statutClass === 'acquired') statutIcon = '✅';
+    else if (item.statutClass === 'review') statutIcon = '⚠️';
+    else if (item.statutClass === 'in-progress') statutIcon = '🔄';
+    else statutIcon = '💤';
+    
+    return `
+      <tr class="${item.statutClass}">
+        <td>${item.hiragana}</td>
+        <td>${item.katakana}</td>
+        <td>${item.niveau}</td>
+        <td>${statutIcon} ${item.statut}</td>
+        <td>${item.tentatives}</td>
+        <td><strong>${item.pourcentage.toFixed(1)}%</strong></td>
+      </tr>
+    `;
+  }).join('');
+  
+  console.log(`📋 Tableau affiché: ${filtered.length} items`);
+}
    
 function forceRevisionMode() {
   document.querySelectorAll('.section').forEach(section => {
@@ -6072,7 +6426,12 @@ async function checkAnswer() {
       scorePoints: score,
       isRevisionMode: revisionMode.isActive
     });
-
+  // ✅ NOUVEAU : Rafraîchir les stats si la page est ouverte
+  if (document.getElementById('stats').classList.contains('active')) {
+    setTimeout(() => {
+      generateStatsPage();
+    }, 100);
+  }
     if (!revisionMode.isActive) {
       if (score === 1) {
         setTimeout(() => {
@@ -6604,7 +6963,12 @@ function initRevisionKeyboard() {
     scorePoints: isCorrect ? 1 : 0,
     isRevisionMode: true
   });
-
+// ✅ Rafraîchir les stats si la page est ouverte
+if (document.getElementById('stats').classList.contains('active')) {
+  setTimeout(() => {
+    generateStatsPage();
+  }, 100);
+}
   // Mettre à jour la barre de déblocage
   if (wasBlockedWhenEnteringRevision) {
     updateUnlockProgress();
@@ -6713,6 +7077,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
