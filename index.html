@@ -6696,6 +6696,35 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 
 </script>
+<script>
+function adjustStatsTableOffset() {
+  const menu = document.getElementById('thead');
+  const container = document.querySelector('.stats-table-container');
+
+  if (!menu || !container) return;
+
+  // Hauteur réelle du menu
+  const menuHeight = menu.offsetHeight;
+
+  // Appliquer un padding équivalent
+  container.style.paddingTop = menuHeight + 'px';
+}
+
+// Lancer quand la page est chargée
+window.addEventListener('load', adjustStatsTableOffset);
+
+// Lancer lors d’un changement de taille (mobile -> landscape)
+window.addEventListener('resize', adjustStatsTableOffset);
+
+// Lancer aussi quand la section "stats" s’ouvre
+const originalShowSection = showSection;
+showSection = function(sectionId) {
+  originalShowSection(sectionId);
+  if (sectionId === 'stats') {
+    setTimeout(adjustStatsTableOffset, 50);
+  }
+}
+</script>
   
 </body>
 <script>
@@ -6746,6 +6775,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
