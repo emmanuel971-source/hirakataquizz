@@ -4072,7 +4072,7 @@ function generateStatsPage() {
       const stats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
       
       let statutEmoji = '';
-      let statutClass = '';
+      let statutClass = 'progress';
       
       if (validation >= seuilValidation) {
         statutEmoji = '🌸'; 
@@ -6734,6 +6734,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
