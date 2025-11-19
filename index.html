@@ -4065,7 +4065,8 @@ function generateStatsPage() {
   const maxLevelReached = currentUser ? (currentUser.niveau_actif || niveauActif) : niveauActif;
   
   currentStatsData = HiraganaList
-    .filter(item => parseInt(item.Niveau) < maxLevelReached)
+    .filter(item => parseInt(item.Niveau) <= maxLevelReached)
+
     .map(item => {
       const id = parseInt(item.ID);
       const validation = validationCache[id] || 0;
@@ -6734,6 +6735,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
