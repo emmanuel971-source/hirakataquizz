@@ -4150,7 +4150,7 @@ function renderStatsTable(data, filter) {
     filtered = data.filter(item => {
       if (filter === 'acquired') return item.statutClass === 'acquired';
       if (filter === 'review') return item.statutClass === 'review';
-      if (filter === 'progress') return item.statutClass === 'in-progress';
+      if (filter === 'progress') return item.statutClass === 'progress';
       return true;
     });
   }
@@ -6734,6 +6734,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
