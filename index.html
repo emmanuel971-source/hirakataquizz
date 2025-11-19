@@ -2422,6 +2422,8 @@
   max-height: 60vh;
   overflow-y: auto;
   position: relative;
+  padding: 1em;   /* ajoute un espace autour du tableau */
+  box-sizing: border-box;
 }
 
 /* Tableau */
@@ -2432,15 +2434,17 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
   border-collapse: separate;
   border-spacing: 0;
+  box-shadow: none;
 }
 
 /* Header fixe */
 .stats-table thead {
   background: rgba(139, 111, 71, 0.1);
   position: sticky;
+  top: 60px; /* hauteur du header/bandeau */
+  z-index: 15;
   top: 0;
-  z-index: 10;
-}
+  }
 
 .stats-table th {
   padding: 1em;
@@ -2502,6 +2506,10 @@
   }
 
   .stats-table-container {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 
+                0 3px 6px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    background: white;
     margin: 0.5em auto 1em auto;
     max-height: 50vh;
   }
@@ -4159,7 +4167,7 @@ function renderStatsTable(data, filter) {
   // Trier par niveau puis par ID
   filtered.sort((a, b) => {
     if (a.niveau !== b.niveau) return a.niveau - b.niveau;
-    return a.id - b.id;
+    return b.id - a.id;
   });
   
   // Générer le HTML
@@ -6735,6 +6743,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
