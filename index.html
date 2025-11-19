@@ -2416,6 +2416,7 @@
 
 /* Conteneur du tableau avec scroll */
 .stats-table-container {
+   padding-top: 70px; /* Décale les lignes pour qu'elles n'entrent jamais sous le bandeau */
   margin: 1em auto 2em auto;
   max-width: 1000px;
   padding: 0 1em;
@@ -2442,7 +2443,6 @@
   background: rgba(139, 111, 71, 0.1);
   position: sticky;
   top: 60px; /* hauteur du header/bandeau */
-  z-index: 15;
   top: 0;
   }
 
@@ -4165,10 +4165,13 @@ function renderStatsTable(data, filter) {
   }
   
   // Trier par niveau puis par ID
-  filtered.sort((a, b) => {
-    if (a.niveau !== b.niveau) return a.niveau - b.niveau;
-    return b.id - a.id;
-  });
+filtered.sort((a, b) => {
+  const nivA = parseInt(a.niveau);
+  const nivB = parseInt(b.niveau);
+
+  if (nivA !== nivB) return nivB - nivA;  // Dernier niveau en haut
+  return b.id - a.id;                    // Et dernier item en haut
+});
   
   // Générer le HTML
   if (filtered.length === 0) {
@@ -6693,6 +6696,35 @@ console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 
 </script>
+<script>
+function adjustStatsTableOffset() {
+  const menu = document.getElementById('menu');
+  const container = document.querySelector('.stats-table-container');
+
+  if (!menu || !container) return;
+
+  // Hauteur réelle du menu
+  const menuHeight = menu.offsetHeight;
+
+  // Appliquer un padding équivalent
+  container.style.paddingTop = menuHeight + 'px';
+}
+
+// Lancer quand la page est chargée
+window.addEventListener('load', adjustStatsTableOffset);
+
+// Lancer lors d’un changement de taille (mobile -> landscape)
+window.addEventListener('resize', adjustStatsTableOffset);
+
+// Lancer aussi quand la section "stats" s’ouvre
+const originalShowSection = showSection;
+showSection = function(sectionId) {
+  originalShowSection(sectionId);
+  if (sectionId === 'stats') {
+    setTimeout(adjustStatsTableOffset, 50);
+  }
+}
+</script>
   
 </body>
 <script>
@@ -6743,6 +6775,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
