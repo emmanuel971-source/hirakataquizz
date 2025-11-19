@@ -205,9 +205,9 @@
   }
     
 /* BARRE DE DEBLOCAGE DU MODE REVISION - DESKTOP */    
-/* Conteneur de la barre de progression */
-#unlock-progress-container,
-.unlock-progress-container {
+/* Conteneur de la barre de ion */
+#unlock--container,
+.unlock--container {
   margin: 15px auto;            /* Centrer le container */
   padding: 10px;
   background: rgba(255, 255, 255, 0.1);
@@ -4082,12 +4082,9 @@ function generateStatsPage() {
       } else if (validation >= 5) {
         statutEmoji = '🌾'; // À pratiquer = Pousse
         statutClass = 'review';
-      } else if (stats.tentatives > 0) {
+      } else {
         statutEmoji = '🌱'; // En apprentissage = Outil
         statutClass = 'in-progress';
-      } else {
-        statutEmoji = '🗒️'; // Non commencé = Graine
-        statutClass = 'not-started';
       }
       
       return {
@@ -6742,6 +6739,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
