@@ -4077,13 +4077,13 @@ function generateStatsPage() {
       let statutClass = '';
       
       if (validation >= seuilValidation) {
-        statutEmoji = '🌸'; // Maîtrisé = Fleur de cerisier
+        statutEmoji = '🌸'; 
         statutClass = 'acquired';
       } else if (validation >= 5) {
-        statutEmoji = '🌾'; // À pratiquer = Pousse
+        statutEmoji = '🌾';
         statutClass = 'review';
       } else {
-        statutEmoji = '🌱'; // En apprentissage = Outil
+        statutEmoji = '🌱'; 
         statutClass = 'in-progress';
       }
       
@@ -4118,7 +4118,7 @@ function updateFilterCounts(data) {
     all: data.length,
     acquired: data.filter(item => item.statutClass === 'acquired').length,
     review: data.filter(item => item.statutClass === 'review').length,
-    progress: data.filter(item => item.statutClass === 'in-progress').length
+    progress: data.filter(item => item.statutClass === 'in-progress').length,
   };
   
   document.getElementById('count-all').textContent = `(${counts.all})`;
@@ -6739,6 +6739,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
