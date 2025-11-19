@@ -2482,7 +2482,7 @@
   background: rgba(168, 213, 186, 0.05);
 }
 
-.stats-table tbody tr.in-progress {
+.stats-table tbody tr.progress {
   background: rgba(139, 111, 71, 0.03);
 }
 
@@ -4062,17 +4062,15 @@ let currentStatsData = [];
 function generateStatsPage() {
   console.log('🎋 Génération de Mon Parcours...');
   
-  // ✅ Filtrer pour ne montrer QUE les niveaux déjà atteints
   const maxLevelReached = currentUser ? (currentUser.niveau_actif || niveauActif) : niveauActif;
   
   currentStatsData = HiraganaList
-    .filter(item => parseInt(item.Niveau) < maxLevelReached) // ✅ Exclure le niveau actif et suivants
+    .filter(item => parseInt(item.Niveau) < maxLevelReached)
     .map(item => {
       const id = parseInt(item.ID);
       const validation = validationCache[id] || 0;
       const stats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
       
-      // Déterminer le statut avec emojis nature
       let statutEmoji = '';
       let statutClass = '';
       
@@ -4084,7 +4082,7 @@ function generateStatsPage() {
         statutClass = 'review';
       } else {
         statutEmoji = '🌱'; 
-        statutClass = 'in-progress';
+        statutClass = 'progress'; // ✅ CHANGÉ DE 'in-progress' à 'progress'
       }
       
       return {
@@ -4103,10 +4101,7 @@ function generateStatsPage() {
   
   console.log(`🎋 Items affichés: ${currentStatsData.length} (niveaux < ${maxLevelReached})`);
   
-  // Mettre à jour les compteurs
   updateFilterCounts(currentStatsData);
-  
-  // Afficher le tableau
   renderStatsTable(currentStatsData, 'all');
 }
 
@@ -4118,7 +4113,7 @@ function updateFilterCounts(data) {
     all: data.length,
     acquired: data.filter(item => item.statutClass === 'acquired').length,
     review: data.filter(item => item.statutClass === 'review').length,
-    progress: data.filter(item => item.statutClass === 'in-progress').length,
+    progress: data.filter(item => item.statutClass === 'progress').length // ✅ 'progress' au lieu de 'in-progress'
   };
   
   document.getElementById('count-all').textContent = `(${counts.all})`;
@@ -6739,6 +6734,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
