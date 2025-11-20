@@ -1153,6 +1153,11 @@
   align-items: center;
   justify-content: center;
 }
+/* Masquer le hamburger quand le menu est ouvert */
+.menu.active ~ .hamburger {
+  display: none;
+}
+    
 #welcome.active ~ * .hamburger,
 #-section.active ~ * .hamburger {
   display: none;
@@ -6766,6 +6771,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
