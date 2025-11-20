@@ -3873,32 +3873,14 @@ function correctPin() {
   // Nettoyer le PIN temporaire
   delete window.tempPin;
 }    
-// Remplacez votre fonction toggleMenu par celle-ci.
 function toggleMenu() {
-    const menu = document.getElementById('menu');
-    const menuBtn = document.querySelector('.hamburger');
-    
-    // Inverse l'état 'active' du menu
-    const isOpening = !menu.classList.contains('active');
-
-    if (isOpening) {
-        // Le menu s'ouvre : on masque le bouton hamburger
-        menu.classList.add('active');
-        if (menuBtn) {
-            menuBtn.classList.add('hidden');
-        }
-    } else {
-        // Le menu se ferme : on le masque
-        menu.classList.remove('active');
-
-        // On réaffiche le bouton UNIQUEMENT si l'on n'est PAS sur une section de "démarrage"
-        // (La fonction showSection assure qu'il est masqué sur les pages d'accueil/login)
-        const activeSectionId = document.querySelector('.section.active')?.id;
-        
-        if (menuBtn && activeSectionId !== 'welcome' && activeSectionId !== 'create-account' && activeSectionId !== 'login') {
-             menuBtn.classList.remove('hidden');
-        }
-    }
+  const menu = document.getElementById('menu');
+  menu.classList.toggle('active');
+  
+  // NOUVEAU : Vérifier l'état des boutons à chaque ouverture du menu
+  if (menu.classList.contains('active')) {
+    updateMenuButtonStates();
+  }
 }
 function loadDifficulty() {
   const saved = localStorage.getItem("difficulty");
@@ -3961,54 +3943,115 @@ alert(`${t('difficulty_set')} ${value}`);
 
 
 }
-// Remplacez votre fonction showSection par celle-ci.
-function showSection(id) {
-    const sections = document.querySelectorAll('.section');
-    const menu = document.getElementById('menu');
-    const menuBtn = document.querySelector('.hamburger');
-
-    // 1. Fermeture du menu si ouvert
-    menu.classList.remove('active');
-
-    // 2. Masquage de toutes les sections et affichage de la section demandée
-    sections.forEach(section => {
-        if (section.id === id) {
-            section.classList.add('active');
-        } else {
-            section.classList.remove('active');
+function showSection(sectionId) {
+  // NOUVEAU : Vérifier le blocage seulement lors du retour au menu depuis le mode révision
+  if (sectionId === 'menu-section' && revisionMode.isActive) {
+    const wasBlocked = hasShownBlockedMenu; // État précédent
+    const isNowBlocked = isApprentissageBloque();
+    
+    // Mettre à jour l'état des boutons
+    updateApprendreButtonState();
+    
+    // Afficher message approprié
+    if (isNowBlocked && !wasBlocked) {
+      // Passage de débloqué à bloqué
+      setTimeout(() => {
+        const menu = document.getElementById('menu');
+        const menuMessage = document.getElementById('menu-message');
+        menu.classList.add('active');
+        menuMessage.innerText = t('menu_msg_blocked'); // ✅ MODIFIÉ
+        hasShownBlockedMenu = true;
+      }, 500);
+    } else if (!isNowBlocked && wasBlocked) {
+      // Passage de bloqué à débloqué
+      setTimeout(() => {
+        const menu = document.getElementById('menu');
+        const menuMessage = document.getElementById('menu-message');
+        menu.classList.add('active');
+        menuMessage.innerText = t('menu_msg_unblocked'); // ✅ MODIFIÉ
+        hasShownBlockedMenu = false;
+        hasShownUnblockedMenu = true;
+      }, 500);
+    } else if (isNowBlocked) {
+      // Toujours bloqué
+      setTimeout(() => {
+        const menuMessage = document.getElementById('menu-message');
+        if (menuMessage) {
+          menuMessage.innerText = t('menu_msg_still_blocked'); // ✅ MODIFIÉ
         }
-    });
-
-    // 3. Mise à jour des données spécifiques à certaines sections
-    if (id === 'stats') {
-        showStats();
-    } else if (id === 'options') {
-        showOptions();
-    } else if (id === 'account') {
-        showAccount();
+      }, 500);
     }
+    // Si on quitte le mode révision
+  if (sectionId !== 'mode2') { // 'mode2' est l'ID de la section révision
+    revisionMode.isActive = false;
+    hasUnlockedInRevision = false; // Réinitialiser pour la prochaine session
+  }
+  }
 
-    // Mise à jour de la barre de progression pour toutes les sections de "jeu"
-    if (id === 'quiz' || id === 'mode2') {
-        renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-        // Assurez-vous que l'état de l'apprentissage est correct à chaque affichage
-        updateApprendreButtonState();
-        updateRevisionButtonState(); 
-    }
+  // NOUVEAU : Vérifier systématiquement l'état du bouton Apprendre à chaque passage par le menu
+  if (sectionId === 'menu-section') {
+    updateApprendreButtonState();
+    updateMenuSectionMessage();
+  }
 
-    // <<< NOUVEAU >>> : Gestion de la visibilité du bouton hamburger
-    if (menuBtn) {
-        // Le bouton est caché pour l'accueil, la création/connexion.
-        // C'est logique car on n'a nulle part où revenir sur ces pages.
-        if (id === 'welcome' || id === 'create-account' || id === 'login') {
-            menuBtn.classList.add('hidden');
-        } else {
-            // Le bouton est affiché pour toutes les autres sections (quiz, stats, options...)
-            // Cela permet à l'utilisateur de revenir facilement au menu principal.
-            menuBtn.classList.remove('hidden');
-        }
+  // Vérifier si on essaie d'accéder au mode révision
+  if (sectionId === 'mode2' && !isRevisionModeAvailable()) {
+    console.log('Mode révision non disponible');
+    return;
+  }
+
+  // SUPPRIMER la redirection automatique vers le mode révision
+  // Le bouton bloqué ne doit plus rediriger, il doit juste être inopérant
+  
+document.querySelectorAll('.section').forEach(section => {
+    section.classList.remove('active');
+  });
+  document.getElementById(sectionId).classList.add('active');
+  
+  if (sectionId === 'create-account') {
+    initPseudoCache();
+    generateNewPseudo();
+  }
+  
+  // Démarrer le mode révisions si c'est le mode sélectionné
+  if (sectionId === 'mode2') {
+    wasBlockedWhenEnteringRevision = isApprentissageBloque();
+    if (wasBlockedWhenEnteringRevision) {
+      deficitInitialRevision = calculerDeficitValidation();
+      pointsGagnesEnRevision = 0;
+      console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
     }
+    hasUnlockedInRevision = false;
+    revisionMode.isActive = true;
+    setTimeout(() => {
+      initRevisionKeyboard();
+      startRevisionQuestion();
+    }, 100);
+  } else {
+    revisionMode.isActive = false;
+    wasBlockedWhenEnteringRevision = false;
+  }
+  
+  // ✅ NOUVEAU : Générer une question quand on ouvre le mode Apprendre
+  if (sectionId === 'quiz') {
+    console.log('🎮 Ouverture mode Apprendre, génération d\'une question...');
+    setTimeout(() => {
+      nextQuestion();
+    }, 100);
+  }
+    // ✅ NOUVEAU : Générer les stats quand on ouvre la page stats
+  if (sectionId === 'stats') {
+    console.log('📊 Ouverture page stats...');
+    setTimeout(() => {
+      generateStatsPage();
+    }, 100);
+  }
+  if (sectionId !== 'create-account') {
+    toggleMenu();
+  }
+
 }
+
 // ========================================
 // MON PARCOURS - FUNCTIONS
 // ========================================
@@ -6725,6 +6768,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
+
+  
+
 
 
 
