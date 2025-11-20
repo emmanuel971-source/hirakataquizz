@@ -6307,45 +6307,64 @@ function startRevisionQuestion() {
   const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]').map(id => parseInt(id));
 
   let selectedItem;
-  const RANDOM_RATIO = 0.2; // 20% pour tirage aléatoire pur
+ const apprendreBloque = isApprentissageBloque();
 
-  if (Math.random() < RANDOM_RATIO) {
-    // 🎲 TIRAGE ALÉATOIRE PUR (20%) - Filtré seulement par le tampon
+let selectedItem;
+
+if (!apprendreBloque) {
+    // 🎲 Mode Apprendre OUVERT → tirage aléatoire pur
     const randomItems = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
     const finalRandomItems = randomItems.length >= 4 ? randomItems : availableItems;
-    
+
     selectedItem = finalRandomItems[Math.floor(Math.random() * finalRandomItems.length)];
-    
-    console.log(`🎲 TIRAGE ALÉATOIRE (20%)`);
-    console.log(`📋 Items disponibles pour tirage aléatoire: ${finalRandomItems.length}/${availableItems.length}`);
-    console.log(`🔍 Items filtrés par tampon:`, finalRandomItems.map(item => `${item.key}(ID:${item.ID})`).join(', '));
-    
-  } else {
-    // ⚖️ TIRAGE PONDÉRÉ (80%) - Filtré par Validation ≤ 10 + tampon
-    const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) < seuilValidation);
-    const weightedItems = validationFilteredItems.filter(item => !recentItems.includes(parseInt(item.ID)));
-    
+
+    console.log("🎲 Tirage ALÉATOIRE (mode apprendre ouvert)");
+    console.log(`📋 Items aléatoires: ${finalRandomItems.length}/${availableItems.length}`);
+
+} else {
+    // ⚖️ Mode Apprendre BLOQUÉ → tirage pondéré
+    const validationFilteredItems = availableItems.filter(item => 
+        (validationCache[parseInt(item.ID)] || 0) < seuilValidation
+    );
+    const weightedItems = validationFilteredItems.filter(item => 
+        !recentItems.includes(parseInt(item.ID))
+    );
+
     let finalWeightedItems;
-    
+
     if (weightedItems.length >= 4) {
-      // Cas idéal : assez d'items respectant validation ≤ 10 ET hors tampon
-      finalWeightedItems = weightedItems;
+        finalWeightedItems = weightedItems;
     } else if (weightedItems.length > 0) {
-      // Peu d'items mais au moins quelques-uns : on les garde
-      finalWeightedItems = weightedItems;
+        finalWeightedItems = weightedItems;
     } else {
-      // Aucun item respectant les deux contraintes
-      // PRIORITÉ : éviter le tampon (libérer contrainte validation ≤ 10)
-      const itemsHorsTampon = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
-      if (itemsHorsTampon.length > 0) {
-        finalWeightedItems = itemsHorsTampon;
-        console.log(`⚠️ FALLBACK 1 - Libération contrainte Validation ≤ 10 pour éviter tampon`);
-      } else {
-        // Dernier recours : prendre tous les items (même dans le tampon)
-        finalWeightedItems = availableItems;
-        console.log(`⚠️ FALLBACK 2 - Tous les items utilisés (tampon ignoré)`);
-      }
+        const itemsHorsTampon = availableItems.filter(item =>
+            !recentItems.includes(parseInt(item.ID))
+        );
+        finalWeightedItems = itemsHorsTampon.length > 0 
+            ? itemsHorsTampon 
+            : availableItems;
     }
+
+    const weights = finalWeightedItems.map(item => {
+        const stats = statsCache.items[parseInt(item.ID)] || { pourcentage: 0 };
+        const pourcentage = stats.pourcentage;
+        return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
+    });
+
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let random = Math.random() * totalWeight;
+
+    for (let i = 0; i < finalWeightedItems.length; i++) {
+        random -= weights[i];
+        if (random <= 0) {
+            selectedItem = finalWeightedItems[i];
+            break;
+        }
+    }
+
+    console.log("⚖️ Tirage PONDÉRÉ (mode apprendre BLOQUÉ)");
+}
+
 
     // Tirage pondéré sur les items finaux
     const weights = finalWeightedItems.map(item => {
@@ -6767,6 +6786,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
