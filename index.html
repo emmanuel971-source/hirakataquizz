@@ -2556,57 +2556,54 @@
     font-size: 1.6em;
   }
 }
-    /* ====================== TOUT TON CSS D'ORIGINE (inchangé) ====================== */
-    html { touch-action: pan-x pan-y; -ms-touch-action: pan-x pan-y; }
-    * { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
-    body { background: #F8F1E9; font-family: 'Noto Sans JP', sans-serif; color: #8B6F47; font-family: sans-serif; text-align: center; padding: 0.5em 1em 1em 1em; margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-    body::before { content: ''; position: absolute; top: 0; left: 0; background: url('https://www.transparenttextures.com/patterns/paper-fibers.png'); opacity: 0.1; z-index: -1; }
-    /* … (tout le reste de ton CSS exactement comme avant) … */
-    /* (je le garde identique pour ne pas alourdir le message, tu le reconnais) */
-    /* ====================== FIN DU CSS ====================== */
   </style>
 </head>
 <body>
   <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">☰</button>  -->
 <!-- Bouton hamburger -->
-<!-- Bouton hamburger -->
-  <button class="hamburger" onclick="toggleMenu()">
-    <div class="hamburger-icon">
-      <div class="hamburger-bar"></div>
-      <div class="hamburger-bar"></div>
-      <div class="hamburger-bar"></div>
-    </div>
-  </button>
+<button class="hamburger" onclick="toggleMenu()">
 
-  <!-- Menu -->
-  <nav class="menu" id="menu">
-    <div id="menu-message" class="menu-message"></div>
-    <button class="arcade-button" onclick="showSection('quiz')" data-i18n="menu_learn">Apprendre</button>
-    <button class="arcade-button" id="revision-button" onclick="showSection('mode2')" data-i18n="menu_revision">Mode révisions</button>
-    <button class="arcade-button" onclick="showSection('stats')" data-i18n="menu_stats">Mon parcours</button>
-    <button class="arcade-button" onclick="showSection('options')" data-i18n="menu_options">Options</button>
-    <button class="arcade-button" onclick="showSection('account')" data-i18n="account_title">Mon compteur</button>
-    <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>
-  </nav>
-
-  <!-- Section Page d'accueil -->
-  <div id="welcome" class="section active">
-    <div class="panda-logo" onclick="">Panda</div>
-    <h1 class="welcome-title" data-i18n="welcome_title">Kanas-Zen-Garden</h1>
-    <p class="welcome-subtitle" data-i18n="welcome_subtitle">Apprenez à Lire le Japonais</p>
-    <div class="loading-dots" id="loadingText" data-i18n="loading_initial">(Chargement... )</div>
-    <div id="loading-progress-container" style="display: none; width: 80%; max-width: 400px; margin: 20px auto;">
-      <div style="background: rgba(139, 111, 71, 0.2); border-radius: 10px; overflow: hidden; height: 10px;">
-        <div id="loading-progress-fill" style="background: linear-gradient(90deg, #d4edda, #d4edda); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
-      </div>
-    </div>
+  <div class="hamburger-icon">
+    <div class="hamburger-bar"></div>
+    <div class="hamburger-bar"></div>
+    <div class="hamburger-bar"></div>
   </div>
+</button>
+<!-- Menu -->
 
-  <!-- Section Quiz -->
-  <div id="quiz" class="section">
-    <h1 data-i18n="quiz_title">Apprenez les Kanas</h1>
-    <div id="progressBarContainer"></div>
-    <div class="level" id="levelDisplay" data-i18n="quiz_level_prefix">Niveau actuel : 1</div>
+<nav class="menu" id="menu">
+  <div id="menu-message" class="menu-message"></div>
+  <button class="arcade-button" onclick="showSection('quiz')" data-i18n="menu_learn">Apprendre</button>
+  <button class="arcade-button" id="revision-button" onclick="showSection('mode2')" data-i18n="menu_revision">Mode révisions</button>
+  <button class="arcade-button" onclick="showSection('stats')" data-i18n="menu_stats">Mes stats</button>
+  <button class="arcade-button" onclick="showSection('options')" data-i18n="menu_options">Options</button>
+  <button class="arcade-button" onclick="showSection('account')" data-i18n="account_title">Mon compte</button>
+  <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>
+</nav>
+
+<!-- Section Page d'accueil -->
+<div id="welcome" class="section active">
+  <div class="panda-logo" onclick="">🐼</div>
+  <h1 class="welcome-title" data-i18n="welcome_title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
+  <p class="welcome-subtitle" data-i18n="welcome_subtitle">Apprenez à Lire le Japonais</p>
+  <div class="loading-dots" id="loadingText">(Chargement... )</div>
+
+<!-- ✅ NOUVEAU : Barre de progression -->
+<div id="loading-progress-container" style="display: none; width: 80%; max-width: 400px; margin: 20px auto;">
+  <div style="background: rgba(139, 111, 71, 0.2); border-radius: 10px; overflow: hidden; height: 10px;">
+    <div id="loading-progress-fill" style="background: linear-gradient(90deg, #d4edda, #d4edda); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+  </div>
+<!--   <div id="loading-message" style="text-align: center; margin-top: 10px; font-size: 1em; color: #8B6F47;"></div> -->
+</div>
+</div>
+  <!-- Section Menu -->
+
+
+<!-- Section Quiz -->
+<div id="quiz" class="section">
+  <h1 data-i18n="quiz_title">🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>
+  <div id="progressBarContainer"></div>
+  <div class="level" id="levelDisplay">Niveau actuel : 1</div>
     <div class="level-hiraganas">
       <div class="hiraganas-grid" id="hiraganaCards"></div>
     </div>
@@ -2618,184 +2615,113 @@
       </div>
       <div>
         <div class="result" id="result"></div>
-        <button class="arcade-button" id="continueBtn" onclick="nextQuestion()" data-i18n="quiz_continue">OK... j'ai capté</button>
-        <button class="arcade-button" id="boutonInstaller" data-i18n="quiz_install">Ajouter à l'écran d'accueil</button>
-      </div>
+  <button class="arcade-button" id="continueBtn" onclick="nextQuestion()" data-i18n="quiz_continue">🌱 OK... j'ai capté 🌱</button>
+  <button class="arcade-button" id="boutonInstaller" data-i18n="quiz_install">Ajouter à l'écran d'accueil</button>
+</div>
     </div>
   </div>
 
-  <!-- Section Mode révisions -->
-  <div id="mode2" class="section">
-    <h2 data-i18n="revision_title">Réviser les Kanas</h2>
-    <div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
-      <div class="unlock-progress-bar">
-        <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
-      </div>
-    </div>
-    <div id="revision-question"></div>
-    <div id="revision-input-display"></div>
+  <!-- Section Mode Katakana -->
+<!-- Section Mode révisions -->
+<div id="mode2" class="section">
+  <h2 data-i18n="revision_title">🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
+<div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
+  <div class="unlock-progress-bar">
+    <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
+  </div>
+</div>
+
+  <div id="revision-question"></div>
+  
+  <div id="revision-input-display"></div>
     <div class="revision-keyboard">
-      <!-- touches inchangées -->
-      <div class="revision-key">a</div><div class="revision-key">i</div><div class="revision-key">u</div><div class="revision-key">e</div><div class="revision-key">o</div>
-      <div class="revision-key">k</div><div class="revision-key">g</div><div class="revision-key">y</div><div class="revision-key">h</div><div class="revision-key">f</div>
-      <div class="revision-key">t</div><div class="revision-key">ts</div><div class="revision-key">d</div><div class="revision-key">b</div><div class="revision-key">p</div>
-      <div class="revision-key">s</div><div class="revision-key">sh</div><div class="revision-key">z</div><div class="revision-key">j</div><div class="revision-key">ch</div>
-      <div class="revision-key">m</div><div class="revision-key">n</div><div class="revision-key">r</div><div class="revision-key">w</div>
-      <div class="revision-key" id="revision-back">Back</div>
-    </div>
-    <div id="revision-message" data-i18n="revision_enter_romaji">Tape le romaji</div>
+    <div class="revision-key">a</div>
+    <div class="revision-key">i</div>
+    <div class="revision-key">u</div>
+    <div class="revision-key">e</div>
+    <div class="revision-key">o</div>
+    <div class="revision-key">k</div>
+    <div class="revision-key">g</div>
+    <div class="revision-key">y</div>
+    <div class="revision-key">h</div>
+    <div class="revision-key">f</div>
+    <div class="revision-key">t</div>
+    <div class="revision-key">ts</div>
+    <div class="revision-key">d</div>
+    <div class="revision-key">b</div>
+    <div class="revision-key">p</div>
+    <div class="revision-key">s</div>
+    <div class="revision-key">sh</div>
+    <div class="revision-key">z</div>
+    <div class="revision-key">j</div>
+    <div class="revision-key">ch</div>
+    <div class="revision-key">m</div>
+    <div class="revision-key">n</div>
+    <div class="revision-key">r</div>
+    <div class="revision-key">w</div>
+    <div class="revision-key" id="revision-back">←</div>
+  </div>
+ <div id="revision-message"></div> 
+</div>
+
+<!-- Section Options -->
+<div id="options" class="section">
+  <h1 data-i18n="options_title">Options</h1>
+  <div class="options-menu">
+    <button class="arcade-button" onclick="showSubOptions('difficulty')" data-i18n="options_difficulty">Difficulté</button>
+    <button class="arcade-button" onclick="showSubOptions('sound')" data-i18n="options_sound">Son</button>
+    <button class="arcade-button" onclick="showSubOptions('language')" data-i18n="options_language">Langue</button>
   </div>
 
-  <!-- Section Options -->
-  <div id="options" class="section">
-    <h1 data-i18n="options_title">Options</h1>
-    <div class="options-menu">
-      <button class="arcade-button" onclick="showSubOptions('difficulty')" data-i18n="options_difficulty">Difficulté</button>
-      <button class="arcade-button" onclick="showSubOptions('sound')" data-i18n="options_sound">Son</button>
-      <button class="arcade-button" onclick="showSubOptions('language')" data-i18n="options_language">Langue</button>
-    </div>
-    <div id="options-difficulty" class="options-sub hidden">
-      <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">Retour</button>
-      <h2 data-i18n="options_difficulty">Difficulté</h2>
-      <button class="arcade-button" onclick="setDifficulty(6)" data-i18n="difficulty_easy">Facile (6)</button>
-      <button class="arcade-button" onclick="setDifficulty(8)" data-i18n="difficulty_medium">Moyen (8)</button>
-      <button class="arcade-button" onclick="setDifficulty(10)" data-i18n="difficulty_hard">Hard (10)</button>
-    </div>
-    <div id="options-sound" class="options-sub hidden">
-      <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">Retour</button>
-      <h2 data-i18n="options_sound">Son</h2>
-      <p>Ici tu pourras ajouter des réglages (volume, mute, etc.)</p>
-    </div>
-    <div id="options-language" class="options-sub hidden">
-      <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">Retour</button>
-      <h2 data-i18n="options_language">Langue</h2>
-      <button class="arcade-button" onclick="setLanguage('fr')">Français</button>
-      <button class="arcade-button" onclick="setLanguage('en')">English</button>
-      <button class="arcade-button" onclick="setLanguage('es')">Español</button>
-    </div>
+  <!-- Sous-rubrique Difficulté -->
+  <div id="options-difficulty" class="options-sub hidden">
+    <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
+    <h2 data-i18n="options_difficulty">Difficulté</h2>
+    <button class="arcade-button" onclick="setDifficulty(6)" data-i18n="difficulty_easy">Facile (6)</button>
+    <button class="arcade-button" onclick="setDifficulty(8)" data-i18n="difficulty_medium">Moyen (8)</button>
+    <button class="arcade-button" onclick="setDifficulty(10)" data-i18n="difficulty_hard">Hard (10)</button>
   </div>
 
-  <!-- Section Mon compte & Création / Connexion -->
-  <div id="account" class="section">
-    <h1 data-i18n="account_title">Mon compte</h1>
-    <div class="account-section">
-      <div class="account-info">
-        <div class="account-info-line">Pseudo : <span id="account-pseudo">-</span></div>
-        <div class="account-info-line">Niveau : <span id="account-level">-</span></div>
-      </div>
-      <div class="button-group">
-        <button class="arcade-button" onclick="showChangeDevice()" data-i18n="account_change_device">Changer d'appareil</button>
-        <button class="arcade-button" onclick="backToMenu()" data-i18n="options_back">Retour au menu</button>
-      </div>
-    </div>
+  <!-- Sous-rubrique Son -->
+  <div id="options-sound" class="options-sub hidden">
+    <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
+    <h2 data-i18n="options_sound">Son</h2>
+    <p>🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)</p>
   </div>
+<!-- Sous-rubrique Langue -->
+<div id="options-language" class="options-sub hidden">
+  <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button>
+  <h2 data-i18n="options_language">Langue</h2>
+  <button class="arcade-button" onclick="setLanguage('fr')">🇫🇷 Français</button>
+  <button class="arcade-button" onclick="setLanguage('en')">🇬🇧 English</button>
+  <button class="arcade-button" onclick="setLanguage('es')">🇪🇸 Español</button>
+</div>
+</div>
+<!-- ========================================
+     HTML À AJOUTER APRÈS LA SECTION OPTIONS
+     ======================================== -->
 
-  <div id="create-account" class="section">
-    <h1 data-i18n="create_account_title">Bienvenue !</h1>
-    <div class="account-section">
-      <p data-i18n="create_account_subtitle">Choisissons ton pseudo zen</p>
-      <div class="pseudo-display" id="pseudo-proposal"><span id="pseudo-text">Panda</span></div>
-      <div id="create-error" class="error-message" style="display: none;"></div>
-      <div class="button-group">
-        <button class="arcade-button" onclick="generateNewPseudo()" data-i18n="create_account_regenerate">hum... je préfère changer</button>
-        <button class="arcade-button" onclick="showPinInput()" data-i18n="create_creation_validate" id="validate-pseudo-btn">Je valide !</button>
+<!-- Section Mon compte -->
+<div id="account" class="section">
+  <h1 data-i18n="account_title">Mon compte</h1>
+  
+  <div class="account-section">
+    <div class="account-info">
+      <div class="account-info-line">
+        🐼 <strong>Pseudo :</strong> <span id="account-pseudo">-</span>
       </div>
-      <div id="pin-input-section" style="display: none;">
-        <div class="pin-input-container">
-          <label class="pin-label" data-i18n="create_account_pin_label">Sécurise ton compte avec ta date de naissance (JJMM)</label>
-          <input type="number" id="pin-input" class="pin-input" placeholder="0000" maxlength="4" pattern="[0-9]{4}" />
-          <div style="font-size: 0.9em; color: #8B6F47; margin-top: 0.5em;" data-i18n="create_account_pin_example">Exemple : né(e) le 12 mai → 1205</div>
-        </div>
-        <div class="button-group">
-          <button class="arcade-button" onclick="validateAccount()" data-i18n="create_account_confirm">Valider mon compte</button>
-          <button class="arcade-button" onclick="hidePinInput()" data-i18n="create_account_back">Changer de pseudo</button>
-        </div>
-      </div>
-
-      <div id="pin-confirm-section" style="display: none;">
-        <div class="pin-confirm-box" style="background: rgba(168, 213, 186, 0.1); border: 2px solid #8B6F47; border-radius: 10px; padding: 20px; margin: 20px 0;">
-          <p style="font-size: 1.2em; margin-bottom: 10px;" data-i18n="create_account_pin_confirm_title">Confirmation de ta date de naissance</p>
-          <p style="font-size: 1.5em; font-weight: bold; color: #8B6F47; margin: 15px 0;" id="pin-confirm-text"></p>
-          <p style="font-size: 0.9em; color: #dc3545; font-weight: bold;" data-i18n="create_account_pin_confirm_warning">
-            Cette date te servira à récupérer ton compte en cas de besoin
-          </p>
-        </div>
-        <div class="button-group">
-          <button class="arcade-button" onclick="confirmPinAndCreateAccount()" data-i18n="create_account_confirm_yes">Oui, c'est correct</button>
-          <button class="arcade-button" onclick="correctPin()" data-i18n="create_account_correct_pin">Non, corriger</button>
-        </div>
+      <div class="account-info-line">
+        📊 <strong>Niveau :</strong> <span id="account-level">-</span>
       </div>
     </div>
 
-    <div id="account-creation-loader" class="section" style="display: none;">
-      <div class="zen-loader-container">
-        <div class="zen-circle-loader"><div class="bamboo-leaf">Leaf</div></div>
-        <p class="zen-loader-text" data-i18n="account_creation_loading">Préparation de ton jardin zen...</p>
-      </div>
-    </div>
-
-    <div id="welcome-screen" class="section" style="display: none;">
-      <div class="welcome-animation-container">
-        <div class="sakura-rain"></div>
-        <h1 class="welcome-user-title"></h1>
-        <p class="welcome-user-subtitle" data-i18n="welcome_returning_user">Ton voyage commence maintenant</p>
-      </div>
-    </div>
-  </div>
-
-  <div id="login" class="section">
-    <h1 data-i18n="login_title">Connexion</h1>
-    <div class="account-section">
-      <p data-i18n="login_subtitle">Retrouve ton compte</p>
-      <div class="pin-input-container">
-        <label class="pin-label" data-i18n="login_pseudo_label">Ton pseudo</label>
-        <input type="text" id="login-pseudo" class="pin-input" placeholder="さくらDragon" style="font-size: 1.5em; width: 250px;">
-      </div>
-      <div class="pin-input-container">
-        <label class="pin-label" data-i18n="login_pin_label">Ton PIN (JJMM)</label>
-        <input type="number" id="login-pin" class="pin-input" placeholder="0000" maxlength="4">
-      </div>
-      <div id="login-error" class="error-message" style="display: none;"></div>
-      <div id="login-success" class="success-message" style="display: none;"></div>
-      <div class="button-group">
-        <button class="arcade-button" onclick="loginUser()" data-i18n="login_connect">Me connecter</button>
-        <button class="arcade-button" onclick="backToMenu()" data-i18n="options_back">Retour</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section Mes Stats / Mon parcours -->
-  <div id="stats" class="section">
-    <h1 data-i18n="stats_title">Mes Statistiques</h1>
-    <div class="stats-filters">
-      <button class="arcade-button filter-btn active" data-filter="all" onclick="filterStats('all')">
-        <span data-i18n="stats_filter_all">Tous</span> <span id="count-all">(0)</span>
-      </button>
-      <button class="arcade-button filter-btn" data-filter="acquired" onclick="filterStats('acquired')">
-        <span data-i18n="stats_filter_acquired">Acquis</span> <span id="count-acquired">(0)</span>
-      </button>
-      <button class="arcade-button filter-btn" data-filter="review" onclick="filterStats('review')">
-        <span data-i18n="stats_filter_review">À réviser</span> <span id="count-review">(0)</span>
-      </button>
-      <button class="arcade-button filter-btn" data-filter="progress" onclick="filterStats('progress')">
-        <span data-i18n="stats_filter_progress">En cours</span> <span id="count-progress">(0)</span>
-      </button>
-    </div>
-    <div class="stats-table-container">
-      <table class="stats-table">
-        <thead>
-          <tr>
-            <th data-i18n="stats_table_hiragana">Hiragana</th>
-            <th data-i18n="stats_table_katakana">Katakana / Trad.</th>
-            <th data-i18n="stats_table_romaji">Romaji</th>
-            <th data-i18n="stats_table_status">Statut</th>
-          </tr>
-        </thead>
-        <tbody id="stats-table-body"></tbody>
-      </table>
-    </div>
     <div class="button-group">
-      <button class="arcade-button" onclick="backToMenu()" data-i18n="options_back">Retour</button>
+      <button class="arcade-button" onclick="showChangeDevice()" data-i18n="account_change_device">
+        📱 Changer d'appareil
+      </button>
+      <button class="arcade-button" onclick="backToMenu()" data-i18n="options_back">
+        ← Retour au menu
+      </button>
     </div>
   </div>
 </div>
@@ -2971,73 +2897,268 @@
   <script>
     // === SYSTÈME DE TRADUCTION ===
 const translations = {
-      fr: {
-        menu_learn: "Apprendre", menu_revision: "Mode révisions", menu_stats: "Mon parcours", menu_options: "Options", menu_close: "Fermer",
-        welcome_title: "Kanas-Zen-Garden", welcome_subtitle: "Apprenez à Lire le Japonais",
-        loading_initial: "Chargement...", welcome_touch: "Touchez le panda pour entrer !",
-        quiz_title: "Apprenez les Kanas", quiz_level_prefix: "Niveau actuel :", quiz_continue: "OK... j'ai capté", quiz_install: "Ajouter à l'écran d'accueil",
-        revision_title: "Réviser les Kanas", revision_enter_romaji: "Tape le romaji",
-        options_title: "Options", options_difficulty: "Difficulté", options_sound: "Son", options_language: "Langue", options_back: "Retour",
-        difficulty_easy: "Facile (6)", difficulty_medium: "Moyen (8)", difficulty_hard: "Hard (10)",
-        account_title: "Mon compte", account_change_device: "Changer d'appareil",
-        create_account_title: "Bienvenue !", create_account_subtitle: "Choisissons ton pseudo zen",
-        create_account_regenerate: "hum... je préfère changer", create_account_validate: "Je valide !",
-        create_account_pin_label: "Sécurise ton compte avec ta date de naissance (JJMM)", create_account_pin_example: "Exemple : né(e) le 12 mai → 1205",
-        create_account_confirm: "Valider mon compte", create_account_back: "Changer de pseudo",
-        create_account_pin_confirm_title: "Confirmation de ta date de naissance",
-        create_account_pin_confirm_warning: "Cette date te servira à récupérer ton compte en cas de besoin",
-        create_account_confirm_yes: "Oui, c'est correct", create_account_correct_pin: "Non, corriger",
-        account_creation_loading: "Préparation de ton jardin zen...",
-        welcome_returning_user: "Ton voyage continue",
-        login_title: "Connexion", login_subtitle: "Retrouve ton compte", login_pseudo_label: "Ton pseudo", login_pin_label: "Ton PIN (JJMM)", login_connect: "Me connecter",
-        stats_title: "Mes Statistiques", stats_filter_all: "Tous", stats_filter_acquired: "Acquis", stats_filter_review: "À réviser", stats_filter_progress: "En cours",
-        stats_table_hiragana: "Hiragana", stats_table_katakana: "Katakana / Trad.", stats_table_romaji: "Romaji", stats_table_status: "Statut"
-      },
-      en: {
-        menu_learn: "Learn", menu_revision: "Revision Mode", menu_stats: "My Journey", menu_options: "Options", menu_close: "Close",
-        welcome_title: "Kanas-Zen-Garden", welcome_subtitle: "Learn to Read Japanese",
-        loading_initial: "Loading...", welcome_touch: "Touch the panda to enter!",
-        quiz_title: "Learn the Kanas", quiz_level_prefix: "Current level:", quiz_continue: "OK... got it", quiz_install: "Add to home screen",
-        revision_title: "Review the Kanas", revision_enter_romaji: "Type the romaji",
-        options_title: "Options", options_difficulty: "Difficulty", options_sound: "Sound", options_language: "Language", options_back: "Back",
-        difficulty_easy: "Easy (6)", difficulty_medium: "Medium (8)", difficulty_hard: "Hard (10)",
-        account_title: "My Account", account_change_device: "Change Device",
-        create_account_title: "Welcome!", create_account_subtitle: "Let's choose your zen nickname",
-        create_account_regenerate: "Hmm... I prefer to change.", create_account_validate: "I approve!",
-        create_account_pin_label: "Your birth date (DDMM)", create_account_pin_example: "Example: born May 12th → 1205",
-        create_account_confirm: "Validate my account", create_account_back: "Change nickname",
-        create_account_pin_confirm_title: "Birth date confirmation",
-        create_account_pin_confirm_warning: "This date will be used to recover your account if needed",
-        create_account_confirm_yes: "Yes, that's correct", create_account_correct_pin: "No, correct it",
-        account_creation_loading: "Preparing your zen garden...",
-        welcome_returning_user: "Your journey continues",
-        login_title: "Login", login_subtitle: "Find your account", login_pseudo_label: "Your nickname", login_pin_label: "Your PIN (DDMM)", login_connect: "Connect",
-        stats_title: "My Statistics", stats_filter_all: "All", stats_filter_acquired: "Mastered", stats_filter_review: "To practice", stats_filter_progress: "Learning",
-        stats_table_hiragana: "Hiragana", stats_table_katakana: "Katakana / Trad.", stats_table_romaji: "Romaji", stats_table_status: "Status"
-      },
-      es: {
-        menu_learn: "Aprender", menu_revision: "Modo revisión", menu_stats: "Mi recorrido", menu_options: "Opciones", menu_close: "Cerrar",
-        welcome_title: "Kanas-Zen-Garden", welcome_subtitle: "Aprende a Leer Japonés",
-        loading_initial: "Cargando...", welcome_touch: "¡Toca el panda para entrar!",
-        quiz_title: "Aprende los Kanas", quiz_level_prefix: "Nivel actual:", quiz_continue: "OK... lo entendí", quiz_install: "Añadir a pantalla de inicio",
-        revision_title: "Revisar los Kanas", revision_enter_romaji: "Escribe el romaji",
-        options_title: "Opciones", options_difficulty: "Dificultad", options_sound: "Sonido", options_language: "Idioma", options_back: "Volver",
-        difficulty_easy: "Fácil (6)", difficulty_medium: "Medio (8)", difficulty_hard: "Difícil (10)",
-        account_title: "Mi Cuenta", account_change_device: "Cambiar de Dispositivo",
-        create_account_title: "¡Bienvenido!", create_account_subtitle: "Elige tu apodo zen",
-        create_account_regenerate: "Otro apodo", create_account_validate: "Valido este apodo",
-        create_account_pin_label: "Asegura tu cuenta con tu fecha de nacimiento (DDMM)", create_account_pin_example: "Ejemplo: nacido el 12 de mayo → 1205",
-        create_account_confirm: "Validar mi cuenta", create_account_back: "Cambiar apodo",
-        create_account_pin_confirm_title: "Confirmación de fecha de nacimiento",
-        create_account_pin_confirm_warning: "Esta fecha servirá para recuperar tu cuenta si es necesario",
-        create_account_confirm_yes: "Sí, es correcto", create_account_correct_pin: "No, corregir",
-        account_creation_loading: "Preparando tu jardín zen...",
-        welcome_returning_user: "Tu viaje continúa",
-        login_title: "Conexión", login_subtitle: "Encuentra tu cuenta", login_pseudo_label: "Tu apodo", login_pin_label: "Tu PIN (DDMM)", login_connect: "Conectarme",
-        stats_title: "Mis Estadísticas", stats_filter_all: "Todos", stats_filter_acquired: "Dominado", stats_filter_review: "A practicar", stats_filter_progress: "Aprendiendo",
-        stats_table_hiragana: "Hiragana", stats_table_katakana: "Katakana / Trad.", stats_table_romaji: "Romaji", stats_table_status: "Estado"
-      }
-    };
+  fr: {
+    // Menu
+    menu_learn: "Apprendre",
+    menu_revision: "Mode révisions",
+    menu_options: "Options",
+    menu_close: "Fermer",
+    
+    // Page d'accueil
+    welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
+    welcome_subtitle: "Apprenez à Lire le Japonais",
+    welcome_loading: "Chargement...",
+    welcome_touch: "Touchez le panda pour entrer !",
+    
+    // Quiz
+    quiz_title: "🎌⛩️ Apprenez les Kanas ⛩️🎌",
+    quiz_level: "Niveau actuel :",
+    quiz_continue: "🌱 OK... j'ai capté 🌱",
+    quiz_install: "Ajouter à l'écran d'accueil",
+    
+    // Révisions
+    revision_title: "🎌⛩️ Réviser les Kanas ⛩️🎌",
+    
+    // Options
+    options_title: "Options",
+    options_difficulty: "Difficulté",
+    options_sound: "Son",
+    options_language: "Langue",
+    options_back: "← Retour",
+    
+    // Difficulté
+    difficulty_easy: "Facile (6)",
+    difficulty_medium: "Moyen (8)",
+    difficulty_hard: "Hard (10)",
+    difficulty_set: "Difficulté réglée sur :",
+    
+    // Messages
+    msg_perfect: "Parfait !",
+    msg_validated: "Validé ! 🎉",
+    msg_almost: "Presque...",
+    msg_notquite: "Pas tout à fait...",
+    msg_correct: "👉 Bonne réponse :",
+    msg_level_up: "🍃LEVEL UP!🎋",
+    
+    // Messages menu
+    menu_msg_blocked: "Mode Apprendre bloqué",
+    menu_msg_unblocked: "Mode Apprendre débloqué !",
+    menu_msg_still_blocked: "Mode Apprendre encore bloqué",
+    menu_msg_revision_unlocked: "🎮 Mode révisions débloqué 🎮",
+    
+    // Révision disponibilité
+    revision_available_level4: "Mode révision disponible à partir du niveau 4",
+    revision_no_items: "Aucun item disponible pour révision",
+
+     // Mon compte
+  account_title: "Mon compte",
+  account_change_device: "📱 Changer d'appareil",
+  
+  // Création de compte
+  create_account_title: "Bienvenue ! 🌸",
+  create_account_subtitle: "Choisissons ton pseudo zen",
+  create_account_regenerate: "🤔 hum... je préfère changer",
+  create_account_validate: "✅ Je valide !",
+  create_account_pin_label: "Ta date de naissance (JJMM)",
+  create_account_pin_example: "Exemple : le 12 Mai → 1205",
+  create_account_confirm: "🐼 Valider mon compte",
+  create_account_back: "← Changer de pseudo",
+    // Mon Parcours (anciennement Stats)
+    menu_stats: "Mon parcours",
+    stats_title: "🐼 Mon Parcours",
+    stats_filter_all: "Tous",
+    stats_filter_acquired: "Maîtrisé",
+    stats_filter_review: "À entretenir",
+    stats_filter_progress: "En cours",
+    stats_table_hiragana: "Hiragana",
+    stats_table_katakana: "Kata/trad.",
+    stats_table_romaji: "Romaji",
+    stats_table_status: "Statut",
+  // Connexion
+  login_title: "Connexion 🔐",
+  login_subtitle: "Retrouve ton compte",
+  login_pseudo_label: "Ton pseudo",
+  login_pin_label: "Ton PIN (JJMM)",
+  login_connect: "🎋 Me connecter",
+  create_account_confirm_yes: "✅ Oui, c'est correct", // FR
+  create_account_correct_pin: "✏️ Non, corriger", // FR  
+  },
+  
+  en: {
+    // Menu
+    menu_learn: "Learn",
+    menu_revision: "Revision Mode",
+    menu_options: "Options",
+    menu_close: "Close",
+    
+    // Welcome page
+    welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
+    welcome_subtitle: "Learn to Read Japanese",
+    welcome_loading: "Loading...",
+    welcome_touch: "Touch the panda to enter!",
+    
+    // Quiz
+    quiz_title: "🎌⛩️ Learn the Kanas ⛩️🎌",
+    quiz_level: "Current level:",
+    quiz_continue: "🌱 OK... got it 🌱",
+    quiz_install: "Add to home screen",
+    
+    // Revision
+    revision_title: "🎌⛩️ Review the Kanas ⛩️🎌",
+    
+    // Options
+    options_title: "Options",
+    options_difficulty: "Difficulty",
+    options_sound: "Sound",
+    options_language: "Language",
+    options_back: "← Back",
+    
+    // Difficulty
+    difficulty_easy: "Easy (6)",
+    difficulty_medium: "Medium (8)",
+    difficulty_hard: "Hard (10)",
+    difficulty_set: "Difficulty set to:",
+    
+    // Messages
+    msg_perfect: "Perfect!",
+    msg_validated: "Validated! 🎉",
+    msg_almost: "Almost...",
+    msg_notquite: "Not quite...",
+    msg_correct: "👉 Correct answer:",
+    msg_level_up: "🍃LEVEL UP!🎋",
+    
+    // Menu messages
+    menu_msg_blocked: "Learn Mode blocked",
+    menu_msg_unblocked: "Learn Mode unblocked!",
+    menu_msg_still_blocked: "Learn Mode still blocked",
+    menu_msg_revision_unlocked: "🎮 Revision mode unlocked 🎮",
+    
+    // Revision availability
+    revision_available_level4: "Revision mode available from level 4",
+    revision_no_items: "No items available for revision",
+
+    // My account
+  account_title: "My Account",
+  account_change_device: "📱 Change Device",
+  
+  // Account creation
+  create_account_title: "Welcome! 🌸",
+  create_account_subtitle: "Let's choose your zen nickname",
+  create_account_regenerate: "🤔 Hmm... I prefer to change.",
+  create_account_validate: "✅ I approve!",
+  create_account_pin_label: "Your birth date (DDMM)",
+  create_account_pin_example: "Example: born May 12th → 1205",
+  create_account_confirm: "🐼 Validate my account",
+  create_account_back: "← Change nickname",
+    // Mon Parcours
+    menu_stats: "My journey",
+    stats_title: "🐼 My Journey",
+    stats_filter_all: "All",
+    stats_filter_acquired: "Mastered",
+    stats_filter_review: "To practice",
+    stats_filter_progress: "Learning",
+    stats_table_hiragana: "Hiragana",
+    stats_table_katakana: "Kata/trad.",
+    stats_table_romaji: "Romaji",
+    stats_table_status: "Status",
+ 
+  // Login
+  login_title: "Login 🔐",
+  login_subtitle: "Find your account",
+  login_pseudo_label: "Your nickname",
+  login_pin_label: "Your PIN (DDMM)",
+  login_connect: "🎋 Connect",
+  create_account_confirm_yes: "✅ Yes, that's correct", // EN
+  create_account_correct_pin: "✏️ No, correct it", // EN  
+  },
+  
+  es: {
+    // Menu
+    menu_learn: "Aprender",
+    menu_revision: "Modo revisión",
+    menu_options: "Opciones",
+    menu_close: "Cerrar",
+    
+    // Página de bienvenida
+    welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
+    welcome_subtitle: "Aprende a Leer Japonés",
+    welcome_loading: "Cargando...",
+    welcome_touch: "¡Toca el panda para entrar!",
+    
+    // Quiz
+    quiz_title: "🎌⛩️ Aprende los Kanas ⛩️🎌",
+    quiz_level: "Nivel actual:",
+    quiz_continue: "🌱 OK... lo entendí 🌱",
+    quiz_install: "Añadir a pantalla de inicio",
+    
+    // Revisión
+    revision_title: "🎌⛩️ Revisar los Kanas ⛩️🎌",
+    
+    // Opciones
+    options_title: "Opciones",
+    options_difficulty: "Dificultad",
+    options_sound: "Sonido",
+    options_language: "Idioma",
+    options_back: "← Volver",
+    
+    // Dificultad
+    difficulty_easy: "Fácil (6)",
+    difficulty_medium: "Medio (8)",
+    difficulty_hard: "Difícil (10)",
+    difficulty_set: "Dificultad ajustada a:",
+    
+    // Mensajes
+    msg_perfect: "¡Perfecto!",
+    msg_validated: "¡Validado! 🎉",
+    msg_almost: "Casi...",
+    msg_notquite: "No del todo...",
+    msg_correct: "👉 Respuesta correcta:",
+    msg_level_up: "🍃¡SUBIDA DE NIVEL!🎋",
+    
+    // Mensajes del menú
+    menu_msg_blocked: "Modo Aprender bloqueado",
+    menu_msg_unblocked: "¡Modo Aprender desbloqueado!",
+    menu_msg_still_blocked: "Modo Aprender aún bloqueado",
+    menu_msg_revision_unlocked: "🎮 Modo revisión desbloqueado 🎮",
+    
+    // Disponibilidad revisión
+    revision_available_level4: "Modo revisión disponible desde el nivel 4",
+    revision_no_items: "No hay elementos disponibles para revisión",
+     // Mi cuenta
+  account_title: "Mi Cuenta",
+  account_change_device: "📱 Cambiar de Dispositivo",
+  
+  // Creación de cuenta
+  create_account_title: "¡Bienvenido! 🌸",
+  create_account_subtitle: "Elige tu apodo zen",
+  create_account_regenerate: "🔄 Otro apodo",
+  create_account_validate: "✅ Valido este apodo",
+  create_account_pin_label: "Asegura tu cuenta con tu fecha de nacimiento (DDMM)",
+  create_account_pin_example: "Ejemplo: nacido el 12 de mayo → 1205",
+  create_account_confirm: "🎌 Validar mi cuenta",
+  create_account_back: "← Cambiar apodo",
+    // Mon Parcours
+    menu_stats: "Mi recorrido",
+    stats_title: "🐼 Mi Recorrido",
+    stats_filter_all: "Todos",
+    stats_filter_acquired: "Dominado",
+    stats_filter_review: "A practicar",
+    stats_filter_progress: "Aprendiendo",
+    stats_table_hiragana: "Hiragana",
+    stats_table_katakana: "Kata/trad.",
+    stats_table_romaji: "Romaji",
+    stats_table_status: "Estado",
+  // Conexión
+  login_title: "Conexión 🔐",
+  login_subtitle: "Encuentra tu cuenta",
+  login_pseudo_label: "Tu apodo",
+  login_pin_label: "Tu PIN (DDMM)",
+  login_connect: "🎋 Conectarme",
+  create_account_confirm_yes: "✅ Sí, es correcto", // ES
+  create_account_correct_pin: "✏️ No, corregir" // ES  
+  }
+};
+
 
 // Langue actuelle (par défaut français)
 let currentLanguage = localStorage.getItem('appLanguage') || 'fr';
@@ -6647,5 +6768,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
