@@ -3878,12 +3878,12 @@ function toggleMenu() {
   
   menu.classList.toggle('active');
   
-  // ✅ NOUVEAU : Masquer le hamburger quand le menu est ouvert
+  // ✅ CORRECTION : Utiliser une classe au lieu de style.display
   if (hamburger) {
     if (menu.classList.contains('active')) {
-      hamburger.style.display = 'none';
+      hamburger.classList.add('hidden');
     } else {
-      hamburger.style.display = 'block';
+      hamburger.classList.remove('hidden');
     }
   }
   
@@ -3954,16 +3954,16 @@ alert(`${t('difficulty_set')} ${value}`);
 
 }
 function showSection(sectionId) {
-  // ✅ NOUVEAU : Gestion de l'affichage du hamburger
+  // ✅ CORRECTION : Gestion de l'affichage du hamburger avec classe
   const hamburger = document.querySelector('.hamburger');
   const sectionsWithHamburger = ['quiz', 'mode2', 'account', 'stats', 'options', 
                                   'options-difficulty', 'options-sound', 'options-language'];
   
   if (hamburger) {
     if (sectionsWithHamburger.includes(sectionId)) {
-      hamburger.style.display = 'block';
+      hamburger.classList.remove('hidden');
     } else {
-      hamburger.style.display = 'none';
+      hamburger.classList.add('hidden');
     }
   }
   // NOUVEAU : Vérifier le blocage seulement lors du retour au menu depuis le mode révision
@@ -4068,23 +4068,24 @@ document.querySelectorAll('.section').forEach(section => {
       generateStatsPage();
     }, 100);
   }
-// ✅ CORRECTION : Ne fermer le menu que s'il est ouvert
-if (sectionId !== 'create-account') {
-  const menu = document.getElementById('menu');
-  
-  // Ne toggle que si le menu est actuellement ouvert
-  if (menu && menu.classList.contains('active')) {
-    toggleMenu();
-  }
-  
-  // Réafficher le hamburger
-  setTimeout(() => {
-    const hamburger = document.querySelector('.hamburger');
-    if (hamburger && sectionsWithHamburger.includes(sectionId)) {
-      hamburger.style.display = 'block';
+  // ✅ CORRECTION : Ne fermer le menu que s'il est ouvert
+  if (sectionId !== 'create-account') {
+    const menu = document.getElementById('menu');
+    
+    // Ne toggle que si le menu est actuellement ouvert
+    if (menu && menu.classList.contains('active')) {
+      toggleMenu();
     }
-  }, 100);
-}
+    
+    // Réafficher le hamburger
+    setTimeout(() => {
+      const hamburger = document.querySelector('.hamburger');
+      if (hamburger && sectionsWithHamburger.includes(sectionId)) {
+        hamburger.classList.remove('hidden'); // ✅ Changé
+      }
+    }, 100);
+  }
+
 
 }
 
@@ -6815,6 +6816,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
