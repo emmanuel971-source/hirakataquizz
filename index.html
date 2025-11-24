@@ -4,7 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <base target="_top">
- <style>
+  <style>
     html {
       touch-action: pan-x pan-y;
       -ms-touch-action: pan-x pan-y;
@@ -3509,33 +3509,37 @@ async function loginUser() {
       successDiv.style.display = 'block';
       
       // ✅ ÉTAPE 4 : Afficher la section welcome (fond zen)
-      setTimeout(() => {
-        // Masquer toutes les sections
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        
-        // Afficher la section welcome
-        const welcomeSection = document.getElementById('welcome');
-        welcomeSection.classList.add('active');
-        
-        // Masquer le panda et le texte de chargement
-        const panda = document.querySelector('.panda-logo');
-        const loadingText = document.getElementById('loadingText');
-        if (panda) panda.style.display = 'none';
-        if (loadingText) loadingText.style.display = 'none';
-        
-        // Masquer la section login
-        document.getElementById('login').classList.remove('active');
-        
-        // Afficher le bouton hamburger s'il était caché
-        const hamburger = document.querySelector('.hamburger');
-        if (hamburger) hamburger.classList.remove('hidden');
-        
-        // ✅ NOUVEAU : Ouvrir directement le menu
-        setTimeout(() => {
-          toggleMenu();
-        }, 100);
-        
-      }, 1500);
+     setTimeout(() => {
+  // Masquer toutes les sections
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  
+  // Afficher la section welcome
+  const welcomeSection = document.getElementById('welcome');
+  welcomeSection.classList.add('active');
+  
+  // Masquer le panda et le texte de chargement
+  const panda = document.querySelector('.panda-logo');
+  const loadingText = document.getElementById('loadingText');
+  if (panda) panda.style.display = 'none';
+  if (loadingText) loadingText.style.display = 'none';
+  
+  // Masquer la section login
+  document.getElementById('login').classList.remove('active');
+  
+  // Afficher le bouton hamburger
+  const hamburger = document.querySelector('.hamburger');
+  if (hamburger) hamburger.classList.remove('hidden');
+  
+  // ✅ NOUVEAU : Redirection intelligente
+  if (isApprentissageBloque()) {
+    console.log('🚫 Mode Apprendre bloqué → Redirection vers Mode Révision');
+    forceRevisionMode();
+  } else {
+    console.log('✅ Mode Apprendre débloqué → Redirection vers Mode Apprendre');
+    showSection('quiz');
+  }
+  
+}, 1500);
       
     } else {
       errorDiv.textContent = 'Erreur lors de la mise à jour du token';
@@ -3766,27 +3770,28 @@ async function confirmPinAndCreateAccount() {
       showWelcomeAnimation(currentUser.pseudo);
       
       // ✅ CORRECTION ICI : Ouvrir le menu au lieu de chercher 'menu-section'
-      setTimeout(() => {
-        // Masquer l'écran de bienvenue
-        document.getElementById('welcome-screen').style.display = 'none';
-        
-        // Retourner à la section welcome (fond zen)
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById('welcome').classList.add('active');
-        
-        // Masquer le panda et le texte de chargement
-        document.querySelector('.panda-logo').style.display = 'none';
-        document.getElementById('loadingText').style.display = 'none';
-        
-        // Afficher le bouton hamburger
-        document.querySelector('.hamburger').classList.remove('hidden');
-        
-        // Ouvrir le menu
-        toggleMenu();
-        
-        // Mettre à jour l'affichage du compte
-        updateAccountDisplay();
-      }, 3500);
+setTimeout(() => {
+  // Masquer l'écran de bienvenue
+  document.getElementById('welcome-screen').style.display = 'none';
+  
+  // Retourner à la section welcome (fond zen)
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('welcome').classList.add('active');
+  
+  // Masquer le panda et le texte de chargement
+  document.querySelector('.panda-logo').style.display = 'none';
+  document.getElementById('loadingText').style.display = 'none';
+  
+  // Afficher le bouton hamburger
+  document.querySelector('.hamburger').classList.remove('hidden');
+  
+  // ✅ NOUVEAU : Redirection intelligente (toujours Apprendre pour new user)
+  console.log('🆕 Nouveau compte → Redirection vers Mode Apprendre');
+  showSection('quiz');
+  
+  // Mettre à jour l'affichage du compte
+  updateAccountDisplay();
+}, 3500);
       
     } else {
       hideAccountCreationLoader();
@@ -3875,9 +3880,20 @@ function correctPin() {
 }    
 function toggleMenu() {
   const menu = document.getElementById('menu');
+  const hamburger = document.querySelector('.hamburger');
+  
   menu.classList.toggle('active');
   
-  // NOUVEAU : Vérifier l'état des boutons à chaque ouverture du menu
+  // ✅ NOUVEAU : Masquer le hamburger quand le menu est ouvert
+  if (hamburger) {
+    if (menu.classList.contains('active')) {
+      hamburger.style.display = 'none';
+    } else {
+      hamburger.style.display = 'block';
+    }
+  }
+  
+  // Vérifier l'état des boutons à chaque ouverture du menu
   if (menu.classList.contains('active')) {
     updateMenuButtonStates();
   }
@@ -3944,6 +3960,18 @@ alert(`${t('difficulty_set')} ${value}`);
 
 }
 function showSection(sectionId) {
+  // ✅ NOUVEAU : Gestion de l'affichage du hamburger
+  const hamburger = document.querySelector('.hamburger');
+  const sectionsWithHamburger = ['quiz', 'mode2', 'account', 'stats', 'options', 
+                                  'options-difficulty', 'options-sound', 'options-language'];
+  
+  if (hamburger) {
+    if (sectionsWithHamburger.includes(sectionId)) {
+      hamburger.style.display = 'block';
+    } else {
+      hamburger.style.display = 'none';
+    }
+  }
   // NOUVEAU : Vérifier le blocage seulement lors du retour au menu depuis le mode révision
   if (sectionId === 'menu-section' && revisionMode.isActive) {
     const wasBlocked = hasShownBlockedMenu; // État précédent
@@ -4046,9 +4074,23 @@ document.querySelectorAll('.section').forEach(section => {
       generateStatsPage();
     }, 100);
   }
-  if (sectionId !== 'create-account') {
+// ✅ CORRECTION : Ne fermer le menu que s'il est ouvert
+if (sectionId !== 'create-account') {
+  const menu = document.getElementById('menu');
+  
+  // Ne toggle que si le menu est actuellement ouvert
+  if (menu && menu.classList.contains('active')) {
     toggleMenu();
   }
+  
+  // Réafficher le hamburger
+  setTimeout(() => {
+    const hamburger = document.querySelector('.hamburger');
+    if (hamburger && sectionsWithHamburger.includes(sectionId)) {
+      hamburger.style.display = 'block';
+    }
+  }, 100);
+}
 
 }
 
@@ -4328,27 +4370,38 @@ function showReturningUserWelcome(pseudo) {
   
   playZenBell();
   
-  setTimeout(() => {
-    console.log('⏰ Timeout atteint, fermeture overlay');
-    
-    // Supprimer l'overlay
-    overlay.remove();
-    
-    // Retourner à la section welcome (fond zen)
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    const welcomeSection = document.getElementById('welcome');
-    welcomeSection.classList.add('active');
-    
-    // Masquer le panda et le texte de chargement
-    const panda = document.querySelector('.panda-logo');
-    const loadingText = document.getElementById('loadingText');
-    if (panda) panda.style.display = 'none';
-    if (loadingText) loadingText.style.display = 'none';
-    
-    // Ouvrir le menu
-    toggleMenu();
-    updateAccountDisplay();
-  }, 2500);
+setTimeout(() => {
+  console.log('⏰ Timeout atteint, fermeture overlay');
+  
+  // Supprimer l'overlay
+  overlay.remove();
+  
+  // Retourner à la section welcome (fond zen)
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const welcomeSection = document.getElementById('welcome');
+  welcomeSection.classList.add('active');
+  
+  // Masquer le panda et le texte de chargement
+  const panda = document.querySelector('.panda-logo');
+  const loadingText = document.getElementById('loadingText');
+  if (panda) panda.style.display = 'none';
+  if (loadingText) loadingText.style.display = 'none';
+  
+  // ✅ NOUVEAU : Redirection intelligente
+  if (isApprentissageBloque()) {
+    console.log('🚫 Mode Apprendre bloqué → Redirection vers Mode Révision');
+    forceRevisionMode();
+  } else {
+    console.log('✅ Mode Apprendre débloqué → Redirection vers Mode Apprendre');
+    showSection('quiz');
+  }
+  
+  // Afficher le hamburger
+  const hamburger = document.querySelector('.hamburger');
+  if (hamburger) hamburger.classList.remove('hidden');
+  
+  updateAccountDisplay();
+}, 2500);
 }
   </script>
 <script>
@@ -6768,6 +6821,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
+
 
 
 
