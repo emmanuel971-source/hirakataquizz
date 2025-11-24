@@ -4074,16 +4074,23 @@ document.querySelectorAll('.section').forEach(section => {
       generateStatsPage();
     }, 100);
   }
-  if (sectionId !== 'create-account') {
+// ✅ CORRECTION : Ne fermer le menu que s'il est ouvert
+if (sectionId !== 'create-account') {
+  const menu = document.getElementById('menu');
+  
+  // Ne toggle que si le menu est actuellement ouvert
+  if (menu && menu.classList.contains('active')) {
     toggleMenu();
-      // ✅ NOUVEAU : Réafficher le hamburger après fermeture du menu
+  }
+  
+  // Réafficher le hamburger
   setTimeout(() => {
     const hamburger = document.querySelector('.hamburger');
     if (hamburger && sectionsWithHamburger.includes(sectionId)) {
       hamburger.style.display = 'block';
     }
   }, 100);
-  }
+}
 
 }
 
@@ -6814,6 +6821,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
