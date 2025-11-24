@@ -3956,8 +3956,8 @@ alert(`${t('difficulty_set')} ${value}`);
 function showSection(sectionId) {
   // ✅ CORRECTION : Gestion de l'affichage du hamburger avec classe
   const hamburger = document.querySelector('.hamburger');
-  const sectionsWithHamburger = ['quiz', 'mode2', 'account', 'stats', 'options', 
-                                  'options-difficulty', 'options-sound', 'options-language'];
+ const sectionsWithHamburger = ['quiz', 'mode2', 'account', 'stats', 'options', 
+                                'options-difficulty', 'options-sound', 'options-language', 'login'];
   
   if (hamburger) {
     if (sectionsWithHamburger.includes(sectionId)) {
@@ -6816,6 +6816,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
