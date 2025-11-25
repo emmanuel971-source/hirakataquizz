@@ -2598,6 +2598,17 @@
   color: rgba(139, 111, 71, 0.4);
   font-style: italic;
 }    
+.secondary-button {
+  background: rgba(139, 111, 71, 0.1) !important;
+  border: 2px solid #8B6F47 !important;
+  color: #8B6F47 !important;
+  font-size: 0.9em !important;
+}
+
+.secondary-button:hover {
+  background: rgba(139, 111, 71, 0.2) !important;
+  transform: scale(1.02);
+}    
   </style>
 </head>
 <body>
@@ -2793,7 +2804,12 @@
         ✅ Je valide !
       </button>
     </div>
-
+ <!-- ✅ NOUVEAU : Bouton "J'ai déjà un compte" -->
+    <div style="margin-top: 30px; text-align: center;">
+      <button class="arcade-button secondary-button" onclick="showLoginFromCreate()" data-i18n="create_account_already_have">
+        🔐 J'ai déjà un compte
+      </button>
+    </div>
     <!-- Zone de saisie du PIN (cachée au début) -->
     <div id="pin-input-section" style="display: none;">
       <div class="pin-input-container">
@@ -3005,6 +3021,7 @@ const translations = {
   create_account_pin_example: "Exemple : le 12 Mai → 1205",
   create_account_confirm: "🐼 Valider mon compte",
   create_account_back: "← Changer de pseudo",
+    
     // Mon Parcours (anciennement Stats)
     menu_stats: "Mon parcours",
     stats_title: "🐼 Mon Parcours",
@@ -3018,6 +3035,7 @@ const translations = {
     stats_table_status: "Statut",
   // Connexion
   login_title: "Connexion 🔐",
+    create_account_already_have: "🔐 J'ai déjà un compte",
   login_subtitle: "Retrouve ton compte",
   login_pseudo_label: "Ton pseudo",
   login_pin_label: "Ton PIN (JJMM)",
@@ -3087,6 +3105,7 @@ const translations = {
   create_account_title: "Welcome! 🌸",
   create_account_subtitle: "Let's choose your zen nickname",
   create_account_regenerate: "🤔 Hmm... I prefer to change.",
+   create_account_already_have: "🔐 I already have an account",  
   create_account_validate: "✅ I approve!",
   create_account_pin_label: "Your birth date (DDMM)",
   create_account_pin_example: "Example: born May 12th → 1205",
@@ -3106,6 +3125,7 @@ const translations = {
  
   // Login
   login_title: "Login 🔐",
+    
   login_subtitle: "Find your account",
   login_pseudo_label: "Your nickname",
   login_pin_label: "Your PIN (DDMM)",
@@ -3172,6 +3192,7 @@ const translations = {
   
   // Creación de cuenta
   create_account_title: "¡Bienvenido! 🌸",
+  create_account_already_have: "🔐 Ya tengo una cuenta",  
   create_account_subtitle: "Elige tu apodo zen",
   create_account_regenerate: "🔄 Otro apodo",
   create_account_validate: "✅ Valido este apodo",
@@ -3976,6 +3997,23 @@ function correctPin() {
   // Nettoyer le PIN temporaire
   delete window.tempPin;
 }
+function showLoginFromCreate() {
+  // Masquer la section create-account
+  document.getElementById('create-account').classList.remove('active');
+  
+  // Afficher la section login
+  document.getElementById('login').classList.add('active');
+  
+  // Vider les champs par sécurité
+  document.getElementById('login-pseudo').value = '';
+  document.getElementById('login-pin').value = '';
+  
+  // Masquer les messages d'erreur/succès
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-success').style.display = 'none';
+  
+  console.log('🔄 Navigation vers connexion depuis création de compte');
+}    
 function toggleMenu() {
   const menu = document.getElementById('menu');
   const hamburger = document.querySelector('.hamburger');
@@ -6920,6 +6958,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
