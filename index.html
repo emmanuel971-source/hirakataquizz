@@ -3471,6 +3471,11 @@ function showPinInput() {
   
   errorDiv.style.display = 'none';
   
+  // ✅ AJOUTÉ : Désactiver le champ de pseudo
+  pseudoInput.disabled = true;
+  pseudoInput.style.opacity = '0.6';
+  pseudoInput.style.cursor = 'not-allowed';
+  
   document.getElementById('validate-pseudo-btn').style.display = 'none';
   document.querySelector('button[onclick="generateNewPseudo()"]').style.display = 'none';
   document.getElementById('pin-input-section').style.display = 'block';
@@ -3484,6 +3489,13 @@ function showPinInput() {
 // MASQUER LA SAISIE DU PIN
 // ========================================
 function hidePinInput() {
+  const pseudoInput = document.getElementById('pseudo-input');
+  
+  // ✅ AJOUTÉ : Réactiver le champ de pseudo
+  pseudoInput.disabled = false;
+  pseudoInput.style.opacity = '1';
+  pseudoInput.style.cursor = 'text';
+  
   document.getElementById('validate-pseudo-btn').style.display = 'block';
   document.querySelector('button[onclick="generateNewPseudo()"]').style.display = 'block';
   document.getElementById('pin-input-section').style.display = 'none';
@@ -3948,6 +3960,13 @@ function showWelcomeAnimation(pseudo) {
 // CORRIGER LE PIN
 // ========================================
 function correctPin() {
+  const pseudoInput = document.getElementById('pseudo-input');
+  
+  // ✅ AJOUTÉ : Réactiver le champ de pseudo
+  pseudoInput.disabled = false;
+  pseudoInput.style.opacity = '1';
+  pseudoInput.style.cursor = 'text';
+  
   // Retour à la saisie
   document.getElementById('pin-confirm-section').style.display = 'none';
   document.getElementById('pin-input-section').style.display = 'block';
@@ -3956,7 +3975,7 @@ function correctPin() {
   
   // Nettoyer le PIN temporaire
   delete window.tempPin;
-}    
+}
 function toggleMenu() {
   const menu = document.getElementById('menu');
   const hamburger = document.querySelector('.hamburger');
@@ -6901,6 +6920,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
