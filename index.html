@@ -2556,6 +2556,37 @@
     font-size: 1.6em;
   }
 }
+.pseudo-input-wrapper {
+  margin: 20px 0;
+}
+
+.pseudo-input {
+  width: 100%;
+  max-width: 300px;
+  padding: 15px 20px;
+  font-size: 1.8em;
+  font-weight: bold;
+  text-align: center;
+  color: #8B6F47;
+  background: rgba(168, 213, 186, 0.1);
+  border: 3px solid #8B6F47;
+  border-radius: 15px;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.pseudo-input:focus {
+  background: rgba(168, 213, 186, 0.2);
+  border-color: #A8D5BA;
+  box-shadow: 0 0 15px rgba(168, 213, 186, 0.5);
+  transform: scale(1.02);
+}
+
+.pseudo-input::placeholder {
+  color: rgba(139, 111, 71, 0.4);
+  font-style: italic;
+}    
   </style>
 </head>
 <body>
@@ -2731,9 +2762,15 @@
   <div class="account-section">
     <p data-i18n="create_account_subtitle">Choisissons ton pseudo zen</p>
     
-    <div class="pseudo-display" id="pseudo-proposal">
-      <span id="pseudo-text">🐼</span>
-    </div>
+<div class="pseudo-input-wrapper">
+  <input 
+    type="text" 
+    id="pseudo-input" 
+    class="pseudo-input" 
+    placeholder="Ton pseudo..."
+    maxlength="20"
+  />
+</div>
 
     <div id="create-error" class="error-message" style="display: none;"></div>
 
@@ -3339,12 +3376,19 @@ function initPseudoCache() {
     pseudoCache = generatePseudoBatch();
     currentPseudoIndex = 0;
   }
+  // Initialiser avec le premier pseudo
+  const pseudoInput = document.getElementById('pseudo-input');
+  if (pseudoInput && pseudoCache.length > 0) {
+    pseudoInput.value = pseudoCache[0].pseudo;
+    currentPseudoProposal = pseudoCache[0];
+    currentPseudoIndex = 1;
+  }
 }
 // ========================================
 // GÉNÉRATION DE PSEUDO - REMPLACER LA FONCTION EXISTANTE
 // ========================================
 async function generateNewPseudo() {
-  const pseudoText = document.getElementById('pseudo-text');
+  const pseudoInput = document.getElementById('pseudo-input');
   const errorDiv = document.getElementById('create-error');
   const validateBtn = document.getElementById('validate-pseudo-btn');
   
@@ -3358,7 +3402,7 @@ async function generateNewPseudo() {
     if (pseudoCache.length === 0) {
       errorDiv.textContent = 'Erreur : listes de mots non chargées';
       errorDiv.style.display = 'block';
-      pseudoText.textContent = '❌';
+      pseudoInput.value = '';
       return;
     }
   }
@@ -3367,12 +3411,11 @@ async function generateNewPseudo() {
   currentPseudoProposal = pseudoCache[currentPseudoIndex];
   currentPseudoIndex++;
   
-  pseudoText.textContent = currentPseudoProposal.pseudo;
+  pseudoInput.value = currentPseudoProposal.pseudo;
   validateBtn.disabled = false;
   
   console.log(`🎯 Pseudo proposé: ${currentPseudoProposal.pseudo} (${currentPseudoIndex}/${pseudoCache.length} du cache)`);
 }
-
 // ========================================
 // AFFICHER LA SAISIE DU PIN
 // ========================================
@@ -3380,10 +3423,42 @@ async function generateNewPseudo() {
 // AFFICHER LA SAISIE DU PIN (VERSION AMÉLIORÉE)
 // ========================================
 function showPinInput() {
-  if (!currentPseudoProposal) {
-    alert('Veuillez générer un pseudo d\'abord');
+  const pseudoInput = document.getElementById('pseudo-input');
+  const pseudo = pseudoInput.value.trim();
+  const errorDiv = document.getElementById('create-error');
+  
+  // Validation du pseudo
+  if (!pseudo || pseudo.length < 2) {
+    errorDiv.textContent = 'Le pseudo doit contenir au moins 2 caractères';
+    errorDiv.style.display = 'block';
+    pseudoInput.focus();
     return;
   }
+  
+  if (pseudo.length > 20) {
+    errorDiv.textContent = 'Le pseudo ne peut pas dépasser 20 caractères';
+    errorDiv.style.display = 'block';
+    pseudoInput.focus();
+    return;
+  }
+  
+  // Vérifier les caractères autorisés (lettres, chiffres, japonais, emojis basiques)
+  const validPattern = /^[\p{L}\p{N}\p{Emoji}\s\-_]+$/u;
+  if (!validPattern.test(pseudo)) {
+    errorDiv.textContent = 'Le pseudo contient des caractères non autorisés';
+    errorDiv.style.display = 'block';
+    pseudoInput.focus();
+    return;
+  }
+  
+  // Mettre à jour currentPseudoProposal avec le pseudo saisi
+  currentPseudoProposal = {
+    pseudo: pseudo,
+    jpnWord: currentPseudoProposal?.jpnWord || '',
+    engWord: currentPseudoProposal?.engWord || ''
+  };
+  
+  errorDiv.style.display = 'none';
   
   document.getElementById('validate-pseudo-btn').style.display = 'none';
   document.querySelector('button[onclick="generateNewPseudo()"]').style.display = 'none';
@@ -3394,7 +3469,6 @@ function showPinInput() {
   const confirmSection = document.getElementById('pin-confirm-section');
   if (confirmSection) confirmSection.style.display = 'none';
 }
-
 // ========================================
 // MASQUER LA SAISIE DU PIN
 // ========================================
@@ -6816,6 +6890,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
