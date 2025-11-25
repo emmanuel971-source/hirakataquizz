@@ -2562,12 +2562,17 @@
 
     
 .pseudo-input-wrapper {
-  margin: 20px 0;
+  margin: 20px auto; /* ✅ MODIFIÉ : ajout de "auto" */
+  display: flex; /* ✅ AJOUTÉ */
+  justify-content: center; /* ✅ AJOUTÉ */
+  width: 100%; /* ✅ AJOUTÉ */
+  padding: 0 20px; /* ✅ AJOUTÉ : marge sur les côtés */
+  box-sizing: border-box; /* ✅ AJOUTÉ */
 }
 
 .pseudo-input {
   width: 100%;
-  display: flex;
+  max-width: 300px;
   padding: 15px 20px;
   font-size: 1.8em;
   font-weight: bold;
@@ -2579,6 +2584,7 @@
   outline: none;
   transition: all 0.3s ease;
   font-family: inherit;
+  box-sizing: border-box; /* ✅ AJOUTÉ */
 }
 
 .pseudo-input:focus {
@@ -6895,6 +6901,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
