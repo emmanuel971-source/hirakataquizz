@@ -2611,15 +2611,15 @@
 } 
 /* === ONBOARDING SYSTEM === */
 .onboarding-step {
-  box-sizing: border-box;        /* ← LA LIGNE MAGIQUE */
   display: none;
   opacity: 0;
   transform: translateX(100%);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
-  max-width: 500px;
+  max-width: min(500px, 100vw - 40px);   /* magique */
   margin: 0 auto;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .onboarding-step.active {
@@ -7432,6 +7432,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
