@@ -3002,7 +3002,16 @@
           maxlength="20"
         />
       </div>
-
+<!-- ✅ AJOUTÉ : Honeypot (piège à bot) -->
+<input 
+  type="text" 
+  id="website" 
+  name="website" 
+  style="position: absolute; left: -9999px; opacity: 0; pointer-events: none;"
+  tabindex="-1"
+  autocomplete="off"
+  aria-hidden="true"
+/>
       <div id="create-error" class="error-message" style="display: none;"></div>
 
       <div class="onboarding-buttons">
@@ -3557,7 +3566,14 @@ function updateSectionTitles() {
 let currentUser = null;
 let currentPseudoProposal = null;
 let userToken = null;
-
+// ✅ AJOUTÉ : Protection anti-bot
+let stepTimestamps = {};
+let sessionStartTime = null;
+let userInteractions = {
+  clicks: 0,
+  keystrokes: 0,
+  mouseMovements: 0
+};
 // ========================================
 // INITIALISATION AU CHARGEMENT
 // ========================================
@@ -3663,6 +3679,12 @@ function initPseudoCache() {
     step.classList.remove('active');
   });
   document.getElementById('onboarding-step-1').classList.add('active');
+  
+  // ✅ AJOUTÉ : Initialiser protection anti-bot
+  sessionStartTime = Date.now();
+  stepTimestamps = { 1: Date.now() };
+  userInteractions = { clicks: 0, keystrokes: 0, mouseMovements: 0 };
+  console.log('🛡️ Session anti-bot initialisée');
 }
 // ========================================
 // GÉNÉRATION DE PSEUDO - REMPLACER LA FONCTION EXISTANTE
@@ -4298,7 +4320,10 @@ function goToStep(stepNumber) {
   
   if (!currentStep || !nextStep) return;
   
-  // ✅ AJOUTÉ : Masquer tous les messages d'erreur
+  // ✅ AJOUTÉ : Enregistrer timestamp de l'étape
+  stepTimestamps[stepNumber] = Date.now();
+  
+  // Masquer tous les messages d'erreur
   document.getElementById('create-error')?.style.setProperty('display', 'none');
   document.getElementById('pin-error')?.style.setProperty('display', 'none');
   
@@ -4340,7 +4365,16 @@ function validatePseudoAndContinue() {
   const pseudoInput = document.getElementById('pseudo-input');
   const pseudo = pseudoInput.value.trim();
   const errorDiv = document.getElementById('create-error');
-  
+    // ✅ AJOUTÉ : Vérification délai minimum (3 secondes sur l'étape)
+  const timeOnStep = Date.now() - (stepTimestamps[2] || Date.now());
+  if (timeOnStep < 3000) {
+    console.warn('🤖 Navigation trop rapide - bot suspecté');
+    if (errorDiv) {
+      errorDiv.textContent = 'Veuillez prendre le temps de choisir votre pseudo';
+      errorDiv.style.display = 'block';
+    }
+    return;
+  }
   // Validation du pseudo
   if (!pseudo || pseudo.length < 2) {
     errorDiv.textContent = 'Le pseudo doit contenir au moins 2 caractères';
@@ -4381,7 +4415,16 @@ function validatePinAndContinue() {
   const pinInput = document.getElementById('pin-input');
   const pin = pinInput.value.trim();
   const errorDiv = document.getElementById('pin-error'); // ✅ CHANGÉ
-  
+    // ✅ AJOUTÉ : Vérification délai minimum (2 secondes sur l'étape)
+  const timeOnStep = Date.now() - (stepTimestamps[3] || Date.now());
+  if (timeOnStep < 2000) {
+    console.warn('🤖 Navigation trop rapide - bot suspecté');
+    if (errorDiv) {
+      errorDiv.textContent = 'Veuillez prendre le temps de saisir votre date';
+      errorDiv.style.display = 'block';
+    }
+    return;
+  }
   // Validation du PIN
   const validation = validatePin(pin);
   if (!validation.valid) {
@@ -4415,6 +4458,56 @@ async function finalizeAccount() {
     console.error('❌ Données manquantes pour finaliser le compte');
     return;
   }
+  
+  // ✅ AJOUTÉ : VÉRIFICATIONS ANTI-BOT
+  
+  // 1. Vérifier honeypot
+  const honeypot = document.getElementById('website');
+  if (honeypot && honeypot.value !== '') {
+    console.warn('🤖 Bot détecté via honeypot');
+    showAccountCreationLoader();
+    setTimeout(() => {
+      hideAccountCreationLoader();
+      goToStep(1);
+    }, 2000);
+    return;
+  }
+  
+  // 2. Vérifier temps total minimum (15 secondes)
+  const totalTime = Date.now() - (sessionStartTime || Date.now());
+  if (totalTime < 15000) {
+    console.warn('🤖 Création trop rapide:', totalTime, 'ms');
+    const errorDiv = document.getElementById('create-error');
+    if (errorDiv) {
+      errorDiv.textContent = 'Veuillez prendre le temps de créer votre compte';
+      errorDiv.style.display = 'block';
+    }
+    return;
+  }
+  
+  // 3. Vérifier interactions utilisateur
+  if (userInteractions.clicks < 3 || userInteractions.keystrokes < 4) {
+    console.warn('🤖 Interactions insuffisantes:', userInteractions);
+    const errorDiv = document.getElementById('create-error');
+    if (errorDiv) {
+      errorDiv.textContent = 'Activité suspecte détectée';
+      errorDiv.style.display = 'block';
+    }
+    return;
+  }
+  
+  // 4. Vérifier que le pseudo a des mots source (protection supplémentaire)
+  if (!currentPseudoProposal.jpnWord && !currentPseudoProposal.engWord) {
+    console.warn('🤖 Pseudo sans origine - suspecté');
+    return;
+  }
+  
+  console.log('✅ Vérifications anti-bot passées:', {
+    totalTime: totalTime + 'ms',
+    clicks: userInteractions.clicks,
+    keystrokes: userInteractions.keystrokes,
+    mouseMovements: userInteractions.mouseMovements
+  });
   
   // Masquer l'étape 4 et afficher loader
   document.getElementById('onboarding-step-4').classList.remove('active');
@@ -7123,6 +7216,14 @@ window.onload = () => {
 initGame();
 updateAllTexts(); // ✅ AJOUTER CETTE LIGNE  
 };
+// ✅ AJOUTÉ : Tracking des interactions utilisateur (anti-bot)
+document.addEventListener('click', () => userInteractions.clicks++);
+document.addEventListener('keydown', () => userInteractions.keystrokes++);
+document.addEventListener('mousemove', () => {
+  if (userInteractions.mouseMovements < 50) { // Limiter pour ne pas surcharger
+    userInteractions.mouseMovements++;
+  }
+});  
 // S'assurer que les voix sont bien chargées
 speechSynthesis.onvoiceschanged = () => {
 console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
@@ -7208,6 +7309,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
