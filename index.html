@@ -3686,9 +3686,16 @@ function initPseudoCache() {
 async function generateNewPseudo() {
   const pseudoInput = document.getElementById('pseudo-input');
   const errorDiv = document.getElementById('create-error');
-  const validateBtn = document.getElementById('validate-pseudo-btn');
   
-  errorDiv.style.display = 'none';
+  // Vérifier que les éléments existent (protection)
+  if (!pseudoInput) {
+    console.warn('⚠️ Champ pseudo non trouvé');
+    return;
+  }
+  
+  if (errorDiv) {
+    errorDiv.style.display = 'none';
+  }
   
   // Si cache vide ou épuisé, régénérer un batch
   if (currentPseudoIndex >= pseudoCache.length) {
@@ -3696,8 +3703,10 @@ async function generateNewPseudo() {
     currentPseudoIndex = 0;
     
     if (pseudoCache.length === 0) {
-      errorDiv.textContent = 'Erreur : listes de mots non chargées';
-      errorDiv.style.display = 'block';
+      if (errorDiv) {
+        errorDiv.textContent = 'Erreur : listes de mots non chargées';
+        errorDiv.style.display = 'block';
+      }
       pseudoInput.value = '';
       return;
     }
@@ -3708,115 +3717,8 @@ async function generateNewPseudo() {
   currentPseudoIndex++;
   
   pseudoInput.value = currentPseudoProposal.pseudo;
-  validateBtn.disabled = false;
   
   console.log(`🎯 Pseudo proposé: ${currentPseudoProposal.pseudo} (${currentPseudoIndex}/${pseudoCache.length} du cache)`);
-}
-// ========================================
-// AFFICHER LA SAISIE DU PIN
-// ========================================
-// ========================================
-// AFFICHER LA SAISIE DU PIN (VERSION AMÉLIORÉE)
-// ========================================
-function showPinInput() {
-  const pseudoInput = document.getElementById('pseudo-input');
-  const pseudo = pseudoInput.value.trim();
-  const errorDiv = document.getElementById('create-error');
-  
-  // Validation du pseudo
-  if (!pseudo || pseudo.length < 2) {
-    errorDiv.textContent = 'Le pseudo doit contenir au moins 2 caractères';
-    errorDiv.style.display = 'block';
-    pseudoInput.focus();
-    return;
-  }
-  
-  if (pseudo.length > 20) {
-    errorDiv.textContent = 'Le pseudo ne peut pas dépasser 20 caractères';
-    errorDiv.style.display = 'block';
-    pseudoInput.focus();
-    return;
-  }
-  
-  // Vérifier les caractères autorisés (lettres, chiffres, japonais, emojis basiques)
-  const validPattern = /^[\p{L}\p{N}\p{Emoji}\s\-_]+$/u;
-  if (!validPattern.test(pseudo)) {
-    errorDiv.textContent = 'Le pseudo contient des caractères non autorisés';
-    errorDiv.style.display = 'block';
-    pseudoInput.focus();
-    return;
-  }
-  
-  // Mettre à jour currentPseudoProposal avec le pseudo saisi
-  currentPseudoProposal = {
-    pseudo: pseudo,
-    jpnWord: currentPseudoProposal?.jpnWord || '',
-    engWord: currentPseudoProposal?.engWord || ''
-  };
-  
-  errorDiv.style.display = 'none';
-  
-  // ✅ AJOUTÉ : Désactiver le champ de pseudo
-  pseudoInput.disabled = true;
-  pseudoInput.style.opacity = '0.6';
-  pseudoInput.style.cursor = 'not-allowed';
-  
-  document.getElementById('validate-pseudo-btn').style.display = 'none';
-  document.querySelector('button[onclick="generateNewPseudo()"]').style.display = 'none';
-  document.getElementById('pin-input-section').style.display = 'block';
-  document.getElementById('pin-input').focus();
-  
-  // Réinitialiser la confirmation si elle existe
-  const confirmSection = document.getElementById('pin-confirm-section');
-  if (confirmSection) confirmSection.style.display = 'none';
-}
-// ========================================
-// MASQUER LA SAISIE DU PIN
-// ========================================
-function hidePinInput() {
-  const pseudoInput = document.getElementById('pseudo-input');
-  
-  // ✅ AJOUTÉ : Réactiver le champ de pseudo
-  pseudoInput.disabled = false;
-  pseudoInput.style.opacity = '1';
-  pseudoInput.style.cursor = 'text';
-  
-  document.getElementById('validate-pseudo-btn').style.display = 'block';
-  document.querySelector('button[onclick="generateNewPseudo()"]').style.display = 'block';
-  document.getElementById('pin-input-section').style.display = 'none';
-  document.getElementById('pin-input').value = '';
-}
-
-// ========================================
-// VALIDER LE COMPTE (VERSION AVEC CONFIRMATION)
-// ========================================
-async function validateAccount() {
-  const pinInput = document.getElementById('pin-input');
-  const pin = pinInput.value.trim();
-  const errorDiv = document.getElementById('create-error');
-  
-  // Validation du PIN
-  const validation = validatePin(pin);
-  if (!validation.valid) {
-    errorDiv.textContent = validation.error;
-    errorDiv.style.display = 'block';
-    pinInput.focus();
-    return;
-  }
-  
-  errorDiv.style.display = 'none';
-  
-  // Afficher la confirmation
-  const dateInfo = formatPinToDate(pin);
-  document.getElementById('pin-confirm-text').textContent = 
-    `Tu es né(e) le ${dateInfo.day} ${dateInfo.monthName} ?`;
-  
-  // Masquer la saisie, afficher la confirmation
-  document.getElementById('pin-input-section').style.display = 'none';
-  document.getElementById('pin-confirm-section').style.display = 'block';
-  
-  // Stocker temporairement le PIN pour la confirmation
-  window.tempPin = pin;
 }
 
 // ========================================
@@ -4113,80 +4015,7 @@ async function loadUserProgress() {
   }
 }
 
-// ========================================
-// CONFIRMER ET CRÉER LE COMPTE
-// ========================================
-async function confirmPinAndCreateAccount() {
-  const pin = window.tempPin;
-  const errorDiv = document.getElementById('create-error');
-  
-  // ✅ Masquer la confirmation et afficher loader
-  document.getElementById('pin-confirm-section').style.display = 'none';
-  showAccountCreationLoader();
-  
-  userToken = crypto.randomUUID();
-  
-  try {
-    const result = await callAPI('assignPseudo', {
-      token: userToken,
-      pseudo: currentPseudoProposal.pseudo,
-      jpnWord: currentPseudoProposal.jpnWord,
-      engWord: currentPseudoProposal.engWord,
-      pin: pin
-    });
-    
-    if (result.success) {
-      localStorage.setItem('userToken', userToken);
-      currentUser = result.user;
-      await loadUserProgress();
-      
-      console.log('✅ Compte créé avec succès:', currentUser.pseudo);
-      
-      // ✅ Animation de bienvenue
-      showWelcomeAnimation(currentUser.pseudo);
-      
-      // ✅ CORRECTION ICI : Ouvrir le menu au lieu de chercher 'menu-section'
-setTimeout(() => {
-  // Masquer l'écran de bienvenue
-  document.getElementById('welcome-screen').style.display = 'none';
-  
-  // Retourner à la section welcome (fond zen)
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById('welcome').classList.add('active');
-  
-  // Masquer le panda et le texte de chargement
-  document.querySelector('.panda-logo').style.display = 'none';
-  document.getElementById('loadingText').style.display = 'none';
-  
-  // Afficher le bouton hamburger
-  document.querySelector('.hamburger').classList.remove('hidden');
-  
-  // ✅ NOUVEAU : Redirection intelligente (toujours Apprendre pour new user)
-  console.log('🆕 Nouveau compte → Redirection vers Mode Apprendre');
-  showSection('quiz');
-  
-  // Mettre à jour l'affichage du compte
-  updateAccountDisplay();
-}, 3500);
-      
-    } else {
-      hideAccountCreationLoader();
-      errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
-      errorDiv.style.display = 'block';
-      document.getElementById('pin-confirm-section').style.display = 'block';
-      console.error('❌ Erreur création compte:', result.error);
-    }
-  } catch (error) {
-    hideAccountCreationLoader();
-    errorDiv.textContent = 'Erreur de connexion';
-    errorDiv.style.display = 'block';
-    document.getElementById('pin-confirm-section').style.display = 'block';
-    console.error('❌ Erreur:', error);
-  }
-  
-  delete window.tempPin;
-}
-// ✅ Remplacer showAccountCreationLoader() par :
+
 function showAccountCreationLoader() {
   const messages = [
     "🧘 Méditation en cours...",
@@ -4241,26 +4070,7 @@ function showWelcomeAnimation(pseudo) {
   // Son de bienvenue
   playLevelUp();
 }
-// ========================================
-// CORRIGER LE PIN
-// ========================================
-function correctPin() {
-  const pseudoInput = document.getElementById('pseudo-input');
-  
-  // ✅ AJOUTÉ : Réactiver le champ de pseudo
-  pseudoInput.disabled = false;
-  pseudoInput.style.opacity = '1';
-  pseudoInput.style.cursor = 'text';
-  
-  // Retour à la saisie
-  document.getElementById('pin-confirm-section').style.display = 'none';
-  document.getElementById('pin-input-section').style.display = 'block';
-  document.getElementById('pin-input').value = window.tempPin || '';
-  document.getElementById('pin-input').focus();
-  
-  // Nettoyer le PIN temporaire
-  delete window.tempPin;
-}
+
 function showLoginFromCreate() {
   // Masquer la section create-account
   document.getElementById('create-account').classList.remove('active');
@@ -7407,6 +7217,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
