@@ -2610,7 +2610,6 @@
   transform: scale(1.02);
 } 
 /* === ONBOARDING SYSTEM === */
-
 .onboarding-step {
   display: none;
   opacity: 0;
@@ -2648,7 +2647,6 @@
   }
 }
 
-
 .onboarding-title {
   font-size: 2em;
   color: #8B6F47;
@@ -2677,14 +2675,12 @@
   flex-direction: column;
   gap: 15px;
   margin-top: 30px;
-   width: 100%; /* ✅ AJOUTÉ */
 }
 
 .large-button {
   font-size: 1.3em !important;
   padding: 20px 30px !important;
   min-height: 70px;
-   box-sizing: border-box; /* ✅ AJOUTÉ */
 }
 
 .primary-button {
@@ -2749,25 +2745,83 @@
   opacity: 0.7;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Smartphones haute résolution */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .onboarding-step {
+    padding: 15px 10px;
+  }
+  
   .onboarding-title {
-    font-size: 1.6em;
+    font-size: 1.4em;
+    margin-bottom: 20px;
+  }
+  
+  .onboarding-content {
+    padding: 20px 15px;
+  }
+  
+  .onboarding-subtitle {
+    font-size: 1em;
+    margin-bottom: 20px;
   }
   
   .large-button {
-    font-size: 1.1em !important;
-    padding: 18px 25px !important;
-    min-height: 60px;
+    font-size: 1em !important;
+    padding: 15px 20px !important;
+    min-height: 55px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .arcade-button {
+    font-size: 0.95em !important;
+    padding: 12px 18px !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .small-button {
+    font-size: 0.85em !important;
+    padding: 8px 15px !important;
+  }
+  
+  .pseudo-input-wrapper {
+    padding: 0 10px;
+  }
+  
+  .pseudo-input {
+    font-size: 1.4em;
+    padding: 12px 15px;
+    max-width: 100%;
+  }
+  
+  .pin-input {
+    font-size: 1.8em;
+    padding: 12px 15px;
+    max-width: 200px;
   }
   
   .confirmation-date {
-    font-size: 1.5em;
+    font-size: 1.3em;
+  }
+  
+  .confirmation-box {
+    padding: 20px 15px;
+  }
+  
+  .warning-box {
+    padding: 12px;
+  }
+  
+  .warning-box p {
+    font-size: 0.85em;
+  }
+  
+  .onboarding-buttons {
+    gap: 12px;
+    margin-top: 20px;
   }
 }
-
-
-
 
 /* Très petits écrans */
 @media (max-width: 360px) {
@@ -2788,7 +2842,8 @@
   .pin-input {
     font-size: 1.5em;
   }
-}    
+}
+   
   </style>
 </head>
 <body>
@@ -7376,6 +7431,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
