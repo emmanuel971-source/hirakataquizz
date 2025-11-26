@@ -3035,37 +3035,40 @@
     </div>
   </div>
 
-  <!-- ÉTAPE 3 : Saisie du PIN -->
-  <div id="onboarding-step-3" class="onboarding-step">
-    <h1 class="onboarding-title" data-i18n="onboarding_pin_title">Sécurise ton compte 🔐</h1>
+<!-- ÉTAPE 3 : Saisie du PIN -->
+<div id="onboarding-step-3" class="onboarding-step">
+  <h1 class="onboarding-title" data-i18n="onboarding_pin_title">Sécurise ton compte 🔐</h1>
+  
+  <div class="onboarding-content">
+    <p class="onboarding-subtitle" data-i18n="onboarding_pin_subtitle">Entre ta date de naissance (JJMM)</p>
     
-    <div class="onboarding-content">
-      <p class="onboarding-subtitle" data-i18n="onboarding_pin_subtitle">Entre ta date de naissance (JJMM)</p>
-      
-      <div class="pin-input-container">
-        <input 
-          type="number" 
-          id="pin-input" 
-          class="pin-input" 
-          placeholder="0000"
-          maxlength="4"
-          pattern="[0-9]{4}"
-        />
-        <div class="pin-example" data-i18n="onboarding_pin_example">
-          Exemple : né(e) le 12 mai → 1205
-        </div>
-      </div>
-
-      <div class="onboarding-buttons">
-        <button class="arcade-button secondary-button small-button" onclick="goToStep(2)">
-          ← <span data-i18n="onboarding_back">Retour</span>
-        </button>
-        <button class="arcade-button primary-button" onclick="validatePinAndContinue()" data-i18n="onboarding_next">
-          Suivant ➡️
-        </button>
+    <div class="pin-input-container">
+      <input 
+        type="number" 
+        id="pin-input" 
+        class="pin-input" 
+        placeholder="0000"
+        maxlength="4"
+        pattern="[0-9]{4}"
+      />
+      <div class="pin-example" data-i18n="onboarding_pin_example">
+        Exemple : né(e) le 12 mai → 1205
       </div>
     </div>
+
+    <!-- ✅ AJOUTÉ : Message d'erreur pour le PIN -->
+    <div id="pin-error" class="error-message" style="display: none;"></div>
+
+    <div class="onboarding-buttons">
+      <button class="arcade-button secondary-button small-button" onclick="goToStep(2)">
+        ← <span data-i18n="onboarding_back">Retour</span>
+      </button>
+      <button class="arcade-button primary-button" onclick="validatePinAndContinue()" data-i18n="onboarding_next">
+        Suivant ➡️
+      </button>
+    </div>
   </div>
+</div>
 
   <!-- ÉTAPE 4 : Confirmation -->
   <div id="onboarding-step-4" class="onboarding-step">
@@ -4314,6 +4317,10 @@ function goToStep(stepNumber) {
   
   if (!currentStep || !nextStep) return;
   
+  // ✅ AJOUTÉ : Masquer tous les messages d'erreur
+  document.getElementById('create-error')?.style.setProperty('display', 'none');
+  document.getElementById('pin-error')?.style.setProperty('display', 'none');
+  
   // Animation de sortie
   currentStep.classList.add('slide-out-left');
   
@@ -4392,18 +4399,22 @@ function validatePseudoAndContinue() {
 function validatePinAndContinue() {
   const pinInput = document.getElementById('pin-input');
   const pin = pinInput.value.trim();
-  const errorDiv = document.getElementById('create-error');
+  const errorDiv = document.getElementById('pin-error'); // ✅ CHANGÉ
   
   // Validation du PIN
   const validation = validatePin(pin);
   if (!validation.valid) {
-    errorDiv.textContent = validation.error;
-    errorDiv.style.display = 'block';
+    if (errorDiv) {
+      errorDiv.textContent = validation.error;
+      errorDiv.style.display = 'block';
+    }
     pinInput.focus();
     return;
   }
   
-  errorDiv.style.display = 'none';
+  if (errorDiv) {
+    errorDiv.style.display = 'none';
+  }
   
   // Stocker temporairement le PIN
   window.tempPin = pin;
@@ -4416,7 +4427,6 @@ function validatePinAndContinue() {
   console.log(`✅ PIN validé: ${pin}`);
   goToStep(4);
 }
-
 async function finalizeAccount() {
   const pin = window.tempPin;
   
@@ -7217,6 +7227,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
