@@ -2804,14 +2804,7 @@
   </style>
 </head>
 <body>
-<input 
-  type="text" 
-  name="hp" 
-  id="hp" 
-  autocomplete="off" 
-  tabindex="-1"
-  style="position:absolute; left:-9999px; top:-9999px; width:1px; height:1px; opacity:0;"
-/>
+  <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">☰</button>  -->
 <!-- Bouton hamburger -->
 <button class="hamburger" onclick="toggleMenu()">
 
@@ -4299,92 +4292,38 @@ document.querySelectorAll('.section').forEach(section => {
 // ONBOARDING - NAVIGATION ENTRE ÉTAPES
 // ========================================
 
-// ========================================
-    // VARIABLES ANTI-BOT
-    // ========================================
-    let stepStartTime = Date.now();
-    let stepTimes = [Date.now()];
-    let fingerprint = '';
-
-    // ========================================
-    // GÉNÉRATION FINGERPRINT + MINI PROOF-OF-WORK
-    // ========================================
-    async function generateFingerprint() {
-      const data = [
-        navigator.userAgent,
-        navigator.language || navigator.languages[0],
-        screen.width + 'x' + screen.height + 'x' + screen.colorDepth,
-        new Date().getTimezoneOffset(),
-        navigator.platform
-      ].join('|');
-
-      let nonce = 0;
-      let hash = '';
-      const encoder = new TextEncoder();
-
-      while (!hash.startsWith('0000')) { // ~16 bits → assez pour bloquer les bots
-        nonce++;
-        const buf = await crypto.subtle.digest('SHA-256', encoder.encode(data + nonce));
-        hash = Array.from(new Uint8Array(buf))
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join('');
-      }
-      return btoa(data + '|' + nonce);
+function goToStep(stepNumber) {
+  const currentStep = document.querySelector('.onboarding-step.active');
+  const nextStep = document.getElementById(`onboarding-step-${stepNumber}`);
+  
+  if (!currentStep || !nextStep) return;
+  
+  // ✅ AJOUTÉ : Masquer tous les messages d'erreur
+  document.getElementById('create-error')?.style.setProperty('display', 'none');
+  document.getElementById('pin-error')?.style.setProperty('display', 'none');
+  
+  // Animation de sortie
+  currentStep.classList.add('slide-out-left');
+  
+  setTimeout(() => {
+    currentStep.classList.remove('active', 'slide-out-left');
+    nextStep.classList.add('active', 'slide-in-right');
+    
+    // Focus sur le champ approprié
+    if (stepNumber === 2) {
+      document.getElementById('pseudo-input')?.focus();
+    } else if (stepNumber === 3) {
+      document.getElementById('pin-input')?.focus();
     }
+    
+    setTimeout(() => {
+      nextStep.classList.remove('slide-in-right');
+    }, 400);
+  }, 400);
+  
+  console.log(`🎋 Navigation vers étape ${stepNumber}`);
+}
 
-    // ========================================
-    // CRÉATION DU HONEYPOT INVISIBLE
-    // ========================================
-    document.addEventListener('DOMContentLoaded', () => {
-      const hp = document.createElement('input');
-      hp.type = 'text';
-      hp.name = 'hp';
-      hp.id = 'hp';
-      hp.autocomplete = 'off';
-      hp.tabIndex = -1;
-      hp.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;';
-      document.body.appendChild(hp);
-
-      // Vide le champ si un bot le remplit
-      hp.addEventListener('input', () => hp.value = '');
-    });
-
-    // ========================================
-    // NAVIGATION SÉCURISÉE (fade + anti-bot timing)
-    // ========================================
-    async function goToStep(stepNumber) {
-      const now = Date.now();
-      if (now - stepStartTime < 2600) return; // trop rapide = bot
-
-      stepTimes.push(now);
-      stepStartTime = now;
-
-      const currentStep = document.querySelector('.onboarding-step.active');
-      const nextStep = document.getElementById(`onboarding-step-${stepNumber}`);
-
-      if (!currentStep || !nextStep) return;
-
-      // Masque les erreurs
-      ['create-error', 'pin-error'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-      });
-
-      currentStep.style.opacity = '0';
-      setTimeout(() => {
-        currentStep.classList.remove('active');
-        nextStep.classList.add('active');
-        nextStep.style.opacity = '1';
-
-        if (stepNumber === 2) document.getElementById('pseudo-input')?.focus();
-        if (stepNumber === 3) document.getElementById('pin-input')?.focus();
-      }, 300);
-    }
-
-    // Génération du fingerprint au chargement
-    window.addEventListener('load', async () => {
-      fingerprint = await generateFingerprint();
-    });
 function showLoginFromOnboarding() {
   document.getElementById('create-account').classList.remove('active');
   document.getElementById('login').classList.add('active');
@@ -4470,63 +4409,78 @@ function validatePinAndContinue() {
   goToStep(4);
 }
 async function finalizeAccount() {
-      const pin = window.tempPin;
-      if (!pin || !currentPseudoProposal) return;
-
-      // Blocage si honeypot rempli
-      if (document.getElementById('hp')?.value !== '') {
-        alert("Erreur interne. Réessaie.");
-        return;
-      }
-
-      document.getElementById('onboarding-step-4').classList.remove('active');
-      showAccountCreationLoader();
-
-      userToken = crypto.randomUUID();
-
-      const result = await callAPI('assignPseudo', {
-        token: userToken,
-        pseudo: currentPseudoProposal.pseudo,
-        jpnWord: currentPseudoProposal.jpnWord || '',
-        engWord: currentPseudoProposal.engWord || '',
-        pin: pin,
-        // Données anti-bot
-        fingerprint: fingerprint,
-        hp: document.getElementById('hp').value,
-        stepTimes: JSON.stringify(stepTimes)
-      });
-
-      if (result.success) {
-        localStorage.setItem('userToken', userToken);
-        currentUser = result.user;
-        await loadUserProgress();
-        showWelcomeAnimation(currentUser.pseudo);
-
-        setTimeout(() => {
-          document.getElementById('welcome-screen').style.display = 'none';
-          document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-          document.getElementById('welcome').classList.add('active');
-          document.querySelector('.panda-logo').style.display = 'none';
-          document.getElementById('loadingText').style.display = 'none';
-          document.querySelector('.hamburger').classList.remove('hidden');
-
-          if (isApprentissageBloque()) {
-            forceRevisionMode();
-          } else {
-            showSection('quiz');
-          }
-          updateAccountDisplay();
-        }, 3500);
-      } else {
-        hideAccountCreationLoader();
-        goToStep(4);
-        const err = document.getElementById('create-error');
-        err.textContent = result.error || 'Erreur lors de la création';
-        err.style.display = 'block';
-      }
-
-      delete window.tempPin;
+  const pin = window.tempPin;
+  
+  if (!pin || !currentPseudoProposal) {
+    console.error('❌ Données manquantes pour finaliser le compte');
+    return;
+  }
+  
+  // Masquer l'étape 4 et afficher loader
+  document.getElementById('onboarding-step-4').classList.remove('active');
+  showAccountCreationLoader();
+  
+  userToken = crypto.randomUUID();
+  
+  try {
+    const result = await callAPI('assignPseudo', {
+      token: userToken,
+      pseudo: currentPseudoProposal.pseudo,
+      jpnWord: currentPseudoProposal.jpnWord,
+      engWord: currentPseudoProposal.engWord,
+      pin: pin
+    });
+    
+    if (result.success) {
+      localStorage.setItem('userToken', userToken);
+      currentUser = result.user;
+      await loadUserProgress();
+      
+      console.log('✅ Compte créé avec succès:', currentUser.pseudo);
+      
+      showWelcomeAnimation(currentUser.pseudo);
+      
+      setTimeout(() => {
+        document.getElementById('welcome-screen').style.display = 'none';
+        
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById('welcome').classList.add('active');
+        
+        document.querySelector('.panda-logo').style.display = 'none';
+        document.getElementById('loadingText').style.display = 'none';
+        
+        document.querySelector('.hamburger').classList.remove('hidden');
+        
+        if (isApprentissageBloque()) {
+          console.log('🚫 Mode Apprendre bloqué → Redirection vers Mode Révision');
+          forceRevisionMode();
+        } else {
+          console.log('✅ Mode Apprendre débloqué → Redirection vers Mode Apprendre');
+          showSection('quiz');
+        }
+        
+        updateAccountDisplay();
+      }, 3500);
+      
+    } else {
+      hideAccountCreationLoader();
+      goToStep(4);
+      const errorDiv = document.getElementById('create-error');
+      errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
+      errorDiv.style.display = 'block';
+      console.error('❌ Erreur création compte:', result.error);
     }
+  } catch (error) {
+    hideAccountCreationLoader();
+    goToStep(4);
+    const errorDiv = document.getElementById('create-error');
+    errorDiv.textContent = 'Erreur de connexion';
+    errorDiv.style.display = 'block';
+    console.error('❌ Erreur:', error);
+  }
+  
+  delete window.tempPin;
+}
 // ========================================
 // MON PARCOURS - FUNCTIONS
 // ========================================
@@ -5952,7 +5906,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwuuHLFh5q-LqXr1Cti2Wt9CyCI09Prfle_UehPoo8ZuYPFXhFf15dg0tDKaXJleByWCQ/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby7b4_c6OFDTq-KdRqv_M1b-PlYz1r7PPqlVZp8WOj-2IGngNwB0AQhjbQwYlgom_Dypg/exec';
 // const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby1y-ThlFkq3WwR--BaPr8D4TlyQhoTdVVqSx3N87qbY9YzSwEWDn3YvjRLwo8ABbYk5g/exec';
 
 // Fonction pour appeler l'API
@@ -7254,7 +7208,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
-
 
 
 
