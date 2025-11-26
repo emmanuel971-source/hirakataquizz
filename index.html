@@ -31,7 +31,7 @@
       flex-direction: column;
     }
 
-    body::before {
+    ::before {
       content: '';
       position: absolute;
       top: 0;
@@ -1123,7 +1123,7 @@
       100% { transform: translateY(110vh) rotate(720deg); }
     }
 
-    body.shake {
+    .shake {
       animation: screenShake 0.4s ease-in-out;
     }
 
@@ -7213,8 +7213,7 @@ speechSynthesis.onvoiceschanged = () => {
 console.log("📢 Voix disponibles :", speechSynthesis.getVoices());
 };
 
-</script>
-<script>
+
 function adjustStatsTableOffset() {
   const menu = document.getElementById('thead');
   const container = document.querySelector('.stats-table-container');
@@ -7293,6 +7292,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
