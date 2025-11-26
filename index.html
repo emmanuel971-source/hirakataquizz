@@ -2608,6 +2608,158 @@
 .secondary-button:hover {
   background: rgba(139, 111, 71, 0.2) !important;
   transform: scale(1.02);
+} 
+/* === ONBOARDING SYSTEM === */
+.onboarding-step {
+  display: none;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.onboarding-step.active {
+  display: block;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.onboarding-step.slide-out-left {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.onboarding-step.slide-in-right {
+  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.onboarding-title {
+  font-size: 2em;
+  color: #8B6F47;
+  text-align: center;
+  margin-bottom: 30px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.onboarding-content {
+  background: rgba(168, 213, 186, 0.05);
+  border-radius: 20px;
+  padding: 30px 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.onboarding-subtitle {
+  text-align: center;
+  font-size: 1.2em;
+  color: #8B6F47;
+  margin-bottom: 30px;
+  opacity: 0.8;
+}
+
+.onboarding-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.large-button {
+  font-size: 1.3em !important;
+  padding: 20px 30px !important;
+  min-height: 70px;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #A8D5BA, #8BC34A) !important;
+  box-shadow: 0 4px 15px rgba(168, 213, 186, 0.4);
+}
+
+.primary-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(168, 213, 186, 0.6);
+}
+
+.small-button {
+  font-size: 0.9em !important;
+  padding: 10px 20px !important;
+}
+
+/* Confirmation box */
+.confirmation-box {
+  background: rgba(168, 213, 186, 0.1);
+  border: 2px solid #A8D5BA;
+  border-radius: 15px;
+  padding: 25px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.confirmation-question {
+  font-size: 1.1em;
+  color: #8B6F47;
+  margin-bottom: 10px;
+}
+
+.confirmation-date {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #8B6F47;
+  margin: 10px 0;
+}
+
+.warning-box {
+  background: rgba(253, 193, 197, 0.1);
+  border: 2px solid #FDC1C5;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.warning-box p {
+  color: #dc3545;
+  font-weight: bold;
+  margin: 0;
+  font-size: 0.95em;
+}
+
+.pin-example {
+  font-size: 0.9em;
+  color: #8B6F47;
+  margin-top: 10px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .onboarding-title {
+    font-size: 1.6em;
+  }
+  
+  .large-button {
+    font-size: 1.1em !important;
+    padding: 18px 25px !important;
+    min-height: 60px;
+  }
+  
+  .confirmation-date {
+    font-size: 1.5em;
+  }
 }    
   </style>
 </head>
@@ -2777,45 +2929,61 @@
   </div>
 </div>
 
-<!-- Section Création de compte (première visite) -->
+<!-- Section Création de compte - ÉTAPE 1 : Choix du parcours -->
 <div id="create-account" class="section">
-  <h1 data-i18n="create_account_title">Bienvenue ! 🌸</h1>
-  
-  <div class="account-section">
-    <p data-i18n="create_account_subtitle">Choisissons ton pseudo zen</p>
+  <div id="onboarding-step-1" class="onboarding-step active">
+    <h1 class="onboarding-title" data-i18n="onboarding_welcome">Bienvenue ! 🌸</h1>
     
-<div class="pseudo-input-wrapper">
-  <input 
-    type="text" 
-    id="pseudo-input" 
-    class="pseudo-input" 
-    placeholder="Ton pseudo..."
-    maxlength="20"
-  />
-</div>
-
-    <div id="create-error" class="error-message" style="display: none;"></div>
-
-    <div class="button-group">
-      <button class="arcade-button" onclick="generateNewPseudo()" data-i18n="create_account_regenerate">
-        🤔 hum... je préfère changer
-      </button>
-      <button class="arcade-button" onclick="showPinInput()" data-i18n="create_account_validate" id="validate-pseudo-btn">
-        ✅ Je valide !
-      </button>
+    <div class="onboarding-content">
+      <p class="onboarding-subtitle" data-i18n="onboarding_subtitle">Commençons ton voyage zen</p>
+      
+      <div class="onboarding-buttons">
+        <button class="arcade-button large-button" onclick="goToStep(2)" data-i18n="onboarding_create">
+          🎋 Créer un compte
+        </button>
+        <button class="arcade-button secondary-button large-button" onclick="showLoginFromOnboarding()" data-i18n="onboarding_login">
+          🔐 J'ai déjà un compte
+        </button>
+      </div>
     </div>
- <!-- ✅ NOUVEAU : Bouton "J'ai déjà un compte" -->
-    <div style="margin-top: 30px; text-align: center;">
-      <button class="arcade-button secondary-button" onclick="showLoginFromCreate()" data-i18n="create_account_already_have">
-        🔐 J'ai déjà un compte
-      </button>
+  </div>
+
+  <!-- ÉTAPE 2 : Choix du pseudo -->
+  <div id="onboarding-step-2" class="onboarding-step">
+    <h1 class="onboarding-title" data-i18n="onboarding_pseudo_title">Choisissons ton pseudo zen 🐼</h1>
+    
+    <div class="onboarding-content">
+      <div class="pseudo-input-wrapper">
+        <input 
+          type="text" 
+          id="pseudo-input" 
+          class="pseudo-input" 
+          placeholder="Ton pseudo..."
+          maxlength="20"
+        />
+      </div>
+
+      <div id="create-error" class="error-message" style="display: none;"></div>
+
+      <div class="onboarding-buttons">
+        <button class="arcade-button" onclick="generateNewPseudo()" data-i18n="onboarding_regenerate">
+          🔄 Changer de pseudo
+        </button>
+        <button class="arcade-button primary-button" onclick="validatePseudoAndContinue()" data-i18n="onboarding_next">
+          Suivant ➡️
+        </button>
+      </div>
     </div>
-    <!-- Zone de saisie du PIN (cachée au début) -->
-    <div id="pin-input-section" style="display: none;">
+  </div>
+
+  <!-- ÉTAPE 3 : Saisie du PIN -->
+  <div id="onboarding-step-3" class="onboarding-step">
+    <h1 class="onboarding-title" data-i18n="onboarding_pin_title">Sécurise ton compte 🔐</h1>
+    
+    <div class="onboarding-content">
+      <p class="onboarding-subtitle" data-i18n="onboarding_pin_subtitle">Entre ta date de naissance (JJMM)</p>
+      
       <div class="pin-input-container">
-        <label class="pin-label" data-i18n="create_account_pin_label">
-          Sécurise ton compte avec ta date de naissance (JJMM)
-        </label>
         <input 
           type="number" 
           id="pin-input" 
@@ -2824,37 +2992,45 @@
           maxlength="4"
           pattern="[0-9]{4}"
         />
-        <div style="font-size: 0.9em; color: #8B6F47; margin-top: 0.5em;">
-          <span data-i18n="create_account_pin_example">Exemple : né(e) le 12 mai → 1205</span>
+        <div class="pin-example" data-i18n="onboarding_pin_example">
+          Exemple : né(e) le 12 mai → 1205
         </div>
       </div>
 
-      <div class="button-group">
-        <button class="arcade-button" onclick="validateAccount()" data-i18n="create_account_confirm">
-          🎌 Valider mon compte
+      <div class="onboarding-buttons">
+        <button class="arcade-button secondary-button small-button" onclick="goToStep(2)">
+          ← <span data-i18n="onboarding_back">Retour</span>
         </button>
-        <button class="arcade-button" onclick="hidePinInput()" data-i18n="create_account_back">
-          ← Changer de pseudo
+        <button class="arcade-button primary-button" onclick="validatePinAndContinue()" data-i18n="onboarding_next">
+          Suivant ➡️
         </button>
       </div>
-     
     </div>
   </div>
-   <!-- Zone de confirmation du PIN (cachée au début) -->
-<div id="pin-confirm-section" style="display: none;">
-  <div class="pin-confirm-box" style="background: rgba(168, 213, 186, 0.1); border: 2px solid #8B6F47; border-radius: 10px; padding: 20px; margin: 20px 0;">
-    <p style="font-size: 1.2em; margin-bottom: 10px;">📅 Confirmation de ta date de naissance</p>
-    <p style="font-size: 1.5em; font-weight: bold; color: #8B6F47; margin: 15px 0;" id="pin-confirm-text"></p>
-    <p style="font-size: 0.9em; color: #dc3545; font-weight: bold;">⚠️ Cette date te servira à récupérer ton compte en cas de besoin</p>
-  </div>
 
-  <div class="button-group">
-    <button class="arcade-button" onclick="confirmPinAndCreateAccount()" data-i18n="create_account_confirm_yes">
-      ✅ Oui, c'est correct
-    </button>
-    <button class="arcade-button" onclick="correctPin()" data-i18n="create_account_correct_pin">
-      ✏️ Non, corriger
-    </button>
+  <!-- ÉTAPE 4 : Confirmation -->
+  <div id="onboarding-step-4" class="onboarding-step">
+    <h1 class="onboarding-title" data-i18n="onboarding_confirm_title">Confirme ta date 📅</h1>
+    
+    <div class="onboarding-content">
+      <div class="confirmation-box">
+        <p class="confirmation-question" data-i18n="onboarding_confirm_question">Tu es né(e) le</p>
+        <p class="confirmation-date" id="confirm-date-display"></p>
+      </div>
+
+      <div class="warning-box">
+        <p data-i18n="onboarding_warning">⚠️ Cette date te servira à récupérer ton compte</p>
+      </div>
+
+      <div class="onboarding-buttons">
+        <button class="arcade-button secondary-button" onclick="goToStep(3)" data-i18n="onboarding_correct">
+          ✏️ Corriger
+        </button>
+        <button class="arcade-button primary-button" onclick="finalizeAccount()" data-i18n="onboarding_confirm">
+          ✅ C'est correct
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 <!-- Écran de chargement création compte -->
@@ -3012,15 +3188,23 @@ const translations = {
   account_title: "Mon compte",
   account_change_device: "📱 Changer d'appareil",
   
-  // Création de compte
-  create_account_title: "Bienvenue ! 🌸",
-  create_account_subtitle: "Choisissons ton pseudo zen",
-  create_account_regenerate: "🤔 hum... je préfère changer",
-  create_account_validate: "✅ Je valide !",
-  create_account_pin_label: "Ta date de naissance (JJMM)",
-  create_account_pin_example: "Exemple : le 12 Mai → 1205",
-  create_account_confirm: "🐼 Valider mon compte",
-  create_account_back: "← Changer de pseudo",
+    // Onboarding
+    onboarding_welcome: "Bienvenue ! 🌸",
+    onboarding_subtitle: "Commençons ton voyage zen",
+    onboarding_create: "🎋 Créer un compte",
+    onboarding_login: "🔐 J'ai déjà un compte",
+    onboarding_pseudo_title: "Choisissons ton pseudo zen 🐼",
+    onboarding_regenerate: "🔄 Changer de pseudo",
+    onboarding_next: "Suivant ➡️",
+    onboarding_back: "Retour",
+    onboarding_pin_title: "Sécurise ton compte 🔐",
+    onboarding_pin_subtitle: "Entre ta date de naissance (JJMM)",
+    onboarding_pin_example: "Exemple : né(e) le 12 mai → 1205",
+    onboarding_confirm_title: "Confirme ta date 📅",
+    onboarding_confirm_question: "Tu es né(e) le",
+    onboarding_warning: "⚠️ Cette date te servira à récupérer ton compte",
+    onboarding_correct: "✏️ Corriger",
+    onboarding_confirm: "✅ C'est correct",
     
     // Mon Parcours (anciennement Stats)
     menu_stats: "Mon parcours",
@@ -3101,16 +3285,23 @@ const translations = {
   account_title: "My Account",
   account_change_device: "📱 Change Device",
   
-  // Account creation
-  create_account_title: "Welcome! 🌸",
-  create_account_subtitle: "Let's choose your zen nickname",
-  create_account_regenerate: "🤔 Hmm... I prefer to change.",
-   create_account_already_have: "🔐 I already have an account",  
-  create_account_validate: "✅ I approve!",
-  create_account_pin_label: "Your birth date (DDMM)",
-  create_account_pin_example: "Example: born May 12th → 1205",
-  create_account_confirm: "🐼 Validate my account",
-  create_account_back: "← Change nickname",
+    // Onboarding
+    onboarding_welcome: "Welcome! 🌸",
+    onboarding_subtitle: "Let's start your zen journey",
+    onboarding_create: "🎋 Create an account",
+    onboarding_login: "🔐 I already have an account",
+    onboarding_pseudo_title: "Choose your zen nickname 🐼",
+    onboarding_regenerate: "🔄 Change nickname",
+    onboarding_next: "Next ➡️",
+    onboarding_back: "Back",
+    onboarding_pin_title: "Secure your account 🔐",
+    onboarding_pin_subtitle: "Enter your birth date (DDMM)",
+    onboarding_pin_example: "Example: born May 12th → 1205",
+    onboarding_confirm_title: "Confirm your date 📅",
+    onboarding_confirm_question: "You were born on",
+    onboarding_warning: "⚠️ This date will be used to recover your account",
+    onboarding_correct: "✏️ Correct",
+    onboarding_confirm: "✅ That's correct",
     // Mon Parcours
     menu_stats: "My journey",
     stats_title: "🐼 My Journey",
@@ -3190,16 +3381,23 @@ const translations = {
   account_title: "Mi Cuenta",
   account_change_device: "📱 Cambiar de Dispositivo",
   
-  // Creación de cuenta
-  create_account_title: "¡Bienvenido! 🌸",
-  create_account_already_have: "🔐 Ya tengo una cuenta",  
-  create_account_subtitle: "Elige tu apodo zen",
-  create_account_regenerate: "🔄 Otro apodo",
-  create_account_validate: "✅ Valido este apodo",
-  create_account_pin_label: "Asegura tu cuenta con tu fecha de nacimiento (DDMM)",
-  create_account_pin_example: "Ejemplo: nacido el 12 de mayo → 1205",
-  create_account_confirm: "🎌 Validar mi cuenta",
-  create_account_back: "← Cambiar apodo",
+    // Onboarding
+    onboarding_welcome: "¡Bienvenido! 🌸",
+    onboarding_subtitle: "Comencemos tu viaje zen",
+    onboarding_create: "🎋 Crear una cuenta",
+    onboarding_login: "🔐 Ya tengo una cuenta",
+    onboarding_pseudo_title: "Elige tu apodo zen 🐼",
+    onboarding_regenerate: "🔄 Cambiar apodo",
+    onboarding_next: "Siguiente ➡️",
+    onboarding_back: "Volver",
+    onboarding_pin_title: "Asegura tu cuenta 🔐",
+    onboarding_pin_subtitle: "Ingresa tu fecha de nacimiento (DDMM)",
+    onboarding_pin_example: "Ejemplo: nacido el 12 de mayo → 1205",
+    onboarding_confirm_title: "Confirma tu fecha 📅",
+    onboarding_confirm_question: "Naciste el",
+    onboarding_warning: "⚠️ Esta fecha te servirá para recuperar tu cuenta",
+    onboarding_correct: "✏️ Corregir",
+    onboarding_confirm: "✅ Es correcto",
     // Mon Parcours
     menu_stats: "Mi recorrido",
     stats_title: "🐼 Mi Recorrido",
@@ -3408,6 +3606,7 @@ function initPseudoCache() {
     pseudoCache = generatePseudoBatch();
     currentPseudoIndex = 0;
   }
+  
   // Initialiser avec le premier pseudo
   const pseudoInput = document.getElementById('pseudo-input');
   if (pseudoInput && pseudoCache.length > 0) {
@@ -3415,6 +3614,12 @@ function initPseudoCache() {
     currentPseudoProposal = pseudoCache[0];
     currentPseudoIndex = 1;
   }
+  
+  // S'assurer que l'étape 1 est active
+  document.querySelectorAll('.onboarding-step').forEach(step => {
+    step.classList.remove('active');
+  });
+  document.getElementById('onboarding-step-1').classList.add('active');
 }
 // ========================================
 // GÉNÉRATION DE PSEUDO - REMPLACER LA FONCTION EXISTANTE
@@ -4230,7 +4435,192 @@ document.querySelectorAll('.section').forEach(section => {
 
 
 }
+// ========================================
+// ONBOARDING - NAVIGATION ENTRE ÉTAPES
+// ========================================
 
+function goToStep(stepNumber) {
+  const currentStep = document.querySelector('.onboarding-step.active');
+  const nextStep = document.getElementById(`onboarding-step-${stepNumber}`);
+  
+  if (!currentStep || !nextStep) return;
+  
+  // Animation de sortie
+  currentStep.classList.add('slide-out-left');
+  
+  setTimeout(() => {
+    currentStep.classList.remove('active', 'slide-out-left');
+    nextStep.classList.add('active', 'slide-in-right');
+    
+    // Focus sur le champ approprié
+    if (stepNumber === 2) {
+      document.getElementById('pseudo-input')?.focus();
+    } else if (stepNumber === 3) {
+      document.getElementById('pin-input')?.focus();
+    }
+    
+    setTimeout(() => {
+      nextStep.classList.remove('slide-in-right');
+    }, 400);
+  }, 400);
+  
+  console.log(`🎋 Navigation vers étape ${stepNumber}`);
+}
+
+function showLoginFromOnboarding() {
+  document.getElementById('create-account').classList.remove('active');
+  document.getElementById('login').classList.add('active');
+  
+  document.getElementById('login-pseudo').value = '';
+  document.getElementById('login-pin').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-success').style.display = 'none';
+  
+  console.log('🔄 Navigation vers connexion depuis onboarding');
+}
+
+function validatePseudoAndContinue() {
+  const pseudoInput = document.getElementById('pseudo-input');
+  const pseudo = pseudoInput.value.trim();
+  const errorDiv = document.getElementById('create-error');
+  
+  // Validation du pseudo
+  if (!pseudo || pseudo.length < 2) {
+    errorDiv.textContent = 'Le pseudo doit contenir au moins 2 caractères';
+    errorDiv.style.display = 'block';
+    pseudoInput.focus();
+    return;
+  }
+  
+  if (pseudo.length > 20) {
+    errorDiv.textContent = 'Le pseudo ne peut pas dépasser 20 caractères';
+    errorDiv.style.display = 'block';
+    pseudoInput.focus();
+    return;
+  }
+  
+  const validPattern = /^[\p{L}\p{N}\p{Emoji}\s\-_]+$/u;
+  if (!validPattern.test(pseudo)) {
+    errorDiv.textContent = 'Le pseudo contient des caractères non autorisés';
+    errorDiv.style.display = 'block';
+    pseudoInput.focus();
+    return;
+  }
+  
+  // Mettre à jour currentPseudoProposal
+  currentPseudoProposal = {
+    pseudo: pseudo,
+    jpnWord: currentPseudoProposal?.jpnWord || '',
+    engWord: currentPseudoProposal?.engWord || ''
+  };
+  
+  errorDiv.style.display = 'none';
+  
+  console.log(`✅ Pseudo validé: ${pseudo}`);
+  goToStep(3);
+}
+
+function validatePinAndContinue() {
+  const pinInput = document.getElementById('pin-input');
+  const pin = pinInput.value.trim();
+  const errorDiv = document.getElementById('create-error');
+  
+  // Validation du PIN
+  const validation = validatePin(pin);
+  if (!validation.valid) {
+    errorDiv.textContent = validation.error;
+    errorDiv.style.display = 'block';
+    pinInput.focus();
+    return;
+  }
+  
+  errorDiv.style.display = 'none';
+  
+  // Stocker temporairement le PIN
+  window.tempPin = pin;
+  
+  // Afficher la date formatée
+  const dateInfo = formatPinToDate(pin);
+  document.getElementById('confirm-date-display').textContent = 
+    `${dateInfo.day} ${dateInfo.monthName}`;
+  
+  console.log(`✅ PIN validé: ${pin}`);
+  goToStep(4);
+}
+
+async function finalizeAccount() {
+  const pin = window.tempPin;
+  
+  if (!pin || !currentPseudoProposal) {
+    console.error('❌ Données manquantes pour finaliser le compte');
+    return;
+  }
+  
+  // Masquer l'étape 4 et afficher loader
+  document.getElementById('onboarding-step-4').classList.remove('active');
+  showAccountCreationLoader();
+  
+  userToken = crypto.randomUUID();
+  
+  try {
+    const result = await callAPI('assignPseudo', {
+      token: userToken,
+      pseudo: currentPseudoProposal.pseudo,
+      jpnWord: currentPseudoProposal.jpnWord,
+      engWord: currentPseudoProposal.engWord,
+      pin: pin
+    });
+    
+    if (result.success) {
+      localStorage.setItem('userToken', userToken);
+      currentUser = result.user;
+      await loadUserProgress();
+      
+      console.log('✅ Compte créé avec succès:', currentUser.pseudo);
+      
+      showWelcomeAnimation(currentUser.pseudo);
+      
+      setTimeout(() => {
+        document.getElementById('welcome-screen').style.display = 'none';
+        
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById('welcome').classList.add('active');
+        
+        document.querySelector('.panda-logo').style.display = 'none';
+        document.getElementById('loadingText').style.display = 'none';
+        
+        document.querySelector('.hamburger').classList.remove('hidden');
+        
+        if (isApprentissageBloque()) {
+          console.log('🚫 Mode Apprendre bloqué → Redirection vers Mode Révision');
+          forceRevisionMode();
+        } else {
+          console.log('✅ Mode Apprendre débloqué → Redirection vers Mode Apprendre');
+          showSection('quiz');
+        }
+        
+        updateAccountDisplay();
+      }, 3500);
+      
+    } else {
+      hideAccountCreationLoader();
+      goToStep(4);
+      const errorDiv = document.getElementById('create-error');
+      errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
+      errorDiv.style.display = 'block';
+      console.error('❌ Erreur création compte:', result.error);
+    }
+  } catch (error) {
+    hideAccountCreationLoader();
+    goToStep(4);
+    const errorDiv = document.getElementById('create-error');
+    errorDiv.textContent = 'Erreur de connexion';
+    errorDiv.style.display = 'block';
+    console.error('❌ Erreur:', error);
+  }
+  
+  delete window.tempPin;
+}
 // ========================================
 // MON PARCOURS - FUNCTIONS
 // ========================================
@@ -6958,6 +7348,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
