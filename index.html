@@ -2767,109 +2767,7 @@
 }
 
 
-/* Smartphones haute résolution */
-@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-html, body {
-    overflow: hidden !important;
-    width: 100vw;
-    height: 100vh;
-  }
 
-  .onboarding-step {
-    max-width: 100vw !important;
-    width: 100vw !important;
-    padding: 16px;
-    transform: translateX(100%); /* restreint à l'écran */
-  }
-
-  .onboarding-step.active {
-    transform: translateX(0);
-  }
-
-  .onboarding-step.slide-out-left {
-    transform: translateX(-100%);
-  }
-
-  @keyframes slideInRight {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-  
-  .onboarding-title {
-    font-size: 1.4em;
-    margin-bottom: 20px;
-  }
-  
-  .onboarding-content {
-    padding: 20px 15px;
-  }
-  
-  .onboarding-subtitle {
-    font-size: 1em;
-    margin-bottom: 20px;
-  }
-  
-  .large-button {
-    font-size: 1em !important;
-    padding: 15px 20px !important;
-    min-height: 55px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .arcade-button {
-    font-size: 0.95em !important;
-    padding: 12px 18px !important;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .small-button {
-    font-size: 0.85em !important;
-    padding: 8px 15px !important;
-  }
-  
-  .pseudo-input-wrapper {
-    padding: 0 10px;
-  }
-  
-  .pseudo-input {
-    font-size: 1.4em;
-    padding: 12px 15px;
-    max-width: 100%;
-  }
-  
-  .pin-input {
-    font-size: 1.8em;
-    padding: 12px 15px;
-    max-width: 200px;
-  }
-  
-  .confirmation-date {
-    font-size: 1.3em;
-  }
-  
-  .confirmation-box {
-    padding: 20px 15px;
-  }
-  
-  .warning-box {
-    padding: 12px;
-  }
-  
-  .warning-box p {
-    font-size: 0.85em;
-  }
-  
-  .onboarding-buttons {
-    gap: 12px;
-    margin-top: 20px;
-  }
-}
 
 /* Très petits écrans */
 @media (max-width: 360px) {
@@ -7478,6 +7376,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
