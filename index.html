@@ -2610,42 +2610,6 @@
   transform: scale(1.02);
 } 
 /* === ONBOARDING SYSTEM === */
-.onboarding-step {
-  display: none;
-  opacity: 0;
-  transform: translateX(100%);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.onboarding-step.active {
-  display: block;
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.onboarding-step.slide-out-left {
-  opacity: 0;
-  transform: translateX(-100%);
-}
-
-.onboarding-step.slide-in-right {
-  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
 
 .onboarding-title {
   font-size: 2em;
@@ -7465,6 +7429,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
