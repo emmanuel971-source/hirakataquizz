@@ -230,7 +230,7 @@
 /* Le remplissage */
 .unlock-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+  background: linear-gradient(90deg, #FDE8E9, #A8D5BA);
   border-radius: 8px;
   transition: width 0.3s ease;
   position: relative;
@@ -238,6 +238,7 @@
 
 /* Animation quand on approche du déblocage */
 .unlock-progress-fill.proche-deblocage {
+  background: linear-gradient(90deg, #A8D5BA, #C8E6D1);
   animation: pulse-unlock 1s infinite;
 }
 
@@ -274,7 +275,7 @@
 /* Le remplissage */
 .unlock-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+  background: linear-gradient(90deg, #FDE8E9, #A8D5BA);
   border-radius: 4px;
   transition: width 0.3s ease;
   position: relative;
@@ -307,7 +308,7 @@
 /* Le remplissage */
 .unlock-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+  background: linear-gradient(90deg, #FDE8E9, #A8D5BA);
   border-radius: 4px;
   transition: width 0.3s ease;
   position: relative;
@@ -332,7 +333,7 @@
     .progress-bar-track {
       position: relative;
       height: 16px;
-      background: linear-gradient(to right, #E0F7FA, #355E3B);
+      background: linear-gradient(to right, #f0f8f0, #A8D5BA);
       border-radius: 6px;
       flex: 1;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -493,7 +494,7 @@
     }
 
     .star.filled {
-      background: #FDC1C5;
+      background: #A8D5BA;
     }
 
     .star.new-star {
@@ -545,7 +546,7 @@
       position: absolute;
       width: 100px;
       height: 10px;
-      background: #FDC1C5;
+      background: #A8D5BA;
       border-radius: 50%;
       pointer-events: none;
       animation: sakuraFall 3s linear forwards;
@@ -816,7 +817,7 @@
 /*  BOUTONS REPONSES MODE APPRENDRE- DESKTOP    */
     .arcade-button {
       position: relative;
-      background: #F5E8C7;
+      background: #E8D5C0;
 /*       background-image: url('https://www.transparenttextures.com/patterns/light-wood.png');   */
       border: 2px solid transparent;
       border-radius: 10px;
@@ -888,9 +889,9 @@
     }
 
     .arcade-button.incorrect {
-      background: rgba(253, 193, 197, 0.5) !important;
+      background: rgba(253, 193, 197, 0.3) !important;
       color: #8B6F47;
-      border-color: #FDC1C5;
+      border-color: #A8D5BA;
       background-image: none !important;
       animation: incorrectShake 0.6s ease-in-out;
       opacity: 1 !important;
@@ -1260,7 +1261,7 @@
   font-size: 2.5em !important;
   font-weight: 700 !important;
   color: #8B6F47 !important; /* marron des boutons */
-/*  background: #F5E8C7 !important;  fond des boutons */ 
+/*  background: #E8D5C0 !important;  fond des boutons */ 
 /*  background-image: url('https://www.transparenttextures.com/patterns/light-wood.png') !important  */
   border: none !important; /* supprime le liseret marron */
   padding: 15px !important;
@@ -1562,18 +1563,18 @@
 
     /* Couleurs des touches et des lettres */
     .revision-key:nth-child(-n+5) {
-      background-color: #d1e7ff; /* Bleu clair */
+      background-color: #E8F5F0; /* Bleu clair */
       color: #1a3c66; /* Bleu foncé complémentaire */
     }
 
     .revision-key:nth-child(6),
     .revision-key:nth-child(7) {
-      background-color: #fff3cd; /* Jaune pâle */
+      background-color: #FAF3E8; /* Jaune pâle */
       color: #664d1a; /* Marron doré complémentaire */
     }
 
     .revision-key:nth-child(8) {
-      background-color: #d1e7ff; /* Bleu clair */
+      background-color: #E8F5F0; /* Bleu clair */
       color: #1a3c66; /* Bleu foncé complémentaire */
     }
 
@@ -2704,7 +2705,7 @@
 
 .warning-box {
   background: rgba(253, 193, 197, 0.1);
-  border: 2px solid #FDC1C5;
+  border: 2px solid #A8D5BA;
   border-radius: 10px;
   padding: 15px;
   margin: 20px 0;
@@ -4899,7 +4900,7 @@ function showReturningUserWelcome(pseudo) {
       position: absolute;
       width: 12px;
       height: 12px;
-      background: #FDC1C5;
+      background: #A8D5BA;
       border-radius: 50%;
       pointer-events: none;
       animation: sakuraFall ${2.5 + Math.random() * 1.5}s linear forwards;
@@ -5732,7 +5733,7 @@ const ctx = canvas.getContext('2d');
 const colorPalettes = [
 ['#6B8E23', '#9ACD32', '#32CD32', '#228B22', '#008000', '#006400'], // Palette verte
 ['#A8D5BA', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
-['#FDC1C5', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
+['#A8D5BA', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
 ];
 const colors = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
 
@@ -6807,7 +6808,7 @@ document.body.appendChild(msgWrapper);
 msg.style.fontSize = "3em";
 msg.style.fontWeight = "bold";
 msg.style.color = "#8B6F47";
-msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #FDC1C5";
+msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #A8D5BA";
 msg.style.writingMode = "horizontal-tb";
 msg.style.whiteSpace = "nowrap";
 msgWrapper.appendChild(msg);
@@ -7373,3 +7374,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
