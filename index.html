@@ -4378,9 +4378,9 @@ function validatePseudoAndContinue() {
   const pseudo = pseudoInput.value.trim();
   const errorDiv = document.getElementById('create-error');
   
-  // ✅ MODIFIÉ : Message plus clair avec temps d'attente
+  // Vérification délai minimum
   const timeOnStep = Date.now() - (stepTimestamps[2] || Date.now());
-  const requiredTime = 3000; // 3 secondes
+  const requiredTime = 3000;
   
   if (timeOnStep < requiredTime) {
     const remainingTime = Math.ceil((requiredTime - timeOnStep) / 1000);
@@ -4388,23 +4388,24 @@ function validatePseudoAndContinue() {
     if (errorDiv) {
       errorDiv.textContent = `⏱️ Veuillez patienter encore ${remainingTime} seconde${remainingTime > 1 ? 's' : ''}...`;
       errorDiv.style.display = 'block';
-      errorDiv.style.color = '#f39c12'; // Orange pour avertissement
+      errorDiv.style.color = '#f39c12';
     }
     
-    // ✅ AJOUTÉ : Masquer le message après le délai
     setTimeout(() => {
       if (errorDiv) {
         errorDiv.style.display = 'none';
-        errorDiv.style.color = '#dc3545'; // Remettre rouge par défaut
+        errorDiv.style.color = '#dc3545';
       }
     }, remainingTime * 1000);
     
     return;
   }
+  
   // Validation du pseudo
   if (!pseudo || pseudo.length < 2) {
     errorDiv.textContent = 'Le pseudo doit contenir au moins 2 caractères';
     errorDiv.style.display = 'block';
+    errorDiv.style.color = '#dc3545';
     pseudoInput.focus();
     return;
   }
@@ -4412,14 +4413,17 @@ function validatePseudoAndContinue() {
   if (pseudo.length > 20) {
     errorDiv.textContent = 'Le pseudo ne peut pas dépasser 20 caractères';
     errorDiv.style.display = 'block';
+    errorDiv.style.color = '#dc3545';
     pseudoInput.focus();
     return;
   }
   
-  const validPattern = /^[\p{L}\p{N}\p{Emoji}\s\-_]+$/u;
+  // ✅ MODIFIÉ : Validation stricte - lettres et chiffres uniquement
+  const validPattern = /^[a-zA-Z0-9àâäéèêëïîôùûüÿçñÀÂÄÉÈÊËÏÎÔÙÛÜŸÇÑ]+$/;
   if (!validPattern.test(pseudo)) {
-    errorDiv.textContent = 'Le pseudo contient des caractères non autorisés';
+    errorDiv.textContent = 'Le pseudo ne peut contenir que des lettres et des chiffres (pas d\'espaces ni de caractères spéciaux)';
     errorDiv.style.display = 'block';
+    errorDiv.style.color = '#dc3545';
     pseudoInput.focus();
     return;
   }
@@ -7369,6 +7373,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
