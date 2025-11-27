@@ -3257,6 +3257,10 @@ const translations = {
     onboarding_warning: "⚠️ Cette date te servira à récupérer ton compte",
     onboarding_correct: "✏️ Corriger",
     onboarding_confirm: "✅ C'est correct",
+    rate_limit_error: "🚫 Trop de tentatives. Veuillez réessayer dans quelques minutes.",
+    wait_seconds: "⏱️ Veuillez patienter encore",
+    second: "seconde",
+    seconds: "secondes",
     
     // Mon Parcours (anciennement Stats)
     menu_stats: "Mon parcours",
@@ -3354,6 +3358,10 @@ const translations = {
     onboarding_warning: "⚠️ This date will be used to recover your account",
     onboarding_correct: "✏️ Correct",
     onboarding_confirm: "✅ That's correct",
+    rate_limit_error: "🚫 Too many attempts. Please try again in a few minutes.",
+    wait_seconds: "⏱️ Please wait",
+    second: "second",
+    seconds: "seconds",
     // Mon Parcours
     menu_stats: "My journey",
     stats_title: "🐼 My Journey",
@@ -3450,6 +3458,10 @@ const translations = {
     onboarding_warning: "⚠️ Esta fecha te servirá para recuperar tu cuenta",
     onboarding_correct: "✏️ Corregir",
     onboarding_confirm: "✅ Es correcto",
+    rate_limit_error: "🚫 Demasiados intentos. Inténtalo de nuevo en unos minutos.",
+    wait_seconds: "⏱️ Por favor espera",
+    second: "segundo",
+    seconds: "segundos",
     // Mon Parcours
     menu_stats: "Mi recorrido",
     stats_title: "🐼 Mi Recorrido",
@@ -4365,14 +4377,28 @@ function validatePseudoAndContinue() {
   const pseudoInput = document.getElementById('pseudo-input');
   const pseudo = pseudoInput.value.trim();
   const errorDiv = document.getElementById('create-error');
-    // ✅ AJOUTÉ : Vérification délai minimum (3 secondes sur l'étape)
+  
+  // ✅ MODIFIÉ : Message plus clair avec temps d'attente
   const timeOnStep = Date.now() - (stepTimestamps[2] || Date.now());
-  if (timeOnStep < 3000) {
+  const requiredTime = 3000; // 3 secondes
+  
+  if (timeOnStep < requiredTime) {
+    const remainingTime = Math.ceil((requiredTime - timeOnStep) / 1000);
     console.warn('🤖 Navigation trop rapide - bot suspecté');
     if (errorDiv) {
-      errorDiv.textContent = 'Veuillez prendre le temps de choisir votre pseudo';
+      errorDiv.textContent = `⏱️ Veuillez patienter encore ${remainingTime} seconde${remainingTime > 1 ? 's' : ''}...`;
       errorDiv.style.display = 'block';
+      errorDiv.style.color = '#f39c12'; // Orange pour avertissement
     }
+    
+    // ✅ AJOUTÉ : Masquer le message après le délai
+    setTimeout(() => {
+      if (errorDiv) {
+        errorDiv.style.display = 'none';
+        errorDiv.style.color = '#dc3545'; // Remettre rouge par défaut
+      }
+    }, remainingTime * 1000);
+    
     return;
   }
   // Validation du pseudo
@@ -4414,15 +4440,29 @@ function validatePseudoAndContinue() {
 function validatePinAndContinue() {
   const pinInput = document.getElementById('pin-input');
   const pin = pinInput.value.trim();
-  const errorDiv = document.getElementById('pin-error'); // ✅ CHANGÉ
-    // ✅ AJOUTÉ : Vérification délai minimum (2 secondes sur l'étape)
+  const errorDiv = document.getElementById('pin-error');
+  
+  // ✅ MODIFIÉ : Message plus clair avec temps d'attente
   const timeOnStep = Date.now() - (stepTimestamps[3] || Date.now());
-  if (timeOnStep < 2000) {
+  const requiredTime = 2000; // 2 secondes
+  
+  if (timeOnStep < requiredTime) {
+    const remainingTime = Math.ceil((requiredTime - timeOnStep) / 1000);
     console.warn('🤖 Navigation trop rapide - bot suspecté');
     if (errorDiv) {
-      errorDiv.textContent = 'Veuillez prendre le temps de saisir votre date';
+      errorDiv.textContent = `⏱️ Veuillez patienter encore ${remainingTime} seconde${remainingTime > 1 ? 's' : ''}...`;
       errorDiv.style.display = 'block';
+      errorDiv.style.color = '#f39c12'; // Orange
     }
+    
+    // ✅ AJOUTÉ : Masquer le message après le délai
+    setTimeout(() => {
+      if (errorDiv) {
+        errorDiv.style.display = 'none';
+        errorDiv.style.color = '#dc3545'; // Remettre rouge
+      }
+    }, remainingTime * 1000);
+    
     return;
   }
   // Validation du PIN
@@ -4473,17 +4513,33 @@ async function finalizeAccount() {
     return;
   }
   
-  // 2. Vérifier temps total minimum (15 secondes)
-  const totalTime = Date.now() - (sessionStartTime || Date.now());
-  if (totalTime < 15000) {
-    console.warn('🤖 Création trop rapide:', totalTime, 'ms');
-    const errorDiv = document.getElementById('create-error');
-    if (errorDiv) {
-      errorDiv.textContent = 'Veuillez prendre le temps de créer votre compte';
-      errorDiv.style.display = 'block';
-    }
-    return;
+// 2. Vérifier temps total minimum (15 secondes)
+const totalTime = Date.now() - (sessionStartTime || Date.now());
+const requiredTotalTime = 15000; // 15 secondes
+
+if (totalTime < requiredTotalTime) {
+  const remainingTime = Math.ceil((requiredTotalTime - totalTime) / 1000);
+  console.warn('🤖 Création trop rapide:', totalTime, 'ms');
+  
+  goToStep(4); // Retour à l'écran de confirmation
+  
+  const errorDiv = document.getElementById('create-error');
+  if (errorDiv) {
+    errorDiv.textContent = `⏱️ Veuillez patienter encore ${remainingTime} seconde${remainingTime > 1 ? 's' : ''} avant de valider...`;
+    errorDiv.style.display = 'block';
+    errorDiv.style.color = '#f39c12'; // Orange
   }
+  
+  // ✅ AJOUTÉ : Masquer le message après le délai
+  setTimeout(() => {
+    if (errorDiv) {
+      errorDiv.style.display = 'none';
+      errorDiv.style.color = '#dc3545';
+    }
+  }, remainingTime * 1000);
+  
+  return;
+}
   
   // 3. Vérifier interactions utilisateur
   if (userInteractions.clicks < 3 || userInteractions.keystrokes < 4) {
@@ -4556,13 +4612,17 @@ async function finalizeAccount() {
       }, 3500);
       
     } else {
-      hideAccountCreationLoader();
-      goToStep(4);
-      const errorDiv = document.getElementById('create-error');
-      errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
-      errorDiv.style.display = 'block';
-      console.error('❌ Erreur création compte:', result.error);
-    }
+  hideAccountCreationLoader();
+  goToStep(4);
+  const errorDiv = document.getElementById('create-error');
+  
+  // ✅ MODIFIÉ : Afficher l'erreur du serveur (rate limiting inclus)
+  if (errorDiv) {
+    errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
+    errorDiv.style.display = 'block';
+  }
+  console.error('❌ Erreur création compte:', result.error);
+}
   } catch (error) {
     hideAccountCreationLoader();
     goToStep(4);
@@ -7309,6 +7369,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
