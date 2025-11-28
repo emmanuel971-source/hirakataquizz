@@ -4756,12 +4756,7 @@ if (totalTime < requiredTotalTime) {
   goToStep(4);
   const errorDiv = document.getElementById('create-error');
   
-  // ✅ MODIFIÉ : Afficher l'erreur du serveur (rate limiting inclus)
-  if (errorDiv) {
-    errorDiv.textContent = result.error || 'Erreur lors de la création du compte';
-    errorDiv.style.display = 'block';
-  }
-  console.error('❌ Erreur création compte:', result.error);
+ 
 }
   } catch (error) {
     hideAccountCreationLoader();
@@ -7509,6 +7504,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
