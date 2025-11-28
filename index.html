@@ -3593,6 +3593,7 @@ const translations = {
 let currentLanguage = localStorage.getItem('appLanguage') || detectBrowserLanguage();
 
 // ✅ AJOUTÉ : Détection automatique de la langue du navigateur
+// ✅ AJOUTÉ : Détection automatique de la langue du navigateur
 function detectBrowserLanguage() {
   // Récupérer la langue du navigateur
   const browserLang = navigator.language || navigator.userLanguage;
@@ -3613,20 +3614,6 @@ function detectBrowserLanguage() {
     console.log('✅ Langue par défaut: Anglais');
     return 'en';
   }
-} = localStorage.getItem('appLanguage') || 'fr';
-
-// Fonction pour obtenir une traduction
-function t(key) {
-  return translations[currentLanguage][key] || translations['fr'][key] || key;
-}
-// Fonction pour obtenir la bonne valeur Katakana selon la langue
-function getLocalizedKatakana(item) {
-  if (currentLanguage === 'en' && item.KatakanaEN) {
-    return item.KatakanaEN;
-  } else if (currentLanguage === 'es' && item.KatakanaES) {
-    return item.KatakanaES;
-  }
-  return item.Katakana; // Fallback sur français
 }
 // Fonction pour changer de langue
 function setLanguage(lang) {
@@ -7565,6 +7552,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
