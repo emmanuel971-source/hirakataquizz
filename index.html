@@ -3588,22 +3588,15 @@ const translations = {
 };
 
 
-// Langue actuelle (par défaut français)
+
 // Langue actuelle (détection auto ou sauvegardée)
 let currentLanguage = localStorage.getItem('appLanguage') || detectBrowserLanguage();
-
-// ✅ AJOUTÉ : Détection automatique de la langue du navigateur
-// ✅ AJOUTÉ : Détection automatique de la langue du navigateur
 function detectBrowserLanguage() {
-  // Récupérer la langue du navigateur
   const browserLang = navigator.language || navigator.userLanguage;
-  
   console.log('🌍 Langue du navigateur détectée:', browserLang);
   
-  // Extraire le code langue (ex: "fr-FR" → "fr", "es-ES" → "es")
   const langCode = browserLang.toLowerCase().split('-')[0];
   
-  // Mapping vers les langues supportées
   if (langCode === 'fr') {
     console.log('✅ Français détecté');
     return 'fr';
@@ -6279,11 +6272,12 @@ async function initGame() {
   try {
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
-    // ✅ AJOUTÉ : Détecter et appliquer la langue dès le début
+       // ✅ AJOUTÉ : Détecter et appliquer la langue dès le début
     if (!localStorage.getItem('appLanguage')) {
       const detectedLang = detectBrowserLanguage();
       currentLanguage = detectedLang;
       localStorage.setItem('appLanguage', detectedLang);
+    }
     // Masquer le texte "Chargement..." classique
     document.getElementById("loadingText").style.display = "none";
     
@@ -7552,6 +7546,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
