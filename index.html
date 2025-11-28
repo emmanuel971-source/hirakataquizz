@@ -3588,25 +3588,21 @@ const translations = {
 };
 
 
+// Langue actuelle (par défaut français)
+let currentLanguage = localStorage.getItem('appLanguage') || 'fr';
 
-// Langue actuelle (détection auto ou sauvegardée)
-let currentLanguage = localStorage.getItem('appLanguage') || detectBrowserLanguage();
-function detectBrowserLanguage() {
-  const browserLang = navigator.language || navigator.userLanguage;
-  console.log('🌍 Langue du navigateur détectée:', browserLang);
-  
-  const langCode = browserLang.toLowerCase().split('-')[0];
-  
-  if (langCode === 'fr') {
-    console.log('✅ Français détecté');
-    return 'fr';
-  } else if (langCode === 'es') {
-    console.log('✅ Espagnol détecté');
-    return 'es';
-  } else {
-    console.log('✅ Langue par défaut: Anglais');
-    return 'en';
+// Fonction pour obtenir une traduction
+function t(key) {
+  return translations[currentLanguage][key] || translations['fr'][key] || key;
+}
+// Fonction pour obtenir la bonne valeur Katakana selon la langue
+function getLocalizedKatakana(item) {
+  if (currentLanguage === 'en' && item.KatakanaEN) {
+    return item.KatakanaEN;
+  } else if (currentLanguage === 'es' && item.KatakanaES) {
+    return item.KatakanaES;
   }
+  return item.Katakana; // Fallback sur français
 }
 // Fonction pour changer de langue
 function setLanguage(lang) {
@@ -3801,22 +3797,10 @@ function initPseudoCache() {
   });
   document.getElementById('onboarding-step-1').classList.add('active');
   
-  // Initialiser protection anti-bot
+  // ✅ AJOUTÉ : Initialiser protection anti-bot
   sessionStartTime = Date.now();
   stepTimestamps = { 1: Date.now() };
   userInteractions = { clicks: 0, keystrokes: 0, mouseMovements: 0 };
-  
-  // ✅ AJOUTÉ : Sauvegarder et appliquer la langue détectée
-  if (!localStorage.getItem('appLanguage')) {
-    const detectedLang = detectBrowserLanguage();
-    localStorage.setItem('appLanguage', detectedLang);
-    currentLanguage = detectedLang;
-    console.log(`🌍 Langue initialisée: ${detectedLang}`);
-  }
-  
-  // Mettre à jour les textes avec la bonne langue
-  updateAllTexts();
-  
   console.log('🛡️ Session anti-bot initialisée');
 }
 // ========================================
@@ -4577,15 +4561,14 @@ function initBirthdateSelectors() {
     daySelect.innerHTML += `<option value="${day}">${day}</option>`;
   }
   
-  // Générer les mois avec la langue actuelle
+  // Générer les mois
   const months = {
     fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
     en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
   };
   
-  // ✅ MODIFIÉ : Utiliser currentLanguage au lieu de le redéfinir
-  const monthNames = months[currentLanguage] || months.en;
+  const monthNames = months[currentLanguage] || months.fr;
   monthSelect.innerHTML = '<option value="">--</option>';
   
   for (let i = 1; i <= 12; i++) {
@@ -4593,7 +4576,7 @@ function initBirthdateSelectors() {
     monthSelect.innerHTML += `<option value="${month}">${monthNames[i-1]}</option>`;
   }
   
-  console.log(`📅 Sélecteurs de date initialisés en ${currentLanguage}`);
+  console.log('📅 Sélecteurs de date initialisés');
 }
 function validateBirthdateAndContinue() {
   const daySelect = document.getElementById('birth-day');
@@ -6272,8 +6255,7 @@ async function initGame() {
   try {
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
-       // ✅ AJOUTÉ : Détecter et appliquer la langue dès le début
-   
+    
     // Masquer le texte "Chargement..." classique
     document.getElementById("loadingText").style.display = "none";
     
@@ -7542,10 +7524,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
-
-
-
-
 
 
 
