@@ -3257,6 +3257,24 @@
 
 </div>
   <script>
+    function autoDetectLanguage() {
+  const lang = (navigator.language || navigator.userLanguage || "en").toLowerCase();
+
+  let detected = "en"; // fallback
+
+  if (lang.startsWith("fr")) detected = "fr";
+  else if (lang.startsWith("es")) detected = "es";
+
+  // Si aucune langue enregistrée auparavant → on enregistre celle détectée
+  if (!localStorage.getItem("appLanguage")) {
+    console.log("🌍 Langue navigateur détectée :", detected);
+    setLanguage(detected);
+  } else {
+    // Sinon on charge celle déjà sauvegardée
+    setLanguage(localStorage.getItem("appLanguage"));
+  }
+}
+
     // === SYSTÈME DE TRADUCTION ===
 const translations = {
   fr: {
@@ -3675,6 +3693,8 @@ let userInteractions = {
 // INITIALISATION AU CHARGEMENT
 // ========================================
 async function initUserSystem() {
+  autoDetectLanguage();
+
   userToken = localStorage.getItem('userToken');
   
   if (userToken) {
@@ -7504,6 +7524,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
