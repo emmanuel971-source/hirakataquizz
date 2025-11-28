@@ -2806,7 +2806,74 @@
     margin-top: 20px;
   }
 }
+/* === DATE SELECTORS === */
+.birthdate-selectors {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin: 20px 0;
+}
 
+.selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  max-width: 150px;
+}
+
+.selector-label {
+  font-size: 0.9em;
+  color: #8B6F47;
+  font-weight: bold;
+  text-align: center;
+}
+
+.birthdate-select {
+  width: 100%;
+  padding: 12px 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: center;
+  color: #8B6F47;
+  background: rgba(168, 213, 186, 0.1);
+  border: 3px solid #8B6F47;
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.birthdate-select:focus {
+  background: rgba(168, 213, 186, 0.2);
+  border-color: #A8D5BA;
+  box-shadow: 0 0 15px rgba(168, 213, 186, 0.5);
+  transform: scale(1.02);
+}
+
+.birthdate-select option {
+  background: #F8F1E9;
+  color: #8B6F47;
+  padding: 10px;
+}
+
+/* Responsive */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .birthdate-selectors {
+    gap: 10px;
+  }
+  
+  .selector-group {
+    max-width: 130px;
+  }
+  
+  .birthdate-select {
+    font-size: 1em;
+    padding: 10px 8px;
+  }
+}
 
    
   </style>
@@ -3038,30 +3105,31 @@
   <h1 class="onboarding-title" data-i18n="onboarding_pin_title">Sécurise ton compte 🔐</h1>
   
   <div class="onboarding-content">
-    <p class="onboarding-subtitle" data-i18n="onboarding_pin_subtitle">Entre ta date de naissance (JJMM)</p>
+    <p class="onboarding-subtitle" data-i18n="onboarding_pin_subtitle">Entre ta date de naissance</p>
     
-    <div class="pin-input-container">
-      <input 
-        type="number" 
-        id="pin-input" 
-        class="pin-input" 
-        placeholder="0000"
-        maxlength="4"
-        pattern="[0-9]{4}"
-      />
-      <div class="pin-example" data-i18n="onboarding_pin_example">
-        Exemple : né(e) le 12 mai → 1205
+    <div class="birthdate-selectors">
+      <div class="selector-group">
+        <label class="selector-label" data-i18n="onboarding_day">Jour</label>
+        <select id="birth-day" class="birthdate-select">
+          <option value="">--</option>
+        </select>
+      </div>
+      
+      <div class="selector-group">
+        <label class="selector-label" data-i18n="onboarding_month">Mois</label>
+        <select id="birth-month" class="birthdate-select">
+          <option value="">--</option>
+        </select>
       </div>
     </div>
 
-    <!-- ✅ AJOUTÉ : Message d'erreur pour le PIN -->
     <div id="pin-error" class="error-message" style="display: none;"></div>
 
     <div class="onboarding-buttons">
       <button class="arcade-button secondary-button small-button" onclick="goToStep(2)">
         ← <span data-i18n="onboarding_back">Retour</span>
       </button>
-      <button class="arcade-button primary-button" onclick="validatePinAndContinue()" data-i18n="onboarding_next">
+      <button class="arcade-button primary-button" onclick="validateBirthdateAndContinue()" data-i18n="onboarding_next">
         Suivant ➡️
       </button>
     </div>
@@ -3269,6 +3337,9 @@ const translations = {
     wait_seconds: "⏱️ Veuillez patienter encore",
     second: "seconde",
     seconds: "secondes",
+    onboarding_day: "Jour",
+    onboarding_month: "Mois",
+    onboarding_pin_subtitle: "Entre ta date de naissance",
     
     // Mon Parcours (anciennement Stats)
     menu_stats: "Mon parcours",
@@ -3370,6 +3441,9 @@ const translations = {
     wait_seconds: "⏱️ Please wait",
     second: "second",
     seconds: "seconds",
+    onboarding_day: "Day",
+    onboarding_month: "Month",
+    onboarding_pin_subtitle: "Enter your birth date",
     // Mon Parcours
     menu_stats: "My journey",
     stats_title: "🐼 My Journey",
@@ -3470,6 +3544,9 @@ const translations = {
     wait_seconds: "⏱️ Por favor espera",
     second: "segundo",
     seconds: "segundos",
+    onboarding_day: "Día",
+    onboarding_month: "Mes",
+    onboarding_pin_subtitle: "Ingresa tu fecha de nacimiento",
     // Mon Parcours
     menu_stats: "Mi recorrido",
     stats_title: "🐼 Mi Recorrido",
@@ -4340,7 +4417,7 @@ function goToStep(stepNumber) {
   
   if (!currentStep || !nextStep) return;
   
-  // ✅ AJOUTÉ : Enregistrer timestamp de l'étape
+  // Enregistrer timestamp de l'étape
   stepTimestamps[stepNumber] = Date.now();
   
   // Masquer tous les messages d'erreur
@@ -4358,7 +4435,9 @@ function goToStep(stepNumber) {
     if (stepNumber === 2) {
       document.getElementById('pseudo-input')?.focus();
     } else if (stepNumber === 3) {
-      document.getElementById('pin-input')?.focus();
+      // ✅ AJOUTÉ : Initialiser les sélecteurs de date
+      initBirthdateSelectors();
+      document.getElementById('birth-day')?.focus();
     }
     
     setTimeout(() => {
@@ -4368,7 +4447,6 @@ function goToStep(stepNumber) {
   
   console.log(`🎋 Navigation vers étape ${stepNumber}`);
 }
-
 function showLoginFromOnboarding() {
   document.getElementById('create-account').classList.remove('active');
   document.getElementById('login').classList.add('active');
@@ -4449,14 +4527,48 @@ function validatePseudoAndContinue() {
   goToStep(3);
 }
 
-function validatePinAndContinue() {
-  const pinInput = document.getElementById('pin-input');
-  const pin = pinInput.value.trim();
+// ✅ AJOUTÉ : Initialiser les sélecteurs de date
+function initBirthdateSelectors() {
+  const daySelect = document.getElementById('birth-day');
+  const monthSelect = document.getElementById('birth-month');
+  
+  if (!daySelect || !monthSelect) return;
+  
+  // Générer les jours (01-31)
+  daySelect.innerHTML = '<option value="">--</option>';
+  for (let i = 1; i <= 31; i++) {
+    const day = String(i).padStart(2, '0');
+    daySelect.innerHTML += `<option value="${day}">${day}</option>`;
+  }
+  
+  // Générer les mois
+  const months = {
+    fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  };
+  
+  const monthNames = months[currentLanguage] || months.fr;
+  monthSelect.innerHTML = '<option value="">--</option>';
+  
+  for (let i = 1; i <= 12; i++) {
+    const month = String(i).padStart(2, '0');
+    monthSelect.innerHTML += `<option value="${month}">${monthNames[i-1]}</option>`;
+  }
+  
+  console.log('📅 Sélecteurs de date initialisés');
+}
+function validateBirthdateAndContinue() {
+  const daySelect = document.getElementById('birth-day');
+  const monthSelect = document.getElementById('birth-month');
   const errorDiv = document.getElementById('pin-error');
   
-  // ✅ MODIFIÉ : Message plus clair avec temps d'attente
+  const day = daySelect.value;
+  const month = monthSelect.value;
+  
+  // Vérification délai minimum
   const timeOnStep = Date.now() - (stepTimestamps[3] || Date.now());
-  const requiredTime = 2000; // 2 secondes
+  const requiredTime = 2000;
   
   if (timeOnStep < requiredTime) {
     const remainingTime = Math.ceil((requiredTime - timeOnStep) / 1000);
@@ -4464,27 +4576,42 @@ function validatePinAndContinue() {
     if (errorDiv) {
       errorDiv.textContent = `⏱️ Veuillez patienter encore ${remainingTime} seconde${remainingTime > 1 ? 's' : ''}...`;
       errorDiv.style.display = 'block';
-      errorDiv.style.color = '#f39c12'; // Orange
+      errorDiv.style.color = '#f39c12';
     }
     
-    // ✅ AJOUTÉ : Masquer le message après le délai
     setTimeout(() => {
       if (errorDiv) {
         errorDiv.style.display = 'none';
-        errorDiv.style.color = '#dc3545'; // Remettre rouge
+        errorDiv.style.color = '#dc3545';
       }
     }, remainingTime * 1000);
     
     return;
   }
-  // Validation du PIN
-  const validation = validatePin(pin);
-  if (!validation.valid) {
+  
+  // Validation de la sélection
+  if (!day || !month) {
     if (errorDiv) {
-      errorDiv.textContent = validation.error;
+      errorDiv.textContent = 'Veuillez sélectionner un jour et un mois';
       errorDiv.style.display = 'block';
+      errorDiv.style.color = '#dc3545';
     }
-    pinInput.focus();
+    return;
+  }
+  
+  // ✅ Validation des jours selon les mois
+  const daysInMonth = {
+    '01': 31, '02': 29, '03': 31, '04': 30, '05': 31, '06': 30,
+    '07': 31, '08': 31, '09': 30, '10': 31, '11': 30, '12': 31
+  };
+  
+  const maxDay = daysInMonth[month];
+  if (parseInt(day) > maxDay) {
+    if (errorDiv) {
+      errorDiv.textContent = `Ce mois ne peut pas avoir ${day} jours`;
+      errorDiv.style.display = 'block';
+      errorDiv.style.color = '#dc3545';
+    }
     return;
   }
   
@@ -4492,7 +4619,8 @@ function validatePinAndContinue() {
     errorDiv.style.display = 'none';
   }
   
-  // Stocker temporairement le PIN
+  // Créer le PIN au format JJMM
+  const pin = day + month;
   window.tempPin = pin;
   
   // Afficher la date formatée
@@ -4500,9 +4628,9 @@ function validatePinAndContinue() {
   document.getElementById('confirm-date-display').textContent = 
     `${dateInfo.day} ${dateInfo.monthName}`;
   
-  console.log(`✅ PIN validé: ${pin}`);
+  console.log(`✅ Date validée: ${pin}`);
   goToStep(4);
-}
+}    
 async function finalizeAccount() {
   const pin = window.tempPin;
   
@@ -7381,6 +7509,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
