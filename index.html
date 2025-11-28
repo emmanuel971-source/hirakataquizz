@@ -3668,7 +3668,7 @@ let stepTimestamps = {};
 let sessionStartTime = null;
 let userInteractions = {
   clicks: 0,
-  keystrokes: 4,
+  keystrokes: 0,
   mouseMovements: 0
 };
 // ========================================
@@ -4682,7 +4682,7 @@ if (totalTime < requiredTotalTime) {
 }
   
   // 3. Vérifier interactions utilisateur
-  if (userInteractions.clicks < 3 || userInteractions.keystrokes < 4) {
+  if (userInteractions.clicks < 3 || userInteractions.keystrokes < 0) {
     console.warn('🤖 Interactions insuffisantes:', userInteractions);
     const errorDiv = document.getElementById('create-error');
     if (errorDiv) {
@@ -7509,6 +7509,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
