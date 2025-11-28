@@ -4655,7 +4655,7 @@ async function finalizeAccount() {
   
 // 2. Vérifier temps total minimum (15 secondes)
 const totalTime = Date.now() - (sessionStartTime || Date.now());
-const requiredTotalTime = 15000; // 15 secondes
+const requiredTotalTime = 5000; // 15 secondes
 
 if (totalTime < requiredTotalTime) {
   const remainingTime = Math.ceil((requiredTotalTime - totalTime) / 1000);
@@ -6194,7 +6194,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwZ79P1EeIpBMJMyF0bC5RFMAFoJXRxlKaRUK4o9tUjUHYVPJ9smolxefnZyfHISFzitg/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzXs4fHO9_s74XL01Y6L3PcD3xfbM1sUpklhZHkclqe1PruDvJWEkhl_Z1HmVUmPD_Smw/exec';
 
 
 // Fonction pour appeler l'API
@@ -7504,6 +7504,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
