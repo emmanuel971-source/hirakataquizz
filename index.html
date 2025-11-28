@@ -6273,11 +6273,7 @@ async function initGame() {
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
        // ✅ AJOUTÉ : Détecter et appliquer la langue dès le début
-    if (!localStorage.getItem('appLanguage')) {
-      const detectedLang = detectBrowserLanguage();
-      currentLanguage = detectedLang;
-      localStorage.setItem('appLanguage', detectedLang);
-    }
+   
     // Masquer le texte "Chargement..." classique
     document.getElementById("loadingText").style.display = "none";
     
@@ -7546,6 +7542,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
