@@ -4596,14 +4596,15 @@ function initBirthdateSelectors() {
     daySelect.innerHTML += `<option value="${day}">${day}</option>`;
   }
   
-  // Générer les mois
+  // Générer les mois avec la langue actuelle
   const months = {
     fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
     en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
   };
   
-  const monthNames = months[currentLanguage] || months.fr;
+  // ✅ MODIFIÉ : Utiliser currentLanguage au lieu de le redéfinir
+  const monthNames = months[currentLanguage] || months.en;
   monthSelect.innerHTML = '<option value="">--</option>';
   
   for (let i = 1; i <= 12; i++) {
@@ -4611,7 +4612,7 @@ function initBirthdateSelectors() {
     monthSelect.innerHTML += `<option value="${month}">${monthNames[i-1]}</option>`;
   }
   
-  console.log('📅 Sélecteurs de date initialisés');
+  console.log(`📅 Sélecteurs de date initialisés en ${currentLanguage}`);
 }
 function validateBirthdateAndContinue() {
   const daySelect = document.getElementById('birth-day');
@@ -7559,6 +7560,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
