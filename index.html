@@ -6268,28 +6268,26 @@ let backgroundLoadingInProgress = false;
 async function initGame() {
   try {
     gameDataLoaded = false;
-    console.log('Initialisation du jeu...');
-
-    // DÉTECTION DE LANGUE DÈS LE DÉBUT (avant tout affichage)
-    let savedLang = localStorage.getItem('appLanguage');
-    if (!savedLang) {
-      savedLang = detectBrowserLanguage();
-      localStorage.setItem('appLanguage', savedLang);
-      console.log('Langue détectée et sauvegardée :', savedLang);
+    console.log('🛠️ Initialisation du jeu avec chunking...');
+       // ✅ MODIFIÉ : Détecter et appliquer la langue IMMÉDIATEMENT
+    if (!localStorage.getItem('appLanguage')) {
+      const detectedLang = detectBrowserLanguage();
+      currentLanguage = detectedLang;
+      localStorage.setItem('appLanguage', detectedLang);
+      console.log(`🌍 Langue détectée et appliquée: ${detectedLang}`);
+    } else {
+      currentLanguage = localStorage.getItem('appLanguage');
+      console.log(`🌍 Langue sauvegardée: ${currentLanguage}`);
     }
-    currentLanguage = savedLang;
-    console.log('Langue appliquée :', currentLanguage);
-
-    // MISE À JOUR IMMÉDIATE DES TEXTES (important !)
+    
+    // ✅ IMPORTANT : Mettre à jour TOUS les textes immédiatement
     updateAllTexts();
-
-    // Masquer le texte de chargement classique
-    const loadingText = document.getElementById("loadingText");
-    if (loadingText) loadingText.style.display = "none";
-
+    // Masquer le texte "Chargement..." classique
+    document.getElementById("loadingText").style.display = "none";
+    
     // Afficher la barre de progression
     const progressContainer = document.getElementById('loading-progress-container');
-    if (progressContainer) progressContainer.style.display = 'block';
+    progressContainer.style.display = 'block';
     
     // ==========================================
     // PHASE 1 : DÉTECTION PROFIL (0-15%)
@@ -6431,6 +6429,7 @@ if (currentUser) {
     gameDataLoaded = false;
   }
 }
+
 
 // Fonction helper pour mettre à jour la barre
 function updateLoadingProgress(percent, message) {
@@ -7563,6 +7562,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
