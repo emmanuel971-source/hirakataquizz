@@ -3298,8 +3298,8 @@
   </div>
 </div>
 
-<!-- ✅ AJOUTÉ : Écran de chargement connexion -->
-<div id="login-loader" class="section" style="display: none;">
+<!-- ✅ MODIFIÉ : Écran de chargement connexion -->
+<div id="login-loader" class="section">
   <div class="zen-loader-container">
     <div class="zen-circle-loader">
       <div class="bamboo-leaf">🍃</div>
@@ -4006,18 +4006,15 @@ async function loginUser() {
   try {
     console.log('🔐 Tentative de connexion:', pseudo);
     
-    // ✅ CORRIGÉ : Afficher le loader avec active
-    document.getElementById('login').classList.remove('active');
-    const loaderSection = document.getElementById('login-loader');
-    loaderSection.style.display = 'flex';
-    loaderSection.classList.add('active');
+    // ✅ CORRIGÉ : Masquer toutes les sections et afficher le loader
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('login-loader').classList.add('active');
     
     const authResult = await callAPI('authenticateUser', { pseudo, pin });
     
     if (!authResult.success) {
-      // ✅ CORRIGÉ : Masquer le loader et réafficher login
-      loaderSection.style.display = 'none';
-      loaderSection.classList.remove('active');
+      // Masquer le loader et réafficher login
+      document.getElementById('login-loader').classList.remove('active');
       document.getElementById('login').classList.add('active');
       
       errorDiv.textContent = authResult.error || 'Pseudo ou date de naissance incorrect';
@@ -4048,17 +4045,15 @@ async function loginUser() {
       console.log('✅ Connexion réussie:', currentUser.pseudo);
       console.log(`📊 Niveau actif: ${niveauActif}, Niveau atteint: ${currentUser.niveau_atteint}`);
       
-      // ✅ CORRIGÉ : Masquer le loader
-      loaderSection.style.display = 'none';
-      loaderSection.classList.remove('active');
+      // Masquer le loader
+      document.getElementById('login-loader').classList.remove('active');
       
       // Afficher le message de bienvenue
       showReturningUserWelcome(currentUser.pseudo);
       
     } else {
-      // ✅ CORRIGÉ : Masquer le loader et réafficher login
-      loaderSection.style.display = 'none';
-      loaderSection.classList.remove('active');
+      // Masquer le loader et réafficher login
+      document.getElementById('login-loader').classList.remove('active');
       document.getElementById('login').classList.add('active');
       
       errorDiv.textContent = 'Erreur lors de la mise à jour du token';
@@ -4066,10 +4061,8 @@ async function loginUser() {
     }
     
   } catch (error) {
-    // ✅ CORRIGÉ : Masquer le loader et réafficher login
-    const loaderSection = document.getElementById('login-loader');
-    loaderSection.style.display = 'none';
-    loaderSection.classList.remove('active');
+    // Masquer le loader et réafficher login
+    document.getElementById('login-loader').classList.remove('active');
     document.getElementById('login').classList.add('active');
     
     errorDiv.textContent = 'Erreur de connexion';
@@ -7709,6 +7702,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
