@@ -6269,17 +6269,39 @@ async function initGame() {
   try {
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
-// DÉTECTION DE LANGUE DÈS LE DÉBUT (avant tout affichage)
-    let savedLang = localStorage.getItem('appLanguage');
-    if (!savedLang) {
-      savedLang = detectBrowserLanguage();
-      localStorage.setItem('appLanguage', savedLang);
-      console.log('Langue détectée et sauvegardée :', savedLang);
+// 1. Récupérer le token (on ne sait PAS encore si new ou returning)
+    const token = localStorage.getItem('userToken');
+
+    // 2. DÉTERMINER LA LANGUE SELON LE CAS
+    let finalLanguage;
+
+    if (!token) {
+      // CAS 1 : NEW USER → on force la langue du 100% navigateur
+      const browserLang = (navigator.language || navigator.userLanguage || "en")
+        .toLowerCase().split('-')[0];
+
+      if (browserLang.startsWith("fr")) finalLanguage = "fr";
+      else if (browserLang.startsWith("es")) finalLanguage = "es";
+      else finalLanguage = "en";
+
+      console.log("NEW USER → Langue forcée par navigateur :", finalLanguage);
+
+      // On sauvegarde pour cohérence future
+      localStorage.setItem('appLanguage', finalLanguage);
+    } else {
+      // CAS 2 : RETURNING USER → on prend la langue sauvegardée (choisie dans Options)
+      const savedLang = localStorage.getItem('appLanguage');
+      finalLanguage = savedLang || "en"; // fallback si jamais vide
+
+      console.log("RETURNING USER → Langue restaurée :", finalLanguage);
     }
-    currentLanguage = savedLang;
-    console.log('Langue appliquée :', currentLanguage);
-    // ✅ IMPORTANT : Mettre à jour TOUS les textes immédiatement
+
+    // 3. Appliquer LA langue finale
+    currentLanguage = finalLanguage;
+
+    // 4. Mise à jour IMMÉDIATE des textes (avant tout affichage !)
     updateAllTexts();
+    console.log("Langue appliquée au démarrage :", currentLanguage);
     // Masquer le texte "Chargement..." classique
     document.getElementById("loadingText").style.display = "none";
     
@@ -7560,6 +7582,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
