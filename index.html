@@ -6269,17 +6269,15 @@ async function initGame() {
   try {
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
-       // ✅ MODIFIÉ : Détecter et appliquer la langue IMMÉDIATEMENT
-    if (!localStorage.getItem('appLanguage')) {
-      const detectedLang = detectBrowserLanguage();
-      currentLanguage = detectedLang;
-      localStorage.setItem('appLanguage', detectedLang);
-      console.log(`🌍 Langue détectée et appliquée: ${detectedLang}`);
-    } else {
-      currentLanguage = localStorage.getItem('appLanguage');
-      console.log(`🌍 Langue sauvegardée: ${currentLanguage}`);
+// DÉTECTION DE LANGUE DÈS LE DÉBUT (avant tout affichage)
+    let savedLang = localStorage.getItem('appLanguage');
+    if (!savedLang) {
+      savedLang = detectBrowserLanguage();
+      localStorage.setItem('appLanguage', savedLang);
+      console.log('Langue détectée et sauvegardée :', savedLang);
     }
-    
+    currentLanguage = savedLang;
+    console.log('Langue appliquée :', currentLanguage);
     // ✅ IMPORTANT : Mettre à jour TOUS les textes immédiatement
     updateAllTexts();
     // Masquer le texte "Chargement..." classique
@@ -7562,6 +7560,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
