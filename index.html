@@ -2879,6 +2879,10 @@
   </style>
 </head>
 <body>
+  <script>
+  console.log('🔍 TEST - Langue navigateur:', navigator.language);
+  console.log('🔍 TEST - localStorage avant:', localStorage.getItem('appLanguage'));
+</script>
   <!-- Bouton hamburger  <button class="hamburger" onclick="toggleMenu()">☰</button>  -->
 <!-- Bouton hamburger -->
 <button class="hamburger" onclick="toggleMenu()">
@@ -3669,7 +3673,7 @@ function updateAllTexts() {
   
   // Mettre à jour le message de chargement si présent
   const loadingText = document.getElementById("loadingText");
-  if (loadingText && loadingText.textContent.includes("Chargement") || loadingText.textContent.includes("Loading") || loadingText.textContent.includes("Cargando")) {
+  if (loadingText && (loadingText.textContent.includes("Chargement") || loadingText.textContent.includes("Loading") || loadingText.textContent.includes("Cargando"))) {
     if (gameDataLoaded) {
       loadingText.textContent = t('welcome_touch');
     } else {
@@ -3825,16 +3829,7 @@ function initPseudoCache() {
   stepTimestamps = { 1: Date.now() };
   userInteractions = { clicks: 0, keystrokes: 0, mouseMovements: 0 };
   
-  // ✅ AJOUTÉ : Sauvegarder et appliquer la langue détectée
-  if (!localStorage.getItem('appLanguage')) {
-    const detectedLang = detectBrowserLanguage();
-    localStorage.setItem('appLanguage', detectedLang);
-    currentLanguage = detectedLang;
-    console.log(`🌍 Langue initialisée: ${detectedLang}`);
-  }
-  
-  // Mettre à jour les textes avec la bonne langue
-  updateAllTexts();
+  // ✅ RETIRÉ : La détection de langue se fait maintenant dans initGame/window.onload
   
   console.log('🛡️ Session anti-bot initialisée');
 }
@@ -6291,12 +6286,19 @@ async function initGame() {
   try {
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
-    // ✅ AJOUTÉ : Détecter et appliquer la langue dès le début
+       // ✅ MODIFIÉ : Détecter et appliquer la langue IMMÉDIATEMENT
     if (!localStorage.getItem('appLanguage')) {
       const detectedLang = detectBrowserLanguage();
       currentLanguage = detectedLang;
       localStorage.setItem('appLanguage', detectedLang);
+      console.log(`🌍 Langue détectée et appliquée: ${detectedLang}`);
+    } else {
+      currentLanguage = localStorage.getItem('appLanguage');
+      console.log(`🌍 Langue sauvegardée: ${currentLanguage}`);
     }
+    
+    // ✅ IMPORTANT : Mettre à jour TOUS les textes immédiatement
+    updateAllTexts();
     // Masquer le texte "Chargement..." classique
     document.getElementById("loadingText").style.display = "none";
     
@@ -7469,8 +7471,19 @@ window.addEventListener('load', () => {
   
   // Démarrage du jeu
 window.onload = () => {
-initGame();
-updateAllTexts(); // ✅ AJOUTER CETTE LIGNE  
+  // ✅ AJOUTÉ : S'assurer que la langue est correcte dès le chargement
+  if (!localStorage.getItem('appLanguage')) {
+    const detectedLang = detectBrowserLanguage();
+    currentLanguage = detectedLang;
+    localStorage.setItem('appLanguage', detectedLang);
+  } else {
+    currentLanguage = localStorage.getItem('appLanguage');
+  }
+  
+  // ✅ AJOUTÉ : Mettre à jour les textes avant initGame
+  updateAllTexts();
+  
+  initGame();
 };
 // ✅ AJOUTÉ : Tracking des interactions utilisateur (anti-bot)
 document.addEventListener('click', () => userInteractions.clicks++);
@@ -7565,6 +7578,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
