@@ -3253,19 +3253,21 @@
     <h1 class="onboarding-title" data-i18n="login_title">Connexion 🔐</h1>
     
     <div class="onboarding-content">
-      <p class="onboarding-subtitle" data-i18n="login_subtitle">Retrouve ton compte</p>
+  <!--      <p class="onboarding-subtitle" data-i18n="login_subtitle">Retrouve ton compte</p>  -->
 
       <!-- Pseudo -->
       <div class="pseudo-input-wrapper">
-        <label class="selector-label" data-i18n="login_pseudo_label">Ton pseudo</label>
+       <!--  <label class="selector-label" data-i18n="login_pseudo_label">Ton pseudo</label> -->
         <input 
           type="text" 
           id="login-pseudo" 
           class="pseudo-input" 
-          placeholder="さくらDragon"
+          placeholder="Ton pseudo"
         />
       </div>
-
+<div class="onboarding-content">
+      <p class="onboarding-subtitle" data-i18n="login_bithdate">ta date d'anniversaire :</p>
+  
       <!-- Date de naissance (même style que l'onboarding) -->
       <div class="birthdate-selectors" style="margin-top: 20px;">
         <div class="selector-group">
@@ -3402,6 +3404,7 @@ const translations = {
   account_title: "Mon compte",
   account_change_device: "📱 Changer d'appareil",
   login_loading: "Connexion en cours...",  
+  login_bithdate: "ta date d'anniversaire :",  
   
     // Onboarding
     onboarding_welcome: "Bienvenue ! 🌸",
@@ -3507,7 +3510,8 @@ const translations = {
   account_title: "My Account",
   account_change_device: "📱 Change Device",
   login_loading: "Connecting...",  
-  
+  login_bithdate: "Your birthdate :",
+    
     // Onboarding
     onboarding_welcome: "Welcome! 🌸",
     onboarding_subtitle: "Let's start your zen journey",
@@ -3611,6 +3615,7 @@ const translations = {
   account_title: "Mi Cuenta",
   account_change_device: "📱 Cambiar de Dispositivo",
   login_loading: "Conectando...",  
+  login_bithdate: "Tu cumpleaños :",  
   
     // Onboarding
     onboarding_welcome: "¡Bienvenido! 🌸",
@@ -7703,6 +7708,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
