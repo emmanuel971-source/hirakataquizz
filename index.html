@@ -6270,7 +6270,7 @@ async function initGame() {
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
 // Récupération du token (déjà existant dans ton code, on le garde ici)
-    const userTokenFromStorage = localStorage.getItem('token'); // ← renommé pour éviter conflit
+    const userTokenFromStorage = localStorage.getItem('userToken'); // ← renommé pour éviter conflit
 
     // ==================================================================
     // DÉTECTION DE LA LANGUE SELON NEW / RETURNING USER
@@ -7589,6 +7589,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
