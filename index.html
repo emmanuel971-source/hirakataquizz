@@ -3292,9 +3292,7 @@
         <button class="arcade-button primary-button" onclick="loginUser()" data-i18n="login_connect">
           🎋 Me connecter
         </button>
-        <button class="arcade-button secondary-button" onclick="backToMenu()" data-i18n="options_back">
-          ← Retour
-        </button>
+        
       </div>
     </div>
   </div>
@@ -4008,15 +4006,18 @@ async function loginUser() {
   try {
     console.log('🔐 Tentative de connexion:', pseudo);
     
-    // ✅ AJOUTÉ : Afficher le loader
+    // ✅ CORRIGÉ : Afficher le loader avec active
     document.getElementById('login').classList.remove('active');
-    document.getElementById('login-loader').style.display = 'flex';
+    const loaderSection = document.getElementById('login-loader');
+    loaderSection.style.display = 'flex';
+    loaderSection.classList.add('active');
     
     const authResult = await callAPI('authenticateUser', { pseudo, pin });
     
     if (!authResult.success) {
-      // ✅ MODIFIÉ : Masquer le loader et réafficher login
-      document.getElementById('login-loader').style.display = 'none';
+      // ✅ CORRIGÉ : Masquer le loader et réafficher login
+      loaderSection.style.display = 'none';
+      loaderSection.classList.remove('active');
       document.getElementById('login').classList.add('active');
       
       errorDiv.textContent = authResult.error || 'Pseudo ou date de naissance incorrect';
@@ -4033,17 +4034,13 @@ async function loginUser() {
     });
     
     if (updateResult.success) {
-      // ✅ Sauvegarder le token
       userToken = newToken;
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
       
       console.log('✅ Token mis à jour, rechargement des données...');
       
-      // ✅ Réinitialiser le contexte du jeu
       resetGameContext();
-      
-      // ✅ Recharger les stats
       await loadUserProgress();
       
       currentUser.token = newToken;
@@ -4051,15 +4048,17 @@ async function loginUser() {
       console.log('✅ Connexion réussie:', currentUser.pseudo);
       console.log(`📊 Niveau actif: ${niveauActif}, Niveau atteint: ${currentUser.niveau_atteint}`);
       
-      // ✅ MODIFIÉ : Masquer le loader
-      document.getElementById('login-loader').style.display = 'none';
+      // ✅ CORRIGÉ : Masquer le loader
+      loaderSection.style.display = 'none';
+      loaderSection.classList.remove('active');
       
-      // ✅ AJOUTÉ : Afficher le message de bienvenue returning user
+      // Afficher le message de bienvenue
       showReturningUserWelcome(currentUser.pseudo);
       
     } else {
-      // ✅ MODIFIÉ : Masquer le loader et réafficher login
-      document.getElementById('login-loader').style.display = 'none';
+      // ✅ CORRIGÉ : Masquer le loader et réafficher login
+      loaderSection.style.display = 'none';
+      loaderSection.classList.remove('active');
       document.getElementById('login').classList.add('active');
       
       errorDiv.textContent = 'Erreur lors de la mise à jour du token';
@@ -4067,8 +4066,10 @@ async function loginUser() {
     }
     
   } catch (error) {
-    // ✅ MODIFIÉ : Masquer le loader et réafficher login
-    document.getElementById('login-loader').style.display = 'none';
+    // ✅ CORRIGÉ : Masquer le loader et réafficher login
+    const loaderSection = document.getElementById('login-loader');
+    loaderSection.style.display = 'none';
+    loaderSection.classList.remove('active');
     document.getElementById('login').classList.add('active');
     
     errorDiv.textContent = 'Erreur de connexion';
@@ -7708,6 +7709,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
