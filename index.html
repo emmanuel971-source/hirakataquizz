@@ -3188,42 +3188,61 @@
 
 <!-- Section Connexion (changement d'appareil) -->
 <div id="login" class="section">
-  <h1 data-i18n="login_title">Connexion 🔐</h1>
-  
-  <div class="account-section">
-    <p data-i18n="login_subtitle">Retrouve ton compte</p>
+  <div class="onboarding-step active">
+    <h1 class="onboarding-title" data-i18n="login_title">Connexion 🔐</h1>
+    
+    <div class="onboarding-content">
+      <p class="onboarding-subtitle" data-i18n="login_subtitle">Retrouve ton compte</p>
 
-    <div class="pin-input-container">
-      <label class="pin-label" data-i18n="login_pseudo_label">Ton pseudo</label>
-      <input 
-        type="text" 
-        id="login-pseudo" 
-        class="pin-input" 
-        placeholder="さくらDragon"
-        style="font-size: 1.5em; width: 250px;"
-      />
+      <!-- Pseudo -->
+      <div class="pseudo-input-wrapper">
+        <label class="selector-label" data-i18n="login_pseudo_label">Ton pseudo</label>
+        <input 
+          type="text" 
+          id="login-pseudo" 
+          class="pseudo-input" 
+          placeholder="さくらDragon"
+        />
+      </div>
+
+      <!-- Date de naissance (même style que l'onboarding) -->
+      <div class="birthdate-selectors" style="margin-top: 20px;">
+        <div class="selector-group">
+          <label class="selector-label" data-i18n="onboarding_day">Jour</label>
+          <select id="login-birth-day" class="birthdate-select">
+            <option value="">--</option>
+          </select>
+        </div>
+        
+        <div class="selector-group">
+          <label class="selector-label" data-i18n="onboarding_month">Mois</label>
+          <select id="login-birth-month" class="birthdate-select">
+            <option value="">--</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="login-error" class="error-message" style="display: none;"></div>
+      <div id="login-success" class="success-message" style="display: none;"></div>
+
+      <div class="onboarding-buttons">
+        <button class="arcade-button primary-button" onclick="loginUser()" data-i18n="login_connect">
+          🎋 Me connecter
+        </button>
+        <button class="arcade-button secondary-button" onclick="backToMenu()" data-i18n="options_back">
+          ← Retour
+        </button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <div class="pin-input-container">
-      <label class="pin-label" data-i18n="login_pin_label">Ton PIN (JJMM)</label>
-      <input 
-        type="number" 
-        id="login-pin" 
-        class="pin-input" 
-        placeholder="0000"
-        maxlength="4"
-      />
+<div id="account-creation-loader" class="section" style="display: none;">
+  <div class="zen-loader-container">
+    <div class="zen-circle-loader">
+      <div class="bamboo-leaf">🍃</div>
     </div>
-
-    <div id="login-error" class="error-message" style="display: none;"></div>
-    <div id="login-success" class="success-message" style="display: none;"></div>
-
-    <div class="button-group">
-      <button class="arcade-button" onclick="loginUser()" data-i18n="login_connect">
-        🎋 Me connecter
-      </button>
-
-    </div>
+    <p class="zen-loader-text">Préparation de ton jardin zen...</p>
   </div>
 </div>
     <!-- Section Mes Stats -->
@@ -7589,6 +7608,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
