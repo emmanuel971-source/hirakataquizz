@@ -3964,13 +3964,9 @@ async function loginUser() {
     console.log('🔐 Tentative de connexion:', pseudo);
     
     // ✅ CORRIGÉ : Afficher le loader avec active
-// 1. On masque TOUT de suite la page de login
+// NOUVEAU CODE — ultra-simple et garanti
 document.getElementById('login').style.display = 'none';
-
-// 2. On affiche le loader
-const loaderSection = document.getElementById('login-loader');
-loaderSection.style.display = 'flex';
-loaderSection.classList.add('active'); // si tu utilises .active ailleurs
+document.getElementById('login-loader').style.display = 'flex';
     
     const authResult = await callAPI('authenticateUser', { pseudo, pin });
     
@@ -7669,6 +7665,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
