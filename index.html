@@ -2990,7 +2990,7 @@
   <div class="panda-logo" onclick="">🐼</div>
   <h1 class="welcome-title" data-i18n="welcome_title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
   <p class="welcome-subtitle" data-i18n="welcome_subtitle">Apprenez à lire le Japonais</p>
-  <div class="loading-dots" id="loadingText">(Chargement... )</div>
+  <div class="loading-dots" id="loadingText" data-i18n="welcome_loading_dots">(Chargement... )</div>
 
 <!-- ✅ NOUVEAU : Barre de progression -->
 <div id="loading-progress-container" style="display: none; width: 80%; max-width: 400px; margin: 20px auto;">
@@ -3007,12 +3007,12 @@
 <div id="quiz" class="section">
 <!--   <h1 data-i18n="quiz_title">🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>  -->
   <div id="progressBarContainer"></div>
-  <div class="level" id="levelDisplay">Niveau actuel : 1</div>
+  <div class="level" id="levelDisplay"><span data-i18n="quiz_level_display">Niveau actuel :</span> <span id="levelNumber">1</span></div>
     <div class="level-hiraganas">
       <div class="hiraganas-grid" id="hiraganaCards"></div>
     </div>
     <div class="quiz-container">
-      <div class="question" id="question">load...</div>
+      <div class="question" id="question" data-i18n="quiz_question_load">load...</div>
       <div>
         <div class="answers" id="choices1"></div>
         <div class="answers" id="choices2"></div>
@@ -3090,7 +3090,7 @@
   <div id="options-sound" class="options-sub hidden">
     <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
     <h2 data-i18n="options_sound">Son</h2>
-    <p>🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)</p>
+    <p data-i18n="options_sound_description">🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)</p>
   </div>
 <!-- Sous-rubrique Langue -->
 <div id="options-language" class="options-sub hidden">
@@ -3112,11 +3112,12 @@
   <div class="account-section">
     <div class="account-info">
       <div class="account-info-line">
-        🐼 <strong>Pseudo :</strong> <span id="account-pseudo">-</span>
-      </div>
-      <div class="account-info-line">
-        📊 <strong>Niveau :</strong> <span id="account-level">-</span>
-      </div>
+<div class="account-info-line">
+  🐼 <strong data-i18n="account_pseudo_label">Pseudo :</strong> <span id="account-pseudo" data-i18n="account_default_value">-</span>
+</div>
+<div class="account-info-line">
+  📊 <strong data-i18n="account_level_label">Niveau :</strong> <span id="account-level" data-i18n="account_default_value">-</span>
+</div>
     </div>
 
     <div class="button-group">
@@ -3153,13 +3154,14 @@
     
     <div class="onboarding-content">
       <div class="pseudo-input-wrapper">
-        <input 
-          type="text" 
-          id="pseudo-input" 
-          class="pseudo-input" 
-          placeholder="Ton pseudo..."
-          maxlength="20"
-        />
+<input 
+  type="text" 
+  id="pseudo-input" 
+  class="pseudo-input" 
+  data-i18n-placeholder="pseudo_input_placeholder"
+  placeholder="Ton pseudo..."
+  maxlength="20"
+/>
       </div>
 <!-- ✅ AJOUTÉ : Honeypot (piège à bot) -->
 <input 
@@ -3256,7 +3258,7 @@
     <div class="zen-circle-loader">
       <div class="bamboo-leaf">🍃</div>
     </div>
-    <p class="zen-loader-text">Préparation de ton jardin zen...</p>
+    <p class="zen-loader-text" data-i18n="loader_preparing">Préparation de ton jardin zen...</p>
   </div>
 </div>
 
@@ -3265,7 +3267,7 @@
   <div class="welcome-animation-container">
     <div class="sakura-rain"></div>
     <h1 class="welcome-user-title"></h1>
-    <p class="welcome-user-subtitle">Ton voyage commence maintenant 🌸</p>
+    <p class="welcome-user-subtitle" data-i18n="welcome_journey_starts">Ton voyage commence maintenant 🌸</p>
   </div>
 </div> 
   
@@ -3281,12 +3283,13 @@
       <!-- Pseudo -->
       <div class="pseudo-input-wrapper">
   <!--        <label class="selector-label" data-i18n="login_pseudo_label">Ton pseudo</label> -->
-        <input 
-          type="text" 
-          id="login-pseudo" 
-          class="pseudo-input" 
-          placeholder="ton pseudo"
-        />
+<input 
+  type="text" 
+  id="login-pseudo" 
+  class="pseudo-input" 
+  data-i18n-placeholder="login_pseudo_placeholder"
+  placeholder="ton pseudo"
+/>
       </div>
 
       <!-- Date de naissance (même style que l'onboarding) -->
@@ -3326,7 +3329,7 @@
     <div class="zen-circle-loader">
       <div class="bamboo-leaf">🍃</div>
     </div>
-    <p class="zen-loader-text">Préparation de ton jardin zen...</p>
+    <p class="zen-loader-text" data-i18n="loader_preparing">Préparation de ton jardin zen...</p>
   </div>
 </div>
     <!-- Section Mes Stats -->
@@ -3469,6 +3472,21 @@ const translations = {
   login_connect: "Me connecter",
   create_account_confirm_yes: "✅ Oui, c'est correct", // FR
   create_account_correct_pin: "✏️ Non, corriger", // FR  
+
+  welcome_loading_dots: "(Chargement... )",
+quiz_level_display: "Niveau actuel :",
+quiz_question_load: "load...",
+options_sound_description: "🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)",
+account_pseudo_label: "Pseudo :",
+account_level_label: "Niveau :",
+account_default_value: "-",
+pseudo_input_placeholder: "Ton pseudo...",
+confirm_date_question_mark: "?",
+login_pseudo_placeholder: "ton pseudo",
+loader_preparing: "Préparation de ton jardin zen...",
+welcome_journey_starts: "Ton voyage commence maintenant 🌸",  
+
+    
   },
   
   en: {
@@ -3573,6 +3591,20 @@ const translations = {
   login_connect: "🎋 Connect",
   create_account_confirm_yes: "✅ Yes, that's correct", // EN
   create_account_correct_pin: "✏️ No, correct it", // EN  
+
+  welcome_loading_dots: "(Loading... )",
+quiz_level_display: "Current level:",
+quiz_question_load: "load...",
+options_sound_description: "🔊 Here you can add settings (volume, mute, etc.)",
+account_pseudo_label: "Nickname:",
+account_level_label: "Level:",
+account_default_value: "-",
+pseudo_input_placeholder: "Your nickname...",
+confirm_date_question_mark: "?",
+login_pseudo_placeholder: "your nickname",
+loader_preparing: "Preparing your zen garden...",
+welcome_journey_starts: "Your journey begins now 🌸",
+    
   },
   
   es: {
@@ -3673,7 +3705,21 @@ const translations = {
   login_pin_label: "Tu fecha de nacimiento :",
   login_connect: "🎋 Conectarme",
   create_account_confirm_yes: "✅ Sí, es correcto", // ES
-  create_account_correct_pin: "✏️ No, corregir" // ES  
+  create_account_correct_pin: "✏️ No, corregir", // ES
+
+  welcome_loading_dots: "(Cargando... )",
+quiz_level_display: "Nivel actual:",
+quiz_question_load: "load...",
+options_sound_description: "🔊 Aquí podrás añadir ajustes (volumen, silenciar, etc.)",
+account_pseudo_label: "Apodo:",
+account_level_label: "Nivel:",
+account_default_value: "-",
+pseudo_input_placeholder: "Tu apodo...",
+confirm_date_question_mark: "?",
+login_pseudo_placeholder: "tu apodo",
+loader_preparing: "Preparando tu jardín zen...",
+welcome_journey_starts: "Tu viaje comienza ahora 🌸"
+    
   }
 };
 
@@ -7721,6 +7767,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
