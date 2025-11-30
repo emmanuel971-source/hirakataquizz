@@ -3195,16 +3195,18 @@
 
       <!-- Pseudo -->
       <div class="pseudo-input-wrapper">
-        <label class="selector-label" data-i18n="login_pseudo_label">Ton pseudo</label>
+  <!--        <label class="selector-label" data-i18n="login_pseudo_label">Ton pseudo</label> -->
         <input 
           type="text" 
           id="login-pseudo" 
           class="pseudo-input" 
-          placeholder="さくらDragon"
+          placeholder="ton pseudo"
         />
       </div>
 
       <!-- Date de naissance (même style que l'onboarding) -->
+     <p data-i18n="login_pin_label">Ta date d'anniversaire :</p>
+
       <div class="birthdate-selectors" style="margin-top: 20px;">
         <div class="selector-group">
           <label class="selector-label" data-i18n="onboarding_day">Jour</label>
@@ -3228,9 +3230,7 @@
         <button class="arcade-button primary-button" onclick="loginUser()" data-i18n="login_connect">
           🎋 Me connecter
         </button>
-        <button class="arcade-button secondary-button" onclick="backToMenu()" data-i18n="options_back">
-          ← Retour
-        </button>
+      
       </div>
     </div>
   </div>
@@ -3380,7 +3380,7 @@ const translations = {
   create_account_already_have: "J'ai déjà un compte",
   login_subtitle: "Retrouve ton compte",
   login_pseudo_label: "Ton pseudo",
-  login_pin_label: "Ton PIN (JJMM)",
+  login_pin_label: "Ta date d'anniversaire :",
   login_connect: "Me connecter",
   create_account_confirm_yes: "✅ Oui, c'est correct", // FR
   create_account_correct_pin: "✏️ Non, corriger", // FR  
@@ -3484,7 +3484,7 @@ const translations = {
     
   login_subtitle: "Find your account",
   login_pseudo_label: "Your nickname",
-  login_pin_label: "Your PIN (DDMM)",
+  login_pin_label: "Your Birthdate :",
   login_connect: "🎋 Connect",
   create_account_confirm_yes: "✅ Yes, that's correct", // EN
   create_account_correct_pin: "✏️ No, correct it", // EN  
@@ -3585,7 +3585,7 @@ const translations = {
   login_title: "Conexión 🔐",
   login_subtitle: "Encuentra tu cuenta",
   login_pseudo_label: "Tu apodo",
-  login_pin_label: "Tu PIN (DDMM)",
+  login_pin_label: "Tu fecha de nacimiento :",
   login_connect: "🎋 Conectarme",
   create_account_confirm_yes: "✅ Sí, es correcto", // ES
   create_account_correct_pin: "✏️ No, corregir" // ES  
@@ -7636,6 +7636,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
