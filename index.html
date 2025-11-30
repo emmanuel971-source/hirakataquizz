@@ -2003,7 +2003,6 @@
   }
 }
 /* Loader zen */
-    
 .zen-loader-container {
   display: flex;
   flex-direction: column;
@@ -2875,24 +2874,7 @@
     padding: 10px 8px;
   }
 }
-#login-loader {
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 9999 !important;        /* ← LA LIGNE MAGIQUE */
-  background: linear-gradient(135deg, #f5f5dc 0%, #e8e8d0 100%);
-  display: none;                   /* au départ */
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
 
-#login-loader.active,
-#login-loader[style*="flex"] {
-  display: flex !important;
-}
    
   </style>
 </head>
@@ -3210,21 +3192,19 @@
     <h1 class="onboarding-title" data-i18n="login_title">Connexion 🔐</h1>
     
     <div class="onboarding-content">
-  <!--      <p class="onboarding-subtitle" data-i18n="login_subtitle">Retrouve ton compte</p>  -->
+      <p class="onboarding-subtitle" data-i18n="login_subtitle">Retrouve ton compte</p>
 
       <!-- Pseudo -->
       <div class="pseudo-input-wrapper">
-       <!--  <label class="selector-label" data-i18n="login_pseudo_label">Ton pseudo</label> -->
+        <label class="selector-label" data-i18n="login_pseudo_label">Ton pseudo</label>
         <input 
           type="text" 
           id="login-pseudo" 
           class="pseudo-input" 
-          placeholder="Ton pseudo"
+          placeholder="さくらDragon"
         />
       </div>
-<div class="onboarding-content">
-      <p class="onboarding-subtitle" data-i18n="login_bithdate">ta date d'anniversaire :</p>
-  
+
       <!-- Date de naissance (même style que l'onboarding) -->
       <div class="birthdate-selectors" style="margin-top: 20px;">
         <div class="selector-group">
@@ -3249,21 +3229,24 @@
         <button class="arcade-button primary-button" onclick="loginUser()" data-i18n="login_connect">
           🎋 Me connecter
         </button>
-        
+        <button class="arcade-button secondary-button" onclick="backToMenu()" data-i18n="options_back">
+          ← Retour
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Écran de chargement changement de compte-->
-<div id="login-loader" class="section" style="display: none;">
+<!-- ✅ AJOUTÉ : Écran de chargement connexion -->
+<div id="account-creation-loader" class="section" style="display: none;">
   <div class="zen-loader-container">
     <div class="zen-circle-loader">
       <div class="bamboo-leaf">🍃</div>
     </div>
-    <p class="zen-loader-text">Préparation de ton jardin zen...</p>
+    <p class="login_loading">Connexion en cours...</p>
   </div>
 </div>
+  
     <!-- Section Mes Stats -->
 <div id="stats" class="section">
   <h1 data-i18n="stats_title">Mes Statistiques</h1>
@@ -3358,8 +3341,7 @@ const translations = {
      // Mon compte
   account_title: "Mon compte",
   account_change_device: "📱 Changer d'appareil",
-  login_loading: "Connexion en cours...",  
-  login_bithdate: "ta date d'anniversaire :",  
+     login_loading: "Connexion en cours...",
   
     // Onboarding
     onboarding_welcome: "Bienvenue ! 🌸",
@@ -3464,9 +3446,8 @@ const translations = {
     // My account
   account_title: "My Account",
   account_change_device: "📱 Change Device",
-  login_loading: "Connecting...",  
-  login_bithdate: "Your birthdate :",
-    
+    login_loading: "Connecting...",
+  
     // Onboarding
     onboarding_welcome: "Welcome! 🌸",
     onboarding_subtitle: "Let's start your zen journey",
@@ -3569,8 +3550,7 @@ const translations = {
      // Mi cuenta
   account_title: "Mi Cuenta",
   account_change_device: "📱 Cambiar de Dispositivo",
-  login_loading: "Conectando...",  
-  login_bithdate: "Tu cumpleaños :",  
+    login_loading: "Conectando...",
   
     // Onboarding
     onboarding_welcome: "¡Bienvenido! 🌸",
@@ -3904,123 +3884,100 @@ async function generateNewPseudo() {
 // ========================================
 // CONNEXION (changement d'appareil)
 // ========================================
-// ✅ AJOUTÉ : Initialiser les sélecteurs de date pour le login
-function initLoginBirthdateSelectors() {
-  const daySelect = document.getElementById('login-birth-day');
-  const monthSelect = document.getElementById('login-birth-month');
-  
-  if (!daySelect || !monthSelect) return;
-  
-  // Générer les jours (01-31)
-  daySelect.innerHTML = '<option value="">--</option>';
-  for (let i = 1; i <= 31; i++) {
-    const day = String(i).padStart(2, '0');
-    daySelect.innerHTML += `<option value="${day}">${day}</option>`;
-  }
-  
-  // Générer les mois avec la langue actuelle
-  const months = {
-    fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
-    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-  };
-  
-  const monthNames = months[currentLanguage] || months.en;
-  monthSelect.innerHTML = '<option value="">--</option>';
-  
-  for (let i = 1; i <= 12; i++) {
-    const month = String(i).padStart(2, '0');
-    monthSelect.innerHTML += `<option value="${month}">${monthNames[i-1]}</option>`;
-  }
-  
-  console.log(`📅 Sélecteurs de date login initialisés en ${currentLanguage}`);
-}    
 async function loginUser() {
   const pseudo = document.getElementById('login-pseudo').value.trim();
   const day = document.getElementById('login-birth-day').value;
   const month = document.getElementById('login-birth-month').value;
   const errorDiv = document.getElementById('login-error');
   const successDiv = document.getElementById('login-success');
-
-  // Réinitialise les messages
+  
   errorDiv.style.display = 'none';
   successDiv.style.display = 'none';
-
+  
   // Validation
   if (!pseudo) {
     errorDiv.textContent = 'Veuillez entrer votre pseudo';
     errorDiv.style.display = 'block';
     return;
   }
-
+  
   if (!day || !month) {
     errorDiv.textContent = 'Veuillez sélectionner votre date de naissance';
     errorDiv.style.display = 'block';
     return;
   }
-
+  
   const pin = day + month;
-
+  
   try {
-    console.log('Tentative de connexion:', pseudo);
-
-    // Affiche le loader zen
-    document.getElementById('login').style.display = 'none';
+    console.log('🔐 Tentative de connexion:', pseudo);
+    
+    // ✅ AJOUTÉ : Afficher le loader
+    document.getElementById('login').classList.remove('active');
     document.getElementById('login-loader').style.display = 'flex';
-
+    
     const authResult = await callAPI('authenticateUser', { pseudo, pin });
-
+    
     if (!authResult.success) {
-      // Erreur → on revient au formulaire
+      // ✅ MODIFIÉ : Masquer le loader et réafficher login
       document.getElementById('login-loader').style.display = 'none';
-      document.getElementById('login').style.display = 'block';
-
+      document.getElementById('login').classList.add('active');
+      
       errorDiv.textContent = authResult.error || 'Pseudo ou date de naissance incorrect';
       errorDiv.style.display = 'block';
       return;
     }
-
+    
     const newToken = crypto.randomUUID();
-
+    
     const updateResult = await callAPI('updateUserToken', {
       pseudo,
       pin,
       newToken
     });
-
+    
     if (updateResult.success) {
+      // ✅ Sauvegarder le token
       userToken = newToken;
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
-      currentUser.token = newToken;
-
-      console.log('Connexion réussie:', currentUser.pseudo);
-
-      // Masque le loader avant de passer à la suite
-      document.getElementById('login-loader').style.display = 'none';
-
+      
+      console.log('✅ Token mis à jour, rechargement des données...');
+      
+      // ✅ Réinitialiser le contexte du jeu
       resetGameContext();
+      
+      // ✅ Recharger les stats
       await loadUserProgress();
-
-      showReturningUserWelcome(currentUser.pseudo);
-
-    } else {
-      // Erreur mise à jour token
+      
+      currentUser.token = newToken;
+      
+      console.log('✅ Connexion réussie:', currentUser.pseudo);
+      console.log(`📊 Niveau actif: ${niveauActif}, Niveau atteint: ${currentUser.niveau_atteint}`);
+      
+      // ✅ MODIFIÉ : Masquer le loader
       document.getElementById('login-loader').style.display = 'none';
-      document.getElementById('login').style.display = 'block';
-
+      
+      // ✅ AJOUTÉ : Afficher le message de bienvenue returning user
+      showReturningUserWelcome(currentUser.pseudo);
+      
+    } else {
+      // ✅ MODIFIÉ : Masquer le loader et réafficher login
+      document.getElementById('login-loader').style.display = 'none';
+      document.getElementById('login').classList.add('active');
+      
       errorDiv.textContent = 'Erreur lors de la mise à jour du token';
       errorDiv.style.display = 'block';
     }
-
+    
   } catch (error) {
-    // En cas d'erreur réseau ou autre
+    // ✅ MODIFIÉ : Masquer le loader et réafficher login
     document.getElementById('login-loader').style.display = 'none';
-    document.getElementById('login').style.display = 'block';
-
+    document.getElementById('login').classList.add('active');
+    
     errorDiv.textContent = 'Erreur de connexion';
     errorDiv.style.display = 'block';
-    console.error('Erreur connexion:', error);
+    console.error('❌ Erreur connexion:', error);
   }
 }
 // ========================================
@@ -4658,6 +4615,38 @@ function initBirthdateSelectors() {
   
   console.log(`📅 Sélecteurs de date initialisés en ${currentLanguage}`);
 }
+// ✅ AJOUTÉ : Initialiser les sélecteurs de date pour le login
+function initLoginBirthdateSelectors() {
+  const daySelect = document.getElementById('login-birth-day');
+  const monthSelect = document.getElementById('login-birth-month');
+  
+  if (!daySelect || !monthSelect) return;
+  
+  // Générer les jours (01-31)
+  daySelect.innerHTML = '<option value="">--</option>';
+  for (let i = 1; i <= 31; i++) {
+    const day = String(i).padStart(2, '0');
+    daySelect.innerHTML += `<option value="${day}">${day}</option>`;
+  }
+  
+  // Générer les mois avec la langue actuelle
+  const months = {
+    fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  };
+  
+  const monthNames = months[currentLanguage] || months.en;
+  monthSelect.innerHTML = '<option value="">--</option>';
+  
+  for (let i = 1; i <= 12; i++) {
+    const month = String(i).padStart(2, '0');
+    monthSelect.innerHTML += `<option value="${month}">${monthNames[i-1]}</option>`;
+  }
+  
+  console.log(`📅 Sélecteurs de date login initialisés en ${currentLanguage}`);
+}
+    
 function validateBirthdateAndContinue() {
   const daySelect = document.getElementById('birth-day');
   const monthSelect = document.getElementById('birth-month');
@@ -7655,41 +7644,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
