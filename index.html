@@ -3941,96 +3941,86 @@ async function loginUser() {
   const month = document.getElementById('login-birth-month').value;
   const errorDiv = document.getElementById('login-error');
   const successDiv = document.getElementById('login-success');
-  
+
+  // Réinitialise les messages
   errorDiv.style.display = 'none';
   successDiv.style.display = 'none';
-  
+
   // Validation
   if (!pseudo) {
     errorDiv.textContent = 'Veuillez entrer votre pseudo';
     errorDiv.style.display = 'block';
     return;
   }
-  
+
   if (!day || !month) {
     errorDiv.textContent = 'Veuillez sélectionner votre date de naissance';
     errorDiv.style.display = 'block';
     return;
   }
-  
+
   const pin = day + month;
-  
+
   try {
-    console.log('🔐 Tentative de connexion:', pseudo);
-    
-    // ✅ CORRIGÉ : Afficher le loader avec active
-// NOUVEAU CODE — ultra-simple et garanti
-document.getElementById('login').style.display = 'none';
-document.getElementById('login-loader').style.display = 'flex';
-    
+    console.log('Tentative de connexion:', pseudo);
+
+    // Affiche le loader zen
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('login-loader').style.display = 'flex';
+
     const authResult = await callAPI('authenticateUser', { pseudo, pin });
-    
+
     if (!authResult.success) {
-      // ✅ CORRIGÉ : Masquer le loader et réafficher login
-      loaderSection.style.display = 'none';
-      loaderSection.classList.remove('active');
-      document.getElementById('login').classList.add('active');
-      
+      // Erreur → on revient au formulaire
+      document.getElementById('login-loader').style.display = 'none';
+      document.getElementById('login').style.display = 'block';
+
       errorDiv.textContent = authResult.error || 'Pseudo ou date de naissance incorrect';
       errorDiv.style.display = 'block';
       return;
     }
-    
+
     const newToken = crypto.randomUUID();
-    
+
     const updateResult = await callAPI('updateUserToken', {
       pseudo,
       pin,
       newToken
     });
-    
+
     if (updateResult.success) {
       userToken = newToken;
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
-      
-      console.log('✅ Token mis à jour, rechargement des données...');
-      
+      currentUser.token = newToken;
+
+      console.log('Connexion réussie:', currentUser.pseudo);
+
+      // Masque le loader avant de passer à la suite
+      document.getElementById('login-loader').style.display = 'none';
+
       resetGameContext();
       await loadUserProgress();
-      
-      currentUser.token = newToken;
-      
-      console.log('✅ Connexion réussie:', currentUser.pseudo);
-      console.log(`📊 Niveau actif: ${niveauActif}, Niveau atteint: ${currentUser.niveau_atteint}`);
-      
-      // ✅ CORRIGÉ : Masquer le loader
-      loaderSection.style.display = 'none';
-      loaderSection.classList.remove('active');
-      
-      // Afficher le message de bienvenue
+
       showReturningUserWelcome(currentUser.pseudo);
-      
+
     } else {
-      // ✅ CORRIGÉ : Masquer le loader et réafficher login
-      loaderSection.style.display = 'none';
-      loaderSection.classList.remove('active');
-      document.getElementById('login').classList.add('active');
-      
+      // Erreur mise à jour token
+      document.getElementById('login-loader').style.display = 'none';
+      document.getElementById('login').style.display = 'block';
+
       errorDiv.textContent = 'Erreur lors de la mise à jour du token';
       errorDiv.style.display = 'block';
     }
-    
+
   } catch (error) {
-    // ✅ CORRIGÉ : Masquer le loader et réafficher login
-    const loaderSection = document.getElementById('login-loader');
-    loaderSection.style.display = 'none';
-    loaderSection.classList.remove('active');
-    document.getElementById('login').classList.add('active');
-    
+    // En cas d'erreur réseau ou autre
+    document.getElementById('login-loader').style.display = 'none';
+    document.getElementById('login').style.display = 'block';
+
     errorDiv.textContent = 'Erreur de connexion';
     errorDiv.style.display = 'block';
-    console.error('❌ Erreur connexion:', error);
+    console.error('Erreur connexion:', error);
   }
 }
 // ========================================
@@ -7665,6 +7655,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
