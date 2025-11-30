@@ -2752,7 +2752,7 @@
 }
 
 .primary-button {
-  background: linear-gradient(135deg, var(--green-medium), var(--green-medium)) !important;
+  background: linear-gradient(135deg, var(--green-primary), var(--green-medium)) !important;
   box-shadow: 0 4px 15px var(--overlay-green-40);
 }
 
@@ -3228,6 +3228,7 @@
       <div class="confirmation-box">
         <p class="confirmation-question" data-i18n="onboarding_confirm_question">Tu es né(e) le</p>
         <p class="confirmation-date" id="confirm-date-display"></p>
+        <p> ? </p>
       </div>
 
       <div class="warning-box">
@@ -3429,9 +3430,9 @@ const translations = {
     onboarding_next: "OK",
     onboarding_back: "Retour",
     onboarding_pin_title: "Sécurise ton compte 🔐",
-    onboarding_pin_subtitle: "Entre ta date de naissance (JJMM)",
+    onboarding_pin_subtitle: "Entre ta date de naissance",
     onboarding_pin_example: "Exemple : né(e) le 12 mai → 1205",
-    onboarding_confirm_title: "Confirme ta date 📅",
+    onboarding_confirm_title: "Confirmation",
     onboarding_confirm_question: "Tu es né(e) le",
     onboarding_warning: "⚠️ Cette date te servira à récupérer ton compte",
     onboarding_correct: "✏️ Corriger",
@@ -3525,17 +3526,17 @@ const translations = {
   
     // Onboarding
     onboarding_welcome: "Welcome! 🌸",
-    onboarding_subtitle: "Let's start your zen journey",
-    onboarding_create: "🎋 Create an account",
-    onboarding_login: "🔐 I already have an account",
-    onboarding_pseudo_title: "Choose your zen nickname 🐼",
-    onboarding_regenerate: "🔄 Change nickname",
-    onboarding_next: "Next ➡️",
+    onboarding_subtitle: "Let's begin your learning",
+    onboarding_create: "Create an account",
+    onboarding_login: "I already have an account",
+    onboarding_pseudo_title: "Choose your nickname 🐼",
+    onboarding_regenerate: "?",
+    onboarding_next: "Okay",
     onboarding_back: "Back",
     onboarding_pin_title: "Secure your account 🔐",
-    onboarding_pin_subtitle: "Enter your birth date (DDMM)",
+    onboarding_pin_subtitle: "Enter your birth date",
     onboarding_pin_example: "Example: born May 12th → 1205",
-    onboarding_confirm_title: "Confirm your date 📅",
+    onboarding_confirm_title: "Confirmation",
     onboarding_confirm_question: "You were born on",
     onboarding_warning: "⚠️ This date will be used to recover your account",
     onboarding_correct: "✏️ Correct",
@@ -3628,17 +3629,17 @@ const translations = {
   
     // Onboarding
     onboarding_welcome: "¡Bienvenido! 🌸",
-    onboarding_subtitle: "Comencemos tu viaje zen",
-    onboarding_create: "🎋 Crear una cuenta",
-    onboarding_login: "🔐 Ya tengo una cuenta",
-    onboarding_pseudo_title: "Elige tu apodo zen 🐼",
-    onboarding_regenerate: "🔄 Cambiar apodo",
-    onboarding_next: "Siguiente ➡️",
+    onboarding_subtitle: "Comencemos tu aprendizaje",
+    onboarding_create: "Crear una cuenta",
+    onboarding_login: "Ya tengo una cuenta",
+    onboarding_pseudo_title: "Elige tu apodo 🐼",
+    onboarding_regenerate: "?",
+    onboarding_next: "Bueno",
     onboarding_back: "Volver",
     onboarding_pin_title: "Asegura tu cuenta 🔐",
-    onboarding_pin_subtitle: "Ingresa tu fecha de nacimiento (DDMM)",
+    onboarding_pin_subtitle: "Ingresa tu fecha de nacimiento",
     onboarding_pin_example: "Ejemplo: nacido el 12 de mayo → 1205",
-    onboarding_confirm_title: "Confirma tu fecha 📅",
+    onboarding_confirm_title: "Confirmación",
     onboarding_confirm_question: "Naciste el",
     onboarding_warning: "⚠️ Esta fecha te servirá para recuperar tu cuenta",
     onboarding_correct: "✏️ Corregir",
@@ -7716,6 +7717,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
