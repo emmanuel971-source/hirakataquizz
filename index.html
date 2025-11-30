@@ -2976,20 +2976,20 @@
 <!-- Menu -->
 
 <nav class="menu" id="menu">
-  <div id="menu-message" class="menu-message"></div>
+<!--   <div id="menu-message" class="menu-message"></div>  -->
   <button class="arcade-button" onclick="showSection('quiz')" data-i18n="menu_learn">Apprendre</button>
   <button class="arcade-button" id="revision-button" onclick="showSection('mode2')" data-i18n="menu_revision">Mode révisions</button>
   <button class="arcade-button" onclick="showSection('stats')" data-i18n="menu_stats">Mes stats</button>
   <button class="arcade-button" onclick="showSection('options')" data-i18n="menu_options">Options</button>
   <button class="arcade-button" onclick="showSection('account')" data-i18n="account_title">Mon compte</button>
-  <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>
+<!--   <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>  -->
 </nav>
 
 <!-- Section Page d'accueil -->
 <div id="welcome" class="section active">
   <div class="panda-logo" onclick="">🐼</div>
   <h1 class="welcome-title" data-i18n="welcome_title">🎌🌸 Kanas-Zen-Garden 🌸🎌</h1>
-  <p class="welcome-subtitle" data-i18n="welcome_subtitle">Apprenez à Lire le Japonais</p>
+  <p class="welcome-subtitle" data-i18n="welcome_subtitle">Apprenez à lire le Japonais</p>
   <div class="loading-dots" id="loadingText">(Chargement... )</div>
 
 <!-- ✅ NOUVEAU : Barre de progression -->
@@ -3005,7 +3005,7 @@
 
 <!-- Section Quiz -->
 <div id="quiz" class="section">
-  <h1 data-i18n="quiz_title">🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>
+<!--   <h1 data-i18n="quiz_title">🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>  -->
   <div id="progressBarContainer"></div>
   <div class="level" id="levelDisplay">Niveau actuel : 1</div>
     <div class="level-hiraganas">
@@ -3028,7 +3028,7 @@
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
 <div id="mode2" class="section">
-  <h2 data-i18n="revision_title">🎌⛩️ Réviser les Kanas ⛩️🎌</h2>
+<!--  <h2 data-i18n="revision_title">🎌⛩️ Réviser les Kanas ⛩️🎌</h2>  -->
 <div id="unlock-progress-container" class="unlock-progress-container" style="display: none;">
   <div class="unlock-progress-bar">
     <div class="unlock-progress-fill" id="unlock-progress-fill"></div>
@@ -3371,7 +3371,7 @@ const translations = {
     
     // Page d'accueil
     welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
-    welcome_subtitle: "Apprenez à Lire le Japonais",
+    welcome_subtitle: "Apprenez à lire le Japonais",
     welcome_loading: "Chargement...",
     welcome_touch: "Touchez le panda pour entrer !",
     
@@ -3475,7 +3475,7 @@ const translations = {
     
     // Welcome page
     welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
-    welcome_subtitle: "Learn to Read Japanese",
+    welcome_subtitle: "Learn to read Japanese",
     welcome_loading: "Loading...",
     welcome_touch: "Touch the panda to enter!",
     
@@ -3579,7 +3579,7 @@ const translations = {
     
     // Página de bienvenida
     welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
-    welcome_subtitle: "Aprende a Leer Japonés",
+    welcome_subtitle: "Aprende a leer Japonés",
     welcome_loading: "Cargando...",
     welcome_touch: "¡Toca el panda para entrar!",
     
@@ -7716,6 +7716,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
