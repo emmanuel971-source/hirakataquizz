@@ -4991,7 +4991,7 @@ function validateBirthdateAndContinue() {
   // Validation de la sélection
 if (!day || !month) {
   if (errorDiv) {
-    errorDiv.textContent = 'Veuillez sélectionner un jour et un mois';
+    errorDiv.textContent = t('error_select_date');
     errorDiv.style.display = 'block';
     errorDiv.style.color = '#dc3545';
   }
@@ -5001,7 +5001,7 @@ if (!day || !month) {
 const maxDay = daysInMonth[month];
 if (parseInt(day) > maxDay) {
   if (errorDiv) {
-    errorDiv.textContent = `Ce mois ne peut pas avoir ${day} jours`;
+    errorDiv.textContent = `${t('error_invalid_day')} ${day} ${t('error_invalid_day_suffix')}`;
     errorDiv.style.display = 'block';
     errorDiv.style.color = '#dc3545';
   }
@@ -7944,6 +7944,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
