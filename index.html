@@ -4994,30 +4994,24 @@ function validateBirthdateAndContinue() {
   }
   
   // Validation de la sélection
-  if (!day || !month) {
-    if (errorDiv) {
-      errorDiv.textContent = 'Veuillez sélectionner un jour et un mois';
-      errorDiv.style.display = 'block';
-      errorDiv.style.color = '#dc3545';
-    }
-    return;
+if (!day || !month) {
+  if (errorDiv) {
+    errorDiv.textContent = t('error_select_date');
+    errorDiv.style.display = 'block';
+    errorDiv.style.color = '#dc3545';
   }
-  
-  // ✅ Validation des jours selon les mois
-  const daysInMonth = {
-    '01': 31, '02': 29, '03': 31, '04': 30, '05': 31, '06': 30,
-    '07': 31, '08': 31, '09': 30, '10': 31, '11': 30, '12': 31
-  };
-  
-  const maxDay = daysInMonth[month];
-  if (parseInt(day) > maxDay) {
-    if (errorDiv) {
-      errorDiv.textContent = `Ce mois ne peut pas avoir ${day} jours`;
-      errorDiv.style.display = 'block';
-      errorDiv.style.color = '#dc3545';
-    }
-    return;
+  return;
+}
+
+const maxDay = daysInMonth[month];
+if (parseInt(day) > maxDay) {
+  if (errorDiv) {
+    errorDiv.textContent = `${t('error_invalid_day')} ${day} ${t('error_invalid_day_suffix')}`;
+    errorDiv.style.display = 'block';
+    errorDiv.style.color = '#dc3545';
   }
+  return;
+}
   
   if (errorDiv) {
     errorDiv.style.display = 'none';
@@ -7959,6 +7953,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
