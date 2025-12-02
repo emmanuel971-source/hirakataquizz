@@ -2028,8 +2028,11 @@
   display: flex;
   flex-direction: column;
   gap: 1em;
-  margin-top: 2em;
+  margin: 2em auto 0;      /* 2em en haut, 0 en bas, auto gauche/droite → centré */
   max-width: 400px;
+  width: 100%;             /* indispensable avec max-width */
+  padding: 0 1em;          /* optionnel : un peu d’air sur les côtés sur mobile */
+  box-sizing: border-box;
 }
 
 .error-message {
@@ -8047,6 +8050,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
