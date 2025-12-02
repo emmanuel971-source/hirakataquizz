@@ -2008,17 +2008,20 @@
 }
 
 .account-info {
-  margin: 2em 0;
+  margin: 2em auto;         /* ← AJOUTÉ : centrage horizontal */
   padding: 1em;
   background: var(--overlay-white-50);
   border-radius: 8px;
-  max-width: 500px;
+  max-width: 460px;         /* un peu moins large que la section pour un bel effet encadré */
+  width: 100%;              /* permet à margin auto de fonctionner */
+  text-align: center;       /* garantit que tout le texte dedans est centré */
+  box-sizing: border-box;
 }
 
 .account-info-line {
   font-size: 1.2em;
   color: var(--brown-primary);
-  margin: 0.5em 0;
+  margin: 0.8em 0;          /* un peu plus d’air entre les lignes */
 }
 
 .button-group {
@@ -8044,6 +8047,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
