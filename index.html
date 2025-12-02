@@ -2750,7 +2750,10 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
-  margin-top: 30px;
+  margin: 30px auto 0;     /* ← corrigé : 30px en haut, centré horizontalement */
+  max-width: 400px;
+  width: 100%;             /* ← indispensable pour que margin auto marche */
+  box-sizing: border-box;
 }
 
 .large-button {
@@ -8050,6 +8053,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
