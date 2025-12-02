@@ -4212,17 +4212,17 @@ async function loginUser() {
   successDiv.style.display = 'none';
   
   // Validation
-  if (!pseudo) {
-    errorDiv.textContent = 'Veuillez entrer votre pseudo';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  
-  if (!day || !month) {
-    errorDiv.textContent = 'Veuillez sélectionner votre date de naissance';
-    errorDiv.style.display = 'block';
-    return;
-  }
+if (!pseudo) {
+  errorDiv.textContent = t('error_enter_pseudo');
+  errorDiv.style.display = 'block';
+  return;
+}
+
+if (!day || !month) {
+  errorDiv.textContent = t('error_select_birthdate');
+  errorDiv.style.display = 'block';
+  return;
+}
   
   const pin = day + month;
   
@@ -4235,15 +4235,14 @@ async function loginUser() {
     
     const authResult = await callAPI('authenticateUser', { pseudo, pin });
     
-    if (!authResult.success) {
-      // ✅ MODIFIÉ : Masquer le loader et réafficher login
-      document.getElementById('login-loader').style.display = 'none';
-      document.getElementById('login').classList.add('active');
-      
-      errorDiv.textContent = authResult.error || 'Pseudo ou date de naissance incorrect';
-      errorDiv.style.display = 'block';
-      return;
-    }
+if (!authResult.success) {
+  document.getElementById('login-loader').style.display = 'none';
+  document.getElementById('login').classList.add('active');
+  
+  errorDiv.textContent = authResult.error || t('error_wrong_credentials');
+  errorDiv.style.display = 'block';
+  return;
+}
     
     const newToken = crypto.randomUUID();
     
@@ -4278,24 +4277,22 @@ async function loginUser() {
       // ✅ AJOUTÉ : Afficher le message de bienvenue returning user
       showReturningUserWelcome(currentUser.pseudo);
       
-    } else {
-      // ✅ MODIFIÉ : Masquer le loader et réafficher login
-      document.getElementById('login-loader').style.display = 'none';
-      document.getElementById('login').classList.add('active');
-      
-      errorDiv.textContent = 'Erreur lors de la mise à jour du token';
-      errorDiv.style.display = 'block';
-    }
+} else {
+  document.getElementById('login-loader').style.display = 'none';
+  document.getElementById('login').classList.add('active');
+  
+  errorDiv.textContent = t('error_token_update');
+  errorDiv.style.display = 'block';
+}
     
-  } catch (error) {
-    // ✅ MODIFIÉ : Masquer le loader et réafficher login
-    document.getElementById('login-loader').style.display = 'none';
-    document.getElementById('login').classList.add('active');
-    
-    errorDiv.textContent = 'Erreur de connexion';
-    errorDiv.style.display = 'block';
-    console.error('❌ Erreur connexion:', error);
-  }
+} catch (error) {
+  document.getElementById('login-loader').style.display = 'none';
+  document.getElementById('login').classList.add('active');
+  
+  errorDiv.textContent = t('error_connection');
+  errorDiv.style.display = 'block';
+  console.error('❌ Erreur connexion:', error);
+}
 }
 // ========================================
 // AFFICHER LA PAGE DE CONNEXION
@@ -4490,17 +4487,16 @@ async function loadUserProgress() {
 
 function showAccountCreationLoader() {
   const messages = [
-    "🧘 Méditation en cours...",
-    "🍵 Préparation du thé matcha...",
-    "🌸 Plantation des cerisiers...",
-    "🎋 Arrangement du jardin zen...",
-    "🎌 Préparation de la cérémonie..."
+    t('loader_meditation'),
+    t('loader_tea'),
+    t('loader_cherry'),
+    t('loader_garden'),
+    t('loader_ceremony')
   ];
   
   const loaderScreen = document.getElementById('account-creation-loader');
   const textElement = loaderScreen.querySelector('.zen-loader-text');
   
-  // Message aléatoire
   textElement.textContent = messages[Math.floor(Math.random() * messages.length)];
   
   loaderScreen.style.display = 'flex';
@@ -4513,13 +4509,11 @@ function showWelcomeAnimation(pseudo) {
   const welcomeScreen = document.getElementById('welcome-screen');
   const titleElement = document.querySelector('.welcome-user-title');
   
-  titleElement.textContent = `Bienvenue ${pseudo} 🎌`;
+  titleElement.textContent = `${t('welcome_user')} ${pseudo} 🎌`;
   welcomeScreen.style.display = 'flex';
   
-  // ✅ Utiliser votre fonction sakura existante (compatible responsive)
   triggerSakuraFall(welcomeScreen);
   
-  // Son de bienvenue
   playLevelUp();
 }
 
@@ -4860,31 +4854,30 @@ function validatePseudoAndContinue() {
   }
   
   // Validation du pseudo
-  if (!pseudo || pseudo.length < 2) {
-    errorDiv.textContent = 'Le pseudo doit contenir au moins 2 caractères';
-    errorDiv.style.display = 'block';
-    errorDiv.style.color = '#dc3545';
-    pseudoInput.focus();
-    return;
-  }
-  
-  if (pseudo.length > 20) {
-    errorDiv.textContent = 'Le pseudo ne peut pas dépasser 20 caractères';
-    errorDiv.style.display = 'block';
-    errorDiv.style.color = '#dc3545';
-    pseudoInput.focus();
-    return;
-  }
-  
-  // ✅ MODIFIÉ : Validation stricte - lettres et chiffres uniquement
-  const validPattern = /^[a-zA-Z0-9àâäéèêëïîôùûüÿçñÀÂÄÉÈÊËÏÎÔÙÛÜŸÇÑ]+$/;
-  if (!validPattern.test(pseudo)) {
-    errorDiv.textContent = 'Le pseudo ne peut contenir que des lettres et des chiffres (pas d\'espaces ni de caractères spéciaux)';
-    errorDiv.style.display = 'block';
-    errorDiv.style.color = '#dc3545';
-    pseudoInput.focus();
-    return;
-  }
+if (!pseudo || pseudo.length < 2) {
+  errorDiv.textContent = t('error_pseudo_too_short');
+  errorDiv.style.display = 'block';
+  errorDiv.style.color = '#dc3545';
+  pseudoInput.focus();
+  return;
+}
+
+if (pseudo.length > 20) {
+  errorDiv.textContent = t('error_pseudo_too_long');
+  errorDiv.style.display = 'block';
+  errorDiv.style.color = '#dc3545';
+  pseudoInput.focus();
+  return;
+}
+
+const validPattern = /^[a-zA-Z0-9àâäéèêëïîôùûüÿçñÀÂÄÉÈÊËÏÎÔÙÛÜŸÇÑ]+$/;
+if (!validPattern.test(pseudo)) {
+  errorDiv.textContent = t('error_pseudo_invalid_chars');
+  errorDiv.style.display = 'block';
+  errorDiv.style.color = '#dc3545';
+  pseudoInput.focus();
+  return;
+}
   
   // Mettre à jour currentPseudoProposal
   currentPseudoProposal = {
@@ -5066,16 +5059,16 @@ if (totalTime < requiredTotalTime) {
   const remainingTime = Math.ceil((requiredTotalTime - totalTime) / 1000);
   console.warn('🤖 Création trop rapide:', totalTime, 'ms');
   
-  goToStep(4); // Retour à l'écran de confirmation
+  goToStep(4);
   
   const errorDiv = document.getElementById('create-error');
   if (errorDiv) {
-    errorDiv.textContent = `⏱️ Veuillez patienter encore ${remainingTime} seconde${remainingTime > 1 ? 's' : ''} avant de valider...`;
+    const secondText = remainingTime > 1 ? t('error_seconds') : t('error_second');
+    errorDiv.textContent = `${t('error_please_wait')} ${remainingTime} ${secondText} ${t('error_before_validate')}`;
     errorDiv.style.display = 'block';
-    errorDiv.style.color = '#f39c12'; // Orange
+    errorDiv.style.color = '#f39c12';
   }
   
-  // ✅ AJOUTÉ : Masquer le message après le délai
   setTimeout(() => {
     if (errorDiv) {
       errorDiv.style.display = 'none';
@@ -5085,17 +5078,16 @@ if (totalTime < requiredTotalTime) {
   
   return;
 }
-  
-  // 3. Vérifier interactions utilisateur
-  if (userInteractions.clicks < 3 || userInteractions.keystrokes < 0) {
-    console.warn('🤖 Interactions insuffisantes:', userInteractions);
-    const errorDiv = document.getElementById('create-error');
-    if (errorDiv) {
-      errorDiv.textContent = 'Activité suspecte détectée';
-      errorDiv.style.display = 'block';
-    }
-    return;
+
+if (userInteractions.clicks < 3 || userInteractions.keystrokes < 0) {
+  console.warn('🤖 Interactions insuffisantes:', userInteractions);
+  const errorDiv = document.getElementById('create-error');
+  if (errorDiv) {
+    errorDiv.textContent = t('error_suspicious_activity');
+    errorDiv.style.display = 'block';
   }
+  return;
+}
   
   // 4. Vérifier que le pseudo a des mots source (protection supplémentaire)
   if (!currentPseudoProposal.jpnWord && !currentPseudoProposal.engWord) {
@@ -5163,14 +5155,14 @@ if (totalTime < requiredTotalTime) {
   
  
 }
-  } catch (error) {
-    hideAccountCreationLoader();
-    goToStep(4);
-    const errorDiv = document.getElementById('create-error');
-    errorDiv.textContent = 'Erreur de connexion';
-    errorDiv.style.display = 'block';
-    console.error('❌ Erreur:', error);
-  }
+} catch (error) {
+  hideAccountCreationLoader();
+  goToStep(4);
+  const errorDiv = document.getElementById('create-error');
+  errorDiv.textContent = t('error_connection');
+  errorDiv.style.display = 'block';
+  console.error('❌ Erreur:', error);
+}
   
   delete window.tempPin;
 }
@@ -5343,35 +5335,32 @@ function updateMenuMessage() {
 // ========================================
 function showReturningUserWelcome(pseudo) {
   const messages = [
-    "Un voyage de mille lieues commence toujours par un premier pas 🌸",
-    "La patience est la clé de la joie 🍃",
-    "Chaque jour est une nouvelle chance d'apprendre 🎋",
-     "Même un voyage de mille kilomètres commence par un pas 👣",
-    "Le vent ne laisse pas de trace, mais il transforme le ciel 🌬️",
-    "Le savoir est un trésor qui suit partout celui qui le possède 💎",
-    "Un petit progrès chaque jour mène au succès 🌱",
-    "La persévérance est la mère du succès 🏔️",
-    "Qui grimpe lentement grimpe sûrement 🧗",
-     "Le chemin est plus important que la destination 🛤️",
-    "Mieux vaut tard que jamais ⏰",
-    "Quand le vent cesse, les feuilles se reposent — ainsi va l’esprit apaisé 🍂",
-   "Dans la goutte de rosée, tout l’univers se reflète 💧",
-  "Le silence n’est pas vide — il est plein de réponses 🕊️",
-  "Une pierre immobile dans le ruisseau apprend le passage du temps ⛰️",
-      "Affûte ton esprit comme on polit un sabre — lentement, patiemment ⚔️",
-  "Ce n’est pas la force, mais la constance, qui fend la pierre 💧",
-  "Chaque jour, avance d’un pas invisible mais réel 👣",
-  "La fleur n’ouvre pas ses pétales en un seul matin 🌸",
-    "Chaque expert était autrefois un débutant 🌟",
-    "L'échec est le fondement de la réussite 🌸",
-     "Même l’ombre d’un arbre parle du soleil 🌳",
-  "La brume cache la montagne, mais la montagne demeure ⛰️",
-  "Le parfum du thé n’a pas besoin de paroles 🍵",
-  "Marcher sans but, c’est parfois trouver le chemin 🚶‍♂️",
-  "Le cœur tranquille entend la musique du monde 🎐",
-    "La discipline n’est pas une chaîne, mais une clé 🗝️",
-    "Dans l’instant qui passe, tout l’éternel se cache 🕊️"
-];
+    t('proverb_1'),
+    t('proverb_2'),
+    t('proverb_3'),
+    t('proverb_4'),
+    t('proverb_5'),
+    t('proverb_6'),
+    t('proverb_7'),
+    t('proverb_8'),
+    t('proverb_9'),
+    t('proverb_10'),
+    t('proverb_11'),
+    t('proverb_12'),
+    t('proverb_13'),
+    t('proverb_14'),
+    t('proverb_15'),
+    t('proverb_16'),
+    t('proverb_17'),
+    t('proverb_18'),
+    t('proverb_19'),
+    t('proverb_20'),
+    t('proverb_21'),
+    t('proverb_22'),
+    t('proverb_23'),
+    t('proverb_24'),
+    t('proverb_25')
+  ];
   
   // ✅ CRÉER UN OVERLAY TEMPORAIRE au lieu d'utiliser #welcome-screen
   const overlay = document.createElement('div');
@@ -5404,7 +5393,7 @@ function showReturningUserWelcome(pseudo) {
     padding: 0 20px;
     margin: 0 0 20px 0;
   `;
-  title.textContent = `Welcome back ${pseudo} ! 🎌`;
+  title.textContent = `${t('welcome_back')} ${pseudo} ! 🎌`;
   
   // Créer le sous-titre
   const subtitle = document.createElement('p');
@@ -7227,11 +7216,11 @@ async function checkAnswer() {
       playFail();
     }
 
-    document.getElementById("result").innerHTML = `
-      <div class="result-line">${emoji} ${resultText} ${emoji}</div>
-      <div class="result-line highlight">
-        👉 Bonne réponse : <strong>${correct1}</strong> – <strong>${correct2}</strong>
-      </div>`;
+document.getElementById("result").innerHTML = `
+  <div class="result-line">${emoji} ${resultText} ${emoji}</div>
+  <div class="result-line highlight">
+    ${t('quiz_correct_answer')} <strong>${correct1}</strong> ${t('quiz_answer_separator')} <strong>${correct2}</strong>
+  </div>`;
 
     if (current && current.Hiragana) {
       const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
@@ -7810,17 +7799,17 @@ if (document.getElementById('stats').classList.contains('active')) {
   }
 
   // Afficher feedback
-  if (isCorrect) {
-    document.getElementById("revision-message").textContent = isHighLevel ? "OK" : `${katakanaDisplay}`;
-    document.getElementById("revision-message").style.color = "#8B6F47";
-    playZenBell();
-  } else {
-    document.getElementById("revision-message").textContent = isHighLevel 
-      ? "Faux" 
-      : `👉 Bonne réponse : ${revisionMode.fullCorrect}${katakanaDisplay}`;
-    document.getElementById("revision-message").style.color = "#8B6F47";
-    playSoftError();
-  }
+if (isCorrect) {
+  document.getElementById("revision-message").textContent = isHighLevel ? t('revision_ok') : `${katakanaDisplay}`;
+  document.getElementById("revision-message").style.color = "#8B6F47";
+  playZenBell();
+} else {
+  document.getElementById("revision-message").textContent = isHighLevel 
+    ? t('revision_wrong')
+    : `${t('revision_correct_answer')} ${revisionMode.fullCorrect}${katakanaDisplay}`;
+  document.getElementById("revision-message").style.color = "#8B6F47";
+  playSoftError();
+}
 
   // Jouer son MP3
   const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
@@ -7960,6 +7949,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
