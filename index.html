@@ -4422,7 +4422,38 @@ function formatPinToDate(pin) {
   
   return { day, month, monthName, formatted: `${day}/${month}` };
 }
+// ✅ NOUVELLE FONCTION : Formate la date selon la langue
+function formatDateForDisplay(day, month) {
+  const monthsKeys = ['month_01', 'month_02', 'month_03', 'month_04', 'month_05', 'month_06',
+                      'month_07', 'month_08', 'month_09', 'month_10', 'month_11', 'month_12'];
+  const monthName = t(monthsKeys[parseInt(month) - 1]);
+  const dayNum = parseInt(day);
+  
+  if (currentLanguage === 'en') {
+    // Format anglais : "March 3rd"
+    const suffix = getOrdinalSuffix(dayNum);
+    return `${monthName} ${dayNum}${suffix}`;
+  } else if (currentLanguage === 'es') {
+    // Format espagnol : "3 de marzo"
+    return `${dayNum} de ${monthName}`;
+  } else {
+    // Format français (par défaut) : "3 mars"
+    return `${dayNum} ${monthName}`;
+  }
+}
 
+// ✅ FONCTION HELPER : Retourne le suffixe ordinal anglais (1st, 2nd, 3rd, 4th...)
+function getOrdinalSuffix(day) {
+  if (day >= 11 && day <= 13) {
+    return 'th';
+  }
+  switch (day % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
+}
 function validatePin(pin) {
   if (!pin || pin.length !== 4) {
     return { valid: false, error: 'Le PIN doit contenir exactement 4 chiffres' };
@@ -5068,17 +5099,16 @@ function validateBirthdateAndContinue() {
     errorDiv.style.display = 'none';
   }
   
-  // Créer le PIN au format JJMM
-  const pin = day + month;
-  window.tempPin = pin;
-  
-  // Afficher la date formatée
-  const dateInfo = formatPinToDate(pin);
-  document.getElementById('confirm-date-display').textContent = 
-    `${dateInfo.day} ${dateInfo.monthName}`;
-  
-  console.log(`✅ Date validée: ${pin}`);
-  goToStep(4);
+ // Créer le PIN au format JJMM
+const pin = day + month;
+window.tempPin = pin;
+
+// ✅ Afficher la date formatée selon la langue
+const formattedDate = formatDateForDisplay(day, month);
+document.getElementById('confirm-date-display').textContent = formattedDate;
+
+console.log(`✅ Date validée: ${pin}`);
+goToStep(4);
 }
 async function finalizeAccount() {
   const pin = window.tempPin;
@@ -8000,6 +8030,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
