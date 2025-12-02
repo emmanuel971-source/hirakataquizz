@@ -2765,7 +2765,19 @@
   font-size: 0.9em !important;
   padding: 10px 20px !important;
 }
-
+/* ========================================
+   BOUTON ONVOARDING - TABLETTES
+   ======================================== */
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+.onboarding-buttons {
+  width: 400px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 30px;
+}
+}
+    
 /* Confirmation box */
 .confirmation-box {
   background: var(--overlay-green-10);
@@ -8030,6 +8042,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
