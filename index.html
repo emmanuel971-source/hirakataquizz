@@ -3549,6 +3549,23 @@ welcome_journey_starts: "Ton voyage commence maintenant 🌸",
     revision_ok: "OK",
     revision_wrong: "Faux",
     revision_correct_answer: "👉 Bonne réponse :",
+
+        // Mois
+    month_01: "janvier",
+    month_02: "février",
+    month_03: "mars",
+    month_04: "avril",
+    month_05: "mai",
+    month_06: "juin",
+    month_07: "juillet",
+    month_08: "août",
+    month_09: "septembre",
+    month_10: "octobre",
+    month_11: "novembre",
+    month_12: "décembre",
+
+        // Compte
+    account_level_in_progress: "(en cours)",
     
   },
   
@@ -3732,6 +3749,24 @@ welcome_journey_starts: "Your journey begins now 🌸",
     revision_ok: "OK",
     revision_wrong: "Wrong",
     revision_correct_answer: "👉 Correct answer:",
+
+        // Months
+    month_01: "January",
+    month_02: "February",
+    month_03: "March",
+    month_04: "April",
+    month_05: "May",
+    month_06: "June",
+    month_07: "July",
+    month_08: "August",
+    month_09: "September",
+    month_10: "October",
+    month_11: "November",
+    month_12: "December",
+
+     // Account
+    account_level_in_progress: "(in progress)",
+    
     
   },
   
@@ -3910,7 +3945,26 @@ quiz_answer_separator: "—",
 // Revisión
 revision_ok: "OK",
 revision_wrong: "Falso",
-revision_correct_answer: "👉 Respuesta correcta:"
+revision_correct_answer: "👉 Respuesta correcta:",
+
+        
+    // Meses
+    month_01: "enero",
+    month_02: "febrero",
+    month_03: "marzo",
+    month_04: "abril",
+    month_05: "mayo",
+    month_06: "junio",
+    month_07: "julio",
+    month_08: "agosto",
+    month_09: "septiembre",
+    month_10: "octubre",
+    month_11: "noviembre",
+    month_12: "diciembre",
+    
+    // Cuenta
+    account_level_in_progress: "(en progreso)"
+ 
     
   }
 };
@@ -3982,6 +4036,9 @@ function updateAllTexts() {
     const key = element.getAttribute('data-i18n');
     element.textContent = t(key);
   });
+  
+  // ✅ AJOUTÉ : Mettre à jour les placeholders
+  updatePlaceholders();
   
   // Mettre à jour le niveau actuel
   const levelDisplay = document.getElementById("levelDisplay");
@@ -4313,13 +4370,20 @@ function updateAccountDisplay() {
   if (currentUser) {
     document.getElementById('account-pseudo').textContent = currentUser.pseudo;
     
-    // ✅ Afficher "Niveau X en cours" avec le niveau ACTIF
     const niveauAffiche = currentUser.niveau_actif || niveauActif;
-    document.getElementById('account-level').textContent = `${niveauAffiche} (en cours)`;
+    document.getElementById('account-level').textContent = `${niveauAffiche} ${t('account_level_in_progress')}`;
     
     console.log(`👤 Affichage compte: pseudo=${currentUser.pseudo}, niveau=${niveauAffiche}`);
   }
 }
+// ✅ NOUVELLE FONCTION à ajouter après updateAllTexts()
+function updatePlaceholders() {
+  // Mettre à jour les placeholders avec data-i18n-placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+    const key = element.getAttribute('data-i18n-placeholder');
+    element.placeholder = t(key);
+  });
+}    
 function resetGameContext() {
   // ✅ Réinitialiser les variables de contexte
   current = {};
@@ -4351,9 +4415,10 @@ function formatPinToDate(pin) {
   const day = pin.substring(0, 2);
   const month = pin.substring(2, 4);
   
-  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
-                  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-  const monthName = months[parseInt(month) - 1];
+  // ✅ Utiliser les traductions selon la langue
+  const monthsKeys = ['month_01', 'month_02', 'month_03', 'month_04', 'month_05', 'month_06',
+                      'month_07', 'month_08', 'month_09', 'month_10', 'month_11', 'month_12'];
+  const monthName = t(monthsKeys[parseInt(month) - 1]);
   
   return { day, month, monthName, formatted: `${day}/${month}` };
 }
@@ -4516,26 +4581,11 @@ function showWelcomeAnimation(pseudo) {
   
   playLevelUp();
 }
-
 function hideAccountCreationLoader() {
   document.getElementById('account-creation-loader').style.display = 'none';
 }
 
-function showWelcomeAnimation(pseudo) {
-  hideAccountCreationLoader();
-  
-  const welcomeScreen = document.getElementById('welcome-screen');
-  const titleElement = document.querySelector('.welcome-user-title');
-  
-  titleElement.textContent = `Bienvenue ${pseudo} 🎌`;
-  welcomeScreen.style.display = 'flex';
-  
-  // Ajouter chute de sakura
-  triggerSakuraFall(welcomeScreen);
-  
-  // Son de bienvenue
-  playLevelUp();
-}
+
 
 function showLoginFromCreate() {
   // Masquer la section create-account
@@ -4834,24 +4884,25 @@ function validatePseudoAndContinue() {
   const timeOnStep = Date.now() - (stepTimestamps[2] || Date.now());
   const requiredTime = 3000;
   
-  if (timeOnStep < requiredTime) {
-    const remainingTime = Math.ceil((requiredTime - timeOnStep) / 1000);
-    console.warn('🤖 Navigation trop rapide - bot suspecté');
-    if (errorDiv) {
-      errorDiv.textContent = `⏱️ Veuillez patienter encore ${remainingTime} seconde${remainingTime > 1 ? 's' : ''}...`;
-      errorDiv.style.display = 'block';
-      errorDiv.style.color = '#f39c12';
-    }
-    
-    setTimeout(() => {
-      if (errorDiv) {
-        errorDiv.style.display = 'none';
-        errorDiv.style.color = '#dc3545';
-      }
-    }, remainingTime * 1000);
-    
-    return;
+if (timeOnStep < requiredTime) {
+  const remainingTime = Math.ceil((requiredTime - timeOnStep) / 1000);
+  console.warn('🤖 Navigation trop rapide - bot suspecté');
+  if (errorDiv) {
+    const secondText = remainingTime > 1 ? t('error_seconds') : t('error_second');
+    errorDiv.textContent = `${t('error_please_wait')} ${remainingTime} ${secondText}...`;
+    errorDiv.style.display = 'block';
+    errorDiv.style.color = '#f39c12';
   }
+  
+  setTimeout(() => {
+    if (errorDiv) {
+      errorDiv.style.display = 'none';
+      errorDiv.style.color = '#dc3545';
+    }
+  }, remainingTime * 1000);
+  
+  return;
+}
   
   // Validation du pseudo
 if (!pseudo || pseudo.length < 2) {
@@ -7949,6 +8000,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
