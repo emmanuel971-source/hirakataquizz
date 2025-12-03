@@ -141,7 +141,8 @@ body.shake {animation: screenShake 0.4s ease-in-out;}
 .button-group {display: flex; flex-direction: column; gap: 1em; margin: 2em auto 0; max-width: 400px; width: 100%; padding: 0 1em; box-sizing: border-box;}
 .error-message {color: #dc3545; font-size: 1.1em; margin: 1em auto; padding: 0.5em; background: var(--overlay-red-10); border-radius: 8px; max-width: 400px; width: 100%; text-align: center;}
 .success-message {color: #28a745; font-size: 1.1em; margin: 1em 0; padding: 0.5em; background: var(--overlay-green-success); border-radius: 8px;}
-html{height:100%;margin:0;padding:0;background:linear-gradient(135deg,#f5f5dc 0%,#e8e8d0 100%)!important}body{height:100%;margin:0;padding:0;display:flex;align-items:center;justify-content:center;min-height:100dvh;overflow:hidden}.zen-loader-container{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5f5dc 0%,#e8e8d0 100%);z-index:9999;opacity:1;transition:opacity .6s ease}.zen-loader-container.hidden{opacity:0;pointer-events:none}
+html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;justify-content:center;min-height:100dvh;overflow:hidden}
+.zen-loader-container{position:fixed!important;inset:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;background:linear-gradient(135deg,#f5f5dc 0%,#e8e8d0 100%)!important;z-index:9999!important;opacity:1;transition:opacity .6s ease}.zen-loader-container.hidden{opacity:0;pointer-events:none}    
 .bamboo-leaf {font-size: 3em; animation: leaf-float 2s ease-in-out infinite;}
 @keyframes zen-spin {0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }}
 @keyframes leaf-float {0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-10px) rotate(180deg); }}
@@ -5290,6 +5291,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
