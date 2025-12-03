@@ -3527,6 +3527,7 @@ welcome_journey_starts: "Ton voyage commence maintenant 🌸",
     error_select_birthdate: "Veuillez sélectionner votre date de naissance",
     error_wrong_credentials: "Pseudo ou date de naissance incorrect",
     error_token_update: "Erreur lors de la mise à jour du token",
+    stats_no_items: "Aucun item dans cette catégorie",
     
     // Loaders
     loader_meditation: "🧘 Méditation en cours...",
@@ -3727,6 +3728,7 @@ welcome_journey_starts: "Your journey begins now 🌸",
     error_select_birthdate: "Please select your birth date",
     error_wrong_credentials: "Incorrect nickname or birth date",
     error_token_update: "Error updating token",
+    stats_no_items: "No items in this category",
     
     // Loaders
     loader_meditation: "🧘 Meditating...",
@@ -3925,6 +3927,7 @@ welcome_journey_starts: "Tu viaje comienza ahora 🌸",
     error_select_birthdate: "Por favor seleccione su fecha de nacimiento",
     error_wrong_credentials: "Apodo o fecha de nacimiento incorrecta",
     error_token_update: "Error al actualizar el token",
+    stats_no_items: "No hay elementos en esta categoría",
     
     // Cargadores
     loader_meditation: "🧘 Meditando...",
@@ -5389,16 +5392,17 @@ filtered.sort((a, b) => {
 });
   
   // Générer le HTML
-  if (filtered.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="4" style="text-align: center; opacity: 0.5; padding: 2em;">
-          🌸 Aucun item dans cette catégorie
-        </td>
-      </tr>
-    `;
-    return;
-  }
+// Générer le HTML
+if (filtered.length === 0) {
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="4" style="text-align: center; opacity: 0.5; padding: 2em;">
+        🌸 ${t('stats_no_items')}
+      </td>
+    </tr>
+  `;
+  return;
+}
   
   tbody.innerHTML = filtered.map(item => `
     <tr class="${item.statutClass}">
@@ -8056,6 +8060,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
