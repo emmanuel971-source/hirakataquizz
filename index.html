@@ -245,10 +245,10 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   min-height: 100%;
   padding: 2em 1em 6em;
   display: flex;
-  flex-direction: column-reverse; /* niveau 1 en bas */
+  flex-direction: column-reverse;
   gap: 4em;
   align-items: center;
-  background: linear-gradient(to top, #d4c19e 0%, var(--beige-light) 30%);
+  background: var(--beige-background); /* #F8F1E9 pur, sans dégradé */
 }
 .garden-level {
   display: flex;
@@ -266,7 +266,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 }
 .garden-item:hover { transform: scale(1.15); }
 .garden-plant {
-  font-size: 4.2em;       /* taille idéale sur desktop */
+  font-size: 3.4em;       /* taille idéale sur desktop */
   margin-bottom: 0.1em;
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
   transition: all 0.4s ease;
@@ -293,7 +293,6 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 .garden-modal {
   position: fixed;
   inset: 0;
-  background: rgba(139,111,71,0.92);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -301,8 +300,13 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s;
+  pointer-events: none; /* pour clic partout */
 }
-.garden-modal.visible { opacity: 1; visibility: visible; }
+.garden-modal.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
 .garden-card {
   background: var(--white);
   padding: 2em 2.5em;
@@ -322,16 +326,17 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .garden-plant { font-size: 3.4em; }
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .garden-plant { font-size: 2.4em; }
+  .garden-level { gap: 1.2em; }
+}     
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+  .garden-plant { font-size: 2.7em; }
   .garden-hiragana { font-size: 1.2em; }
   .garden-level { gap: 1.4em; }
   .garden-legend { gap: 1em; font-size: 0.9em; }
 }
-@media (max-width: 480px) {
-  .garden-plant { font-size: 3em; }
-  .garden-level { gap: 1.2em; }
-} 
+
   </style>
 </head>
 <body>
@@ -713,11 +718,11 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   <h1 data-i18n="stats_title">Mon Jardin</h1>
 
   <!-- Légende sticky -->
-  <div id="garden-legend" class="garden-legend">
-    <span>En cours</span>
-    <span>À entretenir</span>
-    <span>Maîtrisé</span>
-  </div>
+<div id="garden-legend" class="garden-legend">
+  <span>🌱 En cours</span>
+  <span>🌿 À entretenir</span>
+  <span>🌸 Maîtrisé</span>
+</div>
 
   <!-- Jardin scrollable -->
   <div class="garden-container">
@@ -738,18 +743,13 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   </div>
 -->
   <!-- Flashcard modale -->
-  <div id="garden-modal" class="garden-modal">
-    <div class="garden-card">
-      <h2 id="modal-hiragana"></h2>
-      <div class="katakana" id="modal-katakana"></div>
-      <div class="romaji" id="modal-romaji"></div>
-      <div class="info">
-        Niveau <span id="modal-level"></span> • 
-        Validation <span id="modal-validation"></span>/10
-      </div>
-      <button class="arcade-button close-btn" onclick="closeGardenModal()">Fermer</button>
-    </div>
-  </div>
+<div class="garden-card">
+  <div id="modal-plant" style="font-size: 4em; margin-bottom: 0.2em;"></div>
+  <h2 id="modal-hiragana"></h2>
+  <div class="katakana" id="modal-katakana"></div>
+  <div class="romaji" id="modal-romaji"></div>
+  <div class="info" id="modal-score"></div>
+</div>
 </div>
   <script>
    
@@ -2671,12 +2671,15 @@ let currentStatsData = [];
     levelDiv.className = 'garden-level';
 
     levels[lvl].forEach(item => {
-      const validation = validationCache[parseInt(item.ID)] || 0;
-
-      // Plantes avec un peu de variété
-let plant = '🌱';                    // 0–4 validations → pousse
-      if (validation >= 5) plant = '🌿';    // 5–9 → plante adulte
-      if (validation >= 10) plant = '🌸';   // 10 → cerisier en fleur
+const validation = validationCache[parseInt(item.ID)] || 0;
+let plant;
+if (validation >= seuilValidation) {
+  plant = ['🌸'][Math.floor(Math.random() * 1)];
+} else if (validation >= 5) { // 5 reste fixe pour "à entretenir"
+  plant = ['🌿'][Math.floor(Math.random() * 1)];
+} else {
+  plant = ['🌱'][Math.floor(Math.random() * 1)];
+}
 
       const itemDiv = document.createElement('div');
       itemDiv.className = 'garden-item';
@@ -2688,10 +2691,24 @@ let plant = '🌱';                    // 0–4 validations → pousse
       `;
 
       levelDiv.appendChild(itemDiv);
+      // Séparateur aléatoire fun (thème jardin/insectes)
+if (levels[lvl].indexOf(item) < levels[lvl].length - 1) { // pas après le dernier
+  const separators = ['🐛', '🦋', '🐝', '🐞', '🦗', '🐜', '🦟'];
+  const sep = document.createElement('span');
+  sep.textContent = separators[Math.floor(Math.random() * separators.length)];
+  sep.style.fontSize = '1.8em';
+  sep.style.margin = '0 0.6em';
+  levelDiv.appendChild(sep);
+}
     });
 
     ground.appendChild(levelDiv);
   }
+   const container = document.querySelector('.garden-container');
+const legend = document.getElementById('garden-legend');
+container.addEventListener('scroll', () => {
+  legend.classList.toggle('visible', container.scrollTop > 80); // un peu plus tôt pour mobile
+});
 }   
 
 // Ouvre la flashcard
@@ -2699,19 +2716,33 @@ function openGardenModal(item) {
   const id = parseInt(item.ID);
   const validation = validationCache[id] || 0;
 
+  // Même plante que dans le jardin
+  let plant;
+  if (validation >= seuilValidation) plant = '🌸';
+  else if (validation >= 5) plant = '🌿';
+  else plant = '🌱';
+
+  document.getElementById('modal-plant').textContent = plant;
   document.getElementById('modal-hiragana').textContent = item.Hiragana;
   document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
   document.getElementById('modal-romaji').textContent = item.Romaji;
-  document.getElementById('modal-level').textContent = item.Niveau;
-  document.getElementById('modal-validation').textContent = validation;
+  document.getElementById('modal-score').textContent = `Score actuel = ${validation}`;
 
-  document.getElementById('garden-modal').classList.add('visible');
+  const modal = document.getElementById('garden-modal');
+  modal.classList.add('visible');
 
-  // Jouer le son
+  // Son
   const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
   audio.play().catch(() => {});
-}
 
+  // Auto-fermeture après 2s OU clic n’importe où
+  const close = () => {
+    modal.classList.remove('visible');
+    modal.removeEventListener('click', close);
+  };
+  setTimeout(close, 2000);
+  modal.addEventListener('click', close);
+}
 // Ferme la flashcard
 function closeGardenModal() {
   document.getElementById('garden-modal').classList.remove('visible');
@@ -5445,6 +5476,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
