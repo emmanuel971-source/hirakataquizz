@@ -512,7 +512,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   </div>
 </div>
 
-<!-- Section Création de compte - ÉTAPE 1 : Choix du parcours -->
+<!-- Section Création de compte - ÉTAPE 1 : Choix du  -->
 <div id="create-account" class="section">
   <div id="onboarding-step-1" class="onboarding-step active">
     <h1 class="onboarding-title" data-i18n="onboarding_welcome">Bienvenue ! 🌸</h1>
@@ -718,7 +718,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
     <!-- Section Mes Stats -->
 <!-- Section Mon Jardin -->
 <div id="stats" class="section">
-  <h1 data-i18n="stats_title">Mon Jardin</h1>
+<!--  <h1 data-i18n="stats_title">Mon Jardin</h1>  -->
 
   <!-- Légende sticky -->
 <div id="garden-legend" class="garden-legend">
@@ -846,7 +846,7 @@ const translations = {
     onboarding_pin_subtitle: "Entre ta date de naissance",
     
     // Mon Parcours (anciennement Stats)
-    menu_stats: "Mon parcours",
+    menu_stats: "Mon jardin",
     stats_title: "🐼 Mon jardin",
     stats_filter_all: "Tous",
     stats_filter_acquired: "Maîtrisé",
@@ -1046,7 +1046,7 @@ welcome_journey_starts: "Ton voyage commence maintenant 🌸",
     onboarding_month: "Month",
     onboarding_pin_subtitle: "Enter your birth date",
     // Mon Parcours
-    menu_stats: "My journey",
+    menu_stats: "My Garden",
     stats_title: "🐼 My Garden",
     stats_filter_all: "All",
     stats_filter_acquired: "Mastered",
@@ -1247,7 +1247,7 @@ welcome_journey_starts: "Your journey begins now 🌸",
     onboarding_month: "Mes",
     onboarding_pin_subtitle: "Ingresa tu fecha de nacimiento",
     // Mon Parcours
-    menu_stats: "Mi recorrido",
+    menu_stats: "Mi Jardin",
     stats_title: "🐼 Mi Jardin",
     stats_filter_all: "Todos",
     stats_filter_acquired: "Dominado",
@@ -2680,11 +2680,11 @@ function generateGarden() {
       // Plantes avec vrais émojis et variété
       let plant;
       if (validation >= seuilValidation) {
-        plant = ['🌸', '🌺', '🌷', '🪻'][Math.floor(Math.random() * 4)];
+        plant = ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
       } else if (validation >= 5) {
-        plant = ['🌿', '🪴', '🌾', '🌱'][Math.floor(Math.random() * 4)];
+        plant = ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
       } else {
-        plant = ['🌱', '🌿'][Math.floor(Math.random() * 2)];
+        plant = ['🌱', '🌱'][Math.floor(Math.random() * 2)];
       }
 
       const itemDiv = document.createElement('div');
@@ -5478,6 +5478,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
