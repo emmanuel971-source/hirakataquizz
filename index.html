@@ -2646,18 +2646,15 @@ let currentStatsData = [];
  * Génère les données du parcours
  */
 // === MON JARDIN ===
- function generateGarden() {
+function generateGarden() {
   const ground = document.getElementById('garden-ground');
   if (!ground) return;
   ground.innerHTML = '';
 
-  // 1. On utilise directement la variable globale niveauActif (le niveau actuel du joueur)
-  const currentLevel = niveauActif;  // Parfait, calculé dynamiquement par ton système !
+  const currentLevel = niveauActif;
 
-  // 2. On garde TOUS les hiragana des niveaux 1 jusqu’au niveau actuel inclus
   const visibleItems = HiraganaList.filter(item => parseInt(item.Niveau) <= currentLevel);
 
-  // 3. On regroupe par niveau
   const levels = {};
   visibleItems.forEach(item => {
     const lvl = parseInt(item.Niveau);
@@ -2665,8 +2662,7 @@ let currentStatsData = [];
     levels[lvl].push(item);
   });
 
-  // 4. On crée les niveaux du plus petit au plus grand
-  //    (grâce à column-reverse dans le CSS, le niveau 1 sera tout en bas)
+  // === Création des niveaux ===
   for (let lvl = 1; lvl <= currentLevel; lvl++) {
     if (!levels[lvl]) continue;
 
@@ -2674,15 +2670,16 @@ let currentStatsData = [];
     levelDiv.className = 'garden-level';
 
     levels[lvl].forEach(item => {
-const validation = validationCache[parseInt(item.ID)] || 0;
-let plant;
-if (validation >= seuilValidation) {
-  plant = ['🌸'][Math.floor(Math.random() * 1)];
-} else if (validation >= 5) { // 5 reste fixe pour "à entretenir"
-  plant = ['🌿'][Math.floor(Math.random() * 1)];
-} else {
-  plant = ['🌱'][Math.floor(Math.random() * 1)];
-}
+      const validation = validationCache[parseInt(item.ID)] || 0;
+
+      let plant;
+      if (validation >= seuilValidation) {
+        plant = ['Cherry Blossom', 'Lotus', 'Tulip', 'Hyacinth'][Math.floor(Math.random() * 4)];
+      } else if (validation >= 5) {
+        plant = ['Herb', 'Potted Plant', 'Sheaf of Rice', 'Seedling'][Math.floor(Math.random() * 4)];
+      } else {
+        plant = ['Seedling', 'Herb'][Math.floor(Math.random() * 2)];
+      }
 
       const itemDiv = document.createElement('div');
       itemDiv.className = 'garden-item';
@@ -2694,29 +2691,35 @@ if (validation >= seuilValidation) {
       `;
 
       levelDiv.appendChild(itemDiv);
-      // Séparateur aléatoire fun (thème jardin/insectes)
-// === Séparateur UN SEUL par niveau (entre les niveaux, pas entre les items !) ===
+    });
+
+    ground.appendChild(levelDiv);
+  }
+
+  // === Séparateurs entre les niveaux (UN SEUL par niveau) ===
   const allLevelDivs = ground.querySelectorAll('.garden-level');
   allLevelDivs.forEach((levelDiv, index) => {
-    if (index < allLevelDivs.length - 1) {  // Pas après le dernier niveau
-      const bugs = ['🐛', '🦋', '🐝', '🐞', '🦗', '🦟', '🍂', '🪺'];
+    if (index < allLevelDivs.length - 1) {
+      const bugs = ['Caterpillar', 'Butterfly', 'Honeybee', 'Lady Beetle', 'Cricket', 'Mosquito', 'Fallen Leaf', 'Nest with Eggs'];
       const separator = document.createElement('div');
       separator.style.fontSize = '2.2em';
       separator.style.margin = '1.8em 0';
       separator.style.textAlign = 'center';
       separator.textContent = bugs[Math.floor(Math.random() * bugs.length)];
-      ground.insertBefore(separator, levelDiv.nextSibling);  // Insère juste après le niveau
+      ground.insertBefore(separator, levelDiv.nextSibling);
     }
   });
 
-    ground.appendChild(levelDiv);
-  }
-   const container = document.querySelector('.garden-container');
-const legend = document.getElementById('garden-legend');
-container.addEventListener('scroll', () => {
-  legend.classList.toggle('visible', container.scrollTop > 80); // un peu plus tôt pour mobile
-});
-}   
+  // === Légende au scroll ===
+  const container = document.querySelector('.garden-container');
+  const legend = document.getElementById('garden-legend');
+  legend.style.display = 'flex';
+  legend.classList.add('visible'); // visible dès le départ
+
+  container.addEventListener('scroll', () => {
+    legend.classList.toggle('visible', container.scrollTop > 80);
+  });
+}
 
 // Ouvre la flashcard
 function openGardenModal(item) {
@@ -5483,6 +5486,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
