@@ -2683,7 +2683,7 @@ function generateGarden() {
 
       const itemDiv = document.createElement('div');
       itemDiv.className = 'garden-item';
-      itemDiv.onclick = () => openGardenModal(item);
+      itemDiv.onclick = () => openGardenModal(item, plant);
 
       itemDiv.innerHTML = `
         <div class="garden-plant">${plant}</div>
@@ -2722,36 +2722,26 @@ function generateGarden() {
 }
 
 // Ouvre la flashcard
-function openGardenModal(item) {
+function openGardenModal(item, currentPlantEmoji) {
   const id = parseInt(item.ID);
   const validation = validationCache[id] || 0;
 
-  // Même plante que dans le jardin
-  let plant;
-  if (validation >= seuilValidation) plant = '🌸';
-  else if (validation >= 5) plant = '🌿';
-  else plant = '🌱';
-
-  document.getElementById('modal-plant').textContent = plant;
+  document.getElementById('modal-plant').textContent = currentPlantEmoji;
   document.getElementById('modal-hiragana').textContent = item.Hiragana;
   document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
   document.getElementById('modal-romaji').textContent = item.Romaji;
-  document.getElementById('modal-score').textContent = `Score actuel = ${validation}`;
+  document.getElementById('modal-level').textContent = item.Niveau;
+  document.getElementById('modal-validation').textContent = validation;
 
   const modal = document.getElementById('garden-modal');
   modal.classList.add('visible');
 
+  // Ferme automatiquement après 2 secondes
+  setTimeout(closeGardenModal, 2000);
+
   // Son
   const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
   audio.play().catch(() => {});
-
-  // Auto-fermeture après 2s OU clic n’importe où
-  const close = () => {
-    modal.classList.remove('visible');
-    modal.removeEventListener('click', close);
-  };
-  setTimeout(close, 2000);
-  modal.addEventListener('click', close);
 }
 // Ferme la flashcard
 function closeGardenModal() {
@@ -5486,6 +5476,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
