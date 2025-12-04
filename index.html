@@ -726,10 +726,14 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
     </div>
 
     <!-- Quelques décors fixes (tu peux en ajouter/supprimer) -->
-    <div class="garden-decor rocher">Rock</div>
-    <div class="garden-decor bambou">Bamboo</div>
-    <div class="garden-decor tronc">Tree</div>
-    <div class="garden-decor rocher" style="top:40%;right:3%;font-size:2.5em;">Rock</div>
+<!-- Décors zen en vrais émojis (tu peux en ajouter/supprimer à l'infini) -->
+<div class="garden-decor" style="top:8%;left:4%;font-size:3.8em;transform:rotate(-12deg);">🎋</div>
+<div class="garden-decor" style="bottom:12%;right:6%;font-size:4.2em;transform:rotate(20deg);">🌾</div>
+<div class="garden-decor" style="top:25%;left:2%;font-size:3em;">🌵</div>
+<div class="garden-decor" style="bottom:30%;right:2%;font-size:3.5em;transform:rotate(8deg);">🌳</div>
+<div class="garden-decor" style="top:45%;right:8%;font-size:2.8em;transform:rotate(-15deg);">🍂</div>
+<div class="garden-decor" style="bottom:5%;left:10%;font-size:4.5em;opacity:0.5;">🎋</div>
+<div class="garden-decor" style="top:15%;left:12%;font-size:3.2em;transform:rotate(25deg);">🎍</div>
   </div>
 
   <!-- Flashcard modale -->
@@ -2644,7 +2648,12 @@ function generateGarden() {
   ground.innerHTML = '';
 
   const currentLevel = parseInt(localStorage.getItem('currentLevel') || '1');
-const maxLevel = currentLevel; // on n'affiche que jusqu'au niveau atteint
+// Récupère le niveau le plus haut jamais débloqué (stocké à chaque victoire de niveau)
+const unlockedLevel = parseInt(localStorage.getItem('unlockedLevel') || '1');
+// Si tu n’as pas encore cette variable, on la crée au premier passage
+if (!localStorage.getItem('unlockedLevel')) localStorage.setItem('unlockedLevel', '1');
+
+const maxLevel = unlockedLevel;// on n'affiche que jusqu'au niveau atteint
   
   // Regrouper par niveau
   const levels = {};
@@ -5439,6 +5448,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
