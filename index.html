@@ -238,17 +238,20 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 .garden-container {
   flex: 1;
   overflow-y: auto;
-  background: var(--beige-light);
+  background: #F8F1E9;
   position: relative;
+  -webkit-overflow-scrolling: touch; /* pour iOS fluide */
 }
 .garden-ground {
   min-height: 100%;
-  padding: 2em 1em 6em;
+  padding: 2em 1em 2em;   /* On réduit le padding-bottom (avant c’était 6em) */
   display: flex;
   flex-direction: column-reverse;
   gap: 4em;
   align-items: center;
-  background: var(--beige-background); /* #F8F1E9 pur, sans dégradé */
+  background: #F8F1E9;
+  /* Important : on enlève tout overflow caché qui crée des bordures blanches */
+  overflow: visible;
 }
 .garden-level {
   display: flex;
@@ -2692,15 +2695,19 @@ if (validation >= seuilValidation) {
 
       levelDiv.appendChild(itemDiv);
       // Séparateur aléatoire fun (thème jardin/insectes)
-if (levels[lvl].indexOf(item) < levels[lvl].length - 1) { // pas après le dernier
-  const separators = ['🐛', '🦋', '🐝', '🐞', '🦗', '🐜', '🦟'];
-  const sep = document.createElement('span');
-  sep.textContent = separators[Math.floor(Math.random() * separators.length)];
-  sep.style.fontSize = '1.8em';
-  sep.style.margin = '0 0.6em';
-  levelDiv.appendChild(sep);
-}
-    });
+// === Séparateur UN SEUL par niveau (entre les niveaux, pas entre les items !) ===
+  const allLevelDivs = ground.querySelectorAll('.garden-level');
+  allLevelDivs.forEach((levelDiv, index) => {
+    if (index < allLevelDivs.length - 1) {  // Pas après le dernier niveau
+      const bugs = ['🐛', '🦋', '🐝', '🐞', '🦗', '🦟', '🍂', '🪺'];
+      const separator = document.createElement('div');
+      separator.style.fontSize = '2.2em';
+      separator.style.margin = '1.8em 0';
+      separator.style.textAlign = 'center';
+      separator.textContent = bugs[Math.floor(Math.random() * bugs.length)];
+      ground.insertBefore(separator, levelDiv.nextSibling);  // Insère juste après le niveau
+    }
+  });
 
     ground.appendChild(levelDiv);
   }
@@ -5476,6 +5483,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
