@@ -745,13 +745,18 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 <div class="garden-decor" style="top:15%;left:12%;font-size:3.2em;transform:rotate(25deg);">🎍</div>
   </div>
 -->
-  <!-- Flashcard modale -->
-<div class="garden-card">
-  <div id="modal-plant" style="font-size: 4em; margin-bottom: 0.2em;"></div>
-  <h2 id="modal-hiragana"></h2>
-  <div class="katakana" id="modal-katakana"></div>
-  <div class="romaji" id="modal-romaji"></div>
-  <div class="info" id="modal-score"></div>
+<!-- Flashcard modale zen -->
+<div id="garden-modal" class="garden-modal" onclick="closeGardenModal()">
+  <div class="garden-card" onclick="event.stopPropagation()"> <!-- empêche la fermeture si on clique dedans -->
+    <div id="modal-plant" style="font-size:3.2em; margin-bottom:0.4em;"></div>
+    <h2 id="modal-hiragana" style="margin:0.2em 0; font-size:3em;"></h2>
+    <div class="katakana" id="modal-katakana" style="font-size:1.8em; color:#8B6F47;"></div>
+    <div class="romaji" id="modal-romaji" style="font-size:1.6em; color:#555;"></div>
+    <div class="info" style="margin-top:1em;">
+      Niveau <span id="modal-level"></span> • 
+      Score actuel = <span id="modal-validation"></span>
+    </div>
+  </div>
 </div>
 </div>
   <script>
@@ -2723,27 +2728,17 @@ function generateGarden() {
 }
 
 // Ouvre la flashcard
-function openGardenModal(item, currentPlantEmoji) {
-  const modalPlant = document.getElementById('modal-plant');
-  if (modalPlant) {  // Vérifie si l'élément existe pour éviter l'erreur
-    modalPlant.textContent = currentPlantEmoji;
-  } else {
-    console.warn("⚠️ Élément 'modal-plant' non trouvé !");
-  }
-
-  // Le reste reste identique
+function openGardenModal(item, emoji) {
+  document.getElementById('modal-plant').textContent = emoji;
   document.getElementById('modal-hiragana').textContent = item.Hiragana;
   document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
   document.getElementById('modal-romaji').textContent = item.Romaji;
+  item.Romaji : '';
   document.getElementById('modal-level').textContent = item.Niveau;
   document.getElementById('modal-validation').textContent = validationCache[parseInt(item.ID)] || 0;
 
   document.getElementById('garden-modal').classList.add('visible');
-  setTimeout(closeGardenModal, 2000);
-
-  // Son
-  const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
-  audio.play().catch(() => {});
+  setTimeout(closeGardenModal, 2200);
 }
 // Ferme la flashcard
 function closeGardenModal() {
@@ -5478,6 +5473,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
