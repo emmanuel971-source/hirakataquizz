@@ -2674,11 +2674,11 @@ function generateGarden() {
 
       let plant;
       if (validation >= seuilValidation) {
-        plant = ['Cherry Blossom', 'Lotus', 'Tulip', 'Hyacinth'][Math.floor(Math.random() * 4)];
+        plant = ['🌸'][Math.floor(Math.random() * 1)];
       } else if (validation >= 5) {
-        plant = ['Herb', 'Potted Plant', 'Sheaf of Rice', 'Seedling'][Math.floor(Math.random() * 4)];
+        plant = ['🌿'][Math.floor(Math.random() * 1)];
       } else {
-        plant = ['Seedling', 'Herb'][Math.floor(Math.random() * 2)];
+        plant = ['🌱'][Math.floor(Math.random() * 1)];
       }
 
       const itemDiv = document.createElement('div');
@@ -5486,6 +5486,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
