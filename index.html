@@ -2643,7 +2643,8 @@ function generateGarden() {
   if (!ground) return;
   ground.innerHTML = '';
 
-  const maxLevel = Math.max(...HiraganaList.map(i => parseInt(i.Niveau)));
+  const currentLevel = parseInt(localStorage.getItem('currentLevel') || '1');
+const maxLevel = currentLevel; // on n'affiche que jusqu'au niveau atteint
   
   // Regrouper par niveau
   const levels = {};
@@ -2654,7 +2655,7 @@ function generateGarden() {
   });
 
   // Créer les niveaux du plus haut au plus bas (car flex-direction: column-reverse)
-  for (let lvl = maxLevel; lvl >= 1; lvl--) {
+    for (let lvl = 1; lvl <= maxLevel; lvl++) {
     if (!levels[lvl]) continue;
 
     const levelDiv = document.createElement('div');
@@ -2662,9 +2663,9 @@ function generateGarden() {
 
     levels[lvl].forEach(item => {
       const validation = validationCache[parseInt(item.ID)] || 0;
-      let plant = 'Seedling';
-      if (validation >= 10) plant = 'Cherry Blossom';
-      else if (validation >= 5) plant = 'Herb';
+let plant = '🌱';                    // 0–4 validations → pousse
+      if (validation >= 5) plant = '🌿';    // 5–9 → plante adulte
+      if (validation >= 10) plant = '🌸';   // 10 → cerisier en fleur
 
       const itemDiv = document.createElement('div');
       itemDiv.className = 'garden-item';
@@ -5438,6 +5439,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
