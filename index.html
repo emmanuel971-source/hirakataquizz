@@ -727,6 +727,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 
     <!-- Quelques décors fixes (tu peux en ajouter/supprimer) -->
 <!-- Décors zen en vrais émojis (tu peux en ajouter/supprimer à l'infini) -->
+<!-- 
 <div class="garden-decor" style="top:8%;left:4%;font-size:3.8em;transform:rotate(-12deg);">🎋</div>
 <div class="garden-decor" style="bottom:12%;right:6%;font-size:4.2em;transform:rotate(20deg);">🌾</div>
 <div class="garden-decor" style="top:25%;left:2%;font-size:3em;">🌵</div>
@@ -735,7 +736,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 <div class="garden-decor" style="bottom:5%;left:10%;font-size:4.5em;opacity:0.5;">🎋</div>
 <div class="garden-decor" style="top:15%;left:12%;font-size:3.2em;transform:rotate(25deg);">🎍</div>
   </div>
-
+-->
   <!-- Flashcard modale -->
   <div id="garden-modal" class="garden-modal">
     <div class="garden-card">
@@ -2642,29 +2643,28 @@ let currentStatsData = [];
  * Génère les données du parcours
  */
 // === MON JARDIN ===
-function generateGarden() {
+ function generateGarden() {
   const ground = document.getElementById('garden-ground');
   if (!ground) return;
   ground.innerHTML = '';
 
-  const currentLevel = parseInt(localStorage.getItem('currentLevel') || '1');
-// Récupère le niveau le plus haut jamais débloqué (stocké à chaque victoire de niveau)
-const unlockedLevel = parseInt(localStorage.getItem('unlockedLevel') || '1');
-// Si tu n’as pas encore cette variable, on la crée au premier passage
-if (!localStorage.getItem('unlockedLevel')) localStorage.setItem('unlockedLevel', '1');
+  // 1. On utilise directement la variable globale niveauActif (le niveau actuel du joueur)
+  const currentLevel = niveauActif;  // Parfait, calculé dynamiquement par ton système !
 
-const maxLevel = unlockedLevel;// on n'affiche que jusqu'au niveau atteint
-  
-  // Regrouper par niveau
+  // 2. On garde TOUS les hiragana des niveaux 1 jusqu’au niveau actuel inclus
+  const visibleItems = HiraganaList.filter(item => parseInt(item.Niveau) <= currentLevel);
+
+  // 3. On regroupe par niveau
   const levels = {};
-  HiraganaList.forEach(item => {
+  visibleItems.forEach(item => {
     const lvl = parseInt(item.Niveau);
     if (!levels[lvl]) levels[lvl] = [];
     levels[lvl].push(item);
   });
 
-  // Créer les niveaux du plus haut au plus bas (car flex-direction: column-reverse)
-    for (let lvl = 1; lvl <= maxLevel; lvl++) {
+  // 4. On crée les niveaux du plus petit au plus grand
+  //    (grâce à column-reverse dans le CSS, le niveau 1 sera tout en bas)
+  for (let lvl = 1; lvl <= currentLevel; lvl++) {
     if (!levels[lvl]) continue;
 
     const levelDiv = document.createElement('div');
@@ -2672,6 +2672,8 @@ const maxLevel = unlockedLevel;// on n'affiche que jusqu'au niveau atteint
 
     levels[lvl].forEach(item => {
       const validation = validationCache[parseInt(item.ID)] || 0;
+
+      // Plantes avec un peu de variété
 let plant = '🌱';                    // 0–4 validations → pousse
       if (validation >= 5) plant = '🌿';    // 5–9 → plante adulte
       if (validation >= 10) plant = '🌸';   // 10 → cerisier en fleur
@@ -2684,19 +2686,13 @@ let plant = '🌱';                    // 0–4 validations → pousse
         <div class="garden-plant">${plant}</div>
         <div class="garden-hiragana">${item.Hiragana}</div>
       `;
+
       levelDiv.appendChild(itemDiv);
     });
 
     ground.appendChild(levelDiv);
   }
-
-  // Gestion affichage légende au scroll
-  const container = document.querySelector('.garden-container');
-  const legend = document.getElementById('garden-legend');
-  container.addEventListener('scroll', () => {
-    legend.classList.toggle('visible', container.scrollTop > 100);
-  });
-}
+}   
 
 // Ouvre la flashcard
 function openGardenModal(item) {
@@ -4439,6 +4435,7 @@ if (nouveauNiveau !== niveauActif) {
 const ancienGroupe = getNiveauGroupe(niveauActif);
 const nouveauGroupe = getNiveauGroupe(nouveauNiveau);  
 niveauActif = nouveauNiveau;  
+localStorage.setItem('unlockedLevel', currentLevel + 1);  
 document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
 renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
 updateLevelProgress(HiraganaList, niveauActif);
@@ -5448,6 +5445,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
