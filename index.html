@@ -24,7 +24,7 @@ h2 {margin: 0.1em 0; font-size: 2.5em; text-align: center; color: var(--brown-pr
 .loading-dots {font-size: 1.5em; color: var(--brown-primary); margin-top: 30px; animation: loadingDots 1.5s infinite; margin-bottom: 1px;}
 @keyframes loadingDots {0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; }}
 .hidden {display: none !important;}
-#unlock-progress-container{position:fixed!important;top:12px;left:50%;transform:translateX(-50%);z-index:9999;width:90vw;max-width:600px;margin:0 auto;padding:6px 10px;background:var(--overlay-white-10);border-radius:12px;box-sizing:border-box}
+#unlock-progress-container{position:fixed!important;top:12px;left:50%;transform:translateX(-50%);width:90vw;max-width:600px;margin:0 auto;padding:6px 10px;background:var(--overlay-white-10);border-radius:12px;box-sizing:border-box}
 .unlock-progress-bar{position:relative;height:12px;background:var(--gray-light);border:2px solid var(--gray-medium);border-radius:10px;overflow:hidden}
 .unlock-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--red-progress),var(--red-progress-light));border-radius:8px;transition:width .4s ease;position:relative}
 .unlock-progress-fill.proche-deblocage{animation:pulse-unlock 1s infinite}
@@ -5327,6 +5327,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
