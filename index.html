@@ -2672,18 +2672,19 @@ function generateGarden() {
     levels[lvl].forEach(item => {
       const validation = validationCache[parseInt(item.ID)] || 0;
 
+      // Plantes avec vrais émojis et variété
       let plant;
       if (validation >= seuilValidation) {
-        plant = ['🌸'][Math.floor(Math.random() * 1)];
+        plant = ['🌸', '🌺', '🌷', '🪻'][Math.floor(Math.random() * 4)];
       } else if (validation >= 5) {
-        plant = ['🌿'][Math.floor(Math.random() * 1)];
+        plant = ['🌿', '🪴', '🌾', '🌱'][Math.floor(Math.random() * 4)];
       } else {
-        plant = ['🌱'][Math.floor(Math.random() * 1)];
+        plant = ['🌱', '🌿'][Math.floor(Math.random() * 2)];
       }
 
       const itemDiv = document.createElement('div');
       itemDiv.className = 'garden-item';
-      itemDiv.onclick = () => openGardenModal(item, plant);
+      itemDiv.onclick = () => openGardenModal(item, plant);  // Passe le vrai émoji
 
       itemDiv.innerHTML = `
         <div class="garden-plant">${plant}</div>
@@ -2723,20 +2724,21 @@ function generateGarden() {
 
 // Ouvre la flashcard
 function openGardenModal(item, currentPlantEmoji) {
-  const id = parseInt(item.ID);
-  const validation = validationCache[id] || 0;
+  const modalPlant = document.getElementById('modal-plant');
+  if (modalPlant) {  // Vérifie si l'élément existe pour éviter l'erreur
+    modalPlant.textContent = currentPlantEmoji;
+  } else {
+    console.warn("⚠️ Élément 'modal-plant' non trouvé !");
+  }
 
-  document.getElementById('modal-plant').textContent = currentPlantEmoji;
+  // Le reste reste identique
   document.getElementById('modal-hiragana').textContent = item.Hiragana;
   document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
   document.getElementById('modal-romaji').textContent = item.Romaji;
   document.getElementById('modal-level').textContent = item.Niveau;
-  document.getElementById('modal-validation').textContent = validation;
+  document.getElementById('modal-validation').textContent = validationCache[parseInt(item.ID)] || 0;
 
-  const modal = document.getElementById('garden-modal');
-  modal.classList.add('visible');
-
-  // Ferme automatiquement après 2 secondes
+  document.getElementById('garden-modal').classList.add('visible');
   setTimeout(closeGardenModal, 2000);
 
   // Son
@@ -5476,6 +5478,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
