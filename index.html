@@ -2647,10 +2647,9 @@ if (userInteractions.clicks < 3 || userInteractions.keystrokes < 0) {
 
 let currentStatsData = [];
 
-/**
- * Génère les données du parcours
- */
+
 // === MON JARDIN ===
+
 function generateGarden() {
   const ground = document.getElementById('garden-ground');
   if (!ground) return;
@@ -2667,17 +2666,34 @@ function generateGarden() {
     levels[lvl].push(item);
   });
 
-  // === Création des niveaux ===
+  let isFirstLevel = true;  // Pour ne pas mettre d'insecte avant le tout premier niveau
+
+  // === Création des niveaux avec séparateur intercalé ===
   for (let lvl = 1; lvl <= currentLevel; lvl++) {
     if (!levels[lvl]) continue;
 
     const levelDiv = document.createElement('div');
     levelDiv.className = 'garden-level';
 
+    // Si ce n'est pas le premier niveau → on ajoute un insecte avant les items
+    if (!isFirstLevel) {
+     const bugs = ['🐛', '🦋', '🐝', '🐞', '🦗', '🦟', '🍂'];
+      const separator = document.createElement('span');
+      separator.style.fontSize = '2.6em';
+      separator.style.margin = '0 1.4em';
+      separator.style.display = 'inline-block';
+      separator.style.transform = 'translateY(-0.15em)';
+      separator.textContent = bugs[Math.floor(Math.random() * bugs.length)];
+      levelDiv.appendChild(separator);
+    } else {
+      isFirstLevel = false;  // Après le premier niveau, on autorise les séparateurs
+    }
+
+    // Ajout des items du niveau
     levels[lvl].forEach(item => {
       const validation = validationCache[parseInt(item.ID)] || 0;
 
-      // Plantes avec vrais émojis et variété
+       // Plantes avec vrais émojis et variété
       let plant;
       if (validation >= seuilValidation) {
         plant = ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
@@ -2689,7 +2705,7 @@ function generateGarden() {
 
       const itemDiv = document.createElement('div');
       itemDiv.className = 'garden-item';
-      itemDiv.onclick = () => openGardenModal(item, plant);  // Passe le vrai émoji
+      itemDiv.onclick = () => openGardenModal(item, plant);
 
       itemDiv.innerHTML = `
         <div class="garden-plant">${plant}</div>
@@ -2702,31 +2718,18 @@ function generateGarden() {
     ground.appendChild(levelDiv);
   }
 
-  // === Séparateurs entre les niveaux (UN SEUL par niveau) ===
-  const allLevelDivs = ground.querySelectorAll('.garden-level');
-  allLevelDivs.forEach((levelDiv, index) => {
-    if (index < allLevelDivs.length - 1) {
-      const bugs = ['🐛', '🦋', '🐝', '🐞', '🦗', '🦟', '🍂'];
-      const separator = document.createElement('div');
-      separator.style.fontSize = '2.2em';
-      separator.style.margin = '1.8em 0';
-      separator.style.textAlign = 'center';
-      separator.textContent = bugs[Math.floor(Math.random() * bugs.length)];
-      ground.insertBefore(separator, levelDiv.nextSibling);
-    }
-  });
-
   // === Légende au scroll ===
   const container = document.querySelector('.garden-container');
   const legend = document.getElementById('garden-legend');
-  legend.style.display = 'flex';
-  legend.classList.add('visible'); // visible dès le départ
+  if (legend) {
+    legend.style.display = 'flex';
+    legend.classList.add('visible');
 
-  container.addEventListener('scroll', () => {
-    legend.classList.toggle('visible', container.scrollTop > 80);
-  });
+    container.addEventListener('scroll', () => {
+      legend.classList.toggle('visible', container.scrollTop > 80);
+    });
+  }
 }
-
 // Ouvre la flashcard
 function openGardenModal(item, emoji) {
   document.getElementById('modal-plant').textContent = emoji;
@@ -5478,6 +5481,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
