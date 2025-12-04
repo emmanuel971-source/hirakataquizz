@@ -2733,18 +2733,23 @@ function openGardenModal(item, emoji) {
   document.getElementById('modal-hiragana').textContent = item.Hiragana;
   document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
   document.getElementById('modal-romaji').textContent = item.Romaji;
-  item.Romaji : '';
   document.getElementById('modal-level').textContent = item.Niveau;
   document.getElementById('modal-validation').textContent = validationCache[parseInt(item.ID)] || 0;
 
   document.getElementById('garden-modal').classList.add('visible');
+  
+  // Ferme automatiquement après 2,2 secondes
   setTimeout(closeGardenModal, 2200);
+
+  // Son du hiragana
+  const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
+  audio.play().catch(() => {});
 }
+
 // Ferme la flashcard
 function closeGardenModal() {
   document.getElementById('garden-modal').classList.remove('visible');
 }
-
 
     
 function updateFilterCounts(data) {
@@ -5473,6 +5478,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
