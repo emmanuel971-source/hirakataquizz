@@ -292,7 +292,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
+  opacity: 0.85;
 }
 /* Flashcard modale */
 .garden-modal {
@@ -2679,35 +2679,33 @@ function generateGarden() {
 
   const itemsPerRow = 5;
   let currentRow = null;
-  let itemsInCurrentRow = 0;
+  let itemsInRow = 0;
+  let currentLevelIndex = 1;
 
   for (let lvl = 1; lvl <= currentLevel; lvl++) {
     if (!levels[lvl]) continue;
 
-    // Si on change de niveau et qu'on n'est pas au début d'une ligne → on insère un insecte
-    if (itemsInCurrentRow > 0 && itemsInCurrentRow < itemsPerRow) {
-      addBugToRow(currentRow, itemsPerRow - itemsInCurrentRow);
-      itemsInCurrentRow = itemsPerRow; // ligne remplie → prochaine ligne
+    // SI on change de niveau et qu'on n'est pas au premier niveau → on force un insecte au début de la ligne suivante
+    if (lvl > currentLevelIndex) {
+      // On termine la ligne précédente si elle n'est pas pleine
+      if (itemsInRow > 0 && itemsInRow < itemsPerRow) {
+        addEmptySlots(currentRow, itemsPerRow - itemsInRow);
+      }
+      // On démarre une nouvelle ligne avec un insecte en premier
+      currentRow = createNewRow();
+      addBugToRow(currentRow);
+      itemsInRow = 1; // l'insecte prend une place
+      currentLevelIndex = lvl;
     }
 
     levels[lvl].forEach(item => {
-      // Créer une nouvelle ligne si nécessaire
-      if (!currentRow || itemsInCurrentRow === itemsPerRow) {
-        currentRow = document.createElement('div');
-        currentRow.className = 'garden-level';
-        ground.appendChild(currentRow);
-        itemsInCurrentRow = 0;
+      if (!currentRow || itemsInRow === itemsPerRow) {
+        currentRow = createNewRow();
+        itemsInRow = 0;
       }
 
       const validation = validationCache[parseInt(item.ID)] || 0;
-      let plant;
-      if (validation >= seuilValidation) {
-         plant = ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
-      } else if (validation >= 5) {
-        plant = ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
-      } else {
-        plant = ['🌱', '🌱'][Math.floor(Math.random() * 2)];
-      }
+      let plant = getPlantEmoji(validation);
 
       const itemDiv = document.createElement('div');
       itemDiv.className = 'garden-item';
@@ -2718,16 +2716,61 @@ function generateGarden() {
       `;
 
       currentRow.appendChild(itemDiv);
-      itemsInCurrentRow++;
+      itemsInRow++;
     });
+  }
 
-    // Après avoir fini un niveau : si la ligne n'est pas pleine → on complète avec des insectes
-    if (itemsInCurrentRow > 0 && itemsInCurrentRow < itemsPerRow) {
-      addBugToRow(currentRow, itemsPerRow - itemsInCurrentRow);
-      itemsInCurrentRow = itemsPerRow;
+  // Compléter la dernière ligne si besoin
+  if (currentRow && itemsInRow < itemsPerRow) {
+    addEmptySlots(currentRow, itemsPerRow - itemsInRow);
+  }
+
+  // === Fonctions utilitaires ===
+  function createNewRow() {
+    const row = document.createElement('div');
+    row.className = 'garden-level';
+    ground.appendChild(row);
+    return row;
+  }
+
+  function addBugToRow(row) {
+    const bugs = ['🐛', '🦋', '🐝', '🐞', '🦗', '🦟', '🍂'];
+    const bugDiv = document.createElement('div');
+    bugDiv.className = 'garden-item garden-bug';
+    bugDiv.innerHTML = `<div style="font-size:2.8em;">${bugs[Math.floor(Math.random() * bugs.length)]}</div>`;
+    row.appendChild(bugDiv);
+  }
+
+  function addEmptySlots(row, count) {
+    for (let i = 0; i < count; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'garden-item';
+      empty.style.visibility = 'hidden';
+      row.appendChild(empty);
     }
   }
 
+  function getPlantEmoji(validation) {
+    if (validation >= seuilValidation) {
+      return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
+    } else if (validation >= 5) {
+      return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
+    } else {
+      return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
+    }
+  }
+
+  // === Légende ===
+  const container = document.querySelector('.garden-container');
+  const legend = document.getElementById('garden-legend');
+  if (legend) {
+    legend.style.display = 'flex';
+    legend.classList.add('visible');
+    container.addEventListener('scroll', () => {
+      legend.classList.toggle('visible', container.scrollTop > 80);
+    });
+  }
+}
   // Fonction pour ajouter un ou plusieurs insectes dans la ligne courante
   function addBugToRow(row, count) {
     const bugs = ['🐛', '🦋', '🐝', '🐞', '🦗', '🦟', '🍂'];
@@ -5501,6 +5544,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
