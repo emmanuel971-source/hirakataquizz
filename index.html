@@ -736,11 +736,11 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 <div id="stats" class="section">
 <!--  <h1 data-i18n="stats_title">Mon Jardin</h1>  -->
 
-  <!-- Légende sticky -->
+<!-- Légende sticky -->
 <div id="garden-legend" class="garden-legend">
-  <span>🌱 En cours</span>
-  <span>🌿 À entretenir</span>
-  <span>🌸 Maîtrisé</span>
+  <span><span>🌱</span> <span data-i18n="garden_legend_learning">En cours</span></span>
+  <span><span>🌿</span> <span data-i18n="garden_legend_practice">À entretenir</span></span>
+  <span><span>🌸</span> <span data-i18n="garden_legend_mastered">Maîtrisé</span></span>
 </div>
 
   <!-- Jardin scrollable -->
@@ -872,6 +872,10 @@ const translations = {
     stats_table_katakana: "Kata/trad.",
     stats_table_romaji: "Romaji",
     stats_table_status: "Statut",
+    garden_legend_learning: "En cours",
+    garden_legend_practice: "À entretenir",
+    garden_legend_mastered: "Maîtrisé",
+  
   // Connexion
   login_title: "Connexion 🔐",
   create_account_already_have: "J'ai déjà un compte",
@@ -1072,6 +1076,9 @@ welcome_journey_starts: "Ton voyage commence maintenant 🌸",
     stats_table_katakana: "Kata/trad.",
     stats_table_romaji: "Romaji",
     stats_table_status: "Status",
+    garden_legend_learning: "Learning",
+    garden_legend_practice: "Practice",
+    garden_legend_mastered: "Mastered",
  
   // Login
   login_title: "Login 🔐",
@@ -1273,6 +1280,10 @@ welcome_journey_starts: "Your journey begins now 🌸",
     stats_table_katakana: "Kata/trad.",
     stats_table_romaji: "Romaji",
     stats_table_status: "Estado",
+    garden_legend_learning: "En curso",
+    garden_legend_practice: "Repasar",
+    garden_legend_mastered: "Dominado",
+    
   // Conexión
   login_title: "Conexión 🔐",
   login_subtitle: "Encuentra tu cuenta",
@@ -5519,6 +5530,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
