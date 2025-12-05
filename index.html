@@ -217,144 +217,27 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 @supports(padding-top:env(safe-area-inset-top)){#unlock-progress-container{top:max(12px,env(safe-area-inset-top))}}
 /* ====================== MON JARDIN ====================== */
 #stats h1 { margin-bottom: 0.2em; font-size: 2.2em; }
-.garden-legend {
-  position: sticky;
-  top: 0;
-  background: var(--beige-background);
-  padding: 0.6em 1em;
-  font-size: 1em;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  z-index: 10;
-  opacity: 0;
-  transition: opacity 0.4s;
-  display: flex;
-  justify-content: center;
-  gap: 2em;
-  border-bottom: 2px solid var(--brown-primary);
-}
+.garden-legend { position: sticky; top: 0; background: var(--beige-background); padding: 0.6em 1em; font-size: 1em; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 10; opacity: 0; transition: opacity 0.4s; display: flex; justify-content: center; gap: 2em; border-bottom: 2px solid var(--brown-primary); }
 .garden-legend.visible { opacity: 1; }
-
-.garden-container {
-  flex: 1;
-  overflow-y: auto;
-  background: #F8F1E9;
-  position: relative;
-  -webkit-overflow-scrolling: touch; /* pour iOS fluide */
-}
-.garden-ground {
-  min-height: 100%;
-  padding: 2em 1em 2em;   /* On réduit le padding-bottom (avant c’était 6em) */
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 4em;
-  align-items: center;
-  background: #F8F1E9;
-  /* Important : on enlève tout overflow caché qui crée des bordures blanches */
-  overflow: visible;
-}
-.garden-level {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);  /* Force 5 colonnes toujours */
-  gap: 1.8em;
-  justify-items: center;
-  max-width: 100%;
-}
-.garden-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;  /* Centre verticalement */
-  cursor: pointer;
-  transition: transform 0.2s;
-  width: 100%;   /* Prend toute la largeur de la cellule grid */
-  aspect-ratio: 1;  /* Fait un carré parfait */
-  min-width: 0;  /* Important pour que grid ne déborde pas */
-}
+.garden-container { flex: 1; overflow-y: auto; background: #F8F1E9; position: relative; -webkit-overflow-scrolling: touch; }
+.garden-ground { min-height: 100%; padding: 2em 1em 2em; display: flex; flex-direction: column-reverse; gap: 4em; align-items: center; background: #F8F1E9; overflow: visible; }
+.garden-level { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.8em; justify-items: center; max-width: 100%; }
+.garden-item { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; width: 100%; aspect-ratio: 1; min-width: 0; }
 .garden-item:hover { transform: scale(1.15); }
-.garden-plant {
-  font-size: 3.4em;       /* taille idéale sur desktop */
-  margin-bottom: 0.1em;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
-  transition: all 0.4s ease;
-}
-.garden-hiragana {
-  font-size: 1.4em;
-  font-weight: bold;
-  color: var(--brown-primary);
-}
-
-/* Décor aléatoire (rochers, bambous…) */
-.garden-decor {
-  position: absolute;
-  font-size: 3em;
-  opacity: 0.4;
-  pointer-events: none;
-  z-index: 1;
-}
-.garden-bug {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.85;
-}
-/* Flashcard modale */
-.garden-modal {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s;
-  pointer-events: none; /* pour clic partout */
-}
-.garden-modal.visible {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-.garden-card {
-  background: var(--white);
-  padding: 2em 2.5em;
-  border-radius: 20px;
-  text-align: center;
-  max-width: 90%;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-}
+.garden-plant { font-size: 3.4em; margin-bottom: 0.1em; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); transition: all 0.4s ease; }
+.garden-hiragana { font-size: 1.4em; font-weight: bold; color: var(--brown-primary); }
+.garden-decor { position: absolute; font-size: 3em; opacity: 0.4; pointer-events: none; z-index: 1; }
+.garden-bug { display: flex; align-items: center; justify-content: center; opacity: 0.85; }
+.garden-modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; pointer-events: none; }
+.garden-modal.visible { opacity: 1; visibility: visible; pointer-events: auto; }
+.garden-card { background: var(--white); padding: 2em 2.5em; border-radius: 20px; text-align: center; max-width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
 .garden-card h2 { margin: 0 0 0.5em; font-size: 3.5em; }
 .garden-card .katakana { font-size: 2.2em; margin: 0.6em 0; color: #8B6F47; }
 .garden-card .romaji { font-size: 1.8em; margin: 0.8em 0; color: #555; }
 .garden-card .info { margin: 1em 0; font-size: 1.2em; }
-.garden-card .close-btn {
-  margin-top: 1.5em;
-  padding: 0.8em 2em;
-  font-size: 1.2em;
-}
-
-/* Responsive */
-@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-  .garden-plant { font-size: 2.0em; }
-  .garden-bug { font-size: 0.8em; }
-  .garden-hiragana { font-size: 1.0em; }
-  .garden-level { 
-    gap: 0.5em;
-    grid-template-columns: repeat(5, 1fr);
-    padding: 0 0.5em;
-    width: 95%;  /* ← Occupe 95% de l'écran sur mobile */
-  }
-  .garden-item {
-    aspect-ratio: 1;
-  }
-}
-@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
-  .garden-plant { font-size: 2.7em; }
-  .garden-hiragana { font-size: 1.2em; }
-  .garden-level { gap: 1.4em; }
-  .garden-legend { gap: 1em; font-size: 0.9em; }
-}
+.garden-card .close-btn { margin-top: 1.5em; padding: 0.8em 2em; font-size: 1.2em; }
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.0em; } .garden-bug { font-size: 0.8em; } .garden-hiragana { font-size: 1.0em; } .garden-level { gap: 0.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 95%; } .garden-item { aspect-ratio: 1; } }
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.7em; } .garden-hiragana { font-size: 1.2em; } .garden-level { gap: 1.4em; } .garden-legend { gap: 1em; font-size: 0.9em; } }
 
   </style>
 </head>
@@ -5530,6 +5413,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
