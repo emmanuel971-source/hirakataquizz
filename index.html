@@ -288,10 +288,12 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   pointer-events: none;
   z-index: 1;
 }
-.garden-decor.rocher { bottom: 10%; left: 5%; }
-.garden-decor.bambou { top: 15%; right: 8%; transform: rotate(10deg); }
-.garden-decor.tronc  { bottom: 25%; left: 12%; transform: rotate(-15deg); }
-
+.garden-bug {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
 /* Flashcard modale */
 .garden-modal {
   position: fixed;
@@ -2648,15 +2650,24 @@ if (userInteractions.clicks < 3 || userInteractions.keystrokes < 0) {
 let currentStatsData = [];
 
 
-// === MON JARDIN ===
+// === MON JARDIN ===  const bugs = ['🐛', '🦋', '🐝', '🐞', '🦗', '🦟', '🍂'];
 
+//      let plant;
+//      if (validation >= seuilValidation) {
+//        plant = ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
+//      } else if (validation >= 5) {
+//        plant = ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
+//      } else {
+//        plant = ['🌱', '🌱'][Math.floor(Math.random() * 2)];
+//      }
+
+    
 function generateGarden() {
   const ground = document.getElementById('garden-ground');
   if (!ground) return;
   ground.innerHTML = '';
 
   const currentLevel = niveauActif;
-
   const visibleItems = HiraganaList.filter(item => parseInt(item.Niveau) <= currentLevel);
 
   const levels = {};
@@ -2666,37 +2677,32 @@ function generateGarden() {
     levels[lvl].push(item);
   });
 
-  let isFirstLevel = true;  // Pour ne pas mettre d'insecte avant le tout premier niveau
+  const itemsPerRow = 5;
+  let currentRow = null;
+  let itemsInCurrentRow = 0;
 
-  // === Création des niveaux avec séparateur intercalé ===
   for (let lvl = 1; lvl <= currentLevel; lvl++) {
     if (!levels[lvl]) continue;
 
-    const levelDiv = document.createElement('div');
-    levelDiv.className = 'garden-level';
-
-    // Si ce n'est pas le premier niveau → on ajoute un insecte avant les items
-    if (!isFirstLevel) {
-     const bugs = ['🐛', '🦋', '🐝', '🐞', '🦗', '🦟', '🍂'];
-      const separator = document.createElement('span');
-      separator.style.fontSize = '2.6em';
-      separator.style.margin = '0 1.4em';
-      separator.style.display = 'inline-block';
-      separator.style.transform = 'translateY(-0.15em)';
-      separator.textContent = bugs[Math.floor(Math.random() * bugs.length)];
-      levelDiv.appendChild(separator);
-    } else {
-      isFirstLevel = false;  // Après le premier niveau, on autorise les séparateurs
+    // Si on change de niveau et qu'on n'est pas au début d'une ligne → on insère un insecte
+    if (itemsInCurrentRow > 0 && itemsInCurrentRow < itemsPerRow) {
+      addBugToRow(currentRow, itemsPerRow - itemsInCurrentRow);
+      itemsInCurrentRow = itemsPerRow; // ligne remplie → prochaine ligne
     }
 
-    // Ajout des items du niveau
     levels[lvl].forEach(item => {
-      const validation = validationCache[parseInt(item.ID)] || 0;
+      // Créer une nouvelle ligne si nécessaire
+      if (!currentRow || itemsInCurrentRow === itemsPerRow) {
+        currentRow = document.createElement('div');
+        currentRow.className = 'garden-level';
+        ground.appendChild(currentRow);
+        itemsInCurrentRow = 0;
+      }
 
-       // Plantes avec vrais émojis et variété
+      const validation = validationCache[parseInt(item.ID)] || 0;
       let plant;
       if (validation >= seuilValidation) {
-        plant = ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
+         plant = ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
       } else if (validation >= 5) {
         plant = ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
       } else {
@@ -2706,16 +2712,31 @@ function generateGarden() {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'garden-item';
       itemDiv.onclick = () => openGardenModal(item, plant);
-
       itemDiv.innerHTML = `
         <div class="garden-plant">${plant}</div>
         <div class="garden-hiragana">${item.Hiragana}</div>
       `;
 
-      levelDiv.appendChild(itemDiv);
+      currentRow.appendChild(itemDiv);
+      itemsInCurrentRow++;
     });
 
-    ground.appendChild(levelDiv);
+    // Après avoir fini un niveau : si la ligne n'est pas pleine → on complète avec des insectes
+    if (itemsInCurrentRow > 0 && itemsInCurrentRow < itemsPerRow) {
+      addBugToRow(currentRow, itemsPerRow - itemsInCurrentRow);
+      itemsInCurrentRow = itemsPerRow;
+    }
+  }
+
+  // Fonction pour ajouter un ou plusieurs insectes dans la ligne courante
+  function addBugToRow(row, count) {
+    const bugs = ['🐛', '🦋', '🐝', '🐞', '🦗', '🦟', '🍂'];
+    for (let i = 0; i < count; i++) {
+      const bugDiv = document.createElement('div');
+      bugDiv.className = 'garden-item garden-bug';
+      bugDiv.innerHTML = `<div style="font-size:2.8em;">${bugs[Math.floor(Math.random() * bugs.length)]}</div>`;
+      row.appendChild(bugDiv);
+    }
   }
 
   // === Légende au scroll ===
@@ -2724,7 +2745,6 @@ function generateGarden() {
   if (legend) {
     legend.style.display = 'flex';
     legend.classList.add('visible');
-
     container.addEventListener('scroll', () => {
       legend.classList.toggle('visible', container.scrollTop > 80);
     });
@@ -5481,6 +5501,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
