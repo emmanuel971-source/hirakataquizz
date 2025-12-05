@@ -254,18 +254,22 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   overflow: visible;
 }
 .garden-level {
-  display: flex;
-  flex-wrap: wrap;  
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);  /* Force 5 colonnes toujours */
   gap: 1.8em;
-  justify-content: center;
+  justify-items: center;
   max-width: 100%;
 }
 .garden-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;  /* Centre verticalement */
   cursor: pointer;
   transition: transform 0.2s;
+  width: 100%;   /* Prend toute la largeur de la cellule grid */
+  aspect-ratio: 1;  /* Fait un carré parfait */
+  min-width: 0;  /* Important pour que grid ne déborde pas */
 }
 .garden-item:hover { transform: scale(1.15); }
 .garden-plant {
@@ -335,10 +339,14 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   .garden-plant { font-size: 2.0em; }
   .garden-bug { font-size: 0.8em; }
   .garden-level { 
-    gap: 1.8em;  
-    grid-template-columns: repeat(4, 1fr); /* Toujours 4 colonnes */
+    gap: 0.5em;  /* Gap encore plus petit */
+    grid-template-columns: repeat(5, 1fr);
+    padding: 0 0.5em;  /* Un peu d'espace sur les côtés */
   }
-}   
+  .garden-item {
+    aspect-ratio: 1;  /* Carré parfait sur mobile aussi */
+  }
+}
 @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
   .garden-plant { font-size: 2.7em; }
   .garden-hiragana { font-size: 1.2em; }
@@ -5509,6 +5517,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
