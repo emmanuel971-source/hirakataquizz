@@ -254,10 +254,10 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   overflow: visible;
 }
 .garden-level {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);  /* Force 5 colonnes toujours */
+  display: flex;
+  flex-wrap: wrap;  
   gap: 1.8em;
-  justify-items: center;
+  justify-content: center;
   max-width: 100%;
 }
 .garden-item {
@@ -335,8 +335,8 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   .garden-plant { font-size: 2.0em; }
   .garden-bug { font-size: 0.8em; }
   .garden-level { 
-    gap: 0.8em;  /* Gap réduit pour mobile */
-    grid-template-columns: repeat(5, 1fr); /* Toujours 5 colonnes */
+    gap: 1.8em;  
+    grid-template-columns: repeat(4, 1fr); /* Toujours 4 colonnes */
   }
 }   
 @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
@@ -5509,6 +5509,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
