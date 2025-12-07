@@ -2137,7 +2137,18 @@ document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
   document.getElementById(sectionId).classList.add('active');
-  
+  // AJOUTE ÇA ICI : NETTOYAGE FORCÉ DE LA FLASHCARD DE RÉVISION
+  const tempFlashcard = document.getElementById('temp-revision-flashcard');
+  if (tempFlashcard && tempFlashcard.parentNode) {
+    tempFlashcard.parentNode.removeChild(tempFlashcard);
+    console.log('Flashcard de révision nettoyée (changement de section)');
+  }
+
+  const revStyle = document.getElementById('revision-flashcard-style');
+  if (revStyle) {
+    document.head.removeChild(revStyle);
+    console.log('Style de révision nettoyé');
+  }
   if (sectionId === 'create-account') {
     initPseudoCache();
     generateNewPseudo();
@@ -5587,6 +5598,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
