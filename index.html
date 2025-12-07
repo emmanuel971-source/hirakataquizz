@@ -2708,15 +2708,7 @@ function generateGarden() {
     }
   }
 
-  function getPlantEmoji(validation) {
-    if (validation >= seuilValidation) {
-      return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
-    } else if (validation >= 5) {
-      return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
-    } else {
-      return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
-    }
-  }
+  
 
   // === Légende au scroll ===
   const container = document.querySelector('.garden-container');
@@ -5446,7 +5438,20 @@ if (currentCard) {
     });
   });
 }
-  
+// ========================================
+// ✅ AJOUTER CETTE FONCTION GLOBALE (en dehors de generateGarden)
+// Place-la près de tes autres fonctions globales, par exemple après initRevisionKeyboard()
+// ========================================
+
+function getPlantEmoji(validation) {
+  if (validation >= seuilValidation) {
+    return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
+  } else if (validation >= 5) {
+    return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
+  } else {
+    return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
+  }
+}  
 // Appeler l'initialisation au chargement de la page
 window.addEventListener('load', () => {
   initRevisionKeyboard();
@@ -5563,6 +5568,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
