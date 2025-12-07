@@ -2692,39 +2692,50 @@ function getPlantEmoji(validation) {
     }
   }    
 // function openGardenModal du mode révisions  
+let modalCloseTimer = null; // Variable globale pour annuler le timer précédent    
 function openRevisionFlashcard(item, emoji, duration = 2200, animateStatusChange = false, animateScore = false) {
-  document.getElementById('modal-plant').textContent = emoji;
-  document.getElementById('modal-hiragana').textContent = item.Hiragana;
-  document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
-  document.getElementById('modal-romaji').textContent = item.Romaji;
-  document.getElementById('modal-level').textContent = item.Niveau;
-  const validation = validationCache[parseInt(item.ID)] || 0;
-  const modalValidation = document.getElementById('modal-validation');
-  modalValidation.textContent = validation;
+  // Annule tout timer précédent (CRUCIAL !)
+  if (modalCloseTimer) clearTimeout(modalCloseTimer);
 
-  // Bonus : Animation sur le statut si changement
-  const modalPlant = document.getElementById('modal-plant');
-  if (animateStatusChange) {
-    modalPlant.classList.add('plant-status-change');
-    setTimeout(() => modalPlant.classList.remove('plant-status-change'), 500); // Durée de l'anim
-  }
+  // Ferme immédiatement au cas où elle serait encore ouverte
+  document.getElementById('garden-modal').classList.remove('visible');
 
-  // Bonus : Scintillement sur le score si modification
-  if (animateScore) {
-    modalValidation.classList.add('score-sparkle');
-    setTimeout(() => modalValidation.classList.remove('score-sparkle'), 600); // Durée de l'anim
-  }
+  // Petite pause pour forcer le reflow (évite le bug d'affichage)
+  requestAnimationFrame(() => {
+    document.getElementById('modal-plant').textContent = emoji;
+    document.getElementById('modal-hiragana').textContent = item.Hiragana;
+    document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
+    document.getElementById('modal-romaji').textContent = item.Romaji;
+    document.getElementById('modal-level').textContent = item.Niveau.;
 
-  document.getElementById('garden-modal').classList.add('visible');
+    const validationEl = document.getElementById('modal-validation');
+    validationEl.textContent = validationCache[parseInt(item.ID)] || 0;
 
-  // Ferme automatiquement après la durée spécifiée
-  setTimeout(closeGardenModal, duration);
+    // Animations
+    const plantEl = document.getElementById('modal-plant');
+    if (animateStatusChange) {
+      plantEl.classList.add('plant-status-change');
+      setTimeout(() => plantEl.classList.remove('plant-status-change'), 600);
+    }
+    if (animateScore) {
+      validationEl.classList.add('score-sparkle');
+      setTimeout(() => validationEl.classList.remove('score-sparkle'), 700);
+    }
 
-  // Son du hiragana (inchangé)
-  const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
-  audio.play().catch(() => {});
+    // Ouvre la modale
+    document.getElementById('garden-modal').classList.add('visible');
+
+    // Son
+    const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
+    audio.play().catch(() => {});
+
+    // Nouveau timer propre
+    modalCloseTimer = setTimeout(() => {
+      closeGardenModal();
+      modalCloseTimer = null;
+    }, duration);
+  });
 }
-
     
 // Ferme la flashcard
 function closeGardenModal() {
@@ -4918,7 +4929,7 @@ function startRevisionQuestion() {
 
 
   const niveauActif = determineNiveauActif(HiraganaList);
-  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
+  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 26, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
     parseInt(h.Niveau || 1) < niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
@@ -5414,6 +5425,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
