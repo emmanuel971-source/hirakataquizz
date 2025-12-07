@@ -236,71 +236,6 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 .garden-card .romaji { font-size: 1.8em; margin: 0.8em 0; color: #555; }
 .garden-card .info { margin: 1em 0; font-size: 1.2em; }
 .garden-card .close-btn { margin-top: 1.5em; padding: 0.8em 2em; font-size: 1.2em; }
-/* Animation transformation de plante */
-.plant-transform {
-  animation: plantMorph 1s ease-in-out;
-}
-
-@keyframes plantMorph {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  45% {
-    transform: scale(1.5);
-    opacity: 0.3;
-  }
-  55% {
-    transform: scale(1.5);
-    opacity: 0.3;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* Animation glow du score */
-.score-glow {
-  animation: scoreGlow 0.8s ease-in-out;
-  font-weight: bold;
-}
-
-@keyframes scoreGlow {
-  0%, 100% {
-    text-shadow: 0 0 5px rgba(139, 111, 71, 0.5);
-  }
-  50% {
-    text-shadow: 
-      0 0 10px rgba(139, 111, 71, 0.8),
-      0 0 20px rgba(168, 213, 186, 0.6),
-      0 0 30px rgba(168, 213, 186, 0.4);
-    transform: scale(1.2);
-  }
-}
-
-/* Amélioration de la modal pour le mode révision */
-.garden-modal.revision-mode {
-  backdrop-filter: blur(5px);
-}
-
-.garden-modal.revision-mode .garden-card {
-  animation: revisionCardPop 0.3s ease-out;
-}
-
-@keyframes revisionCardPop {
-  0% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  70% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}    
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.0em; } .garden-bug { font-size: 0.8em; } .garden-hiragana { font-size: 1.0em; } .garden-level { gap: 0.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 95%; } .garden-item { aspect-ratio: 1; } }
 @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.7em; } .garden-hiragana { font-size: 1.2em; } .garden-level { gap: 1.4em; } .garden-legend { gap: 1em; font-size: 0.9em; } }
 
@@ -2708,7 +2643,15 @@ function generateGarden() {
     }
   }
 
-  
+  function getPlantEmoji(validation) {
+    if (validation >= seuilValidation) {
+      return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
+    } else if (validation >= 5) {
+      return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
+    } else {
+      return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
+    }
+  }
 
   // === Légende au scroll ===
   const container = document.querySelector('.garden-container');
@@ -2744,84 +2687,6 @@ function openGardenModal(item, emoji) {
 function closeGardenModal() {
   document.getElementById('garden-modal').classList.remove('visible');
 }    
-function openRevisionFlashcard(item, currentEmoji, oldEmoji, newValidation, oldValidation) {
-  const modal = document.getElementById('garden-modal');
-  const plantDiv = document.getElementById('modal-plant');
-  const scoreSpan = document.getElementById('modal-validation');
-  
-  // Afficher les infos de base
-  document.getElementById('modal-hiragana').textContent = item.Hiragana;
-  document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
-  document.getElementById('modal-romaji').textContent = item.Romaji;
-  document.getElementById('modal-level').textContent = item.Niveau;
-  
-  // Détecter changement de statut
-  const hasChanged = oldEmoji !== currentEmoji;
-  
-  if (hasChanged) {
-    // Animation de transformation de plante
-    plantDiv.textContent = oldEmoji;
-    plantDiv.classList.add('plant-transform');
-    
-    setTimeout(() => {
-      plantDiv.textContent = currentEmoji;
-    }, 500); // Transformation au milieu de l'animation
-    
-  } else {
-    // Pas de changement, juste afficher la plante actuelle
-    plantDiv.textContent = currentEmoji;
-    plantDiv.className = ''; // Reset classes
-  }
-  
-  // Animation du score avec compteur
-  animateScoreCounter(scoreSpan, oldValidation, newValidation);
-  
-  // Ouvrir la modal
-  modal.classList.add('visible');
-  
-  // Jouer le son MP3
-  const hiraganaItem = HiraganaList.find(h => h.ID == item.ID);
-  const hiraganaChar = hiraganaItem ? hiraganaItem.Hiragana : item.Hiragana;
-  const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
-  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-  const audio = new Audio(audioUrl);
-  audio.play().catch(e => console.warn('Erreur audio:', e));
-  
-  // Fermer automatiquement après 2 secondes
-  setTimeout(() => {
-    closeGardenModal();
-    plantDiv.classList.remove('plant-transform');
-  }, 2000);
-}
-function animateScoreCounter(element, startValue, endValue) {
-  const duration = 800; // durée en ms
-  const startTime = performance.now();
-  const diff = endValue - startValue;
-  
-  function update(currentTime) {
-    const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    
-    // Easing (ease-out cubic)
-    const easeProgress = 1 - Math.pow(1 - progress, 3);
-    
-    const currentValue = Math.round(startValue + (diff * easeProgress));
-    element.textContent = currentValue;
-    
-    // Ajouter glow pendant l'animation
-    if (progress < 1) {
-      element.classList.add('score-glow');
-      requestAnimationFrame(update);
-    } else {
-      setTimeout(() => {
-        element.classList.remove('score-glow');
-      }, 300);
-    }
-  }
-  
-  requestAnimationFrame(update);
-}
-    
 function updateFilterCounts(data) {
   const counts = {
     all: data.length,
@@ -5301,13 +5166,14 @@ function updateRevisionFeedback() {
   
   
 // Initialiser les événements du clavier de révision
+// Initialiser les événements du clavier de révision
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
   revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true)));
   const newRevisionKeys = document.querySelectorAll('.revision-key');
 
   newRevisionKeys.forEach(key => {
-    key.addEventListener("click", async () => {
+    key.addEventListener("click", async () => {  // ✅ ASYNC ajouté
       if (!revisionMode.isActive) return;
 
       if (key.id === "revision-back") {
@@ -5320,129 +5186,117 @@ function initRevisionKeyboard() {
       updateRevisionFeedback();
 
       const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1] || 1;
+      const hiraganaItem = HiraganaList.find(h => h.ID == revisionMode.currentItem.ID);
+      const hiraganaChar = hiraganaItem ? hiraganaItem.Hiragana : revisionMode.currentQuestion;
+      const niveau = parseInt(revisionMode.currentItem.Niveau || 1);
+      const isHighLevel = niveau > 38;
+      const isMultiChar = revisionMode.romajiSegments.length >= 2;
+      const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
 
-      if (revisionMode.input.length >= totalLength) {
-        const isCorrect = revisionMode.input === revisionMode.fullCorrect;
-        const key = revisionMode.currentItem.ID;
+    if (revisionMode.input.length >= totalLength) {
+  const isCorrect = revisionMode.input === revisionMode.fullCorrect;
+  const key = revisionMode.currentItem.ID;
 
-        // Mettre à jour statsCache
-        statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-        statsCache.items[key].tentatives += 1;
-        statsCache.items[key].reussites += isCorrect ? 1 : 0;
-        statsCache.items[key].pourcentage = statsCache.items[key].tentatives > 0 
-          ? (statsCache.items[key].reussites / statsCache.items[key].tentatives * 100) : 0;
+  // Mettre à jour statsCache
+  statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+  statsCache.items[key].tentatives += 1;
+  statsCache.items[key].reussites += isCorrect ? 1 : 0;
+  statsCache.items[key].pourcentage = statsCache.items[key].tentatives > 0 
+    ? (statsCache.items[key].reussites / statsCache.items[key].tentatives * 100) : 0;
 
-        // Mettre à jour pourcentage global
-        const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
-        const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
-        statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+  // Mettre à jour pourcentage global
+  const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+  const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+  statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-        console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
-        console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
+  console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
+  console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-        // Modification de la validation en mode révision
-        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
-        if (hiraganaIndex !== -1) {
-          const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-          
-          // ✅ CAPTURER L'ANCIEN EMOJI ICI
-          const oldEmoji = getPlantEmoji(currentValidation);
-          const oldValidation = currentValidation;
-          
-          let newValidation;
-          let pointsGagnes = 0;
+  // Modification de la validation en mode révision
+  const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+  if (hiraganaIndex !== -1) {
+    const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+    
+    let newValidation;
+    let pointsGagnes = 0;
 
-          if (isCorrect) {
-            newValidation = currentValidation + 1;
-            if (currentValidation < seuilValidation) {
-              pointsGagnes = 1;
-            }
-          } else {
-            newValidation = Math.max(5, currentValidation - 2);
-            const oldDeficit = Math.max(0, seuilValidation - currentValidation);
-            const newDeficit = Math.max(0, seuilValidation - newValidation);
-            pointsGagnes = oldDeficit - newDeficit;
-          }
-
-          HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-          validationCache[revisionMode.currentItem.ID] = newValidation;
-          
-          // ✅ CAPTURER LE NOUVEL EMOJI ICI
-          const newEmoji = getPlantEmoji(newValidation);
-
-          if (wasBlockedWhenEnteringRevision) {
-            pointsGagnesEnRevision += pointsGagnes;
-            console.log(`📊 Validation: ${currentValidation}→${newValidation} | Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
-            updateUnlockProgress();
-          }
-          
-          console.log(`🔒 Mode révision - Validation: ${newValidation} (était: ${currentValidation})`);
-          
-          // ✅ Mettre en file d'attente l'appel API
-          queueUpdateStats({
-            token: userToken,
-            id: parseInt(revisionMode.currentItem.ID),
-            scorePoints: isCorrect ? 1 : 0,
-            isRevisionMode: true
-          });
-          
-          // ✅ Rafraîchir les stats si la page est ouverte
-          if (document.getElementById('stats').classList.contains('active')) {
-            setTimeout(() => {
-              generateStatsPage();
-            }, 100);
-          }
-
-          // Mettre à jour la barre de déblocage
-          if (wasBlockedWhenEnteringRevision) {
-            updateUnlockProgress();
-          }
-
-          // ✅ OUVRIR LA FLASHCARD
-          openRevisionFlashcard(
-            revisionMode.currentItem, 
-            newEmoji,
-            oldEmoji,
-            newValidation,
-            oldValidation
-          );
-          
-          // Jouer les sons
-          if (isCorrect) {
-            playZenBell();
-          } else {
-            playSoftError();
-          }
-
-          // 💬 Affiche mise à jour du score après la réponse
-          const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
-          if (currentCard) {
-            const newVal = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-            showValidationBubble(currentCard, newVal, seuilValidation);
-          }
-          
-          setTimeout(() => {
-            startRevisionQuestion();
-          }, 2200);
-        }
+    if (isCorrect) {
+      newValidation = currentValidation + 1;
+      if (currentValidation < seuilValidation) {
+        pointsGagnes = 1;
       }
+    } else {
+      newValidation = Math.max(5, currentValidation - 2);
+      const oldDeficit = Math.max(0, seuilValidation - currentValidation);
+      const newDeficit = Math.max(0, seuilValidation - newValidation);
+      pointsGagnes = oldDeficit - newDeficit;
+    }
+
+    HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+    validationCache[revisionMode.currentItem.ID] = newValidation;
+
+    if (wasBlockedWhenEnteringRevision) {
+      pointsGagnesEnRevision += pointsGagnes;
+      console.log(`📊 Validation: ${currentValidation}→${newValidation} | Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
+      updateUnlockProgress();
+    }
+    
+    console.log(`🔒 Mode révision - Validation: ${newValidation} (était: ${currentValidation})`);
+  }
+
+  // ✅ Mettre en file d'attente l'appel API (en background, sans attendre)
+  queueUpdateStats({
+    token: userToken,
+    id: parseInt(revisionMode.currentItem.ID),
+    scorePoints: isCorrect ? 1 : 0,
+    isRevisionMode: true
+  });
+// ✅ Rafraîchir les stats si la page est ouverte
+if (document.getElementById('stats').classList.contains('active')) {
+  setTimeout(() => {
+    generateStatsPage();
+  }, 100);
+}
+  // Mettre à jour la barre de déblocage
+  if (wasBlockedWhenEnteringRevision) {
+    updateUnlockProgress();
+  }
+
+  // Afficher feedback
+if (isCorrect) {
+  document.getElementById("revision-message").textContent = isHighLevel ? t('revision_ok') : `${katakanaDisplay}`;
+  document.getElementById("revision-message").style.color = "#8B6F47";
+  playZenBell();
+} else {
+  document.getElementById("revision-message").textContent = isHighLevel 
+    ? t('revision_wrong')
+    : `${t('revision_correct_answer')} ${revisionMode.fullCorrect}${katakanaDisplay}`;
+  document.getElementById("revision-message").style.color = "#8B6F47";
+  playSoftError();
+}
+
+  // Jouer son MP3
+  const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
+  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+  const audio = new Audio(audioUrl);
+  audio.play().catch(e => console.warn('Erreur audio:', e));
+
+// 💬 Affiche mise à jour du score après la réponse
+const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
+if (currentCard) {
+  const newVal = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+  showValidationBubble(currentCard, newVal, seuilValidation);
+}
+
+      
+  setTimeout(() => {
+    startRevisionQuestion();
+  }, isCorrect ? 2000 : 3000);
+}
     });
   });
 }
-// ========================================
-// ✅ AJOUTER CETTE FONCTION GLOBALE (en dehors de generateGarden)
-// Place-la près de tes autres fonctions globales, par exemple après initRevisionKeyboard()
-// ========================================
-
-function getPlantEmoji(validation) {
-  if (validation >= seuilValidation) {
-    return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
-  } else if (validation >= 5) {
-    return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
-  } else {
-    return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
-  }
-}  
+  
 // Appeler l'initialisation au chargement de la page
 window.addEventListener('load', () => {
   initRevisionKeyboard();
@@ -5559,10 +5413,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
-
-
-
-
 
 
 
