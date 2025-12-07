@@ -2709,61 +2709,73 @@ function getPlantEmoji(validation) {
   }    
 // function openGardenModal du mode révisions  
 let modalCloseTimer = null; // Variable globale pour annuler le timer précédent    
-function openRevisionFlashcard(item, emoji, duration = 2200, animateStatusChange = false, animateScore = false) {
-  // 1. Annule tout timer précédent
+function openRevisionFlashcard(item, emoji, duration = 3000, animateStatusChange = false, animateScore = false) {
   if (modalCloseTimer) clearTimeout(modalCloseTimer);
 
-  // 2. Crée une flashcard temporaire directement dans le <body>
+  // On calcule l'ancien emoji (avant la réponse)
+  const currentVal = validationCache[parseInt(item.ID)] || 0;
+  const oldEmoji = getPlantEmoji(currentVal - (animateScore ? 1 : 0)); // -1 si on vient d'augmenter
+
   const flashcard = document.createElement('div');
   flashcard.id = 'temp-revision-flashcard';
   flashcard.style.cssText = `
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 999999999 !important;
-    background: white !important;
-    padding: 2em 2.5em !important;
-    border-radius: 20px !important;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6) !important;
-    text-align: center !important;
-    max-width: 90% !important;
-    font-family: sans-serif !important;
-    pointer-events: none !important;
+    position:fixed !important; top:50%; left:50%; transform:translate(-50%,-50%) !important;
+    z-index:999999999 !important; background:white !important; padding:2em 2.5em !important;
+    border-radius:20px !important; box-shadow:0 20px 40px rgba(0,0,0,0.6) !important;
+    text-align:center !important; max-width:90% !important; pointer-events:none !important;
     animation: fadeInOut ${duration/1000}s ease-in-out forwards;
   `;
 
   flashcard.innerHTML = `
-    <div style="font-size:3.2em;margin-bottom:0.4em;">${emoji}</div>
+    <div id="temp-plant" style="font-size:3.8em;margin-bottom:0.4em;min-height:1.2em;">
+      ${animateStatusChange ? oldEmoji : emoji}
+    </div>
     <h2 style="margin:0.2em 0;font-size:3em;">${item.Hiragana}</h2>
     <div style="font-size:1.8em;color:#8B6F47;">${getLocalizedKatakana(item) || '-'}</div>
     <div style="font-size:1.6em;color:#555;margin:0.8em 0;">${item.Romaji}</div>
     <div style="margin-top:1em;">
-      Niveau <strong>${item.Niveau}</strong> • Score = <strong>${validationCache[parseInt(item.ID)] || 0}</strong>
+      Niveau <strong>${item.Niveau}</strong> • Score = <strong class="${animateScore ? 'score-sparkle' : ''}">${currentVal}</strong>
     </div>
   `;
 
-  // Animation fade in/out
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes fadeInOut {
-      0%, 100% { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
-      15%, 85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    }
-  `;
-  document.head.appendChild(style);
+  // Style global (une seule fois)
+  if (!document.getElementById('temp-flashcard-style')) {
+    const style = document.createElement('style');
+    style.id = 'temp-flashcard-style';
+    style.textContent = `
+      @keyframes fadeInOut { 0%,100%{opacity:0;transform:translate(-50%,-60%) scale(0.8)}
+                            10%,90%{opacity:1;transform:translate(-50%,-50%) scale(1)} }
+      @keyframes bloomTransition {
+        0%   { transform: scale(1) rotate(0deg); opacity: 1; }
+        40%  { transform: scale(1.6) rotate(12deg); opacity: 0.7; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      }
+      .bloom-transition { animation: bloomTransition 1.6s ease-in-out forwards !important; }
+      .score-sparkle { animation: sparkle 1.2s ease-in-out !important; }
+    `;
+    document.head.appendChild(style);
+  }
 
-  // Ajoute au body
   document.body.appendChild(flashcard);
 
   // Son
   const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
   audio.play().catch(() => {});
 
-  // Suppression automatique
+  // LANCEMENT DU CHANGEMENT PLANTE APRÈS 400ms → tu vois bien l'ancien → puis le passage
+  if (animateStatusChange) {
+    setTimeout(() => {
+      const plant = document.getElementById('temp-plant');
+      if (plant) {
+        plant.textContent = emoji;                    // on change l'emoji
+        plant.classList.add('bloom-transition');      // et on lance la grosse animation bien visible
+      }
+    }, 400); // 400 ms = le temps idéal pour voir l'ancien, puis le changement
+  }
+
+  // Suppression
   modalCloseTimer = setTimeout(() => {
     if (flashcard.parentNode) flashcard.parentNode.removeChild(flashcard);
-    style.parentNode.removeChild(style);
     modalCloseTimer = null;
   }, duration);
 }
@@ -5294,7 +5306,7 @@ function initRevisionKeyboard() {
         openRevisionFlashcard(
           revisionMode.currentItem,   // l’item
           newEmoji,                   // emoji à jour
-          1000,                       // durée visible = 1 seconde
+          3000,                       // durée visible = 3 seconde
           statusChanged,              // animation plante si changement de statut
           true                        // toujours scintillement du score
         );
@@ -5473,6 +5485,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
