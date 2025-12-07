@@ -5301,14 +5301,13 @@ function updateRevisionFeedback() {
   
   
 // Initialiser les événements du clavier de révision
-// Initialiser les événements du clavier de révision
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
   revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true)));
   const newRevisionKeys = document.querySelectorAll('.revision-key');
 
   newRevisionKeys.forEach(key => {
-    key.addEventListener("click", async () => {  // ✅ ASYNC ajouté
+    key.addEventListener("click", async () => {
       if (!revisionMode.isActive) return;
 
       if (key.id === "revision-back") {
@@ -5321,115 +5320,112 @@ function initRevisionKeyboard() {
       updateRevisionFeedback();
 
       const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1] || 1;
-      const hiraganaItem = HiraganaList.find(h => h.ID == revisionMode.currentItem.ID);
-      const hiraganaChar = hiraganaItem ? hiraganaItem.Hiragana : revisionMode.currentQuestion;
-      const niveau = parseInt(revisionMode.currentItem.Niveau || 1);
-      const isHighLevel = niveau > 38;
-      const isMultiChar = revisionMode.romajiSegments.length >= 2;
-      const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
 
-    if (revisionMode.input.length >= totalLength) {
-  const isCorrect = revisionMode.input === revisionMode.fullCorrect;
-  const key = revisionMode.currentItem.ID;
+      if (revisionMode.input.length >= totalLength) {
+        const isCorrect = revisionMode.input === revisionMode.fullCorrect;
+        const key = revisionMode.currentItem.ID;
 
-  // Mettre à jour statsCache
-  statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-  statsCache.items[key].tentatives += 1;
-  statsCache.items[key].reussites += isCorrect ? 1 : 0;
-  statsCache.items[key].pourcentage = statsCache.items[key].tentatives > 0 
-    ? (statsCache.items[key].reussites / statsCache.items[key].tentatives * 100) : 0;
+        // Mettre à jour statsCache
+        statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+        statsCache.items[key].tentatives += 1;
+        statsCache.items[key].reussites += isCorrect ? 1 : 0;
+        statsCache.items[key].pourcentage = statsCache.items[key].tentatives > 0 
+          ? (statsCache.items[key].reussites / statsCache.items[key].tentatives * 100) : 0;
 
-  // Mettre à jour pourcentage global
-  const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
-  const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
-  statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+        // Mettre à jour pourcentage global
+        const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+        const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+        statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-  console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
-  console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
+        console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
+        console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-  // Modification de la validation en mode révision
-  const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
-  if (hiraganaIndex !== -1) {
-    const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-    // ✅ CAPTURER L'ANCIEN EMOJI ICI
-    const oldEmoji = getPlantEmoji(currentValidation);
-    const oldValidation = currentValidation; // Sauvegarder l'ancienne valeur
-    
-    
-    let newValidation;
-    let pointsGagnes = 0;
+        // Modification de la validation en mode révision
+        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+        if (hiraganaIndex !== -1) {
+          const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+          
+          // ✅ CAPTURER L'ANCIEN EMOJI ICI
+          const oldEmoji = getPlantEmoji(currentValidation);
+          const oldValidation = currentValidation;
+          
+          let newValidation;
+          let pointsGagnes = 0;
 
-    if (isCorrect) {
-      newValidation = currentValidation + 1;
-      if (currentValidation < seuilValidation) {
-        pointsGagnes = 1;
+          if (isCorrect) {
+            newValidation = currentValidation + 1;
+            if (currentValidation < seuilValidation) {
+              pointsGagnes = 1;
+            }
+          } else {
+            newValidation = Math.max(5, currentValidation - 2);
+            const oldDeficit = Math.max(0, seuilValidation - currentValidation);
+            const newDeficit = Math.max(0, seuilValidation - newValidation);
+            pointsGagnes = oldDeficit - newDeficit;
+          }
+
+          HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+          validationCache[revisionMode.currentItem.ID] = newValidation;
+          
+          // ✅ CAPTURER LE NOUVEL EMOJI ICI
+          const newEmoji = getPlantEmoji(newValidation);
+
+          if (wasBlockedWhenEnteringRevision) {
+            pointsGagnesEnRevision += pointsGagnes;
+            console.log(`📊 Validation: ${currentValidation}→${newValidation} | Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
+            updateUnlockProgress();
+          }
+          
+          console.log(`🔒 Mode révision - Validation: ${newValidation} (était: ${currentValidation})`);
+          
+          // ✅ Mettre en file d'attente l'appel API
+          queueUpdateStats({
+            token: userToken,
+            id: parseInt(revisionMode.currentItem.ID),
+            scorePoints: isCorrect ? 1 : 0,
+            isRevisionMode: true
+          });
+          
+          // ✅ Rafraîchir les stats si la page est ouverte
+          if (document.getElementById('stats').classList.contains('active')) {
+            setTimeout(() => {
+              generateStatsPage();
+            }, 100);
+          }
+
+          // Mettre à jour la barre de déblocage
+          if (wasBlockedWhenEnteringRevision) {
+            updateUnlockProgress();
+          }
+
+          // ✅ OUVRIR LA FLASHCARD
+          openRevisionFlashcard(
+            revisionMode.currentItem, 
+            newEmoji,
+            oldEmoji,
+            newValidation,
+            oldValidation
+          );
+          
+          // Jouer les sons
+          if (isCorrect) {
+            playZenBell();
+          } else {
+            playSoftError();
+          }
+
+          // 💬 Affiche mise à jour du score après la réponse
+          const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
+          if (currentCard) {
+            const newVal = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+            showValidationBubble(currentCard, newVal, seuilValidation);
+          }
+          
+          setTimeout(() => {
+            startRevisionQuestion();
+          }, 2200);
+        }
       }
-    } else {
-      newValidation = Math.max(5, currentValidation - 2);
-      const oldDeficit = Math.max(0, seuilValidation - currentValidation);
-      const newDeficit = Math.max(0, seuilValidation - newValidation);
-      pointsGagnes = oldDeficit - newDeficit;
-    }
-
-    HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-    validationCache[revisionMode.currentItem.ID] = newValidation;
-    // ✅ CAPTURER LE NOUVEL EMOJI
-    const newEmoji = getPlantEmoji(newValidation);
-    if (wasBlockedWhenEnteringRevision) {
-      pointsGagnesEnRevision += pointsGagnes;
-      console.log(`📊 Validation: ${currentValidation}→${newValidation} | Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
-      updateUnlockProgress();
-    }
-    
-    console.log(`🔒 Mode révision - Validation: ${newValidation} (était: ${currentValidation})`);
-  }
-
-  // ✅ Mettre en file d'attente l'appel API (en background, sans attendre)
-  queueUpdateStats({
-    token: userToken,
-    id: parseInt(revisionMode.currentItem.ID),
-    scorePoints: isCorrect ? 1 : 0,
-    isRevisionMode: true
-  });
-// ✅ Rafraîchir les stats si la page est ouverte
-if (document.getElementById('stats').classList.contains('active')) {
-  setTimeout(() => {
-    generateStatsPage();
-  }, 100);
-}
-  // Mettre à jour la barre de déblocage
-  if (wasBlockedWhenEnteringRevision) {
-    updateUnlockProgress();
-  }
-
-  // Afficher feedback
-    // ✅ REMPLACER PAR L'OUVERTURE DE LA FLASHCARD
-    openRevisionFlashcard(
-      revisionMode.currentItem, 
-      newEmoji,           // Le nouvel emoji (après modification)
-      oldEmoji,           // L'ancien emoji (avant modification)
-      newValidation,      // Le nouveau score
-      oldValidation       // L'ancien score
-    );
-
-  // Jouer son MP3
-  const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
-  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-  const audio = new Audio(audioUrl);
-  audio.play().catch(e => console.warn('Erreur audio:', e));
-
-// 💬 Affiche mise à jour du score après la réponse
-const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
-if (currentCard) {
-  const newVal = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-  showValidationBubble(currentCard, newVal, seuilValidation);
-}
-
-      
-    setTimeout(() => {
-      startRevisionQuestion();
-    }, 2200); // 2200ms = 2s d'affichage + 200ms de marge
-}
     });
   });
 }
@@ -5563,6 +5559,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
