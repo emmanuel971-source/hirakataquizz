@@ -5353,6 +5353,9 @@ function initRevisionKeyboard() {
     const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
     // ✅ CAPTURER L'ANCIEN EMOJI ICI
     const oldEmoji = getPlantEmoji(currentValidation);
+    const oldValidation = currentValidation; // Sauvegarder l'ancienne valeur
+    
+    
     let newValidation;
     let pointsGagnes = 0;
 
@@ -5400,22 +5403,14 @@ if (document.getElementById('stats').classList.contains('active')) {
   }
 
   // Afficher feedback
-if (isCorrect) {
+    // ✅ REMPLACER PAR L'OUVERTURE DE LA FLASHCARD
     openRevisionFlashcard(
       revisionMode.currentItem, 
-      newEmoji, 
-      oldEmoji, 
-      newValidation, 
-      currentValidation
+      newEmoji,           // Le nouvel emoji (après modification)
+      oldEmoji,           // L'ancien emoji (avant modification)
+      newValidation,      // Le nouveau score
+      oldValidation       // L'ancien score
     );
-  playZenBell();
-} else {
-  document.getElementById("revision-message").textContent = isHighLevel 
-    ? t('revision_wrong')
-    : `${t('revision_correct_answer')} ${revisionMode.fullCorrect}${katakanaDisplay}`;
-  document.getElementById("revision-message").style.color = "#8B6F47";
-  playSoftError();
-}
 
   // Jouer son MP3
   const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
@@ -5568,6 +5563,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
