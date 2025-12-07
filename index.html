@@ -2651,15 +2651,7 @@ function generateGarden() {
     }
   }
 
-  function getPlantEmoji(validation) {
-    if (validation >= seuilValidation) {
-      return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
-    } else if (validation >= 5) {
-      return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
-    } else {
-      return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
-    }
-  }
+  
 
   // === Légende au scroll ===
   const container = document.querySelector('.garden-container');
@@ -2690,6 +2682,15 @@ function openGardenModal(item, emoji) {
   const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
   audio.play().catch(() => {});
 }
+function getPlantEmoji(validation) {
+    if (validation >= seuilValidation) {
+      return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
+    } else if (validation >= 5) {
+      return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
+    } else {
+      return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
+    }
+  }    
 // function openGardenModal du mode révisions  
 function openRevisionFlashcard(item, emoji, duration = 2200, animateStatusChange = false, animateScore = false) {
   document.getElementById('modal-plant').textContent = emoji;
@@ -5413,6 +5414,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
