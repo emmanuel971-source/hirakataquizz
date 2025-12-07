@@ -2696,52 +2696,88 @@ function generateGarden() {
     });
   }
 }
-// Ouvre la flashcard
+// Ouvre la flashcard du Jardin
+function openGardenModal(item, emoji) {
+  document.getElementById('modal-plant').textContent = emoji;
+  document.getElementById('modal-hiragana').textContent = item.Hiragana;
+  document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
+  document.getElementById('modal-romaji').textContent = item.Romaji;
+  document.getElementById('modal-level').textContent = item.Niveau;
+  document.getElementById('modal-validation').textContent = validationCache[parseInt(item.ID)] || 0;
+
+  document.getElementById('garden-modal').classList.add('visible');
+  
+  // Ferme automatiquement après 2,2 secondes
+  setTimeout(closeGardenModal, 2200);
+
+  // Son du hiragana
+  const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
+  audio.play().catch(() => {});
+}
+
+    
+// Ouvre la flashcard du mode révision 
 let modalCloseTimer = null;
 
-function openGardenModal(item, emoji, duration = 3000, animateStatusChange = false, animateScore = false) {
+function openRevisionFlashcard(item, emoji, duration = null, animateStatusChange = false, animateScore = false, isCorrect = true) {
   if (modalCloseTimer) clearTimeout(modalCloseTimer);
 
-  // On calcule l'ancien emoji (avant la réponse)
+  // Couleurs selon la réponse
+  const bgColor = isCorrect ? '#d4edda' : '#f8d7da';   // vert pâle / rose clair
+  const borderColor = isCorrect ? '#c3e6cb' : '#f5c6cb';
+
   const currentVal = validationCache[parseInt(item.ID)] || 0;
-  const oldEmoji = getPlantEmoji(currentVal - (animateScore ? 1 : 0)); // -1 si on vient d'augmenter
+  const oldEmoji = getPlantEmoji(currentVal - (isCorrect ? 1 : -2)); // on recalcule l'ancien
 
   const flashcard = document.createElement('div');
   flashcard.id = 'temp-revision-flashcard';
   flashcard.style.cssText = `
     position:fixed !important; top:50%; left:50%; transform:translate(-50%,-50%) !important;
-    z-index:999999999 !important; background:white !important; padding:2em 2.5em !important;
-    border-radius:20px !important; box-shadow:0 20px 40px rgba(0,0,0,0.6) !important;
-    text-align:center !important; max-width:90% !important; pointer-events:none !important;
-    animation: fadeInOut ${duration/1000}s ease-in-out forwards;
+    z-index:999999999 !important; background:${bgColor} !important; padding:2.5em 3em !important;
+    border-radius:24px !important; box-shadow:0 20px 50px rgba(0,0,0,0.4) !important;
+    border:4px solid ${borderColor} !important;
+    text-align:center !important; max-width:90% !important; cursor:pointer !important;
+    animation: popIn 0.5s ease-out forwards;
   `;
 
   flashcard.innerHTML = `
     <div id="temp-plant" style="font-size:3.8em;margin-bottom:0.4em;min-height:1.2em;">
       ${animateStatusChange ? oldEmoji : emoji}
     </div>
-    <h2 style="margin:0.2em 0;font-size:3em;">${item.Hiragana}</h2>
-    <div style="font-size:1.8em;color:#8B6F47;">${getLocalizedKatakana(item) || '-'}</div>
-    <div style="font-size:1.6em;color:#555;margin:0.8em 0;">${item.Romaji}</div>
-    <div style="margin-top:1em;">
-      Niveau <strong>${item.Niveau}</strong> • Score = <strong class="${animateScore ? 'score-sparkle' : ''}">${currentVal}</strong>
+    <h2 style="margin:0.2em 0;font-size:3.2em;color:#8B6F47;">${item.Hiragana}</h2>
+    <div style="font-size:1.9em;color:#8B6F47;margin:0.6em 0;">
+      ${getLocalizedKatakana(item) || '-'}
+    </div>
+    <div style="font-size:1.7em;color:#555;margin:0.8em 0;">${item.Romaji}</div>
+    <div style="margin-top:1.2em;font-size:1.3em;">
+      Niveau <strong>${item.Niveau}</strong> • Score : 
+      <div style="display:inline-block;position:relative;width:60px;height:40px;overflow:hidden;">
+        <div id="score-old" style="position:absolute;top:0;left:0;width:100%;text-align:center;font-weight:bold;font-size:1.6em;color:#999;">
+          ${currentVal - (isCorrect ? 1 : (currentVal >= 7 ? 2 : currentVal-5))}
+        </div>
+        <div id="score-new" style="position:absolute;top:${isCorrect ? '-50px' : '50px'};left:0;width:100%;text-align:center;font-weight:bold;font-size:1.6em;color:#8B6F47;">
+          ${currentVal}
+        </div>
+      </div>
     </div>
   `;
 
-  // Style global (une seule fois)
-  if (!document.getElementById('temp-flashcard-style')) {
+  // Animations globales (une fois)
+  if (!document.getElementById('revision-flashcard-style')) {
     const style = document.createElement('style');
-    style.id = 'temp-flashcard-style';
+    style.id = 'revision-flashcard-style';
     style.textContent = `
-      @keyframes fadeInOut { 0%,100%{opacity:0;transform:translate(-50%,-60%) scale(0.8)}
-                            10%,90%{opacity:1;transform:translate(-50%,-50%) scale(1)} }
-      @keyframes bloomTransition {
-        0%   { transform: scale(1) rotate(0deg); opacity: 1; }
-        40%  { transform: scale(1.6) rotate(12deg); opacity: 0.7; }
-        100% { transform: scale(1) rotate(0deg); opacity: 1; }
-      }
-      .bloom-transition { animation: bloomTransition 1.6s ease-in-out forwards !important; }
-      .score-sparkle { animation: sparkle 1.2s ease-in-out !important; }
+      @keyframes popIn { from {transform:translate(-50%,-50%) scale(0.7);opacity:0} to {transform:translate(-50%,-50%) scale(1);opacity:1} }
+      @keyframes rollUp { from {transform:translateY(0)} to {transform:translateY(-50px)} }
+      @keyframes rollDown { from {transform:translateY(0)} to {transform:translateY(50px)} }
+      @keyframes rollInUp { from {transform:translateY(50px)} to {transform:translateY(0)} }
+      @keyframes rollInDown { from {transform:translateY(-50px)} to {transform:translateY(0)} }
+      .roll-up-old { animation: rollUp 0.6s ease-in-out forwards !important; }
+      .roll-down-old { animation: rollDown 0.6s ease-in-out forwards !important; }
+      .roll-in-up { animation: rollInUp 0.6s ease-in-out forwards !important; }
+      .roll-in-down { animation: rollInDown 0.6s ease-in-out forwards !important; }
+      @keyframes bloomTransition { 0%{transform:scale(1) rotate(0)} 40%{transform:scale(1.7) rotate(14deg)} 100%{transform:scale(1) rotate(0)} }
+      .bloom-transition { animation: bloomTransition 1.6s ease-in-out !important; }
     `;
     document.head.appendChild(style);
   }
@@ -2752,22 +2788,47 @@ function openGardenModal(item, emoji, duration = 3000, animateStatusChange = fal
   const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
   audio.play().catch(() => {});
 
-  // LANCEMENT DU CHANGEMENT PLANTE APRÈS 400ms → tu vois bien l'ancien → puis le passage
+  // Animation plante si changement de statut
   if (animateStatusChange) {
     setTimeout(() => {
-      const plant = document.getElementById('temp-plant');
-      if (plant) {
-        plant.textContent = emoji;                    // on change l'emoji
-        plant.classList.add('bloom-transition');      // et on lance la grosse animation bien visible
-      }
-    }, 400); // 400 ms = le temps idéal pour voir l'ancien, puis le changement
+      const p = document.getElementById('temp-plant');
+      if (p) { p.textContent = emoji; p.classList.add('bloom-transition'); }
+    }, 400);
   }
 
-  // Suppression
-  modalCloseTimer = setTimeout(() => {
-    if (flashcard.parentNode) flashcard.parentNode.removeChild(flashcard);
-    modalCloseTimer = null;
-  }, duration);
+  // Animation compteur style réveil à rouleaux
+  if (animateScore) {
+    setTimeout(() => {
+      const oldScore = document.getElementById('score-old');
+      const newScore = document.getElementById('score-new');
+      if (isCorrect) {
+        oldScore.classList.add('roll-up-old');
+        newScore.classList.add('roll-in-down');
+      } else {
+        oldScore.classList.add('roll-down-old');
+        newScore.classList.add('roll-in-up');
+      }
+    }, 600);
+  }
+
+  // CLIC N'IMPORTE OÙ = FERME ET SUIVANT
+  const closeAndNext = () => {
+    flashcard.style.animation = 'popOut 0.4s ease-in forwards';
+    setTimeout(() => {
+      if (flashcard.parentNode) flashcard.parentNode.removeChild(flashcard);
+      startRevisionQuestion(); // ← question suivante
+    }, 400);
+  };
+
+  flashcard.onclick = closeAndNext;
+  document.body.onclick = (e) => { if (e.target === document.body) closeAndNext(); };
+
+  // Animation de sortie (facultatif)
+  if (!document.head.querySelector('#revision-flashcard-style').textContent.includes('popOut')) {
+    document.head.querySelector('#revision-flashcard-style').textContent += `
+      @keyframes popOut { to {transform:translate(-50%,-50%) scale(0.7);opacity:0} }
+    `;
+  }
 }
 // Ferme la flashcard
 function closeGardenModal() {
@@ -5327,15 +5388,16 @@ function initRevisionKeyboard() {
         const statusChanged = oldEmoji !== newEmoji; // surtout vrai lors du passage 🌿 ↔ 🌸
 console.log(`DEBUG: Réponse traitée → isCorrect=${isCorrect}, oldValidation=${currentValidation}, newValidation=${newValidation}`);
 console.log(`DEBUG: Emoji: old=${oldEmoji}, new=${newEmoji}, statusChanged=${statusChanged}`);
-console.log('DEBUG: Appel à openGardenModal() pour afficher la flashcard');
+console.log('DEBUG: Appel à openRevisionFlashcard() pour afficher la flashcard');
         // === AFFICHAGE DE LA FLASHCARD PENDANT 1 SECONDE ===
-        openGardenModal(
-          revisionMode.currentItem,   // l’item
-          newEmoji,                   // emoji à jour
-          2500,                       // durée visible = 1 seconde
-          statusChanged,              // animation plante si changement de statut
-          true                        // toujours scintillement du score
-        );
+       openRevisionFlashcard(
+  revisionMode.currentItem,
+  newEmoji,
+  null,                    // duration = null → fermeture manuelle
+  statusChanged,
+  true,
+  isCorrect                // ← la valeur que tu as déjà !
+);
 // === FORCAGE VISUEL IMMÉDIAT (aucun z-index ne peut résister) ===
 setTimeout(() => {
   const modal = document.getElementById('garden-modal');
@@ -5518,6 +5580,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
