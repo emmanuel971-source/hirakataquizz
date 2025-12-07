@@ -2664,15 +2664,7 @@ function generateGarden() {
     }
   }
 
-  function getPlantEmoji(validation) {
-    if (validation >= seuilValidation) {
-      return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
-    } else if (validation >= 5) {
-      return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
-    } else {
-      return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
-    }
-  }
+
 
   // === Légende au scroll ===
   const container = document.querySelector('.garden-container');
@@ -5316,7 +5308,15 @@ function initRevisionKeyboard() {
     });
   });
 }
-  
+  function getPlantEmoji(validation) {
+    if (validation >= seuilValidation) {
+      return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
+    } else if (validation >= 5) {
+      return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
+    } else {
+      return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
+    }
+  }  
 // Appeler l'initialisation au chargement de la page
 window.addEventListener('load', () => {
   initRevisionKeyboard();
@@ -5433,6 +5433,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
