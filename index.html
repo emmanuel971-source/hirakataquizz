@@ -2702,6 +2702,10 @@ let modalCloseTimer = null;
 function openGardenModal(item, emoji, duration = 3000, animateStatusChange = false, animateScore = false) {
   if (modalCloseTimer) clearTimeout(modalCloseTimer);
 
+  // On calcule l'ancien emoji (avant la réponse)
+  const currentVal = validationCache[parseInt(item.ID)] || 0;
+  const oldEmoji = getPlantEmoji(currentVal - (animateScore ? 1 : 0)); // -1 si on vient d'augmenter
+
   const flashcard = document.createElement('div');
   flashcard.id = 'temp-revision-flashcard';
   flashcard.style.cssText = `
@@ -2712,33 +2716,31 @@ function openGardenModal(item, emoji, duration = 3000, animateStatusChange = fal
     animation: fadeInOut ${duration/1000}s ease-in-out forwards;
   `;
 
-  // On garde l'ancien emoji pendant les 150 premières ms → puis on passe au nouveau avec l'animation
-  const oldEmoji = getPlantEmoji(validationCache[parseInt(item.ID)] - (animateScore ? 1 : 0)); // -1 si on vient d'augmenter
-
   flashcard.innerHTML = `
-    <div id="temp-plant" style="font-size:3.2em;margin-bottom:0.4em;">${animateStatusChange ? oldEmoji : emoji}</div>
+    <div id="temp-plant" style="font-size:3.8em;margin-bottom:0.4em;min-height:1.2em;">
+      ${animateStatusChange ? oldEmoji : emoji}
+    </div>
     <h2 style="margin:0.2em 0;font-size:3em;">${item.Hiragana}</h2>
     <div style="font-size:1.8em;color:#8B6F47;">${getLocalizedKatakana(item) || '-'}</div>
     <div style="font-size:1.6em;color:#555;margin:0.8em 0;">${item.Romaji}</div>
     <div style="margin-top:1em;">
-      Niveau <strong>${item.Niveau}</strong> • Score = <strong class="${animateScore ? 'score-sparkle' : ''}">${validationCache[parseInt(item.ID)] || 0}</strong>
+      Niveau <strong>${item.Niveau}</strong> • Score = <strong class="${animateScore ? 'score-sparkle' : ''}">${currentVal}</strong>
     </div>
   `;
 
-  // Style + animations (on ajoute une version plus longue et plus visible du bloom)
+  // Style global (une seule fois)
   if (!document.getElementById('temp-flashcard-style')) {
     const style = document.createElement('style');
     style.id = 'temp-flashcard-style';
     style.textContent = `
       @keyframes fadeInOut { 0%,100%{opacity:0;transform:translate(-50%,-60%) scale(0.8)}
                             10%,90%{opacity:1;transform:translate(-50%,-50%) scale(1)} }
-      @keyframes plantBloom {
-        0%   { transform: scale(1) rotate(0deg); }
-        30%  { transform: scale(1.4) rotate(8deg); }
-        70%  { transform: scale(0.9) rotate(-6deg); }
-        100% { transform: scale(1) rotate(0deg); }
+      @keyframes bloomTransition {
+        0%   { transform: scale(1) rotate(0deg); opacity: 1; }
+        40%  { transform: scale(1.6) rotate(12deg); opacity: 0.7; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
       }
-      .plant-bloom { animation: plantBloom 1.4s ease-in-out !important; }
+      .bloom-transition { animation: bloomTransition 1.6s ease-in-out forwards !important; }
       .score-sparkle { animation: sparkle 1.2s ease-in-out !important; }
     `;
     document.head.appendChild(style);
@@ -2750,15 +2752,15 @@ function openGardenModal(item, emoji, duration = 3000, animateStatusChange = fal
   const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
   audio.play().catch(() => {});
 
-  // === LANCEMENT DE L'ANIMATION PLANTE APRÈS UN PETIT DÉLAI ===
+  // LANCEMENT DU CHANGEMENT PLANTE APRÈS 400ms → tu vois bien l'ancien → puis le passage
   if (animateStatusChange) {
     setTimeout(() => {
-      const plantEl = document.getElementById('temp-plant');
-      if (plantEl) {
-        plantEl.textContent = emoji;           // on passe au nouvel emoji
-        plantEl.classList.add('plant-bloom');   // et on lance l’animation complète
+      const plant = document.getElementById('temp-plant');
+      if (plant) {
+        plant.textContent = emoji;                    // on change l'emoji
+        plant.classList.add('bloom-transition');      // et on lance la grosse animation bien visible
       }
-    }, 180); // 180 ms = juste assez pour que la carte soit visible, mais avant que l’œil ait fini de lire
+    }, 400); // 400 ms = le temps idéal pour voir l'ancien, puis le changement
   }
 
   // Suppression
@@ -5516,6 +5518,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
