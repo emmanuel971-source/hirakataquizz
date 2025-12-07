@@ -238,44 +238,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 .garden-card .close-btn { margin-top: 1.5em; padding: 0.8em 2em; font-size: 1.2em; }
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.0em; } .garden-bug { font-size: 0.8em; } .garden-hiragana { font-size: 1.0em; } .garden-level { gap: 0.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 95%; } .garden-item { aspect-ratio: 1; } }
 @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.7em; } .garden-hiragana { font-size: 1.2em; } .garden-level { gap: 1.4em; } .garden-legend { gap: 1em; font-size: 0.9em; } }
-/* Animation pour le changement de statut de la plante (bloom/rotation subtile) */
-.plant-status-change {
-  animation: plantBloom 0.5s ease-in-out;
-}
 
-@keyframes plantBloom {
-  0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
-  50% { transform: scale(1.2) rotate(5deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-
-/* Animation de scintillement pour le score */
-.score-sparkle {
-  animation: sparkle 0.6s ease-in-out;
-  color: #FFD700; /* Jaune doré pour l'effet sparkle */
-}
-
-@keyframes sparkle {
-  0% { transform: scale(1); opacity: 1; text-shadow: 0 0 5px #FFD700; }
-  50% { transform: scale(1.1); opacity: 0.7; text-shadow: 0 0 10px #FFD700; }
-  100% { transform: scale(1); opacity: 1; text-shadow: 0 0 5px #FFD700; }
-}
-/* FORCE LA FLASHCARD AU-DESSUS DE TOUT EN MODE RÉVISION */
-#mode2.active #garden-modal,
-#mode2 #garden-modal.visible {
-  z-index: 9999 !important;
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-}
-
-/* Au cas où un autre élément fixe (clavier, message, etc.) soit trop haut */
-#mode2 .revision-keyboard,
-#mode2 #revision-input-display,
-#mode2 #revision-message {
-  z-index: 100 !important; /* bien en dessous de la modale */
-}    
   </style>
 </head>
 <body>
@@ -2114,7 +2077,6 @@ function showSection(sectionId) {
   if (sectionId !== 'mode2') { // 'mode2' est l'ID de la section révision
     revisionMode.isActive = false;
     hasUnlockedInRevision = false; // Réinitialiser pour la prochaine session
-   
   }
   }
 
@@ -2137,44 +2099,30 @@ document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
   document.getElementById(sectionId).classList.add('active');
-  // AJOUTE ÇA ICI : NETTOYAGE FORCÉ DE LA FLASHCARD DE RÉVISION
-  const tempFlashcard = document.getElementById('temp-revision-flashcard');
-  if (tempFlashcard && tempFlashcard.parentNode) {
-    tempFlashcard.parentNode.removeChild(tempFlashcard);
-    console.log('Flashcard de révision nettoyée (changement de section)');
-  }
-
-  const revStyle = document.getElementById('revision-flashcard-style');
-  if (revStyle) {
-    document.head.removeChild(revStyle);
-    console.log('Style de révision nettoyé');
-  }
+  
   if (sectionId === 'create-account') {
     initPseudoCache();
     generateNewPseudo();
   }
   
   // Démarrer le mode révisions si c'est le mode sélectionné
-if (sectionId === 'mode2') {
-  console.log('DEBUG: Entrée en mode révision (sectionId=mode2)');
-  wasBlockedWhenEnteringRevision = isApprentissageBloque();
-  if (wasBlockedWhenEnteringRevision) {
-    deficitInitialRevision = calculerDeficitValidation();
-    pointsGagnesEnRevision = 0;
-    console.log(`DEBUG: Apprentissage bloqué → déficit initial = ${deficitInitialRevision}`);
+  if (sectionId === 'mode2') {
+    wasBlockedWhenEnteringRevision = isApprentissageBloque();
+    if (wasBlockedWhenEnteringRevision) {
+      deficitInitialRevision = calculerDeficitValidation();
+      pointsGagnesEnRevision = 0;
+      console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
+    }
+    hasUnlockedInRevision = false;
+    revisionMode.isActive = true;
+    setTimeout(() => {
+      initRevisionKeyboard();
+      startRevisionQuestion();
+    }, 100);
+  } else {
+    revisionMode.isActive = false;
+    wasBlockedWhenEnteringRevision = false;
   }
-  hasUnlockedInRevision = false;
-  revisionMode.isActive = true;
-  setTimeout(() => {
-    console.log('DEBUG: Initialisation clavier révision');
-    initRevisionKeyboard();
-    console.log('DEBUG: Appel à startRevisionQuestion() pour première question');
-    startRevisionQuestion();
-  }, 100);
-} else {
-  revisionMode.isActive = false;
-  wasBlockedWhenEnteringRevision = false;
-}
   
   // ✅ NOUVEAU : Générer une question quand on ouvre le mode Apprendre
   if (sectionId === 'quiz') {
@@ -2185,7 +2133,6 @@ if (sectionId === 'mode2') {
   }
     // ✅ NOUVEAU : Générer les stats quand on ouvre la page stats
 if (sectionId === 'stats') {
-    cleanupRevisionFlashcardStyles();
     setTimeout(generateGarden, 100);
   }
   // ✅ CORRECTION : Ne fermer le menu que s'il est ouvert
@@ -2696,7 +2643,15 @@ function generateGarden() {
     }
   }
 
-
+  function getPlantEmoji(validation) {
+    if (validation >= seuilValidation) {
+      return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
+    } else if (validation >= 5) {
+      return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
+    } else {
+      return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
+    }
+  }
 
   // === Légende au scroll ===
   const container = document.querySelector('.garden-container');
@@ -2709,7 +2664,7 @@ function generateGarden() {
     });
   }
 }
-// Ouvre la flashcard du Jardin
+// Ouvre la flashcard
 function openGardenModal(item, emoji) {
   document.getElementById('modal-plant').textContent = emoji;
   document.getElementById('modal-hiragana').textContent = item.Hiragana;
@@ -2728,129 +2683,9 @@ function openGardenModal(item, emoji) {
   audio.play().catch(() => {});
 }
 
-    
-// Ouvre la flashcard du mode révision 
-let modalCloseTimer = null;
-
-let revisionFlashcardStyle = null; // on garde la référence pour pouvoir le supprimer
-
-function openRevisionFlashcard(item, emoji, animateStatusChange = false, animateScore = false, isCorrect = true) {
-  // 1. Nettoyage complet d'une ancienne flashcard + style
-  const oldFlashcard = document.getElementById('temp-revision-flashcard');
-  if (oldFlashcard && oldFlashcard.parentNode) oldFlashcard.parentNode.removeChild(oldFlashcard);
-  if (revisionFlashcardStyle) {
-    document.head.removeChild(revisionFlashcardStyle);
-    revisionFlashcardStyle = null;
-  }
-
-  // 2. Couleurs selon la réponse
-  const bgColor     = isCorrect ? '#d4edda' : '#f8d9dc';
-  const borderColor = isCorrect ? '#c3e6cb' : '#f5c6cb';
-
-  // 3. Calcul ancien emoji pour l'animation
-  const currentVal = validationCache[parseInt(item.ID)] || 0;
-  const oldEmoji   = animateStatusChange ? getPlantEmoji(currentVal - (isCorrect ? 1 : -2)) : emoji;
-
-  // 4. Création de la flashcard
-  const flashcard = document.createElement('div');
-  flashcard.id = 'temp-revision-flashcard';
-  flashcard.style.cssText = `
-    position:fixed !important; top:50%; left:50%; transform:translate(-50%,-50%) !important;
-    z-index:999999999 !important; background:${bgColor} !important; padding:2.5em 3em !important;
-    border-radius:24px !important; border:5px solid ${borderColor} !important;
-    box-shadow:0 25px 50px rgba(0,0,0,0.5) !important;
-    text-align:center !important; max-width:92% !important; cursor:pointer !important;
-  `;
-
-  flashcard.innerHTML = `
-    <div id="temp-plant" style="font-size:3.8em;margin-bottom:0.4em;min-height:1.2em;">${oldEmoji}</div>
-    <h2 style="margin:0.2em 0;font-size:3.2em;color:#8B6F47;">${item.Hiragana}</h2>
-    <div style="font-size:1.9em;color:#8B6F47;margin:0.6em 0;">${getLocalizedKatakana(item) || '-'}</div>
-    <div style="font-size:1.7em;color:#555;margin:0.8em 0;">${item.Romaji}</div>
-    <div style="margin-top:1.2em;font-size:1.3em;">
-      Niveau <strong>${item.Niveau}</strong> • Score :
-      <div style="display:inline-block;position:relative;width:70px;height:50px;overflow:hidden;margin-left:8px;">
-        <div id="score-old" style="position:absolute;top:0;left:0;width:100%;text-align:center;font-weight:bold;font-size:1.8em;color:#aaa;">
-          ${currentVal - (isCorrect ? 1 : (currentVal >= 7 ? 2 : currentVal-5))}
-        </div>
-        <div id="score-new" style="position:absolute;top:${isCorrect ? '-60px' : '60px'};left:0;width:100%;text-align:center;font-weight:bold;font-size:1.8em;color:#8B6F47;">
-          ${currentVal}
-        </div>
-      </div>
-    </div>
-  `;
-
-  // 5. Injection du style (une seule fois, mais on le supprime avant pour éviter les doublons)
-  revisionFlashcardStyle = document.createElement('style');
-  revisionFlashcardStyle.id = 'revision-flashcard-style';
-  revisionFlashcardStyle.textContent = `
-    #temp-revision-flashcard { animation: popIn 0.5s ease-out forwards; }
-    @keyframes popIn   { from {transform:translate(-50%,-50%) scale(0.6);opacity:0} to {transform:translate(-50%,-50%) scale(1);opacity:1} }
-    @keyframes popOut  { to   {transform:translate(-50%,-50%) scale(0.6);opacity:0} }
-    @keyframes rollUp    { from {transform:translateY(0)}     to {transform:translateY(-60px)} }
-    @keyframes rollDown  { from {transform:translateY(0)}     to {transform:translateY(60px)} }
-    @keyframes rollInUp  { from {transform:translateY(60px)}  to {transform:translateY(0)} }
-    @keyframes rollInDown{ from {transform:translateY(-60px)} to {transform:translateY(0)} }
-    @keyframes bloomTransition { 0%{transform:scale(1) rotate(0)} 40%{transform:scale(1.7) rotate(14deg)} 100%{transform:scale(1) rotate(0)} }
-  `;
-  document.head.appendChild(revisionFlashcardStyle);
-
-  document.body.appendChild(flashcard);
-
-  // Son
-  const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
-  audio.play().catch(() => {});
-
-  // Animation plante
-  if (animateStatusChange) {
-    setTimeout(() => {
-      const p = document.getElementById('temp-plant');
-      if (p) { p.textContent = emoji; p.style.animation = 'bloomTransition 1.6s ease-in-out forwards'; }
-    }, 400);
-  }
-
-  // Animation compteur à rouleaux
-  if (animateScore) {
-    setTimeout(() => {
-      const oldS = document.getElementById('score-old');
-      const newS = document.getElementById('score-new');
-      if (isCorrect) {
-        oldS.style.animation = 'rollUp 0.6s ease-in-out forwards';
-        newS.style.animation = 'rollInDown 0.6s ease-in-out forwards';
-      } else {
-        oldS.style.animation = 'rollDown 0.6s ease-in-out forwards';
-        newS.style.animation = 'rollInUp 0.6s ease-in-out forwards';
-      }
-    }, 600);
-  }
-
-  // Fermeture au clic n'importe où + question suivante
-  const closeAndNext = () => {
-    flashcard.style.animation = 'popOut 0.4s ease-in forwards';
-    setTimeout(() => {
-      if (flashcard.parentNode) flashcard.parentNode.removeChild(flashcard);
-      if (revisionFlashcardStyle) {
-        document.head.removeChild(revisionFlashcardStyle);
-        revisionFlashcardStyle = null;
-      }
-      startRevisionQuestion();
-    }, 400);
-  };
-
-  flashcard.onclick = closeAndNext;
-  // clic en dehors aussi (au cas où)
-  setTimeout(() => { document.body.onclick = (e) => { if (!flashcard.contains(e.target)) closeAndNext(); }; }, 100);
-}
 // Ferme la flashcard
 function closeGardenModal() {
   document.getElementById('garden-modal').classList.remove('visible');
-}  
-function cleanupRevisionFlashcardStyles() {
-  const style = document.getElementById('revision-flashcard-style');
-  if (style) {
-    document.head.removeChild(style);
-    console.log('Revision styles nettoyés → Mon Jardin retrouve sa beauté');
-  }
 }    
 function updateFilterCounts(data) {
   const counts = {
@@ -5068,8 +4903,7 @@ function startRevisionQuestion() {
 
 
   const niveauActif = determineNiveauActif(HiraganaList);
-  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 26, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
-  console.log(`DEBUG: Niveaux katakana exclus: ${excludedKatakanaLevels.join(', ')}`);
+  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
   const hiraganaItems = HiraganaList.filter(h => 
     parseInt(h.Niveau || 1) < niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
@@ -5086,13 +4920,9 @@ function startRevisionQuestion() {
     ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: getLocalizedKatakana(item) }))
   ];
 
-  console.log(`DEBUG: Items hiragana disponibles: ${hiraganaItems.length} (ex. premiers: ${hiraganaItems.slice(0,3).map(i => i.Hiragana).join(', ')})`);
-  console.log(`DEBUG: Items katakana disponibles: ${katakanaItems.length} (ex. premiers: ${katakanaItems.slice(0,3).map(i => getLocalizedKatakana(i)).join(', ')})`);
-  
   console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
 
  if (availableItems.length === 0) {
-   console.log('DEBUG: Aucun item disponible → message affiché');
     document.getElementById("revision-message").textContent = 
       niveauActif < 4 ? 
       t('revision_available_level4') :  // ✅ MODIFIÉ
@@ -5224,9 +5054,7 @@ if (firstCard && revisionMode.currentItem) {
 
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
   console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
-  console.log(`DEBUG: Question générée: "${revisionMode.currentQuestion}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
-  console.log('DEBUG: Fin startRevisionQuestion() → carte devrait s’afficher');
-  // ✅ Afficher la barre à chaque nouvelle question (sans la recalculer)
+ // ✅ Afficher la barre à chaque nouvelle question (sans la recalculer)
   updateUnlockProgress();
 }  
 function isRevisionModeAvailable() {
@@ -5338,16 +5166,16 @@ function updateRevisionFeedback() {
   
   
 // Initialiser les événements du clavier de révision
+// Initialiser les événements du clavier de révision
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
   revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true)));
   const newRevisionKeys = document.querySelectorAll('.revision-key');
 
   newRevisionKeys.forEach(key => {
-    key.addEventListener("click", async () => {
+    key.addEventListener("click", async () => {  // ✅ ASYNC ajouté
       if (!revisionMode.isActive) return;
 
-      // Saisie ou effacement
       if (key.id === "revision-back") {
         revisionMode.input = revisionMode.input.slice(0, -1);
       } else {
@@ -5358,130 +5186,117 @@ function initRevisionKeyboard() {
       updateRevisionFeedback();
 
       const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1] || 1;
+      const hiraganaItem = HiraganaList.find(h => h.ID == revisionMode.currentItem.ID);
+      const hiraganaChar = hiraganaItem ? hiraganaItem.Hiragana : revisionMode.currentQuestion;
+      const niveau = parseInt(revisionMode.currentItem.Niveau || 1);
+      const isHighLevel = niveau > 38;
+      const isMultiChar = revisionMode.romajiSegments.length >= 2;
+      const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
 
-      // Réponse complète → on valide
-      if (revisionMode.input.length >= totalLength) {
-        const isCorrect = revisionMode.input === revisionMode.fullCorrect;
-        const itemId = parseInt(revisionMode.currentItem.ID);
+    if (revisionMode.input.length >= totalLength) {
+  const isCorrect = revisionMode.input === revisionMode.fullCorrect;
+  const key = revisionMode.currentItem.ID;
 
-        // === Stats (inchangé) ===
-        statsCache.items[itemId] = statsCache.items[itemId] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-        statsCache.items[itemId].tentatives += 1;
-        statsCache.items[itemId].reussites += isCorrect ? 1 : 0;
-        statsCache.items[itemId].pourcentage = statsCache.items[itemId].tentatives > 0
-          ? (statsCache.items[itemId].reussites / statsCache.items[itemId].tentatives * 100)
-          : 0;
+  // Mettre à jour statsCache
+  statsCache.items[key] = statsCache.items[key] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+  statsCache.items[key].tentatives += 1;
+  statsCache.items[key].reussites += isCorrect ? 1 : 0;
+  statsCache.items[key].pourcentage = statsCache.items[key].tentatives > 0 
+    ? (statsCache.items[key].reussites / statsCache.items[key].tentatives * 100) : 0;
 
-        const totalTentatives = Object.values(statsCache.items).reduce((s, i) => s + i.tentatives, 0);
-        const totalReussites = Object.values(statsCache.items).reduce((s, i) => s + i.reussites, 0);
-        statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+  // Mettre à jour pourcentage global
+  const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+  const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+  statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-        // === Validation + points (inchangé) ===
-        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == itemId);
-        const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-        let newValidation;
-        let pointsGagnes = 0;
+  console.log(`📊 Mise à jour pour "${revisionMode.currentQuestion}" (ID ${key}): Tentatives=${statsCache.items[key].tentatives}, Réussites=${statsCache.items[key].reussites}, Pourcentage=${statsCache.items[key].pourcentage.toFixed(2)}%`);
+  console.log('📈 Pourcentage global:', statsCache.globalPourcentage.toFixed(2) + '%');
 
-        if (isCorrect) {
-          newValidation = currentValidation + 1;
-          if (currentValidation < seuilValidation) pointsGagnes = 1;
-        } else {
-          newValidation = Math.max(5, currentValidation - 2);
-          const oldDeficit = Math.max(0, seuilValidation - currentValidation);
-          const newDeficit = Math.max(0, seuilValidation - newValidation);
-          pointsGagnes = oldDeficit - newDeficit;
-        }
+  // Modification de la validation en mode révision
+  const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
+  if (hiraganaIndex !== -1) {
+    const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+    
+    let newValidation;
+    let pointsGagnes = 0;
 
-        HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-        validationCache[itemId] = newValidation;
-
-        if (wasBlockedWhenEnteringRevision) {
-          pointsGagnesEnRevision += pointsGagnes;
-          updateUnlockProgress();
-        }
-
-        // === Calcul pour les animations ===
-        const oldEmoji = getPlantEmoji(currentValidation);
-        const newEmoji = getPlantEmoji(newValidation);
-        const statusChanged = oldEmoji !== newEmoji; // surtout vrai lors du passage 🌿 ↔ 🌸
-console.log(`DEBUG: Réponse traitée → isCorrect=${isCorrect}, oldValidation=${currentValidation}, newValidation=${newValidation}`);
-console.log(`DEBUG: Emoji: old=${oldEmoji}, new=${newEmoji}, statusChanged=${statusChanged}`);
-console.log('DEBUG: Appel à openRevisionFlashcard() pour afficher la flashcard');
-        // === AFFICHAGE DE LA FLASHCARD PENDANT 1 SECONDE ===
-       openRevisionFlashcard(
-  revisionMode.currentItem,
-  newEmoji,
-  null,                    // duration = null → fermeture manuelle
-  statusChanged,
-  true,
-  isCorrect                // ← la valeur que tu as déjà !
-);
-// === FORCAGE VISUEL IMMÉDIAT (aucun z-index ne peut résister) ===
-setTimeout(() => {
-  const modal = document.getElementById('garden-modal');
-  modal.style.cssText = `
-    position:fixed !important;
-    top:50% !important; left:50% !important;
-    transform:translate(-50%,-50%) !important;
-    z-index:2147483647 !important;   /* z-index maximum possible en 32 bits */
-    display:flex !important;
-    opacity:1 !important;
-    pointer-events:auto !important;
-    background:rgba(0,0,0,0.4) !important;   /* juste pour voir qu'elle est bien là */
-  `;
-  const card = document.querySelector('#garden-modal .garden-card');
-  if (card) card.style.cssText = 'position:relative !important; z-index:2147483647 !important; transform:none !important;';
-}, 50);   // léger délai pour être sûr que openGardenModal a fini
-        // === Feedback texte + couleur ===
-        const niveau = parseInt(revisionMode.currentItem.Niveau || 1);
-        const isHighLevel = niveau > 38;
-        const isMultiChar = revisionMode.romajiSegments.length >= 2;
-        const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
-
-        if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? t('revision_ok') : katakanaDisplay;
-          document.getElementById("revision-message").style.color = "#8B6F47";
-          playZenBell();
-        } else {
-          document.getElementById("revision-message").textContent = isHighLevel
-            ? t('revision_wrong')
-            : `${t('revision_correct_answer')} ${revisionMode.fullCorrect}${katakanaDisplay}`;
-          document.getElementById("revision-message").style.color = "#8B6F47";
-          playSoftError();
-        }
-
-        // === Mise à jour bulle de validation sur la carte (optionnel mais joli) ===
-        const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
-        if (currentCard) {
-          showValidationBubble(currentCard, newValidation, seuilValidation);
-        }
-
-        // === Envoi stats en arrière-plan ===
-        queueUpdateStats({ token: userToken, id: itemId, scorePoints: isCorrect ? 1 : 0, isRevisionMode: true });
-
-        // === Rafraîchissement stats si page ouverte ===
-        if (document.getElementById('stats').classList.contains('active')) {
-          setTimeout(generateGarden, 100);
-        }
-
-        // === Prochaine question (on laisse le temps à la flashcard d’être vue) ===
-        console.log('DEBUG: Feedback affiché → attente pour prochaine question');
-        setTimeout(() => {
-          startRevisionQuestion();
-        }, isCorrect ? 2500 : 3500); // 1 s flashcard + marge confortable
+    if (isCorrect) {
+      newValidation = currentValidation + 1;
+      if (currentValidation < seuilValidation) {
+        pointsGagnes = 1;
       }
+    } else {
+      newValidation = Math.max(5, currentValidation - 2);
+      const oldDeficit = Math.max(0, seuilValidation - currentValidation);
+      const newDeficit = Math.max(0, seuilValidation - newValidation);
+      pointsGagnes = oldDeficit - newDeficit;
+    }
+
+    HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+    validationCache[revisionMode.currentItem.ID] = newValidation;
+
+    if (wasBlockedWhenEnteringRevision) {
+      pointsGagnesEnRevision += pointsGagnes;
+      console.log(`📊 Validation: ${currentValidation}→${newValidation} | Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
+      updateUnlockProgress();
+    }
+    
+    console.log(`🔒 Mode révision - Validation: ${newValidation} (était: ${currentValidation})`);
+  }
+
+  // ✅ Mettre en file d'attente l'appel API (en background, sans attendre)
+  queueUpdateStats({
+    token: userToken,
+    id: parseInt(revisionMode.currentItem.ID),
+    scorePoints: isCorrect ? 1 : 0,
+    isRevisionMode: true
+  });
+// ✅ Rafraîchir les stats si la page est ouverte
+if (document.getElementById('stats').classList.contains('active')) {
+  setTimeout(() => {
+    generateStatsPage();
+  }, 100);
+}
+  // Mettre à jour la barre de déblocage
+  if (wasBlockedWhenEnteringRevision) {
+    updateUnlockProgress();
+  }
+
+  // Afficher feedback
+if (isCorrect) {
+  document.getElementById("revision-message").textContent = isHighLevel ? t('revision_ok') : `${katakanaDisplay}`;
+  document.getElementById("revision-message").style.color = "#8B6F47";
+  playZenBell();
+} else {
+  document.getElementById("revision-message").textContent = isHighLevel 
+    ? t('revision_wrong')
+    : `${t('revision_correct_answer')} ${revisionMode.fullCorrect}${katakanaDisplay}`;
+  document.getElementById("revision-message").style.color = "#8B6F47";
+  playSoftError();
+}
+
+  // Jouer son MP3
+  const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
+  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+  const audio = new Audio(audioUrl);
+  audio.play().catch(e => console.warn('Erreur audio:', e));
+
+// 💬 Affiche mise à jour du score après la réponse
+const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
+if (currentCard) {
+  const newVal = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+  showValidationBubble(currentCard, newVal, seuilValidation);
+}
+
+      
+  setTimeout(() => {
+    startRevisionQuestion();
+  }, isCorrect ? 2000 : 3000);
+}
     });
   });
 }
-  function getPlantEmoji(validation) {
-    if (validation >= seuilValidation) {
-      return ['🌸', '🌸', '🌸', '🌸'][Math.floor(Math.random() * 4)];
-    } else if (validation >= 5) {
-      return ['🌿', '🌿', '🌿', '🌿'][Math.floor(Math.random() * 4)];
-    } else {
-      return ['🌱', '🌱'][Math.floor(Math.random() * 2)];
-    }
-  }  
+  
 // Appeler l'initialisation au chargement de la page
 window.addEventListener('load', () => {
   initRevisionKeyboard();
@@ -5598,111 +5413,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
