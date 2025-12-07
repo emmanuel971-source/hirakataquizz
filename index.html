@@ -236,6 +236,71 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 .garden-card .romaji { font-size: 1.8em; margin: 0.8em 0; color: #555; }
 .garden-card .info { margin: 1em 0; font-size: 1.2em; }
 .garden-card .close-btn { margin-top: 1.5em; padding: 0.8em 2em; font-size: 1.2em; }
+/* Animation transformation de plante */
+.plant-transform {
+  animation: plantMorph 1s ease-in-out;
+}
+
+@keyframes plantMorph {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  45% {
+    transform: scale(1.5);
+    opacity: 0.3;
+  }
+  55% {
+    transform: scale(1.5);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Animation glow du score */
+.score-glow {
+  animation: scoreGlow 0.8s ease-in-out;
+  font-weight: bold;
+}
+
+@keyframes scoreGlow {
+  0%, 100% {
+    text-shadow: 0 0 5px rgba(139, 111, 71, 0.5);
+  }
+  50% {
+    text-shadow: 
+      0 0 10px rgba(139, 111, 71, 0.8),
+      0 0 20px rgba(168, 213, 186, 0.6),
+      0 0 30px rgba(168, 213, 186, 0.4);
+    transform: scale(1.2);
+  }
+}
+
+/* Amélioration de la modal pour le mode révision */
+.garden-modal.revision-mode {
+  backdrop-filter: blur(5px);
+}
+
+.garden-modal.revision-mode .garden-card {
+  animation: revisionCardPop 0.3s ease-out;
+}
+
+@keyframes revisionCardPop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}    
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.0em; } .garden-bug { font-size: 0.8em; } .garden-hiragana { font-size: 1.0em; } .garden-level { gap: 0.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 95%; } .garden-item { aspect-ratio: 1; } }
 @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.7em; } .garden-hiragana { font-size: 1.2em; } .garden-level { gap: 1.4em; } .garden-legend { gap: 1em; font-size: 0.9em; } }
 
@@ -2687,6 +2752,84 @@ function openGardenModal(item, emoji) {
 function closeGardenModal() {
   document.getElementById('garden-modal').classList.remove('visible');
 }    
+function openRevisionFlashcard(item, currentEmoji, oldEmoji, newValidation, oldValidation) {
+  const modal = document.getElementById('garden-modal');
+  const plantDiv = document.getElementById('modal-plant');
+  const scoreSpan = document.getElementById('modal-validation');
+  
+  // Afficher les infos de base
+  document.getElementById('modal-hiragana').textContent = item.Hiragana;
+  document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
+  document.getElementById('modal-romaji').textContent = item.Romaji;
+  document.getElementById('modal-level').textContent = item.Niveau;
+  
+  // Détecter changement de statut
+  const hasChanged = oldEmoji !== currentEmoji;
+  
+  if (hasChanged) {
+    // Animation de transformation de plante
+    plantDiv.textContent = oldEmoji;
+    plantDiv.classList.add('plant-transform');
+    
+    setTimeout(() => {
+      plantDiv.textContent = currentEmoji;
+    }, 500); // Transformation au milieu de l'animation
+    
+  } else {
+    // Pas de changement, juste afficher la plante actuelle
+    plantDiv.textContent = currentEmoji;
+    plantDiv.className = ''; // Reset classes
+  }
+  
+  // Animation du score avec compteur
+  animateScoreCounter(scoreSpan, oldValidation, newValidation);
+  
+  // Ouvrir la modal
+  modal.classList.add('visible');
+  
+  // Jouer le son MP3
+  const hiraganaItem = HiraganaList.find(h => h.ID == item.ID);
+  const hiraganaChar = hiraganaItem ? hiraganaItem.Hiragana : item.Hiragana;
+  const audioFile = `${encodeURIComponent(hiraganaChar)}.mp3`;
+  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+  const audio = new Audio(audioUrl);
+  audio.play().catch(e => console.warn('Erreur audio:', e));
+  
+  // Fermer automatiquement après 2 secondes
+  setTimeout(() => {
+    closeGardenModal();
+    plantDiv.classList.remove('plant-transform');
+  }, 2000);
+}
+function animateScoreCounter(element, startValue, endValue) {
+  const duration = 800; // durée en ms
+  const startTime = performance.now();
+  const diff = endValue - startValue;
+  
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Easing (ease-out cubic)
+    const easeProgress = 1 - Math.pow(1 - progress, 3);
+    
+    const currentValue = Math.round(startValue + (diff * easeProgress));
+    element.textContent = currentValue;
+    
+    // Ajouter glow pendant l'animation
+    if (progress < 1) {
+      element.classList.add('score-glow');
+      requestAnimationFrame(update);
+    } else {
+      setTimeout(() => {
+        element.classList.remove('score-glow');
+      }, 300);
+    }
+  }
+  
+  requestAnimationFrame(update);
+}
+    
 function updateFilterCounts(data) {
   const counts = {
     all: data.length,
@@ -5216,7 +5359,8 @@ function initRevisionKeyboard() {
   const hiraganaIndex = HiraganaList.findIndex(h => h.ID == revisionMode.currentItem.ID);
   if (hiraganaIndex !== -1) {
     const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
-    
+    // ✅ CAPTURER L'ANCIEN EMOJI ICI
+    const oldEmoji = getPlantEmoji(currentValidation);
     let newValidation;
     let pointsGagnes = 0;
 
@@ -5234,7 +5378,8 @@ function initRevisionKeyboard() {
 
     HiraganaList[hiraganaIndex].Validation = newValidation.toString();
     validationCache[revisionMode.currentItem.ID] = newValidation;
-
+    // ✅ CAPTURER LE NOUVEL EMOJI
+    const newEmoji = getPlantEmoji(newValidation);
     if (wasBlockedWhenEnteringRevision) {
       pointsGagnesEnRevision += pointsGagnes;
       console.log(`📊 Validation: ${currentValidation}→${newValidation} | Points cette question: ${pointsGagnes} | Total gagné: ${pointsGagnesEnRevision}/${deficitInitialRevision}`);
@@ -5264,8 +5409,13 @@ if (document.getElementById('stats').classList.contains('active')) {
 
   // Afficher feedback
 if (isCorrect) {
-  document.getElementById("revision-message").textContent = isHighLevel ? t('revision_ok') : `${katakanaDisplay}`;
-  document.getElementById("revision-message").style.color = "#8B6F47";
+    openRevisionFlashcard(
+      revisionMode.currentItem, 
+      newEmoji, 
+      oldEmoji, 
+      newValidation, 
+      currentValidation
+    );
   playZenBell();
 } else {
   document.getElementById("revision-message").textContent = isHighLevel 
@@ -5289,9 +5439,9 @@ if (currentCard) {
 }
 
       
-  setTimeout(() => {
-    startRevisionQuestion();
-  }, isCorrect ? 2000 : 3000);
+    setTimeout(() => {
+      startRevisionQuestion();
+    }, 2200); // 2200ms = 2s d'affichage + 200ms de marge
 }
     });
   });
@@ -5413,6 +5563,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
