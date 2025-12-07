@@ -5195,13 +5195,14 @@ function updateRevisionFeedback() {
 // Initialiser les événements du clavier de révision
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
-  revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true))); // reset event listeners
+  revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true)));
   const newRevisionKeys = document.querySelectorAll('.revision-key');
 
   newRevisionKeys.forEach(key => {
     key.addEventListener("click", async () => {
       if (!revisionMode.isActive) return;
 
+      // Saisie ou effacement
       if (key.id === "revision-back") {
         revisionMode.input = revisionMode.input.slice(0, -1);
       } else {
@@ -5213,12 +5214,12 @@ function initRevisionKeyboard() {
 
       const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1] || 1;
 
-      // Réponse complète → on traite
+      // Réponse complète → on valide
       if (revisionMode.input.length >= totalLength) {
         const isCorrect = revisionMode.input === revisionMode.fullCorrect;
         const itemId = parseInt(revisionMode.currentItem.ID);
 
-        // === Mise à jour des stats (inchangée) ===
+        // === Stats (inchangé) ===
         statsCache.items[itemId] = statsCache.items[itemId] || { tentatives: 0, reussites: 0, pourcentage: 0 };
         statsCache.items[itemId].tentatives += 1;
         statsCache.items[itemId].reussites += isCorrect ? 1 : 0;
@@ -5230,7 +5231,7 @@ function initRevisionKeyboard() {
         const totalReussites = Object.values(statsCache.items).reduce((s, i) => s + i.reussites, 0);
         statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-        // === Mise à jour de la validation (inchangée) ===
+        // === Validation + points (inchangé) ===
         const hiraganaIndex = HiraganaList.findIndex(h => h.ID == itemId);
         const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
         let newValidation;
@@ -5254,28 +5255,28 @@ function initRevisionKeyboard() {
           updateUnlockProgress();
         }
 
-        // === NOUVEAU : Calcul pour les animations ===
+        // === Calcul pour les animations ===
         const oldEmoji = getPlantEmoji(currentValidation);
         const newEmoji = getPlantEmoji(newValidation);
-        const statusChanged = oldEmoji !== newEmoji; // surtout utile pour 🌿 ↔ 🌸
+        const statusChanged = oldEmoji !== newEmoji; // surtout vrai lors du passage 🌿 ↔ 🌸
 
-        // === AFFICHAGE DE LA FLASHCARD (1 seconde) ===
+        // === AFFICHAGE DE LA FLASHCARD PENDANT 1 SECONDE ===
         openGardenModal(
-          revisionMode.currentItem,     // l'item
-          newEmoji,                     // emoji mis à jour
-          1000,                         // durée visible = 1 seconde
-          statusChanged,                // animation plante si changement de statut
-          true                          // toujours scintillement du score (car il a changé)
+          revisionMode.currentItem,   // l’item
+          newEmoji,                   // emoji à jour
+          1000,                       // durée visible = 1 seconde
+          statusChanged,              // animation plante si changement de statut
+          true                        // toujours scintillement du score
         );
 
-        // === Feedback texte + son (inchangé) ===
+        // === Feedback texte + couleur ===
         const niveau = parseInt(revisionMode.currentItem.Niveau || 1);
         const isHighLevel = niveau > 38;
         const isMultiChar = revisionMode.romajiSegments.length >= 2;
         const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
 
         if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? t('revision_ok') : `${katakanaDisplay}`;
+          document.getElementById("revision-message").textContent = isHighLevel ? t('revision_ok') : katakanaDisplay;
           document.getElementById("revision-message").style.color = "#8B6F47";
           playZenBell();
         } else {
@@ -5286,24 +5287,24 @@ function initRevisionKeyboard() {
           playSoftError();
         }
 
-        // Son du hiragana
-        const audioFile = `${encodeURIComponent(revisionMode.currentItem.Hiragana)}.mp3`;
-        const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`);
-        audio.play().catch(() => {});
-
-        // Mise à jour de la bulle de validation sur la carte (facultatif mais joli)
+        // === Mise à jour bulle de validation sur la carte (optionnel mais joli) ===
         const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
         if (currentCard) {
           showValidationBubble(currentCard, newValidation, seuilValidation);
         }
 
-        // API en arrière-plan
+        // === Envoi stats en arrière-plan ===
         queueUpdateStats({ token: userToken, id: itemId, scorePoints: isCorrect ? 1 : 0, isRevisionMode: true });
 
-        // === Prochaine question (on attend que la flashcard ait eu le temps d’être vue) ===
+        // === Rafraîchissement stats si page ouverte ===
+        if (document.getElementById('stats').classList.contains('active')) {
+          setTimeout(generateGarden, 100);
+        }
+
+        // === Prochaine question (on laisse le temps à la flashcard d’être vue) ===
         setTimeout(() => {
           startRevisionQuestion();
-        }, isCorrect ? 2500 : 3500); // +1,5 s pour laisser la modale visible tranquillement
+        }, isCorrect ? 2500 : 3500); // 1 s flashcard + marge confortable
       }
     });
   });
@@ -5433,6 +5434,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
