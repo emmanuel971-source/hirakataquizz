@@ -2710,54 +2710,62 @@ function getPlantEmoji(validation) {
 // function openGardenModal du mode révisions  
 let modalCloseTimer = null; // Variable globale pour annuler le timer précédent    
 function openRevisionFlashcard(item, emoji, duration = 2200, animateStatusChange = false, animateScore = false) {
-  console.log(`DEBUG: Début openGardenModal() → duration=${duration}, itemID=${item.ID}, emoji=${emoji}`);
-
-  // 1. Nettoyage propre
+  // 1. Annule tout timer précédent
   if (modalCloseTimer) clearTimeout(modalCloseTimer);
-  document.getElementById('garden-modal').classList.remove('visible');
 
-  // 2. On force l'ouverture au prochain tick (remplace requestAnimationFrame)
-  setTimeout(() => {
-    try {
-      document.getElementById('modal-plant').textContent = emoji;
-      document.getElementById('modal-hiragana').textContent = item.Hiragana || '';
-      document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
-      document.getElementById('modal-romaji').textContent = item.Romaji || '';
-      document.getElementById('modal-level').textContent = item.Niveau || '?';
+  // 2. Crée une flashcard temporaire directement dans le <body>
+  const flashcard = document.createElement('div');
+  flashcard.id = 'temp-revision-flashcard';
+  flashcard.style.cssText = `
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 999999999 !important;
+    background: white !important;
+    padding: 2em 2.5em !important;
+    border-radius: 20px !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6) !important;
+    text-align: center !important;
+    max-width: 90% !important;
+    font-family: sans-serif !important;
+    pointer-events: none !important;
+    animation: fadeInOut ${duration/1000}s ease-in-out forwards;
+  `;
 
-      const validationEl = document.getElementById('modal-validation');
-      validationEl.textContent = validationCache[parseInt(item.ID)] || 0;
+  flashcard.innerHTML = `
+    <div style="font-size:3.2em;margin-bottom:0.4em;">${emoji}</div>
+    <h2 style="margin:0.2em 0;font-size:3em;">${item.Hiragana}</h2>
+    <div style="font-size:1.8em;color:#8B6F47;">${getLocalizedKatakana(item) || '-'}</div>
+    <div style="font-size:1.6em;color:#555;margin:0.8em 0;">${item.Romaji}</div>
+    <div style="margin-top:1em;">
+      Niveau <strong>${item.Niveau}</strong> • Score = <strong>${validationCache[parseInt(item.ID)] || 0}</strong>
+    </div>
+  `;
 
-      // Animations
-      const plantEl = document.getElementById('modal-plant');
-      if (animateStatusChange) {
-        plantEl.classList.add('plant-status-change');
-        setTimeout(() => plantEl.classList.remove('plant-status-change'), 600);
-      }
-      if (animateScore) {
-        validationEl.classList.add('score-sparkle');
-        setTimeout(() => validationEl.classList.remove('score-sparkle'), 700);
-      }
-
-      // OUVERTURE FORCÉE
-      console.log('DEBUG: Modale ouverte visuellement maintenant');
-      document.getElementById('garden-modal').classList.add('visible');
-
-      // Son
-      const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
-      audio.play().catch(() => {});
-
-      // Timer de fermeture
-      modalCloseTimer = setTimeout(() => {
-        console.log('DEBUG: Fermeture automatique après', duration, 'ms');
-        closeGardenModal();
-        modalCloseTimer = null;
-      }, duration);
-
-    } catch (err) {
-      console.error('ERREUR dans openGardenModal:', err);
+  // Animation fade in/out
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeInOut {
+      0%, 100% { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+      15%, 85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     }
-  }, 0); // 0ms = prochain tick, toujours exécuté
+  `;
+  document.head.appendChild(style);
+
+  // Ajoute au body
+  document.body.appendChild(flashcard);
+
+  // Son
+  const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
+  audio.play().catch(() => {});
+
+  // Suppression automatique
+  modalCloseTimer = setTimeout(() => {
+    if (flashcard.parentNode) flashcard.parentNode.removeChild(flashcard);
+    style.parentNode.removeChild(style);
+    modalCloseTimer = null;
+  }, duration);
 }
     
 // Ferme la flashcard
@@ -5465,6 +5473,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
