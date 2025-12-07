@@ -2699,61 +2699,55 @@ function generateGarden() {
 // Ouvre la flashcard
 let modalCloseTimer = null;
 
-function openGardenModal(item, emoji, duration = 3200, animateStatusChange = false, animateScore = false) {
-  // 1. Annule tout timer précédent
+function openGardenModal(item, emoji, duration = 3000, animateStatusChange = false, animateScore = false) {
   if (modalCloseTimer) clearTimeout(modalCloseTimer);
 
-  // 2. Crée une flashcard temporaire directement dans le <body>
   const flashcard = document.createElement('div');
   flashcard.id = 'temp-revision-flashcard';
   flashcard.style.cssText = `
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 999999999 !important;
-    background: white !important;
-    padding: 2em 2.5em !important;
-    border-radius: 20px !important;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6) !important;
-    text-align: center !important;
-    max-width: 90% !important;
-    font-family: sans-serif !important;
-    pointer-events: none !important;
+    position:fixed !important; top:50%; left:50%; transform:translate(-50%,-50%) !important;
+    z-index:999999999 !important; background:white !important; padding:2em 2.5em !important;
+    border-radius:20px !important; box-shadow:0 20px 40px rgba(0,0,0,0.6) !important;
+    text-align:center !important; max-width:90% !important; pointer-events:none !important;
     animation: fadeInOut ${duration/1000}s ease-in-out forwards;
   `;
 
+  // On met les classes d’animation directement sur les bons éléments
+  const plantClass = animateStatusChange ? 'plant-status-change' : '';
+  const scoreClass  = animateScore ? 'score-sparkle' : '';
+
   flashcard.innerHTML = `
-    <div style="font-size:3.2em;margin-bottom:0.4em;">${emoji}</div>
+    <div style="font-size:3.2em;margin-bottom:0.4em;" class="${plantClass}">${emoji}</div>
     <h2 style="margin:0.2em 0;font-size:3em;">${item.Hiragana}</h2>
     <div style="font-size:1.8em;color:#8B6F47;">${getLocalizedKatakana(item) || '-'}</div>
     <div style="font-size:1.6em;color:#555;margin:0.8em 0;">${item.Romaji}</div>
     <div style="margin-top:1em;">
-      Niveau <strong>${item.Niveau}</strong> • Score = <strong>${validationCache[parseInt(item.ID)] || 0}</strong>
+      Niveau <strong>${item.Niveau}</strong> • Score = <strong class="${scoreClass}">${validationCache[parseInt(item.ID)] || 0}</strong>
     </div>
   `;
 
-  // Animation fade in/out
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes fadeInOut {
-      0%, 100% { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
-      15%, 85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    }
-  `;
-  document.head.appendChild(style);
+  // Animation fade + zoom (inchangée)
+  if (!document.getElementById('temp-flashcard-style')) {
+    const style = document.createElement('style');
+    style.id = 'temp-flashcard-style';
+    style.textContent = `
+      @keyframes fadeInOut { 0%,100%{opacity:0;transform:translate(-50%,-60%) scale(0.8)}
+                            15%,85%{opacity:1;transform:translate(-50%,-50%) scale(1)} }
+      .plant-status-change { animation: plantBloom 0.8s ease-in-out !important; }
+      .score-sparkle       { animation: sparkle 1s ease-in-out !important; }
+    `;
+    document.head.appendChild(style);
+  }
 
-  // Ajoute au body
   document.body.appendChild(flashcard);
 
   // Son
   const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
   audio.play().catch(() => {});
 
-  // Suppression automatique
+  // Suppression
   modalCloseTimer = setTimeout(() => {
     if (flashcard.parentNode) flashcard.parentNode.removeChild(flashcard);
-    style.parentNode.removeChild(style);
     modalCloseTimer = null;
   }, duration);
 }
@@ -5506,6 +5500,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
