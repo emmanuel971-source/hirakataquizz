@@ -2681,55 +2681,57 @@ function generateGarden() {
   }
 }
 // Ouvre la flashcard
-let modalCloseTimer = null; // Variable globale pour annuler le timer précédent
+let modalCloseTimer = null;
 
 function openGardenModal(item, emoji, duration = 2200, animateStatusChange = false, animateScore = false) {
   console.log(`DEBUG: Début openGardenModal() → duration=${duration}, itemID=${item.ID}, emoji=${emoji}`);
-  // Annule tout timer précédent (CRUCIAL !)
+
+  // 1. Nettoyage propre
   if (modalCloseTimer) clearTimeout(modalCloseTimer);
-console.log('DEBUG: Timer précédent annulé');
-  // Ferme immédiatement au cas où elle serait encore ouverte
   document.getElementById('garden-modal').classList.remove('visible');
-console.log('DEBUG: Modale forcée fermée avant ouverture');
-  // Petite pause pour forcer le reflow (évite le bug d'affichage)
-  requestAnimationFrame(() => {
-    document.getElementById('modal-plant').textContent = emoji;
-    document.getElementById('modal-hiragana').textContent = item.Hiragana;
-    document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
-    document.getElementById('modal-romaji').textContent = item.Romaji;
-    document.getElementById('modal-level').textContent = item.Niveau;
 
-    const validationEl = document.getElementById('modal-validation');
-    validationEl.textContent = validationCache[parseInt(item.ID)] || 0;
+  // 2. On force l'ouverture au prochain tick (remplace requestAnimationFrame)
+  setTimeout(() => {
+    try {
+      document.getElementById('modal-plant').textContent = emoji;
+      document.getElementById('modal-hiragana').textContent = item.Hiragana || '';
+      document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
+      document.getElementById('modal-romaji').textContent = item.Romaji || '';
+      document.getElementById('modal-level').textContent = item.Niveau || '?';
 
-    // Animations
-    const plantEl = document.getElementById('modal-plant');
-    if (animateStatusChange) {
-      plantEl.classList.add('plant-status-change');
-      setTimeout(() => plantEl.classList.remove('plant-status-change'), 600);
+      const validationEl = document.getElementById('modal-validation');
+      validationEl.textContent = validationCache[parseInt(item.ID)] || 0;
+
+      // Animations
+      const plantEl = document.getElementById('modal-plant');
+      if (animateStatusChange) {
+        plantEl.classList.add('plant-status-change');
+        setTimeout(() => plantEl.classList.remove('plant-status-change'), 600);
+      }
+      if (animateScore) {
+        validationEl.classList.add('score-sparkle');
+        setTimeout(() => validationEl.classList.remove('score-sparkle'), 700);
+      }
+
+      // OUVERTURE FORCÉE
+      console.log('DEBUG: Modale ouverte visuellement maintenant');
+      document.getElementById('garden-modal').classList.add('visible');
+
+      // Son
+      const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
+      audio.play().catch(() => {});
+
+      // Timer de fermeture
+      modalCloseTimer = setTimeout(() => {
+        console.log('DEBUG: Fermeture automatique après', duration, 'ms');
+        closeGardenModal();
+        modalCloseTimer = null;
+      }, duration);
+
+    } catch (err) {
+      console.error('ERREUR dans openGardenModal:', err);
     }
-    if (animateScore) {
-      validationEl.classList.add('score-sparkle');
-      setTimeout(() => validationEl.classList.remove('score-sparkle'), 700);
-    }
-
-    // Ouvre la modale
-    console.log('DEBUG: Contenu modale rempli → ouverture');
-    document.getElementById('garden-modal').classList.add('visible');
-
-    // Son
-    console.log('DEBUG: Son joué');
-    const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
-    audio.play().catch(() => {});
-
-    // Nouveau timer propre
-    console.log(`DEBUG: Timer lancé pour fermeture en ${duration}ms`);
-    modalCloseTimer = setTimeout(() => {
-      console.log('DEBUG: Timer expiré → fermeture modale');
-      closeGardenModal();
-      modalCloseTimer = null;
-    }, duration);
-  });
+  }, 0); // 0ms = prochain tick, toujours exécuté
 }
 // Ferme la flashcard
 function closeGardenModal() {
@@ -5465,6 +5467,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
