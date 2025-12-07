@@ -2693,7 +2693,7 @@ function openGardenModal(item, emoji, duration = 2200, animateStatusChange = fal
     document.getElementById('modal-hiragana').textContent = item.Hiragana;
     document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
     document.getElementById('modal-romaji').textContent = item.Romaji;
-    document.getElementById('modal-level').textContent = item.Niveau.;
+    document.getElementById('modal-level').textContent = item.Niveau;
 
     const validationEl = document.getElementById('modal-validation');
     validationEl.textContent = validationCache[parseInt(item.ID)] || 0;
@@ -5447,6 +5447,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
