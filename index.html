@@ -2712,29 +2712,34 @@ function openGardenModal(item, emoji, duration = 3000, animateStatusChange = fal
     animation: fadeInOut ${duration/1000}s ease-in-out forwards;
   `;
 
-  // On met les classes d’animation directement sur les bons éléments
-  const plantClass = animateStatusChange ? 'plant-status-change' : '';
-  const scoreClass  = animateScore ? 'score-sparkle' : '';
+  // On garde l'ancien emoji pendant les 150 premières ms → puis on passe au nouveau avec l'animation
+  const oldEmoji = getPlantEmoji(validationCache[parseInt(item.ID)] - (animateScore ? 1 : 0)); // -1 si on vient d'augmenter
 
   flashcard.innerHTML = `
-    <div style="font-size:3.2em;margin-bottom:0.4em;" class="${plantClass}">${emoji}</div>
+    <div id="temp-plant" style="font-size:3.2em;margin-bottom:0.4em;">${animateStatusChange ? oldEmoji : emoji}</div>
     <h2 style="margin:0.2em 0;font-size:3em;">${item.Hiragana}</h2>
     <div style="font-size:1.8em;color:#8B6F47;">${getLocalizedKatakana(item) || '-'}</div>
     <div style="font-size:1.6em;color:#555;margin:0.8em 0;">${item.Romaji}</div>
     <div style="margin-top:1em;">
-      Niveau <strong>${item.Niveau}</strong> • Score = <strong class="${scoreClass}">${validationCache[parseInt(item.ID)] || 0}</strong>
+      Niveau <strong>${item.Niveau}</strong> • Score = <strong class="${animateScore ? 'score-sparkle' : ''}">${validationCache[parseInt(item.ID)] || 0}</strong>
     </div>
   `;
 
-  // Animation fade + zoom (inchangée)
+  // Style + animations (on ajoute une version plus longue et plus visible du bloom)
   if (!document.getElementById('temp-flashcard-style')) {
     const style = document.createElement('style');
     style.id = 'temp-flashcard-style';
     style.textContent = `
       @keyframes fadeInOut { 0%,100%{opacity:0;transform:translate(-50%,-60%) scale(0.8)}
-                            15%,85%{opacity:1;transform:translate(-50%,-50%) scale(1)} }
-      .plant-status-change { animation: plantBloom 0.8s ease-in-out !important; }
-      .score-sparkle       { animation: sparkle 1s ease-in-out !important; }
+                            10%,90%{opacity:1;transform:translate(-50%,-50%) scale(1)} }
+      @keyframes plantBloom {
+        0%   { transform: scale(1) rotate(0deg); }
+        30%  { transform: scale(1.4) rotate(8deg); }
+        70%  { transform: scale(0.9) rotate(-6deg); }
+        100% { transform: scale(1) rotate(0deg); }
+      }
+      .plant-bloom { animation: plantBloom 1.4s ease-in-out !important; }
+      .score-sparkle { animation: sparkle 1.2s ease-in-out !important; }
     `;
     document.head.appendChild(style);
   }
@@ -2744,6 +2749,17 @@ function openGardenModal(item, emoji, duration = 3000, animateStatusChange = fal
   // Son
   const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
   audio.play().catch(() => {});
+
+  // === LANCEMENT DE L'ANIMATION PLANTE APRÈS UN PETIT DÉLAI ===
+  if (animateStatusChange) {
+    setTimeout(() => {
+      const plantEl = document.getElementById('temp-plant');
+      if (plantEl) {
+        plantEl.textContent = emoji;           // on passe au nouvel emoji
+        plantEl.classList.add('plant-bloom');   // et on lance l’animation complète
+      }
+    }, 180); // 180 ms = juste assez pour que la carte soit visible, mais avant que l’œil ait fini de lire
+  }
 
   // Suppression
   modalCloseTimer = setTimeout(() => {
@@ -5500,6 +5516,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
