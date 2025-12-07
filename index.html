@@ -2699,59 +2699,63 @@ function generateGarden() {
 // Ouvre la flashcard
 let modalCloseTimer = null;
 
-function openGardenModal(item, emoji, duration = 2200, animateStatusChange = false, animateScore = false) {
-  // 1. Nettoyage
+function openGardenModal(item, emoji, duration = 3200, animateStatusChange = false, animateScore = false) {
+  // 1. Annule tout timer précédent
   if (modalCloseTimer) clearTimeout(modalCloseTimer);
-  document.getElementById('garden-modal').classList.remove('visible');
 
-  // 2. On réutilise TA belle modale (plus de div moche)
-  setTimeout(() => {
-    // Contenu
-    document.getElementById('modal-plant').textContent = emoji;
-    document.getElementById('modal-hiragana').textContent = item.Hiragana;
-    document.getElementById('modal-katakana').textContent = getLocalizedKatakana(item) || '-';
-    document.getElementById('modal-romaji').textContent = item.Romaji;
-    document.getElementById('modal-level').textContent = item.Niveau;
-    document.getElementById('modal-validation').textContent = validationCache[parseInt(item.ID)] || 0;
+  // 2. Crée une flashcard temporaire directement dans le <body>
+  const flashcard = document.createElement('div');
+  flashcard.id = 'temp-revision-flashcard';
+  flashcard.style.cssText = `
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 999999999 !important;
+    background: white !important;
+    padding: 2em 2.5em !important;
+    border-radius: 20px !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6) !important;
+    text-align: center !important;
+    max-width: 90% !important;
+    font-family: sans-serif !important;
+    pointer-events: none !important;
+    animation: fadeInOut ${duration/1000}s ease-in-out forwards;
+  `;
 
-    // Animations bonus
-    const plant = document.getElementById('modal-plant');
-    const score = document.getElementById('modal-validation');
-    if (animateStatusChange) {
-      plant.classList.add('plant-status-change');
-      setTimeout(() => plant.classList.remove('plant-status-change'), 800);
+  flashcard.innerHTML = `
+    <div style="font-size:3.2em;margin-bottom:0.4em;">${emoji}</div>
+    <h2 style="margin:0.2em 0;font-size:3em;">${item.Hiragana}</h2>
+    <div style="font-size:1.8em;color:#8B6F47;">${getLocalizedKatakana(item) || '-'}</div>
+    <div style="font-size:1.6em;color:#555;margin:0.8em 0;">${item.Romaji}</div>
+    <div style="margin-top:1em;">
+      Niveau <strong>${item.Niveau}</strong> • Score = <strong>${validationCache[parseInt(item.ID)] || 0}</strong>
+    </div>
+  `;
+
+  // Animation fade in/out
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeInOut {
+      0%, 100% { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+      15%, 85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     }
-    if (animateScore) {
-      score.classList.add('score-sparkle');
-      setTimeout(() => score.classList.remove('score-sparkle'), 1000);
-    }
+  `;
+  document.head.appendChild(style);
 
-    // FORCAGE ABSOLU AU-DESSUS DU CLAVIER (la ligne qui a tout sauvé)
-    const modal = document.getElementById('garden-modal');
-    modal.style.cssText = `
-      position:fixed !important;
-      top:50% !important; left:50% !important;
-      transform:translate(-50%,-50%) !important;
-      z-index:999999999 !important;
-    `;
+  // Ajoute au body
+  document.body.appendChild(flashcard);
 
-    // Ouverture
-    modal.classList.add('visible');
+  // Son
+  const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
+  audio.play().catch(() => {});
 
-    // Son (l’audio a le temps de jouer)
-    const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
-    audio.play().catch(() => {});
-
-    // Durée d’affichage confortable (ajuste à ton goût)
-    const displayTime = 2500;   // ← 2,5 secondes = parfait pour voir l’animation + le score + entendre le son
-
-    modalCloseTimer = setTimeout(() => {
-      modal.classList.remove('visible');
-      modal.style.cssText = ''; // remet le style original
-      modalCloseTimer = null;
-    }, displayTime);
-
-  }, 50);
+  // Suppression automatique
+  modalCloseTimer = setTimeout(() => {
+    if (flashcard.parentNode) flashcard.parentNode.removeChild(flashcard);
+    style.parentNode.removeChild(style);
+    modalCloseTimer = null;
+  }, duration);
 }
 // Ferme la flashcard
 function closeGardenModal() {
@@ -5502,6 +5506,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
