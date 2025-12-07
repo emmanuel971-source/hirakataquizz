@@ -260,6 +260,22 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   50% { transform: scale(1.1); opacity: 0.7; text-shadow: 0 0 10px #FFD700; }
   100% { transform: scale(1); opacity: 1; text-shadow: 0 0 5px #FFD700; }
 }
+/* FORCE LA FLASHCARD AU-DESSUS DE TOUT EN MODE RÉVISION */
+#mode2.active #garden-modal,
+#mode2 #garden-modal.visible {
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Au cas où un autre élément fixe (clavier, message, etc.) soit trop haut */
+#mode2 .revision-keyboard,
+#mode2 #revision-input-display,
+#mode2 #revision-message {
+  z-index: 100 !important; /* bien en dessous de la modale */
+}    
   </style>
 </head>
 <body>
@@ -5467,6 +5483,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
