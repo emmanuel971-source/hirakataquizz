@@ -2174,6 +2174,7 @@ if (sectionId === 'mode2') {
   }
     // ✅ NOUVEAU : Générer les stats quand on ouvre la page stats
 if (sectionId === 'stats') {
+    cleanupRevisionFlashcardStyles();
     setTimeout(generateGarden, 100);
   }
   // ✅ CORRECTION : Ne fermer le menu que s'il est ouvert
@@ -5586,6 +5587,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
