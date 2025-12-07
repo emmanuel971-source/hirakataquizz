@@ -2114,6 +2114,7 @@ function showSection(sectionId) {
   if (sectionId !== 'mode2') { // 'mode2' est l'ID de la section révision
     revisionMode.isActive = false;
     hasUnlockedInRevision = false; // Réinitialiser pour la prochaine session
+    cleanupRevisionFlashcardStyles();
   }
   }
 
@@ -2808,7 +2809,7 @@ function openRevisionFlashcard(item, emoji, duration = null, animateStatusChange
         oldScore.classList.add('roll-down-old');
         newScore.classList.add('roll-in-up');
       }
-    }, 600);
+    }, 1600);
   }
 
   // CLIC N'IMPORTE OÙ = FERME ET SUIVANT
@@ -2833,6 +2834,13 @@ function openRevisionFlashcard(item, emoji, duration = null, animateStatusChange
 // Ferme la flashcard
 function closeGardenModal() {
   document.getElementById('garden-modal').classList.remove('visible');
+}  
+function cleanupRevisionFlashcardStyles() {
+  const style = document.getElementById('revision-flashcard-style');
+  if (style) {
+    document.head.removeChild(style);
+    console.log('Revision styles nettoyés → Mon Jardin retrouve sa beauté');
+  }
 }    
 function updateFilterCounts(data) {
   const counts = {
@@ -5580,6 +5588,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
