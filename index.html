@@ -2127,23 +2127,26 @@ document.querySelectorAll('.section').forEach(section => {
   }
   
   // Démarrer le mode révisions si c'est le mode sélectionné
-  if (sectionId === 'mode2') {
-    wasBlockedWhenEnteringRevision = isApprentissageBloque();
-    if (wasBlockedWhenEnteringRevision) {
-      deficitInitialRevision = calculerDeficitValidation();
-      pointsGagnesEnRevision = 0;
-      console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
-    }
-    hasUnlockedInRevision = false;
-    revisionMode.isActive = true;
-    setTimeout(() => {
-      initRevisionKeyboard();
-      startRevisionQuestion();
-    }, 100);
-  } else {
-    revisionMode.isActive = false;
-    wasBlockedWhenEnteringRevision = false;
+if (sectionId === 'mode2') {
+  console.log('DEBUG: Entrée en mode révision (sectionId=mode2)');
+  wasBlockedWhenEnteringRevision = isApprentissageBloque();
+  if (wasBlockedWhenEnteringRevision) {
+    deficitInitialRevision = calculerDeficitValidation();
+    pointsGagnesEnRevision = 0;
+    console.log(`DEBUG: Apprentissage bloqué → déficit initial = ${deficitInitialRevision}`);
   }
+  hasUnlockedInRevision = false;
+  revisionMode.isActive = true;
+  setTimeout(() => {
+    console.log('DEBUG: Initialisation clavier révision');
+    initRevisionKeyboard();
+    console.log('DEBUG: Appel à startRevisionQuestion() pour première question');
+    startRevisionQuestion();
+  }, 100);
+} else {
+  revisionMode.isActive = false;
+  wasBlockedWhenEnteringRevision = false;
+}
   
   // ✅ NOUVEAU : Générer une question quand on ouvre le mode Apprendre
   if (sectionId === 'quiz') {
@@ -2681,12 +2684,13 @@ function generateGarden() {
 let modalCloseTimer = null; // Variable globale pour annuler le timer précédent
 
 function openGardenModal(item, emoji, duration = 2200, animateStatusChange = false, animateScore = false) {
+  console.log(`DEBUG: Début openGardenModal() → duration=${duration}, itemID=${item.ID}, emoji=${emoji}`);
   // Annule tout timer précédent (CRUCIAL !)
   if (modalCloseTimer) clearTimeout(modalCloseTimer);
-
+console.log('DEBUG: Timer précédent annulé');
   // Ferme immédiatement au cas où elle serait encore ouverte
   document.getElementById('garden-modal').classList.remove('visible');
-
+console.log('DEBUG: Modale forcée fermée avant ouverture');
   // Petite pause pour forcer le reflow (évite le bug d'affichage)
   requestAnimationFrame(() => {
     document.getElementById('modal-plant').textContent = emoji;
@@ -2710,14 +2714,18 @@ function openGardenModal(item, emoji, duration = 2200, animateStatusChange = fal
     }
 
     // Ouvre la modale
+    console.log('DEBUG: Contenu modale rempli → ouverture');
     document.getElementById('garden-modal').classList.add('visible');
 
     // Son
+    console.log('DEBUG: Son joué');
     const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
     audio.play().catch(() => {});
 
     // Nouveau timer propre
+    console.log(`DEBUG: Timer lancé pour fermeture en ${duration}ms`);
     modalCloseTimer = setTimeout(() => {
+      console.log('DEBUG: Timer expiré → fermeture modale');
       closeGardenModal();
       modalCloseTimer = null;
     }, duration);
@@ -4944,6 +4952,7 @@ function startRevisionQuestion() {
 
   const niveauActif = determineNiveauActif(HiraganaList);
   const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 27, 28, 30, 31, 32, 34, 35, 36, 37, 38];
+  console.log(`DEBUG: Niveaux katakana exclus: ${excludedKatakanaLevels.join(', ')}`);
   const hiraganaItems = HiraganaList.filter(h => 
     parseInt(h.Niveau || 1) < niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
@@ -4960,9 +4969,13 @@ function startRevisionQuestion() {
     ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: getLocalizedKatakana(item) }))
   ];
 
+  console.log(`DEBUG: Items hiragana disponibles: ${hiraganaItems.length} (ex. premiers: ${hiraganaItems.slice(0,3).map(i => i.Hiragana).join(', ')})`);
+  console.log(`DEBUG: Items katakana disponibles: ${katakanaItems.length} (ex. premiers: ${katakanaItems.slice(0,3).map(i => getLocalizedKatakana(i)).join(', ')})`);
+  
   console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
 
  if (availableItems.length === 0) {
+   console.log('DEBUG: Aucun item disponible → message affiché');
     document.getElementById("revision-message").textContent = 
       niveauActif < 4 ? 
       t('revision_available_level4') :  // ✅ MODIFIÉ
@@ -5094,7 +5107,9 @@ if (firstCard && revisionMode.currentItem) {
 
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
   console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
- // ✅ Afficher la barre à chaque nouvelle question (sans la recalculer)
+  console.log(`DEBUG: Question générée: "${revisionMode.currentQuestion}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
+  console.log('DEBUG: Fin startRevisionQuestion() → carte devrait s’afficher');
+  // ✅ Afficher la barre à chaque nouvelle question (sans la recalculer)
   updateUnlockProgress();
 }  
 function isRevisionModeAvailable() {
@@ -5272,7 +5287,9 @@ function initRevisionKeyboard() {
         const oldEmoji = getPlantEmoji(currentValidation);
         const newEmoji = getPlantEmoji(newValidation);
         const statusChanged = oldEmoji !== newEmoji; // surtout vrai lors du passage 🌿 ↔ 🌸
-
+console.log(`DEBUG: Réponse traitée → isCorrect=${isCorrect}, oldValidation=${currentValidation}, newValidation=${newValidation}`);
+console.log(`DEBUG: Emoji: old=${oldEmoji}, new=${newEmoji}, statusChanged=${statusChanged}`);
+console.log('DEBUG: Appel à openGardenModal() pour afficher la flashcard');
         // === AFFICHAGE DE LA FLASHCARD PENDANT 1 SECONDE ===
         openGardenModal(
           revisionMode.currentItem,   // l’item
@@ -5315,6 +5332,7 @@ function initRevisionKeyboard() {
         }
 
         // === Prochaine question (on laisse le temps à la flashcard d’être vue) ===
+        console.log('DEBUG: Feedback affiché → attente pour prochaine question');
         setTimeout(() => {
           startRevisionQuestion();
         }, isCorrect ? 2500 : 3500); // 1 s flashcard + marge confortable
@@ -5447,6 +5465,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
