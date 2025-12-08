@@ -264,13 +264,14 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   z-index: 100 !important; /* bien en dessous de la modale */
 }    
  /* ====================== MODAL PORTAL ====================== */
+/* ====================== MODAL PORTAL ====================== */
 #modal-portal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 2147483647 !important; /* z-index maximum absolu */
   display: none;
   align-items: center;
   justify-content: center;
@@ -278,10 +279,9 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 }
 
 #modal-portal.active {
-  display: flex;
-  pointer-events: auto;
+  display: flex !important;
+  pointer-events: auto !important;
 }
-
 /* Flashcard de révision dans le portal */
 #modal-portal .revision-flashcard {
   padding: 2.8em 3.2em;
@@ -5631,6 +5631,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
