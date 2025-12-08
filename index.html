@@ -2712,57 +2712,113 @@ let modalCloseTimer = null; // Variable globale pour annuler le timer précéden
 function openRevisionFlashcard(item, emoji, animateStatusChange = false, animateScore = false, isCorrect = true) {
   // Nettoyage
   const old = document.getElementById('rev-card');
-  if (old) old.remove();
+  if (old && old.parentNode) old.parentNode.removeChild(old);
 
-  const val = validationCache[parseInt(item.ID)] || 0;
+  const currentVal = validationCache[parseInt(item.ID)] || 0;
+  const oldPlant = animateStatusChange ? getPlantEmoji(currentVal - (isCorrect ? 1 : -2)) : emoji;
 
   const card = document.createElement('div');
   card.id = 'rev-card';
   card.style.cssText = `
-    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.9);
-    z-index:999999999;background:${isCorrect?'#d4edda':'#f8d7da'};padding:2.5em 3em;
-    border-radius:28px;box-shadow:0 30px 60px rgba(0,0,0,0.5);text-align:center;
-    max-width:90%;opacity:0;
+    position:fixed !important; top:50%; left:50%; transform:translate(-50%,-50%) !important;
+    z-index:999999999 !important; padding:2.8em 3.2em; border-radius:28px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.5); text-align:center; max-width:90%;
+    background:${isCorrect ? '#d4edda' : '#f8d7da'} !important;
+    animation: colorToWhite 0.5s ease-out 0.3s forwards, popIn 0.6s ease-out forwards;
   `;
 
   card.innerHTML = `
-    <div style="font-size:3.8em;font-weight:bold;margin-bottom:0.4em;">${item.Romaji}</div>
-    <div style="font-size:2.4em;font-weight:bold;color:#8B6F47;">
-      Score : <span id="score-display" style="display:inline-block;position:relative;width:80px;height:60px;overflow:hidden;">
-        <span style="position:absolute;top:0;left:0;width:100%;text-align:center;font-size:2.6em;color:#999;">${val - (isCorrect?1:2)}</span>
-        <span style="position:absolute;top:${isCorrect?-80:80}px;left:0;width:100%;text-align:center;font-size:2.6em;color:#FFD700;font-weight:bold;">${val}</span>
-      </span>
+    <div style="font-size:3.8em; font-weight:bold; color:#333; margin-bottom:0.4em;">${item.Romaji}</div>
+    
+    <div style="font-size:2.4em; font-weight:bold; margin:0.6em 0; color:#8B6F47;">
+      Score : 
+      <div style="display:inline-block; position:relative; width:90px; height:70px; overflow:hidden; margin-left:12px;">
+        <div id="score-old" style="position:absolute; top:0; left:0; width:100%; text-align:center; font-size:2.6em; color:#999;">
+          ${currentVal - (isCorrect ? 1 : (currentVal >= 7 ? 2 : currentVal-5))}
+        </div>
+        <div id="score-new" style="position:absolute; top:${isCorrect ? '-80px' : '80px'}; left:0; width:100%; text-align:center; font-size:2.6em; color:#FFD700; font-weight:bold; text-shadow:0 0 10px gold;">
+          ${currentVal}
+        </div>
+      </div>
     </div>
-    <div id="plant" style="font-size:4.5em;margin:1em 0;">${emoji}</div>
-    <div style="font-size:2.2em;color:#8B6F47;">${item.Hiragana}　${getLocalizedKatakana(item)||''}</div>
+
+    <div id="plant-container" style="font-size:4.5em; min-height:1.3em; margin:0.8em 0;">
+      <span id="plant-old">${oldPlant}</span>
+      <span id="plant-new" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(1.5); opacity:0;">${emoji}</span>
+    </div>
+
+    <div style="font-size:2.2em; color:#8B6F47; line-height:1.4;">
+      ${item.Hiragana}　<span style="color:#666;">${getLocalizedKatakana(item) || ''}</span>
+    </div>
   `;
+
+  // Style global (une seule fois)
+  if (!document.getElementById('rev-ultimate-style')) {
+    const s = document.createElement('style');
+    s.id = 'rev-ultimate-style';
+    s.textContent = `
+      @keyframes popIn { from {opacity:0; transform:translate(-50%,-50%) scale(0.7)} to {opacity:1; transform:translate(-50%,-50%) scale(1)} }
+      @keyframes colorToWhite { to {background:#ffffff !important} }
+      @keyframes rollUp    { to {transform:translateY(-80px)} }
+      @keyframes rollDown  { to {transform:translateY(80px)} }
+      @keyframes rollInUp  { from {transform:translateY(80px)} to {transform:translateY(0)} }
+      @keyframes rollInDown{ from {transform:translateY(-80px)} to {transform:translateY(0)} }
+      @keyframes plantGrow { from {transform:scale(1)} to {transform:scale(1.5)} }
+      @keyframes plantShrink { from {transform:scale(1.5)} to {transform:scale(1)} }
+    `;
+    document.head.appendChild(s);
+  }
 
   document.body.appendChild(card);
 
-  // Pop-in + fond → blanc
-  requestAnimationFrame(() => {
-    card.style.transition = 'all 0.6s ease-out';
-    card.style.opacity = '1';
-    card.style.transform = 'translate(-50%,-50%) scale(1)';
-    card.style.background = '#ffffff';
-  });
-
-  // Animations après 600ms (quand c’est blanc)
-  setTimeout(() => {
-    if (animateScore) {
-      const s = card.querySelector('#score-display');
-      s.style.animation = isCorrect ? 'rollInDown 0.7s ease-out forwards' : 'rollInUp 0.7s ease-out forwards';
-    }
-    if (animateStatusChange) {
-      const p = card.querySelector('#plant');
-      p.style.transform = 'scale(1.5)';
-      setTimeout(() => { p.style.transition = 'transform 0.2s'; p.style.transform = 'scale(1)'; }, 200);
-    }
-  }, 600);
-
-  // Son + fermeture auto
+  // Son
   new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`).play().catch(()=>{});
-  setTimeout(() => { card.style.opacity = '0'; setTimeout(() => card.remove() || startRevisionQuestion(), 400); }, 3000);
+
+  // === TOUTES LES ANIMATIONS COMMENCENT APRÈS LA COULEUR BLANCHE (0.8s) ===
+  setTimeout(() => {
+    // 1. Compteur à rouleaux (chiffre jaune doré)
+    if (animateScore) {
+      const oldS = document.getElementById('score-old');
+      const newS = document.getElementById('score-new');
+      if (isCorrect) {
+        oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
+        newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
+      } else {
+        oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
+        newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
+      }
+    }
+
+    // 2. Animation plante : ancien grossit → nouveau apparaît déjà gros → revient à taille normale
+    if (animateStatusChange) {
+      const oldP = document.getElementById('plant-old');
+      const newP = document.getElementById('plant-new');
+
+      // 200ms : ancien grossit
+      oldP.style.animation = 'plantGrow 0.2s ease-out forwards';
+
+      // 200ms après : ancien disparaît, nouveau apparaît déjà gros
+      setTimeout(() => {
+        oldP.style.opacity = '0';
+        newP.style.opacity = '1';
+        newP.style.transform = 'translate(-50%,-50%) scale(1.5)';
+      }, 200);
+
+      // 400ms après : nouveau revient à taille normale
+      setTimeout(() => {
+        newP.style.transition = 'transform 0.2s ease-out';
+        newP.style.transform = 'translate(-50%,-50%) scale(1)';
+      }, 400);
+    }
+  }, 800); // après le passage au blanc
+
+  // Fermeture automatique après 3 secondes
+  setTimeout(() => {
+    card.style.transition = 'all 0.4s ease-in';
+    card.style.opacity = '0';
+    card.style.transform = 'translate(-50%,-50%) scale(0.8)';
+    setTimeout(() => { if (card.parentNode) card.parentNode.removeChild(card); startRevisionQuestion(); }, 400);
+  }, 3000);
 }
 // Ferme la flashcard
 function closeGardenModal() {
@@ -5469,6 +5525,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
