@@ -2709,70 +2709,117 @@ function getPlantEmoji(validation) {
   }    
 // function openGardenModal du mode révisions  
 let modalCloseTimer = null; // Variable globale pour annuler le timer précédent    
-function openRevisionFlashcard(item, emoji, duration = 3000, animateStatusChange = false, animateScore = false) {
-  if (modalCloseTimer) clearTimeout(modalCloseTimer);
+function openRevisionFlashcard(item, emoji, animateStatusChange = false, animateScore = false, isCorrect = true) {
+  // Nettoyage
+  const old = document.getElementById('rev-card');
+  if (old && old.parentNode) old.parentNode.removeChild(old);
 
-  // On calcule l'ancien emoji (avant la réponse)
   const currentVal = validationCache[parseInt(item.ID)] || 0;
-  const oldEmoji = getPlantEmoji(currentVal - (animateScore ? 1 : 0)); // -1 si on vient d'augmenter
+  const oldPlant = animateStatusChange ? getPlantEmoji(currentVal - (isCorrect ? 1 : -2)) : emoji;
 
-  const flashcard = document.createElement('div');
-  flashcard.id = 'temp-revision-flashcard';
-  flashcard.style.cssText = `
+  const card = document.createElement('div');
+  card.id = 'rev-card';
+  card.style.cssText = `
     position:fixed !important; top:50%; left:50%; transform:translate(-50%,-50%) !important;
-    z-index:999999999 !important; background:white !important; padding:2em 2.5em !important;
-    border-radius:20px !important; box-shadow:0 20px 40px rgba(0,0,0,0.6) !important;
-    text-align:center !important; max-width:90% !important; pointer-events:none !important;
-    animation: fadeInOut ${duration/1000}s ease-in-out forwards;
+    z-index:999999999 !important; padding:2.8em 3.2em; border-radius:28px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.5); text-align:center; max-width:90%;
+    background:${isCorrect ? '#d4edda' : '#f8d7da'} !important;
+    animation: colorToWhite 0.5s ease-out 0.3s forwards, popIn 0.6s ease-out forwards;
   `;
 
-  flashcard.innerHTML = `
-    <div id="temp-plant" style="font-size:3.8em;margin-bottom:0.4em;min-height:1.2em;">
-      ${animateStatusChange ? oldEmoji : emoji}
+  card.innerHTML = `
+    <div style="font-size:3.8em; font-weight:bold; color:#333; margin-bottom:0.4em;">${item.Romaji}</div>
+    
+    <div style="font-size:2.4em; font-weight:bold; margin:0.6em 0; color:#8B6F47;">
+      Score : 
+      <div style="display:inline-block; position:relative; width:90px; height:70px; overflow:hidden; margin-left:12px;">
+        <div id="score-old" style="position:absolute; top:0; left:0; width:100%; text-align:center; font-size:2.6em; color:#999;">
+          ${currentVal - (isCorrect ? 1 : (currentVal >= 7 ? 2 : currentVal-5))}
+        </div>
+        <div id="score-new" style="position:absolute; top:${isCorrect ? '-80px' : '80px'}; left:0; width:100%; text-align:center; font-size:2.6em; color:#000000; font-weight:bold; text-shadow:0 0 10px gold;">
+          ${currentVal}
+        </div>
+      </div>
     </div>
-    <h2 style="margin:0.2em 0;font-size:3em;">${item.Hiragana}</h2>
-    <div style="font-size:1.8em;color:#8B6F47;">${getLocalizedKatakana(item) || '-'}</div>
-    <div style="font-size:1.6em;color:#555;margin:0.8em 0;">${item.Romaji}</div>
-    <div style="margin-top:1em;">
-      Niveau <strong>${item.Niveau}</strong> • Score = <strong class="${animateScore ? 'score-sparkle' : ''}">${currentVal}</strong>
+
+    <div id="plant-container" style="font-size:4.5em; min-height:1.3em; margin:0.8em 0;">
+      <span id="plant-old">${oldPlant}</span>
+      <span id="plant-new" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(1.5); opacity:0;">${emoji}</span>
+    </div>
+
+    <div style="font-size:2.2em; color:#8B6F47; line-height:1.4;">
+      ${item.Hiragana}　<span style="color:#666;">${getLocalizedKatakana(item) || ''}</span>
     </div>
   `;
 
   // Style global (une seule fois)
-  if (!document.getElementById('temp-flashcard-style')) {
-    const style = document.createElement('style');
-    style.id = 'temp-flashcard-style';
-    style.textContent = `
-      @keyframes fadeInOut { 0%,100%{opacity:0;transform:translate(-50%,-60%) scale(0.8)}
-                            10%,90%{opacity:1;transform:translate(-50%,-50%) scale(1)} }
-      @keyframes bloomTransition {
-        0%   { transform: scale(1) rotate(0deg); opacity: 1; }
-        40%  { transform: scale(1.6) rotate(12deg); opacity: 0.7; }
-        100% { transform: scale(1) rotate(0deg); opacity: 1; }
-      }
-      .bloom-transition { animation: bloomTransition 1.6s ease-in-out forwards !important; }
-      .score-sparkle { animation: sparkle 1.2s ease-in-out !important; }
+  if (!document.getElementById('rev-ultimate-style')) {
+    const s = document.createElement('style');
+    s.id = 'rev-ultimate-style';
+    s.textContent = `
+      @keyframes popIn { from {opacity:0; transform:translate(-50%,-50%) scale(0.7)} to {opacity:1; transform:translate(-50%,-50%) scale(1)} }
+      @keyframes colorToWhite { to {background:#ffffff !important} }
+      @keyframes rollUp    { to {transform:translateY(-80px)} }
+      @keyframes rollDown  { to {transform:translateY(80px)} }
+      @keyframes rollInUp  { from {transform:translateY(80px)} to {transform:translateY(0)} }
+      @keyframes rollInDown{ from {transform:translateY(-80px)} to {transform:translateY(0)} }
+      @keyframes plantGrow { from {transform:scale(1)} to {transform:scale(1.5)} }
+      @keyframes plantShrink { from {transform:scale(1.5)} to {transform:scale(1)} }
     `;
-    document.head.appendChild(style);
+    document.head.appendChild(s);
   }
 
-  document.body.appendChild(flashcard);
+  document.body.appendChild(card);
 
   // Son
-  const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
-  audio.play().catch(() => {});
+  new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`).play().catch(()=>{});
 
-  // LANCEMENT DU CHANGEMENT PLANTE APRÈS 400ms → tu vois bien l'ancien → puis le passage
-  if (animateStatusChange) {
-    setTimeout(() => {
-      const plant = document.getElementById('temp-plant');
-      if (plant) {
-        plant.textContent = emoji;                    // on change l'emoji
-        plant.classList.add('bloom-transition');      // et on lance la grosse animation bien visible
+  // === TOUTES LES ANIMATIONS COMMENCENT APRÈS LA COULEUR BLANCHE (0.8s) ===
+  setTimeout(() => {
+    // 1. Compteur à rouleaux (chiffre jaune doré)
+    if (animateScore) {
+      const oldS = document.getElementById('score-old');
+      const newS = document.getElementById('score-new');
+      if (isCorrect) {
+        oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
+        newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
+      } else {
+        oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
+        newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
       }
-    }, 400); // 400 ms = le temps idéal pour voir l'ancien, puis le changement
-  }
+    }
 
+    // 2. Animation plante : ancien grossit → nouveau apparaît déjà gros → revient à taille normale
+    if (animateStatusChange) {
+      const oldP = document.getElementById('plant-old');
+      const newP = document.getElementById('plant-new');
+
+      // 200ms : ancien grossit
+      oldP.style.animation = 'plantGrow 0.2s ease-out forwards';
+
+      // 200ms après : ancien disparaît, nouveau apparaît déjà gros
+      setTimeout(() => {
+        oldP.style.opacity = '0';
+        newP.style.opacity = '1';
+        newP.style.transform = 'translate(-50%,-50%) scale(1.5)';
+      }, 200);
+
+      // 400ms après : nouveau revient à taille normale
+      setTimeout(() => {
+        newP.style.transition = 'transform 0.2s ease-out';
+        newP.style.transform = 'translate(-50%,-50%) scale(1)';
+      }, 400);
+    }
+  }, 800); // après le passage au blanc
+
+  // Fermeture automatique après 3 secondes
+  setTimeout(() => {
+    card.style.transition = 'all 0.4s ease-in';
+    card.style.opacity = '0';
+    card.style.transform = 'translate(-50%,-50%) scale(0.8)';
+    setTimeout(() => { if (card.parentNode) card.parentNode.removeChild(card); startRevisionQuestion(); }, 400);
+  }, 3000);
+}
   // Suppression
   modalCloseTimer = setTimeout(() => {
     if (flashcard.parentNode) flashcard.parentNode.removeChild(flashcard);
@@ -5485,6 +5532,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
