@@ -2721,8 +2721,8 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   card.id = 'rev-card';
   card.style.cssText = `
     position: fixed !important;
-    top: 50%;
-    left: 50%;
+    top: 50% !important;
+    left: 50% !important;
     transform: translate(-50%, -50%) !important;
     z-index: 999999999 !important;
     padding: 2.8em 3.2em;
@@ -2730,9 +2730,17 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
     box-shadow: 0 30px 60px rgba(0,0,0,0.5);
     text-align: center;
     max-width: 90%;
-    background: ${isCorrect ? '#d4edda' : '#f8d7da'} !important;
-    animation: popIn 0.6s ease-out forwards, colorToWhite 0.5s ease-out 0.3s forwards;
+    background-color: ${isCorrect ? '#d4edda' : '#f8d7da'};
   `;
+  
+  // Animation d'apparition
+  card.style.animation = 'popIn 0.6s ease-out forwards';
+  
+  // Fade vers blanc après 0.3s
+  setTimeout(() => {
+    card.style.transition = 'background-color 0.5s ease-out';
+    card.style.backgroundColor = '#ffffff';
+  }, 300);
 
   card.innerHTML = `
     <div style="font-size: 3.8em; font-weight: bold; color: #333; margin-bottom: 0.4em;">
@@ -2742,10 +2750,10 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
     <div style="font-size: 2.4em; font-weight: bold; margin: 0.6em 0; color: #8B6F47;">
       Score : 
       <div style="display: inline-block; position: relative; width: 90px; height: 70px; overflow: hidden; margin-left: 12px; vertical-align: middle;">
-        <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333;">
+        <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; line-height: 70px;">
           ${oldValidation}
         </div>
-        <div id="score-new" style="position: absolute; top: ${isCorrect ? '-70px' : '70px'}; left: 0; width: 100%; text-align: center; font-size: 1em; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px gold;">
+        <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
           ${newValidation}
         </div>
       </div>
@@ -2770,22 +2778,21 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
         from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
         to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
       }
-      @keyframes colorToWhite {
-        to { background: #ffffff !important; }
-      }
       @keyframes rollUp {
-        to { transform: translateY(-70px); }
+        from { top: 0; }
+        to { top: -70px; }
       }
       @keyframes rollDown {
-        to { transform: translateY(70px); }
+        from { top: 0; }
+        to { top: 70px; }
       }
       @keyframes rollInUp {
-        from { transform: translateY(70px); }
-        to { transform: translateY(0); }
+        from { top: 70px; }
+        to { top: 0; }
       }
       @keyframes rollInDown {
-        from { transform: translateY(-70px); }
-        to { transform: translateY(0); }
+        from { top: -70px; }
+        to { top: 0; }
       }
     `;
     document.head.appendChild(s);
@@ -5558,6 +5565,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
