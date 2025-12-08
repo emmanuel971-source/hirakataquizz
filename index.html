@@ -2709,46 +2709,70 @@ function getPlantEmoji(validation) {
   }    
 // function openGardenModal du mode révisions  
 let modalCloseTimer = null; // Variable globale pour annuler le timer précédent    
-function openRevisionFlashcard(item, emoji, animateStatusChange = false, animateScore = false, isCorrect = true) {
+function openRevisionFlashcard(item, emoji, isCorrect, animateStatusChange = false, animateScore = false) {
   // Nettoyage
   const old = document.getElementById('rev-card');
   if (old && old.parentNode) old.parentNode.removeChild(old);
 
   const currentVal = validationCache[parseInt(item.ID)] || 0;
-  const oldPlant = animateStatusChange ? getPlantEmoji(currentVal - (isCorrect ? 1 : -2)) : emoji;
+  
+  // Calcul de l'ancien score (avant validation)
+  let oldScore;
+  if (isCorrect) {
+    oldScore = currentVal - 1;
+  } else {
+    // Mauvaise réponse : on avait perdu des points
+    if (currentVal >= 7) {
+      oldScore = currentVal + 2; // On était à +2 avant
+    } else {
+      oldScore = Math.max(0, currentVal + (5 - currentVal)); // Remise à 0
+    }
+  }
+  
+  // Emoji de l'ancienne plante (pour l'animation)
+  const oldPlant = animateStatusChange ? getPlantEmoji(oldScore) : emoji;
 
   const card = document.createElement('div');
   card.id = 'rev-card';
   card.style.cssText = `
-    position:fixed !important; top:50%; left:50%; transform:translate(-50%,-50%) !important;
-    z-index:999999999 !important; padding:2.8em 3.2em; border-radius:28px;
-    box-shadow:0 30px 60px rgba(0,0,0,0.5); text-align:center; max-width:90%;
-    background:${isCorrect ? '#d4edda' : '#f8d7da'} !important;
-    animation: colorToWhite 0.5s ease-out 0.3s forwards, popIn 0.6s ease-out forwards;
+    position: fixed !important;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) !important;
+    z-index: 999999999 !important;
+    padding: 2.8em 3.2em;
+    border-radius: 28px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    text-align: center;
+    max-width: 90%;
+    background: ${isCorrect ? '#d4edda' : '#f8d7da'} !important;
+    animation: popIn 0.6s ease-out forwards, colorToWhite 0.5s ease-out 0.3s forwards;
   `;
 
   card.innerHTML = `
-    <div style="font-size:3.8em; font-weight:bold; color:#333; margin-bottom:0.4em;">${item.Romaji}</div>
+    <div style="font-size: 3.8em; font-weight: bold; color: #333; margin-bottom: 0.4em;">
+      ${item.Romaji}
+    </div>
     
-    <div style="font-size:2.4em; font-weight:bold; margin:0.6em 0; color:#8B6F47;">
+    <div style="font-size: 2.4em; font-weight: bold; margin: 0.6em 0; color: #8B6F47;">
       Score : 
-      <div style="display:inline-block; position:relative; width:90px; height:70px; overflow:hidden; margin-left:12px;">
-        <div id="score-old" style="position:absolute; top:0; left:0; width:100%; text-align:center; font-size:2.6em; color:#999;">
-          ${currentVal - (isCorrect ? 1 : (currentVal >= 7 ? 2 : currentVal-5))}
+      <div style="display: inline-block; position: relative; width: 90px; height: 70px; overflow: hidden; margin-left: 12px; vertical-align: middle;">
+        <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333;">
+          ${oldScore}
         </div>
-        <div id="score-new" style="position:absolute; top:${isCorrect ? '-80px' : '80px'}; left:0; width:100%; text-align:center; font-size:2.6em; color:#FFD700; font-weight:bold; text-shadow:0 0 10px gold;">
+        <div id="score-new" style="position: absolute; top: ${isCorrect ? '-70px' : '70px'}; left: 0; width: 100%; text-align: center; font-size: 1em; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px gold;">
           ${currentVal}
         </div>
       </div>
     </div>
 
-    <div id="plant-container" style="font-size:4.5em; min-height:1.3em; margin:0.8em 0;">
-      <span id="plant-old">${oldPlant}</span>
-      <span id="plant-new" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(1.5); opacity:0;">${emoji}</span>
+    <div id="plant-container" style="position: relative; font-size: 4.5em; min-height: 1.3em; margin: 0.8em 0;">
+      <span id="plant-old" style="display: inline-block; transition: transform 0.2s ease-out;">${oldPlant}</span>
+      <span id="plant-new" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; display: inline-block;">${emoji}</span>
     </div>
 
-    <div style="font-size:2.2em; color:#8B6F47; line-height:1.4;">
-      ${item.Hiragana}　<span style="color:#666;">${getLocalizedKatakana(item) || ''}</span>
+    <div style="font-size: 2.2em; color: #8B6F47; line-height: 1.4;">
+      ${item.Hiragana}　<span style="color: #666;">${getLocalizedKatakana(item) || ''}</span>
     </div>
   `;
 
@@ -2757,14 +2781,27 @@ function openRevisionFlashcard(item, emoji, animateStatusChange = false, animate
     const s = document.createElement('style');
     s.id = 'rev-ultimate-style';
     s.textContent = `
-      @keyframes popIn { from {opacity:0; transform:translate(-50%,-50%) scale(0.7)} to {opacity:1; transform:translate(-50%,-50%) scale(1)} }
-      @keyframes colorToWhite { to {background:#ffffff !important} }
-      @keyframes rollUp    { to {transform:translateY(-80px)} }
-      @keyframes rollDown  { to {transform:translateY(80px)} }
-      @keyframes rollInUp  { from {transform:translateY(80px)} to {transform:translateY(0)} }
-      @keyframes rollInDown{ from {transform:translateY(-80px)} to {transform:translateY(0)} }
-      @keyframes plantGrow { from {transform:scale(1)} to {transform:scale(1.5)} }
-      @keyframes plantShrink { from {transform:scale(1.5)} to {transform:scale(1)} }
+      @keyframes popIn {
+        from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+        to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      }
+      @keyframes colorToWhite {
+        to { background: #ffffff !important; }
+      }
+      @keyframes rollUp {
+        to { transform: translateY(-70px); }
+      }
+      @keyframes rollDown {
+        to { transform: translateY(70px); }
+      }
+      @keyframes rollInUp {
+        from { transform: translateY(70px); }
+        to { transform: translateY(0); }
+      }
+      @keyframes rollInDown {
+        from { transform: translateY(-70px); }
+        to { transform: translateY(0); }
+      }
     `;
     document.head.appendChild(s);
   }
@@ -2772,55 +2809,62 @@ function openRevisionFlashcard(item, emoji, animateStatusChange = false, animate
   document.body.appendChild(card);
 
   // Son
-  new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`).play().catch(()=>{});
+  new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`)
+    .play()
+    .catch(() => {});
 
-  // === TOUTES LES ANIMATIONS COMMENCENT APRÈS LA COULEUR BLANCHE (0.8s) ===
+  // === TOUTES LES ANIMATIONS COMMENCENT APRÈS LE FADE VERS BLANC (0.8s) ===
   setTimeout(() => {
-    // 1. Compteur à rouleaux (chiffre jaune doré)
+    // 1. Animation du score (compteur à rouleaux)
     if (animateScore) {
       const oldS = document.getElementById('score-old');
       const newS = document.getElementById('score-new');
+      
       if (isCorrect) {
+        // Score monte : ancien part vers le haut, nouveau arrive d'en bas
         oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
-        newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
-      } else {
-        oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
         newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
+      } else {
+        // Score descend : ancien part vers le bas, nouveau arrive d'en haut
+        oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
+        newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
       }
     }
 
-    // 2. Animation plante : ancien grossit → nouveau apparaît déjà gros → revient à taille normale
+    // 2. Animation de changement de plante
     if (animateStatusChange) {
       const oldP = document.getElementById('plant-old');
       const newP = document.getElementById('plant-new');
 
-      // 200ms : ancien grossit
-      oldP.style.animation = 'plantGrow 0.2s ease-out forwards';
+      // Étape 1 (0-200ms) : Ancienne plante grossit x1.5
+      oldP.style.transform = 'scale(1.5)';
 
-      // 200ms après : ancien disparaît, nouveau apparaît déjà gros
+      // Étape 2 (200ms) : Ancienne plante disparaît, nouvelle apparaît déjà à x1.5
       setTimeout(() => {
         oldP.style.opacity = '0';
         newP.style.opacity = '1';
-        newP.style.transform = 'translate(-50%,-50%) scale(1.5)';
+        newP.style.transform = 'translate(-50%, -50%) scale(1.5)';
       }, 200);
 
-      // 400ms après : nouveau revient à taille normale
+      // Étape 3 (400ms) : Nouvelle plante revient à taille normale
       setTimeout(() => {
         newP.style.transition = 'transform 0.2s ease-out';
-        newP.style.transform = 'translate(-50%,-50%) scale(1)';
+        newP.style.transform = 'translate(-50%, -50%) scale(1)';
       }, 400);
     }
-  }, 800); // après le passage au blanc
+  }, 800); // Commence après le fade vers blanc
 
   // Fermeture automatique après 3 secondes
   setTimeout(() => {
     card.style.transition = 'all 0.4s ease-in';
     card.style.opacity = '0';
-    card.style.transform = 'translate(-50%,-50%) scale(0.8)';
-    setTimeout(() => { if (card.parentNode) card.parentNode.removeChild(card); startRevisionQuestion(); }, 400);
+    card.style.transform = 'translate(-50%, -50%) scale(0.8)';
+    setTimeout(() => {
+      if (card.parentNode) card.parentNode.removeChild(card);
+      startRevisionQuestion();
+    }, 400);
   }, 3000);
-}
-// Ferme la flashcard
+}// Ferme la flashcard
 function closeGardenModal() {
   document.getElementById('garden-modal').classList.remove('visible');
 }    
@@ -5342,14 +5386,14 @@ function initRevisionKeyboard() {
         const newEmoji = getPlantEmoji(newValidation);
         const statusChanged = oldEmoji !== newEmoji; // surtout vrai lors du passage 🌿 ↔ 🌸
 
-        // === AFFICHAGE DE LA FLASHCARD PENDANT 1 SECONDE ===
-        openRevisionFlashcard(
-          revisionMode.currentItem,   // l’item
-          newEmoji,                   // emoji à jour
-          3000,                       // durée visible = 3 seconde
-          statusChanged,              // animation plante si changement de statut
-          true                        // toujours scintillement du score
-        );
+        // === AFFICHAGE DE LA FLASHCARD   ===
+    openRevisionFlashcard(
+  revisionMode.currentItem,
+  newEmoji,
+  isCorrect,         // ✅ Bonne ou mauvaise réponse
+  statusChanged,     // ✅ Animation plante
+  true              // ✅ Animation score (toujours)
+);
 
 
 // === FORCAGE VISUEL IMMÉDIAT (aucun z-index ne peut résister) ===
@@ -5525,6 +5569,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
