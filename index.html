@@ -2820,13 +2820,7 @@ function openRevisionFlashcard(item, emoji, animateStatusChange = false, animate
     setTimeout(() => { if (card.parentNode) card.parentNode.removeChild(card); startRevisionQuestion(); }, 400);
   }, 3000);
 }
-  // Suppression
-  modalCloseTimer = setTimeout(() => {
-    if (flashcard.parentNode) flashcard.parentNode.removeChild(flashcard);
-    modalCloseTimer = null;
-  }, duration);
-}
-    
+
 // Ferme la flashcard
 function closeGardenModal() {
   document.getElementById('garden-modal').classList.remove('visible');
@@ -5532,6 +5526,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
