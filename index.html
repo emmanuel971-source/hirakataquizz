@@ -2709,28 +2709,13 @@ function getPlantEmoji(validation) {
   }    
 // function openGardenModal du mode révisions  
 let modalCloseTimer = null; // Variable globale pour annuler le timer précédent    
-function openRevisionFlashcard(item, emoji, isCorrect, animateStatusChange = false, animateScore = false) {
+function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidation, animateStatusChange = false, animateScore = false) {
   // Nettoyage
   const old = document.getElementById('rev-card');
   if (old && old.parentNode) old.parentNode.removeChild(old);
 
-  const currentVal = validationCache[parseInt(item.ID)] || 0;
-  
-  // Calcul de l'ancien score (avant validation)
-  let oldScore;
-  if (isCorrect) {
-    oldScore = currentVal - 1;
-  } else {
-    // Mauvaise réponse : on avait perdu des points
-    if (currentVal >= 7) {
-      oldScore = currentVal + 2; // On était à +2 avant
-    } else {
-      oldScore = Math.max(0, currentVal + (5 - currentVal)); // Remise à 0
-    }
-  }
-  
-  // Emoji de l'ancienne plante (pour l'animation)
-  const oldPlant = animateStatusChange ? getPlantEmoji(oldScore) : emoji;
+  // Emoji de l'ancienne plante (pour l'animation de changement de statut)
+  const oldPlant = animateStatusChange ? getPlantEmoji(oldValidation) : emoji;
 
   const card = document.createElement('div');
   card.id = 'rev-card';
@@ -2758,10 +2743,10 @@ function openRevisionFlashcard(item, emoji, isCorrect, animateStatusChange = fal
       Score : 
       <div style="display: inline-block; position: relative; width: 90px; height: 70px; overflow: hidden; margin-left: 12px; vertical-align: middle;">
         <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333;">
-          ${oldScore}
+          ${oldValidation}
         </div>
         <div id="score-new" style="position: absolute; top: ${isCorrect ? '-70px' : '70px'}; left: 0; width: 100%; text-align: center; font-size: 1em; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px gold;">
-          ${currentVal}
+          ${newValidation}
         </div>
       </div>
     </div>
@@ -2864,7 +2849,9 @@ function openRevisionFlashcard(item, emoji, isCorrect, animateStatusChange = fal
       startRevisionQuestion();
     }, 400);
   }, 3000);
-}// Ferme la flashcard
+}
+    
+// Ferme la flashcard
 function closeGardenModal() {
   document.getElementById('garden-modal').classList.remove('visible');
 }    
@@ -5387,14 +5374,16 @@ function initRevisionKeyboard() {
         const statusChanged = oldEmoji !== newEmoji; // surtout vrai lors du passage 🌿 ↔ 🌸
 
         // === AFFICHAGE DE LA FLASHCARD   ===
-    openRevisionFlashcard(
-  revisionMode.currentItem,
-  newEmoji,
-  isCorrect,         // ✅ Bonne ou mauvaise réponse
-  statusChanged,     // ✅ Animation plante
-  true              // ✅ Animation score (toujours)
+ // === AFFICHAGE DE LA FLASHCARD PENDANT 3 SECONDES ===
+openRevisionFlashcard(
+  revisionMode.currentItem,   // l'item
+  newEmoji,                   // emoji à jour
+  isCorrect,                  // ✅ bonne ou mauvaise réponse
+  currentValidation,          // ✅ ancien score (AVANT la validation)
+  newValidation,              // ✅ nouveau score (APRÈS la validation)
+  statusChanged,              // animation plante si changement de statut
+  true                        // toujours scintillement du score
 );
-
 
 // === FORCAGE VISUEL IMMÉDIAT (aucun z-index ne peut résister) ===
 setTimeout(() => {
@@ -5569,6 +5558,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
