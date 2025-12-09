@@ -5133,14 +5133,7 @@ function startRevisionQuestion() {
 
   console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
 
- if (availableItems.length === 0) {
-    document.getElementById("revision-message").textContent = 
-      niveauActif < 4 ? 
-      t('revision_available_level4') :  // ✅ MODIFIÉ
-      t('revision_no_items');            // ✅ MODIFIÉ
-    document.getElementById("revision-message").style.color = "#dc3545";
-    return;
-  }
+
 
   // Tampon des 3 derniers tirages - convertir en numbers
   const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]').map(id => parseInt(id));
@@ -5249,7 +5242,7 @@ function startRevisionQuestion() {
       </div>`
     ).join("");
   document.getElementById("revision-input-display").textContent = "";
-  document.getElementById("revision-message").textContent = "";
+ 
 
   // 💬 Affiche l’infobulle du déficit/avance de Validation sur la première carte
 const firstCard = document.getElementById(`revision-card-0`);
@@ -5464,14 +5457,10 @@ openRevisionFlashcard(
         const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
 
         if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? t('revision_ok') : katakanaDisplay;
-          document.getElementById("revision-message").style.color = "#8B6F47";
+         
           playZenBell();
         } else {
-          document.getElementById("revision-message").textContent = isHighLevel
-            ? t('revision_wrong')
-            : `${t('revision_correct_answer')} ${revisionMode.fullCorrect}${katakanaDisplay}`;
-          document.getElementById("revision-message").style.color = "#8B6F47";
+        
           playSoftError();
         }
 
@@ -5613,5 +5602,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
