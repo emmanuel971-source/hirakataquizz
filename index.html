@@ -349,60 +349,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 @keyframes rollInDown {
   from { top: -70px; }
   to { top: 0; }
-}  
-/* Badge notification sur le bouton du menu */
-.menu .arcade-button[data-has-new-response="true"] {
-  position: relative;
-}
-.menu .arcade-button[data-has-new-response="true"]::after {
-  content: "✨";
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  font-size: 1.4em;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-}
-
-/* Style des messages dans l’historique */
-.contact-message {
-  background: var(--white);
-  border-radius: 12px;
-  padding: 12px 16px;
-  margin: 12px 0;
-  box-shadow: 0 2px 6px var(--shadow-black-light);
-  position: relative;
-}
-.contact-message.mine {
-  background: var(--green-pale);
-  margin-left: 20px;
-  border-left: 4px solid var(--green-primary);
-}
-.contact-message.admin {
-  background: var(--pink-pale);
-  margin-right: 20px;
-  border-right: 4px solid var(--pink-primary);
-}
-.contact-message .date {
-  font-size: 0.8em;
-  color: var(--gray-dark);
-  margin-top: 6px;
-}
-.contact-message .response-badge {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  background: var(--green-bright);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.75em;
-}
-    
+}    
   </style>
 </head>
 <body>
@@ -429,8 +376,6 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   <button class="arcade-button" onclick="showSection('stats')" data-i18n="menu_stats">Mes stats</button>
   <button class="arcade-button" onclick="showSection('options')" data-i18n="menu_options">Options</button>
   <button class="arcade-button" onclick="showSection('account')" data-i18n="account_title">Mon compte</button>
-  <!-- Ajoute cette ligne avec les autres boutons du menu -->
-<button class="arcade-button" onclick="showSection('contact')" data-i18n="menu_contact">✉️ Contact & Feedback</button>
 <!--   <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>  -->
 </nav>
 
@@ -550,52 +495,6 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   <button class="arcade-button" onclick="setLanguage('es')">🇪🇸 Español</button>
 </div>
 </div>
-<!-- ==================== SECTION CONTACT ==================== -->
-<div id="contact" class="section">
-  <h1 data-i18n="contact_title">✉️ Contact & Feedback</h1>
-  
-  <div class="options-menu" style="gap: 20px; max-width: 90%; margin: 0 auto;">
-    
-    <!-- Formulaire d'envoi -->
-    <div id="contact-form">
-      <p data-i18n="contact_intro">Une suggestion ? Une question ? Écris-moi ici (max 500 caractères)</p>
-      
-      <textarea id="contact-message" maxlength="500" placeholder="Ton message..." 
-                style="width:100%; min-height:120px; padding:12px; border-radius:10px; 
-                       border:2px solid var(--brown-primary); background:var(--beige-light); 
-                       font-size:1.1em; resize:none;"></textarea>
-      
-      <div style="text-align:right; color:var(--gray-dark); font-size:0.9em; margin-top:4px;">
-        <span id="char-count">0</span>/500
-      </div>
-      
-      <button class="arcade-button" id="send-contact-btn" onclick="sendContactMessage()">
-        Envoyer le message
-      </button>
-      
-      <p style="margin-top:20px; font-size:0.9em; color:var(--green-dark);">
-        Pour un bug avec capture d’écran → envoie un mail à<br>
-        <a href="mailto:bugs@kanas-zengarden.com" style="color:var(--brown-primary); text-decoration:underline;">
-          bugs@kanas-zengarden.com
-        </a>
-      </p>
-    </div>
-    
-    <!-- Historique des messages -->
-    <div id="contact-history" style="margin-top:30px; width:100%;">
-      <h2 style="margin-bottom:15px;" data-i18n="contact_history">Historique des messages</h2>
-      <div id="contact-messages-list">
-        <!-- Les messages seront injectés ici par JS -->
-        <p style="color:var(--gray-dark); font-style:italic;">Aucun message pour le moment</p>
-      </div>
-    </div>
-    
-    <!-- Bouton retour (en bas) -->
-    <button class="arcade-button" onclick="showSection('options')" style="margin-top:30px;">
-      ← Retour aux Options
-    </button>
-  </div>
-</div>  
 <!-- ========================================
      HTML À AJOUTER APRÈS LA SECTION OPTIONS
      ======================================== -->
@@ -5712,125 +5611,5 @@ document.addEventListener("DOMContentLoaded", () => {
   panda.style.pointerEvents = "none"; 
   panda.style.opacity = "0.2"; // optionnel, pour indiquer que c'est inactif
 });
-
-// Envoi du message
-async function sendContactMessage() {
-  const textarea = document.getElementById('contact-message');
-  const message = textarea.value.trim();
-  if (!message) return alert("Écris quelque chose avant d'envoyer !");
-  if (message.length > 500) return alert("Maximum 500 caractères");
-
-  const token = localStorage.getItem('userToken');
-  if (!token) return alert("Tu dois être connecté");
-
-  const result = await callAPI('sendFeedback', {
-    token: token,
-    message: message
-  });
-
-  if (result.success) {
-    textarea.value = '';
-    document.getElementById('char-count').textContent = '0';
-    alert("Message envoyé ! Merci");
-    loadContactHistory(); // rafraîchir la liste
-  } else {
-    alert("Erreur d’envoi : " + (result.error || "inconnue"));
-  }
-}
-
-// Chargement de l’historique
-async function loadContactHistory() {
-  const token = localStorage.getItem('userToken');
-  if (!token) return;
-
-  const result = await callAPI('getFeedback', { token });
-  
-  const list = document.getElementById('contact-messages-list');
-  if (!result.success || !result.messages || result.messages.length === 0) {
-    list.innerHTML = '<p style="color:var(--gray-dark); font-style:italic;">Aucun message pour le moment</p>';
-    updateContactBadge(false);
-    return;
-  }
-
-  let hasNewResponse = false;
-  const html = result.messages.map(msg => {
-    const date = new Date(msg.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
-    if (msg.response && !localStorage.getItem('read_' + msg.id)) {
-      hasNewResponse = true;
-      localStorage.setItem('read_' + msg.id, 'true'); // marquer comme lu
-    }
-
-    return `
-      <div class="contact-message ${msg.response ? 'admin' : 'mine'}">
-        <strong>${currentUser?.pseudo || 'Toi'}</strong> 
-        <span class="date">${date}</span>
-        ${msg.response && !localStorage.getItem('read_' + msg.id) ? '<span class="response-badge">Nouveau</span>' : ''}
-        <div style="margin-top:8px;">${msg.message.replace(/\n/g, '<br>')}</div>
-        ${msg.response ? `<div style="margin-top:12px; padding-top:12px; border-top:1px dashed #ccc; color:#8B6F47;">
-          <strong>Réponse :</strong><br>${msg.response.replace(/\n/g, '<br>')}
-        </div>` : ''}
-      </div>
-    `;
-  }).join('');
-
-  list.innerHTML = html;
-  updateContactBadge(hasNewResponse);
-}
-
-function updateContactBadge(hasNew) {
-  const btn = document.querySelector('.menu .arcade-button[onclick="showSection(\'contact\')"]');
-  if (btn) {
-    if (hasNew) btn.setAttribute('data-has-new-response', 'true');
-    else btn.removeAttribute('data-has-new-response');
-  }
-}
-
-// Auto-refresh quand on ouvre la section
-const originalShowSection = window.showSection;
-window.showSection = function(id) {
-  originalShowSection(id);
-  if (id === 'contact') {
-    setTimeout(loadContactHistory, 200);
-  }
-};
-
 </script>  
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
