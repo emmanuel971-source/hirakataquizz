@@ -2899,6 +2899,10 @@ function closeRevisionFlashcard() {
     startRevisionQuestion();
   }, 400);
 }
+// Ferme la flashcard
+function closeGardenModal() {
+  document.getElementById('garden-modal').classList.remove('visible');
+}     
 function updateFilterCounts(data) {
   const counts = {
     all: data.length,
@@ -5601,6 +5605,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
