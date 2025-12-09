@@ -376,6 +376,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   <button class="arcade-button" onclick="showSection('stats')" data-i18n="menu_stats">Mes stats</button>
   <button class="arcade-button" onclick="showSection('options')" data-i18n="menu_options">Options</button>
   <button class="arcade-button" onclick="showSection('account')" data-i18n="account_title">Mon compte</button>
+  <button class="arcade-button" onclick="showSection('contact')" data-i18n="menu_contact">Contact</button>
 <!--   <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>  -->
 </nav>
 
@@ -493,6 +494,20 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   <button class="arcade-button" onclick="setLanguage('fr')">🇫🇷 Français</button>
   <button class="arcade-button" onclick="setLanguage('en')">🇬🇧 English</button>
   <button class="arcade-button" onclick="setLanguage('es')">🇪🇸 Español</button>
+</div>
+  <!-- Sous-rubrique Contact -->
+<div id="options-contact" class="options-sub hidden">
+  <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button>
+  <h2 data-i18n="contact_title">Contact & Support</h2>
+  <button class="arcade-button" onclick="showContactForm('message')" data-i18n="contact_send_message">
+    💬 Envoyer un message
+  </button>
+  <button class="arcade-button" onclick="showContactForm('bug')" data-i18n="contact_report_bug">
+    🐛 Reporter un bug
+  </button>
+  <button class="arcade-button" id="contact-inbox-btn" onclick="showContactInbox()" data-i18n="contact_my_messages">
+    📬 Mes messages
+  </button>
 </div>
 </div>
 <!-- ========================================
@@ -5602,6 +5617,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
