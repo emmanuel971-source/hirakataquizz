@@ -459,7 +459,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
     <div class="revision-key">w</div>
     <div class="revision-key" id="revision-back">←</div>
   </div>
- <div id="revision-message"></div> 
+
 </div>
 
 <!-- Section Options -->
@@ -5456,21 +5456,7 @@ openRevisionFlashcard(
   true                        // toujours scintillement du score
 );
 
-// === FORCAGE VISUEL IMMÉDIAT (aucun z-index ne peut résister) ===
-setTimeout(() => {
-  const modal = document.getElementById('garden-modal');
-  modal.style.cssText = `
-    position:fixed !important;
-   
-    z-index:2147483647 !important;   /* z-index maximum possible en 32 bits */
-    display:flex !important;
-    opacity:1 !important;
-    pointer-events:auto !important;
-  
-  `;
-  const card = document.querySelector('#garden-modal .garden-card');
-  if (card) card.style.cssText = 'position:relative !important; z-index:2147483647 !important; transform:none !important;';
-}, 50);   // léger délai pour être sûr que openGardenModal a fini
+
         // === Feedback texte + couleur ===
         const niveau = parseInt(revisionMode.currentItem.Niveau || 1);
         const isHighLevel = niveau > 38;
@@ -5630,6 +5616,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
