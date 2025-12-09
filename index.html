@@ -494,6 +494,21 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   <button class="arcade-button" onclick="setLanguage('en')">🇬🇧 English</button>
   <button class="arcade-button" onclick="setLanguage('es')">🇪🇸 Español</button>
 </div>
+  <!-- Sous-rubrique Contact -->
+<div id="options-contact" class="options-sub hidden">
+  <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button>
+  <h2 data-i18n="contact_title">Contact & Support</h2>
+  <button class="arcade-button" onclick="showContactForm('message')" data-i18n="contact_send_message">
+    💬 Envoyer un message
+  </button>
+  <button class="arcade-button" onclick="showContactForm('bug')" data-i18n="contact_report_bug">
+    🐛 Reporter un bug
+  </button>
+  <button class="arcade-button" id="contact-inbox-btn" onclick="showContactInbox()" data-i18n="contact_my_messages">
+    📬 Mes messages
+  </button>
+</div>
+</div>
 </div>
 <!-- ========================================
      HTML À AJOUTER APRÈS LA SECTION OPTIONS
@@ -5613,3 +5628,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
