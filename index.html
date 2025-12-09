@@ -5489,10 +5489,7 @@ openRevisionFlashcard(
           setTimeout(generateGarden, 100);
         }
 
-        // === Prochaine question (on laisse le temps à la flashcard d’être vue) ===
-        setTimeout(() => {
-          startRevisionQuestion();
-        }, isCorrect ? 2500 : 3500); // 1 s flashcard + marge confortable
+       
       }
     });
   });
@@ -5616,6 +5613,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
