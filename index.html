@@ -3605,9 +3605,34 @@ sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
 document.body.appendChild(sakura);
 setTimeout(() => sakura.remove(), 4000);
 }
-
-
 }
+// 🎯 GESTIONNAIRE DE PARTICULES OPTIMISÉ
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30; // Limite stricte
+
+// Fonction de nettoyage des particules
+function cleanupOldParticles() {
+// Supprimer les particules les plus anciennes si on dépasse la limite
+while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
+const oldSpark = activeSparks.shift();
+if (oldSpark && oldSpark.canvas && oldSpark.canvas.parentNode) {
+oldSpark.canvas.remove();
+globalParticleCount--;
+}
+}
+// Nettoyer les particules orphelines
+activeSparks = activeSparks.filter(spark => {
+if (!spark.canvas || !spark.canvas.parentNode) {
+globalParticleCount--;
+return false;
+}
+return true;
+});
+console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
+}
+
+// Nettoyage automatique toutes les 3 secondes
+setInterval(cleanupOldParticles, 3000);
 
 
 
@@ -5609,6 +5634,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
