@@ -263,7 +263,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 #mode2 #revision-message {
   z-index: 100 !important; /* bien en dessous de la modale */
 }    
- /* ====================== MODAL PORTAL ====================== */
+
 /* ====================== MODAL PORTAL ====================== */
 #modal-portal {
   position: fixed !important;
@@ -290,7 +290,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   text-align: center;
   max-width: 90%;
   background-color: #ffffff;
-  animation: popIn 0.6s ease-out forwards;
+  animation: popIn 0.6s ease-out forwards; /* ← Cette ligne doit être là */
 }
 
 /* Responsivité mobile */
@@ -325,6 +325,31 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
     max-width: 80%;
   }
 }
+/* Animations pour les flashcards de révision */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rollUp {
+  from { top: 0; }
+  to { top: -70px; }
+}
+
+@keyframes rollDown {
+  from { top: 0; }
+  to { top: 70px; }
+}
+
+@keyframes rollInUp {
+  from { top: 70px; }
+  to { top: 0; }
+}
+
+@keyframes rollInDown {
+  from { top: -70px; }
+  to { top: 0; }
+}    
   </style>
 </head>
 <body>
@@ -5605,6 +5630,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </html>
+
 
 
 
