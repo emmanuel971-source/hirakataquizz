@@ -1044,7 +1044,147 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
      PORTAL POUR TOUTES LES MODALES
      ======================================== -->
 <div id="modal-portal"></div>
+<!-- Section Contact Form -->
+<div id="contact-form-modal" class="section" style="display: none;">
+  <div class="contact-form-container">
+    <button class="arcade-button" onclick="closeContactForm()" style="margin-bottom: 20px;">
+      <span data-i18n="options_back">← Retour</span>
+    </button>
+    
+    <h2 id="contact-form-title" data-i18n="contact_send_message">💬 Envoyer un message</h2>
+    
+    <!-- Message simple -->
+    <div id="message-form" class="contact-form-content" style="display: none;">
+      <p class="contact-subtitle" data-i18n="contact_message_subtitle">
+        Partage tes idées, suggestions ou questions 🌸
+      </p>
+      
+      <div class="contact-category">
+        <label data-i18n="contact_category_label">Catégorie :</label>
+        <select id="message-category" class="contact-select">
+          <option value="suggestion" data-i18n="contact_cat_suggestion">💡 Suggestion</option>
+          <option value="question" data-i18n="contact_cat_question">❓ Question</option>
+          <option value="feedback" data-i18n="contact_cat_feedback">⭐ Retour d'expérience</option>
+          <option value="other" data-i18n="contact_cat_other">📝 Autre</option>
+        </select>
+      </div>
+      
+      <textarea 
+        id="message-text" 
+        class="contact-textarea" 
+        maxlength="500" 
+        placeholder="Ton message (max 500 caractères)..."
+        data-i18n-placeholder="contact_message_placeholder"
+      ></textarea>
+      
+      <div class="char-counter">
+        <span id="char-count">0</span>/500
+      </div>
+      
+      <div id="message-error" class="error-message" style="display: none;"></div>
+      <div id="message-success" class="success-message" style="display: none;"></div>
+      
+      <button class="arcade-button primary-button" onclick="submitMessage()" data-i18n="contact_send">
+        ✉️ Envoyer
+      </button>
+    </div>
+    
+    <!-- Bug report -->
+    <div id="bug-form" class="contact-form-content" style="display: none;">
+      <p class="contact-subtitle" data-i18n="contact_bug_subtitle">
+        Aide-nous à améliorer l'application 🐛
+      </p>
+      
+      <div class="warning-box" style="margin-bottom: 20px;">
+        <p data-i18n="contact_bug_warning">
+          ⚠️ Pour envoyer un screenshot, nous aurons besoin de ton email
+        </p>
+      </div>
+      
+      <div class="contact-field">
+        <label data-i18n="contact_email_label">Email :</label>
+        <input 
+          type="email" 
+          id="bug-email" 
+          class="contact-input" 
+          placeholder="ton@email.com"
+          data-i18n-placeholder="contact_email_placeholder"
+        />
+      </div>
+      
+      <div class="contact-field">
+        <label data-i18n="contact_bug_description_label">Description du bug :</label>
+        <textarea 
+          id="bug-description" 
+          class="contact-textarea" 
+          maxlength="500" 
+          placeholder="Décris le problème en quelques lignes..."
+          data-i18n-placeholder="contact_bug_description_placeholder"
+        ></textarea>
+        <div class="char-counter">
+          <span id="bug-char-count">0</span>/500
+        </div>
+      </div>
+      
+      <div class="contact-field">
+        <label data-i18n="contact_bug_steps_label">Étapes pour reproduire (optionnel) :</label>
+        <textarea 
+          id="bug-steps" 
+          class="contact-textarea small" 
+          maxlength="300" 
+          placeholder="1. Je clique sur...&#10;2. Ensuite..."
+          data-i18n-placeholder="contact_bug_steps_placeholder"
+        ></textarea>
+      </div>
+      
+      <div class="contact-field">
+        <label data-i18n="contact_bug_screenshot_label">Screenshot :</label>
+        <input 
+          type="file" 
+          id="bug-screenshot" 
+          class="contact-file-input" 
+          accept="image/*"
+        />
+        <div class="file-info" data-i18n="contact_bug_file_info">
+          📷 Formats acceptés : JPG, PNG (max 5MB)
+        </div>
+      </div>
+      
+      <div id="bug-error" class="error-message" style="display: none;"></div>
+      <div id="bug-success" class="success-message" style="display: none;"></div>
+      
+      <button class="arcade-button primary-button" onclick="submitBugReport()" data-i18n="contact_send">
+        ✉️ Envoyer
+      </button>
+    </div>
+  </div>
+</div>
 
+<!-- Section Inbox (Messages reçus) -->
+<div id="contact-inbox-modal" class="section" style="display: none;">
+  <div class="contact-inbox-container">
+    <button class="arcade-button" onclick="closeContactInbox()" style="margin-bottom: 20px;">
+      <span data-i18n="options_back">← Retour</span>
+    </button>
+    
+    <h2 data-i18n="contact_inbox_title">📬 Mes messages</h2>
+    
+    <div id="inbox-loading" class="zen-loader-container" style="display: none;">
+      <div class="zen-circle-loader">
+        <div class="bamboo-leaf">🍃</div>
+      </div>
+      <p class="zen-loader-text" data-i18n="contact_loading">Chargement...</p>
+    </div>
+    
+    <div id="inbox-empty" class="inbox-empty" style="display: none;">
+      <p data-i18n="contact_inbox_empty">📭 Aucun message pour le moment</p>
+    </div>
+    
+    <div id="inbox-messages" class="inbox-messages">
+      <!-- Généré dynamiquement par JS -->
+    </div>
+  </div>
+</div>
 
   <script>
    
@@ -6228,6 +6368,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
