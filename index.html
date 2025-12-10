@@ -6258,29 +6258,52 @@ async function submitBugReport() {
       screenshotBase64 = await fileToBase64(screenshot);
     }
     
-    // Appel API
-    const result = await callAPI('submitBugReport', {
+    // ✅ NOUVEAU : Utiliser un formulaire invisible pour contourner CORS
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.name = 'bug-report-frame';
+    document.body.appendChild(iframe);
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = WEB_APP_URL;
+    form.target = 'bug-report-frame';
+    
+    const fields = {
+      action: 'submitBugReport',
       token: userToken || 'anonymous',
       email: email,
       description: description,
       steps: steps || 'Non spécifié',
       technicalInfo: JSON.stringify(technicalInfo),
-      screenshot: screenshotBase64
+      screenshot: screenshotBase64 || ''
+    };
+    
+    Object.entries(fields).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
     });
     
-    if (result.success) {
-      successDiv.textContent = '✅ Bug reporté ! Merci pour ton aide 🐛✨';
-      successDiv.style.display = 'block';
-      errorDiv.style.display = 'none';
-      
-      setTimeout(() => {
-        closeContactForm();
-      }, 2000);
-    } else {
-      errorDiv.textContent = result.error || 'Erreur lors de l\'envoi';
-      errorDiv.style.display = 'block';
-      successDiv.style.display = 'none';
-    }
+    document.body.appendChild(form);
+    
+    // Afficher un message de succès immédiatement
+    successDiv.textContent = '✅ Bug reporté ! Merci pour ton aide 🐛✨';
+    successDiv.style.display = 'block';
+    errorDiv.style.display = 'none';
+    
+    // Soumettre le formulaire
+    form.submit();
+    
+    // Nettoyer après 2 secondes
+    setTimeout(() => {
+      document.body.removeChild(form);
+      document.body.removeChild(iframe);
+      closeContactForm();
+    }, 2000);
+    
   } catch (error) {
     console.error('Erreur submitBugReport:', error);
     errorDiv.textContent = 'Erreur réseau. Vérifie ta connexion.';
@@ -6288,7 +6311,6 @@ async function submitBugReport() {
     successDiv.style.display = 'none';
   }
 }
-
 // Convertir fichier en base64
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -6440,6 +6462,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
