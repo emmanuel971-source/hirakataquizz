@@ -350,6 +350,258 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   from { top: -70px; }
   to { top: 0; }
 }    
+/* ========================================
+   STYLES CONTACT & SUPPORT
+   ======================================== */
+.contact-form-container, .contact-inbox-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1em;
+}
+
+.contact-subtitle {
+  font-size: 1.1em;
+  color: var(--brown-primary);
+  margin-bottom: 1.5em;
+  text-align: center;
+}
+
+.contact-category {
+  margin-bottom: 1.5em;
+}
+
+.contact-category label {
+  display: block;
+  font-weight: bold;
+  color: var(--brown-primary);
+  margin-bottom: 0.5em;
+  font-size: 1.1em;
+}
+
+.contact-select {
+  width: 100%;
+  padding: 0.8em;
+  font-size: 1.1em;
+  border: 2px solid var(--brown-primary);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--brown-primary);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.contact-textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 1em;
+  font-size: 1.1em;
+  border: 2px solid var(--brown-primary);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--brown-primary);
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.contact-textarea.small {
+  min-height: 100px;
+}
+
+.contact-textarea:focus, .contact-select:focus, .contact-input:focus {
+  outline: none;
+  border-color: var(--green-primary);
+  box-shadow: 0 0 8px var(--overlay-green-30);
+}
+
+.char-counter {
+  text-align: right;
+  font-size: 0.9em;
+  color: var(--gray-dark);
+  margin-top: 0.3em;
+  margin-bottom: 1em;
+}
+
+.contact-field {
+  margin-bottom: 1.5em;
+}
+
+.contact-field label {
+  display: block;
+  font-weight: bold;
+  color: var(--brown-primary);
+  margin-bottom: 0.5em;
+  font-size: 1.1em;
+}
+
+.contact-input {
+  width: 100%;
+  padding: 0.8em;
+  font-size: 1.1em;
+  border: 2px solid var(--brown-primary);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--brown-primary);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.contact-file-input {
+  width: 100%;
+  padding: 0.8em;
+  font-size: 1em;
+  border: 2px dashed var(--brown-primary);
+  border-radius: 8px;
+  background: var(--beige-light);
+  cursor: pointer;
+}
+
+.file-info {
+  font-size: 0.9em;
+  color: var(--gray-dark);
+  margin-top: 0.5em;
+}
+
+.error-message {
+  background: var(--pink-pale);
+  border: 2px solid var(--pink-primary);
+  color: var(--brown-primary);
+  padding: 1em;
+  border-radius: 8px;
+  margin: 1em 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+.success-message {
+  background: var(--green-pale);
+  border: 2px solid var(--green-primary);
+  color: var(--green-dark);
+  padding: 1em;
+  border-radius: 8px;
+  margin: 1em 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Badge notification */
+#contact-inbox-btn {
+  position: relative;
+}
+
+#contact-inbox-btn .notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--red-progress);
+  color: var(--white);
+  font-size: 0.8em;
+  font-weight: bold;
+  padding: 0.2em 0.5em;
+  border-radius: 50%;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Inbox messages */
+.inbox-empty {
+  text-align: center;
+  padding: 3em 1em;
+  color: var(--gray-dark);
+  font-size: 1.2em;
+}
+
+.inbox-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.message-card {
+  background: var(--white);
+  border: 2px solid var(--brown-primary);
+  border-radius: 12px;
+  padding: 1.2em;
+  box-shadow: 0 4px 8px var(--shadow-black-medium);
+  transition: all 0.3s ease;
+}
+
+.message-card.unread {
+  background: var(--green-subtle-2);
+  border-color: var(--green-primary);
+}
+
+.message-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px var(--shadow-black-strong);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8em;
+  padding-bottom: 0.8em;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.message-type {
+  font-size: 0.9em;
+  font-weight: bold;
+  color: var(--brown-primary);
+  padding: 0.3em 0.8em;
+  background: var(--beige-light);
+  border-radius: 20px;
+}
+
+.message-date {
+  font-size: 0.85em;
+  color: var(--gray-dark);
+}
+
+.message-content {
+  color: var(--gray-text);
+  line-height: 1.6;
+  margin-bottom: 1em;
+}
+
+.message-response {
+  background: var(--green-subtle-3);
+  border-left: 4px solid var(--green-primary);
+  padding: 1em;
+  border-radius: 8px;
+  margin-top: 1em;
+}
+
+.response-header {
+  font-weight: bold;
+  color: var(--green-dark);
+  margin-bottom: 0.5em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.response-text {
+  color: var(--gray-text);
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .contact-form-container, .contact-inbox-container {
+    padding: 0.5em;
+  }
+  
+  .contact-textarea {
+    font-size: 1em;
+    min-height: 120px;
+  }
+  
+  .message-card {
+    padding: 1em;
+  }
+}    
   </style>
 </head>
 <body>
@@ -376,6 +628,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   <button class="arcade-button" onclick="showSection('stats')" data-i18n="menu_stats">Mes stats</button>
   <button class="arcade-button" onclick="showSection('options')" data-i18n="menu_options">Options</button>
   <button class="arcade-button" onclick="showSection('account')" data-i18n="account_title">Mon compte</button>
+
 <!--   <button class="arcade-button" onclick="toggleMenu()" data-i18n="menu_close">Fermer</button>  -->
 </nav>
 
@@ -469,7 +722,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
     <button class="arcade-button" onclick="showSubOptions('difficulty')" data-i18n="options_difficulty">Difficulté</button>
     <button class="arcade-button" onclick="showSubOptions('sound')" data-i18n="options_sound">Son</button>
     <button class="arcade-button" onclick="showSubOptions('language')" data-i18n="options_language">Langue</button>
-    <button class="arcade-button" onclick="showSubOptions('contact')" data-i18n="options_contact">Contact</button>
+      <button class="arcade-button" onclick="showSubOptions('contact')" data-i18n="contact_title">📨 Contact</button>
   </div>
 
   <!-- Sous-rubrique Difficulté -->
@@ -487,6 +740,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
     <h2 data-i18n="options_sound">Son</h2>
     <p>🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)</p>
   </div>
+  
 <!-- Sous-rubrique Langue -->
 <div id="options-language" class="options-sub hidden">
   <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button>
@@ -508,7 +762,6 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   <button class="arcade-button" id="contact-inbox-btn" onclick="showContactInbox()" data-i18n="contact_my_messages">
     📬 Mes messages
   </button>
-</div>
 </div>
 </div>
 <!-- ========================================
@@ -791,7 +1044,147 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
      PORTAL POUR TOUTES LES MODALES
      ======================================== -->
 <div id="modal-portal"></div>
+<!-- Section Contact Form -->
+<div id="contact-form-modal" class="section" style="display: none;">
+  <div class="contact-form-container">
+    <button class="arcade-button" onclick="closeContactForm()" style="margin-bottom: 20px;">
+      <span data-i18n="options_back">← Retour</span>
+    </button>
+    
+    <h2 id="contact-form-title" data-i18n="contact_send_message">💬 Envoyer un message</h2>
+    
+    <!-- Message simple -->
+    <div id="message-form" class="contact-form-content" style="display: none;">
+      <p class="contact-subtitle" data-i18n="contact_message_subtitle">
+        Partage tes idées, suggestions ou questions 🌸
+      </p>
+      
+      <div class="contact-category">
+        <label data-i18n="contact_category_label">Catégorie :</label>
+        <select id="message-category" class="contact-select">
+          <option value="suggestion" data-i18n="contact_cat_suggestion">💡 Suggestion</option>
+          <option value="question" data-i18n="contact_cat_question">❓ Question</option>
+          <option value="feedback" data-i18n="contact_cat_feedback">⭐ Retour d'expérience</option>
+          <option value="other" data-i18n="contact_cat_other">📝 Autre</option>
+        </select>
+      </div>
+      
+      <textarea 
+        id="message-text" 
+        class="contact-textarea" 
+        maxlength="500" 
+        placeholder="Ton message (max 500 caractères)..."
+        data-i18n-placeholder="contact_message_placeholder"
+      ></textarea>
+      
+      <div class="char-counter">
+        <span id="char-count">0</span>/500
+      </div>
+      
+      <div id="message-error" class="error-message" style="display: none;"></div>
+      <div id="message-success" class="success-message" style="display: none;"></div>
+      
+      <button class="arcade-button primary-button" onclick="submitMessage()" data-i18n="contact_send">
+        ✉️ Envoyer
+      </button>
+    </div>
+    
+    <!-- Bug report -->
+    <div id="bug-form" class="contact-form-content" style="display: none;">
+      <p class="contact-subtitle" data-i18n="contact_bug_subtitle">
+        Aide-nous à améliorer l'application 🐛
+      </p>
+      
+      <div class="warning-box" style="margin-bottom: 20px;">
+        <p data-i18n="contact_bug_warning">
+          ⚠️ Pour envoyer un screenshot, nous aurons besoin de ton email
+        </p>
+      </div>
+      
+      <div class="contact-field">
+        <label data-i18n="contact_email_label">Email :</label>
+        <input 
+          type="email" 
+          id="bug-email" 
+          class="contact-input" 
+          placeholder="ton@email.com"
+          data-i18n-placeholder="contact_email_placeholder"
+        />
+      </div>
+      
+      <div class="contact-field">
+        <label data-i18n="contact_bug_description_label">Description du bug :</label>
+        <textarea 
+          id="bug-description" 
+          class="contact-textarea" 
+          maxlength="500" 
+          placeholder="Décris le problème en quelques lignes..."
+          data-i18n-placeholder="contact_bug_description_placeholder"
+        ></textarea>
+        <div class="char-counter">
+          <span id="bug-char-count">0</span>/500
+        </div>
+      </div>
+      
+      <div class="contact-field">
+        <label data-i18n="contact_bug_steps_label">Étapes pour reproduire (optionnel) :</label>
+        <textarea 
+          id="bug-steps" 
+          class="contact-textarea small" 
+          maxlength="300" 
+          placeholder="1. Je clique sur...&#10;2. Ensuite..."
+          data-i18n-placeholder="contact_bug_steps_placeholder"
+        ></textarea>
+      </div>
+      
+      <div class="contact-field">
+        <label data-i18n="contact_bug_screenshot_label">Screenshot :</label>
+        <input 
+          type="file" 
+          id="bug-screenshot" 
+          class="contact-file-input" 
+          accept="image/*"
+        />
+        <div class="file-info" data-i18n="contact_bug_file_info">
+          📷 Formats acceptés : JPG, PNG (max 5MB)
+        </div>
+      </div>
+      
+      <div id="bug-error" class="error-message" style="display: none;"></div>
+      <div id="bug-success" class="success-message" style="display: none;"></div>
+      
+      <button class="arcade-button primary-button" onclick="submitBugReport()" data-i18n="contact_send">
+        ✉️ Envoyer
+      </button>
+    </div>
+  </div>
+</div>
 
+<!-- Section Inbox (Messages reçus) -->
+<div id="contact-inbox-modal" class="section" style="display: none;">
+  <div class="contact-inbox-container">
+    <button class="arcade-button" onclick="closeContactInbox()" style="margin-bottom: 20px;">
+      <span data-i18n="options_back">← Retour</span>
+    </button>
+    
+    <h2 data-i18n="contact_inbox_title">📬 Mes messages</h2>
+    
+    <div id="inbox-loading" class="zen-loader-container" style="display: none;">
+      <div class="zen-circle-loader">
+        <div class="bamboo-leaf">🍃</div>
+      </div>
+      <p class="zen-loader-text" data-i18n="contact_loading">Chargement...</p>
+    </div>
+    
+    <div id="inbox-empty" class="inbox-empty" style="display: none;">
+      <p data-i18n="contact_inbox_empty">📭 Aucun message pour le moment</p>
+    </div>
+    
+    <div id="inbox-messages" class="inbox-messages">
+      <!-- Généré dynamiquement par JS -->
+    </div>
+  </div>
+</div>
 
   <script>
    
@@ -4306,7 +4699,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbylWVyaAxXK7CYwyRCHz7uW2L8Twb5X34PLUI1oP7oFLqIvwyNbQ8JTDdNP7mrSSUaeNQ/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby8GYD5bwzhW7NAuhF_5E15VciYixElFGiI23Rcpp0XuNLzLa4vkwXGvrOa1v66Eq9uYw/exec';
 
 
 // Fonction pour appeler l'API
@@ -5149,14 +5542,7 @@ function startRevisionQuestion() {
 
   console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
 
- if (availableItems.length === 0) {
-    document.getElementById("revision-message").textContent = 
-      niveauActif < 4 ? 
-      t('revision_available_level4') :  // ✅ MODIFIÉ
-      t('revision_no_items');            // ✅ MODIFIÉ
-    document.getElementById("revision-message").style.color = "#dc3545";
-    return;
-  }
+
 
   // Tampon des 3 derniers tirages - convertir en numbers
   const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]').map(id => parseInt(id));
@@ -5265,7 +5651,7 @@ function startRevisionQuestion() {
       </div>`
     ).join("");
   document.getElementById("revision-input-display").textContent = "";
-  document.getElementById("revision-message").textContent = "";
+ 
 
   // 💬 Affiche l’infobulle du déficit/avance de Validation sur la première carte
 const firstCard = document.getElementById(`revision-card-0`);
@@ -5480,14 +5866,10 @@ openRevisionFlashcard(
         const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
 
         if (isCorrect) {
-          document.getElementById("revision-message").textContent = isHighLevel ? t('revision_ok') : katakanaDisplay;
-          document.getElementById("revision-message").style.color = "#8B6F47";
+         
           playZenBell();
         } else {
-          document.getElementById("revision-message").textContent = isHighLevel
-            ? t('revision_wrong')
-            : `${t('revision_correct_answer')} ${revisionMode.fullCorrect}${katakanaDisplay}`;
-          document.getElementById("revision-message").style.color = "#8B6F47";
+        
           playSoftError();
         }
 
@@ -5627,5 +6009,372 @@ document.addEventListener("DOMContentLoaded", () => {
   panda.style.pointerEvents = "none"; 
   panda.style.opacity = "0.2"; // optionnel, pour indiquer que c'est inactif
 });
+  // ========================================
+// FONCTIONS CONTACT & SUPPORT
+// ========================================
+
+// Variable pour tracker les messages non lus
+let unreadMessagesCount = 0;
+
+function initContactListeners() {
+  // Compteur de caractères pour message simple
+  const messageText = document.getElementById('message-text');
+  if (messageText) {
+    messageText.addEventListener('input', (e) => {
+      const count = e.target.value.length;
+      document.getElementById('char-count').textContent = count;
+    });
+  }
+  
+  // Compteur pour bug description
+  const bugDescription = document.getElementById('bug-description');
+  if (bugDescription) {
+    bugDescription.addEventListener('input', (e) => {
+      const count = e.target.value.length;
+      document.getElementById('bug-char-count').textContent = count;
+    });
+  }
+  
+  // Vérifier les messages non lus au démarrage
+  checkUnreadMessages();
+}
+
+function showContactForm(type) {
+  const formModal = document.getElementById('contact-form-modal');
+  const messageForm = document.getElementById('message-form');
+  const bugForm = document.getElementById('bug-form');
+  const title = document.getElementById('contact-form-title');
+  
+  // Masquer la section options
+  document.getElementById('options').classList.remove('active');
+  
+  // Afficher le formulaire approprié
+  formModal.style.display = 'flex';
+  formModal.classList.add('active');
+  
+  if (type === 'message') {
+    messageForm.style.display = 'block';
+    bugForm.style.display = 'none';
+    title.textContent = '💬 Envoyer un message';
+    title.setAttribute('data-i18n', 'contact_send_message');
+  } else if (type === 'bug') {
+    messageForm.style.display = 'none';
+    bugForm.style.display = 'block';
+    title.textContent = '🐛 Reporter un bug';
+    title.setAttribute('data-i18n', 'contact_report_bug');
+  }
+  
+  // Réinitialiser les formulaires
+  resetContactForms();
+}
+
+function closeContactForm() {
+  const formModal = document.getElementById('contact-form-modal');
+  formModal.style.display = 'none';
+  formModal.classList.remove('active');
+  
+  // Retourner à la section contact
+  document.getElementById('options').classList.add('active');
+  showSubOptions('contact');
+}
+
+function resetContactForms() {
+  // Message simple
+  document.getElementById('message-text').value = '';
+  document.getElementById('message-category').value = 'suggestion';
+  document.getElementById('char-count').textContent = '0';
+  document.getElementById('message-error').style.display = 'none';
+  document.getElementById('message-success').style.display = 'none';
+  
+  // Bug report
+  document.getElementById('bug-email').value = '';
+  document.getElementById('bug-description').value = '';
+  document.getElementById('bug-steps').value = '';
+  document.getElementById('bug-screenshot').value = '';
+  document.getElementById('bug-char-count').textContent = '0';
+  document.getElementById('bug-error').style.display = 'none';
+  document.getElementById('bug-success').style.display = 'none';
+}
+
+async function submitMessage() {
+  const messageText = document.getElementById('message-text').value.trim();
+  const category = document.getElementById('message-category').value;
+  const errorDiv = document.getElementById('message-error');
+  const successDiv = document.getElementById('message-success');
+  
+  // Validation
+  if (messageText.length < 10) {
+    errorDiv.textContent = 'Message trop court (min 10 caractères)';
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+    return;
+  }
+  
+  try {
+    // Appel API (à implémenter côté Apps Script)
+    const result = await callAPI('submitMessage', {
+      token: userToken || 'anonymous',
+      type: 'message',
+      category: category,
+      message: messageText
+    });
+    
+    if (result.success) {
+      successDiv.textContent = '✅ Message envoyé ! Nous te répondrons bientôt 🌸';
+      successDiv.style.display = 'block';
+      errorDiv.style.display = 'none';
+      
+      // Réinitialiser le formulaire après 2 secondes
+      setTimeout(() => {
+        closeContactForm();
+      }, 2000);
+    } else {
+      errorDiv.textContent = result.error || 'Erreur lors de l\'envoi';
+      errorDiv.style.display = 'block';
+      successDiv.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Erreur submitMessage:', error);
+    errorDiv.textContent = 'Erreur réseau. Vérifie ta connexion.';
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+  }
+}
+
+async function submitBugReport() {
+  const email = document.getElementById('bug-email').value.trim();
+  const description = document.getElementById('bug-description').value.trim();
+  const steps = document.getElementById('bug-steps').value.trim();
+  const screenshot = document.getElementById('bug-screenshot').files[0];
+  const errorDiv = document.getElementById('bug-error');
+  const successDiv = document.getElementById('bug-success');
+  
+  // Validation
+  if (!email || !email.includes('@')) {
+    errorDiv.textContent = '⚠️ Email invalide';
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+    return;
+  }
+  
+  if (description.length < 20) {
+    errorDiv.textContent = '⚠️ Description trop courte (min 20 caractères)';
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+    return;
+  }
+  
+  if (screenshot && screenshot.size > 5 * 1024 * 1024) {
+    errorDiv.textContent = '⚠️ Screenshot trop lourd (max 5MB)';
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+    return;
+  }
+  
+  try {
+    // Collecter les infos techniques automatiquement
+    const technicalInfo = {
+      userAgent: navigator.userAgent,
+      screenSize: `${window.innerWidth}x${window.innerHeight}`,
+      currentLevel: niveauActif,
+      timestamp: new Date().toISOString(),
+      language: currentLanguage
+    };
+    
+    let screenshotBase64 = null;
+    if (screenshot) {
+      screenshotBase64 = await fileToBase64(screenshot);
+    }
+    
+    // Appel API
+    const result = await callAPI('submitBugReport', {
+      token: userToken || 'anonymous',
+      email: email,
+      description: description,
+      steps: steps || 'Non spécifié',
+      technicalInfo: JSON.stringify(technicalInfo),
+      screenshot: screenshotBase64
+    });
+    
+    if (result.success) {
+      successDiv.textContent = '✅ Bug reporté ! Merci pour ton aide 🐛✨';
+      successDiv.style.display = 'block';
+      errorDiv.style.display = 'none';
+      
+      setTimeout(() => {
+        closeContactForm();
+      }, 2000);
+    } else {
+      errorDiv.textContent = result.error || 'Erreur lors de l\'envoi';
+      errorDiv.style.display = 'block';
+      successDiv.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Erreur submitBugReport:', error);
+    errorDiv.textContent = 'Erreur réseau. Vérifie ta connexion.';
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+  }
+}
+
+// Convertir fichier en base64
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Afficher la boîte de réception
+async function showContactInbox() {
+  const inboxModal = document.getElementById('contact-inbox-modal');
+  const loading = document.getElementById('inbox-loading');
+  const empty = document.getElementById('inbox-empty');
+  const messagesDiv = document.getElementById('inbox-messages');
+  
+  // Masquer la section options
+  document.getElementById('options').classList.remove('active');
+  
+  // Afficher la modal
+  inboxModal.style.display = 'flex';
+  inboxModal.classList.add('active');
+  
+  // Afficher le loader
+  loading.style.display = 'flex';
+  empty.style.display = 'none';
+  messagesDiv.innerHTML = '';
+  
+  try {
+    const result = await callAPI('getUserMessages', {
+      token: userToken || 'anonymous'
+    });
+    
+    loading.style.display = 'none';
+    
+    if (result.success && result.messages && result.messages.length > 0) {
+      renderMessages(result.messages);
+      
+      // Marquer tous les messages comme lus
+      await markAllMessagesAsRead();
+      updateUnreadBadge(0);
+    } else {
+      empty.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Erreur showContactInbox:', error);
+    loading.style.display = 'none';
+    empty.innerHTML = '<p>❌ Erreur de chargement</p>';
+    empty.style.display = 'block';
+  }
+}
+
+function closeContactInbox() {
+  const inboxModal = document.getElementById('contact-inbox-modal');
+  inboxModal.style.display = 'none';
+  inboxModal.classList.remove('active');
+  
+  // Retourner à la section contact
+  document.getElementById('options').classList.add('active');
+  showSubOptions('contact');
+}
+
+function renderMessages(messages) {
+  const messagesDiv = document.getElementById('inbox-messages');
+  messagesDiv.innerHTML = '';
+  
+  messages.forEach(msg => {
+    const card = document.createElement('div');
+    card.className = `message-card ${msg.isRead ? '' : 'unread'}`;
+    
+    const typeLabel = {
+      'suggestion': '💡 Suggestion',
+      'question': '❓ Question',
+      'feedback': '⭐ Retour',
+      'other': '📝 Autre',
+      'bug': '🐛 Bug'
+    }[msg.category] || '📝 Message';
+    
+    const date = new Date(msg.date).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+    
+    card.innerHTML = `
+      <div class="message-header">
+        <span class="message-type">${typeLabel}</span>
+        <span class="message-date">${date}</span>
+      </div>
+      <div class="message-content">${msg.message}</div>
+      ${msg.response ? `
+        <div class="message-response">
+          <div class="response-header">
+            🌸 Réponse de l'équipe
+          </div>
+          <div class="response-text">${msg.response}</div>
+        </div>
+      ` : '<p style="color: #999; font-style: italic;">En attente de réponse...</p>'}
+    `;
+    
+    messagesDiv.appendChild(card);
+  });
+}
+
+async function checkUnreadMessages() {
+  if (!userToken) return;
+  
+  try {
+    const result = await callAPI('getUnreadCount', {
+      token: userToken
+    });
+    
+    if (result.success) {
+      updateUnreadBadge(result.count);
+    }
+  } catch (error) {
+    console.error('Erreur checkUnreadMessages:', error);
+  }
+}
+
+function updateUnreadBadge(count) {
+  unreadMessagesCount = count;
+  const btn = document.getElementById('contact-inbox-btn');
+  
+  // Supprimer l'ancien badge s'il existe
+  const oldBadge = btn.querySelector('.notification-badge');
+  if (oldBadge) oldBadge.remove();
+  
+  // Ajouter le nouveau badge si count > 0
+  if (count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'notification-badge';
+    badge.textContent = count;
+    btn.appendChild(badge);
+  }
+}
+
+async function markAllMessagesAsRead() {
+  if (!userToken) return;
+  
+  try {
+    await callAPI('markMessagesRead', {
+      token: userToken
+    });
+  } catch (error) {
+    console.error('Erreur markAllMessagesAsRead:', error);
+  }
+}
 </script>  
 </html>
+
+
+
+
+
+
+
+
+
+
