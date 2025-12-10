@@ -2512,6 +2512,22 @@ function toggleMenu() {
     }
   }
   
+  // ✅ NOUVEAU : Fermer les modales contact si elles sont ouvertes
+  if (menu.classList.contains('active')) {
+    const contactFormModal = document.getElementById('contact-form-modal');
+    const contactInboxModal = document.getElementById('contact-inbox-modal');
+    
+    if (contactFormModal && contactFormModal.classList.contains('active')) {
+      contactFormModal.style.display = 'none';
+      contactFormModal.classList.remove('active');
+    }
+    
+    if (contactInboxModal && contactInboxModal.classList.contains('active')) {
+      contactInboxModal.style.display = 'none';
+      contactInboxModal.classList.remove('active');
+    }
+  }
+  
   // Vérifier l'état des boutons à chaque ouverture du menu
   if (menu.classList.contains('active')) {
     updateMenuButtonStates();
@@ -6395,6 +6411,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
