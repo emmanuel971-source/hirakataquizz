@@ -2100,91 +2100,65 @@ async function loginUser() {
   const errorDiv = document.getElementById('login-error');
   const successDiv = document.getElementById('login-success');
   
-  errorDiv.style.display = 'none';
-  successDiv.style.display = 'none';
-  
   // Validation
-if (!pseudo) {
-  errorDiv.textContent = t('error_enter_pseudo');
-  errorDiv.style.display = 'block';
-  return;
-}
-
-if (!day || !month) {
-  errorDiv.textContent = t('error_select_birthdate');
-  errorDiv.style.display = 'block';
-  return;
-}
+  if (!pseudo || pseudo.length < 3) {
+    errorDiv.textContent = 'Pseudo invalide';
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+    return;
+  }
+  
+  if (!day || !month) {
+    errorDiv.textContent = 'Date de naissance incomplète';
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+    return;
+  }
   
   const pin = day + month;
   
   try {
-    console.log('🔐 Tentative de connexion:', pseudo);
-    
-    // ✅ AJOUTÉ : Afficher le loader
-    document.getElementById('login').classList.remove('active');
-    document.getElementById('login-loader').style.display = 'flex';
-    
-    const authResult = await callAPI('authenticateUser', { pseudo, pin });
-    
-if (!authResult.success) {
-  document.getElementById('login-loader').style.display = 'none';
-  document.getElementById('login').classList.add('active');
-  
-  errorDiv.textContent = authResult.error || t('error_wrong_credentials');
-  errorDiv.style.display = 'block';
-  return;
-}
-    
-    const newToken = crypto.randomUUID();
-    
-    const updateResult = await callAPI('updateUserToken', {
-      pseudo,
-      pin,
-      newToken
+    // ✅ MODIFIÉ : Plus besoin de générer un nouveau token
+    const result = await callAPI('authenticateUser', {
+      pseudo: pseudo,
+      pin: pin
     });
     
-    if (updateResult.success) {
-      // ✅ Sauvegarder le token
-      userToken = newToken;
-      localStorage.setItem('userToken', newToken);
-      currentUser = authResult.user;
+    if (result.success) {
+      // ✅ MODIFIÉ : Stocker le token EXISTANT retourné par le serveur
+      userToken = result.user.token;
+      currentUser = result.user;
       
-      console.log('✅ Token mis à jour, rechargement des données...');
+      localStorage.setItem('userToken', userToken);
       
-      // ✅ Réinitialiser le contexte du jeu
-      resetGameContext();
-      
-      // ✅ Recharger les stats
+      // Charger la progression
       await loadUserProgress();
       
-      currentUser.token = newToken;
+      successDiv.textContent = '✅ Connexion réussie !';
+      successDiv.style.display = 'block';
+      errorDiv.style.display = 'none';
       
-      console.log('✅ Connexion réussie:', currentUser.pseudo);
-      console.log(`📊 Niveau actif: ${niveauActif}, Niveau atteint: ${currentUser.niveau_atteint}`);
+      // Mettre à jour l'affichage du compte
+      updateAccountDisplay();
       
-      // ✅ MODIFIÉ : Masquer le loader
-      document.getElementById('login-loader').style.display = 'none';
+      // Rediriger vers le menu après 1 seconde
+      setTimeout(() => {
+        document.getElementById('login').classList.remove('active');
+        showReturningUserWelcome(currentUser.pseudo);
+      }, 1000);
       
-      // ✅ AJOUTÉ : Afficher le message de bienvenue returning user
-      showReturningUserWelcome(currentUser.pseudo);
-      
-} else {
-  document.getElementById('login-loader').style.display = 'none';
-  document.getElementById('login').classList.add('active');
-  
-  errorDiv.textContent = t('error_token_update');
-  errorDiv.style.display = 'block';
-}
+    } else {
+      errorDiv.textContent = result.error || 'Erreur de connexion';
+      errorDiv.style.display = 'block';
+      successDiv.style.display = 'none';
+    }
     
-} catch (error) {
-  document.getElementById('login-loader').style.display = 'none';
-  document.getElementById('login').classList.add('active');
-  
-  errorDiv.textContent = t('error_connection');
-  errorDiv.style.display = 'block';
-  console.error('❌ Erreur connexion:', error);
-}
+  } catch (error) {
+    console.error('Erreur loginUser:', error);
+    errorDiv.textContent = 'Erreur réseau. Vérifie ta connexion.';
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+  }
 }
 // ========================================
 // AFFICHER LA PAGE DE CONNEXION
@@ -4699,7 +4673,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby8GYD5bwzhW7NAuhF_5E15VciYixElFGiI23Rcpp0XuNLzLa4vkwXGvrOa1v66Eq9uYw/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxTkf5C-jOyKTNxmvjuzDsaa0Srs5upocSGNg8pUUs2k7K2FsS_tDeBWQMqDl3hl9TKYg/exec';
 
 
 // Fonction pour appeler l'API
@@ -6368,6 +6342,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
