@@ -1432,7 +1432,9 @@ contact_my_messages: "📬 Mes messages",
 contact_inbox_title: "📬 Mes messages",
 contact_loading: "Chargement...",
 contact_inbox_empty: "📭 Aucun message pour le moment",
-
+contact_message_too_short: "Message trop court (min 10 caractères)",
+contact_invalid_email: "⚠️ Email invalide",
+contact_description_too_short: "⚠️ Description trop courte (min 20 caractères)",
     
   },
   
@@ -1663,7 +1665,9 @@ contact_my_messages: "📬 My messages",
 contact_inbox_title: "📬 My messages",
 contact_loading: "Loading...",
 contact_inbox_empty: "📭 No messages yet",
-
+contact_message_too_short: "Message too short (min 10 characters)",
+contact_invalid_email: "⚠️ Invalid email",
+contact_description_too_short: "⚠️ Description too short (min 20 characters)",
     
   },
   
@@ -1891,7 +1895,10 @@ contact_report_bug: "🐛 Reportar un error",
 contact_my_messages: "📬 Mis mensajes",
 contact_inbox_title: "📬 Mis mensajes",
 contact_loading: "Cargando...",
-contact_inbox_empty: "📭 No hay mensajes por ahora"
+contact_inbox_empty: "📭 No hay mensajes por ahora",
+contact_message_too_short: "Mensaje demasiado corto (mín 10 caracteres)",
+contact_invalid_email: "⚠️ Correo inválido",
+contact_description_too_short: "⚠️ Descripción demasiado corta (mín 20 caracteres)"
     
   }
 };
@@ -6210,13 +6217,13 @@ async function submitMessage() {
   const errorDiv = document.getElementById('message-error');
   const successDiv = document.getElementById('message-success');
   
-  // Validation
-  if (messageText.length < 10) {
-    errorDiv.textContent = 'Message trop court (min 10 caractères)';
-    errorDiv.style.display = 'block';
-    successDiv.style.display = 'none';
-    return;
-  }
+// Validation
+if (messageText.length < 10) {
+  errorDiv.textContent = i18n.t('contact_message_too_short');
+  errorDiv.style.display = 'block';
+  successDiv.style.display = 'none';
+  return;
+}
   
   try {
     // Appel API (à implémenter côté Apps Script)
@@ -6256,20 +6263,21 @@ async function submitBugReport() {
   const errorDiv = document.getElementById('bug-error');
   const successDiv = document.getElementById('bug-success');
   
-  // Validation
-  if (!email || !email.includes('@')) {
-    errorDiv.textContent = '⚠️ Email invalide';
-    errorDiv.style.display = 'block';
-    successDiv.style.display = 'none';
-    return;
-  }
-  
-  if (description.length < 20) {
-    errorDiv.textContent = '⚠️ Description trop courte (min 20 caractères)';
-    errorDiv.style.display = 'block';
-    successDiv.style.display = 'none';
-    return;
-  }
+// Validation email
+if (!email || !email.includes('@')) {
+  errorDiv.textContent = i18n.t('contact_invalid_email');
+  errorDiv.style.display = 'block';
+  successDiv.style.display = 'none';
+  return;
+}
+
+// Validation description
+if (description.length < 20) {
+  errorDiv.textContent = i18n.t('contact_description_too_short');
+  errorDiv.style.display = 'block';
+  successDiv.style.display = 'none';
+  return;
+}
   
   try {
     // Collecter les infos techniques automatiquement
@@ -6453,6 +6461,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
