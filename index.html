@@ -6219,7 +6219,8 @@ async function submitMessage() {
   
 // Validation
 if (messageText.length < 10) {
-  errorDiv.textContent = i18n.t('contact_message_too_short');
+  errorDiv.textContent = 'Message trop court (min 10 caractères)';
+  errorDiv.setAttribute('data-i18n', 'contact_message_too_short');
   errorDiv.style.display = 'block';
   successDiv.style.display = 'none';
   return;
@@ -6265,15 +6266,16 @@ async function submitBugReport() {
   
 // Validation email
 if (!email || !email.includes('@')) {
-  errorDiv.textContent = i18n.t('contact_invalid_email');
+  errorDiv.textContent = '⚠️ Email invalide';
+  errorDiv.setAttribute('data-i18n', 'contact_invalid_email');
   errorDiv.style.display = 'block';
   successDiv.style.display = 'none';
   return;
 }
 
-// Validation description
 if (description.length < 20) {
-  errorDiv.textContent = i18n.t('contact_description_too_short');
+  errorDiv.textContent = '⚠️ Description trop courte (min 20 caractères)';
+  errorDiv.setAttribute('data-i18n', 'contact_description_too_short');
   errorDiv.style.display = 'block';
   successDiv.style.display = 'none';
   return;
@@ -6461,6 +6463,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
