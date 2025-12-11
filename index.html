@@ -1668,7 +1668,7 @@ contact_inbox_empty: "📭 No messages yet",
 contact_message_too_short: "Message too short (min 10 characters)",
 contact_invalid_email: "⚠️ Invalid email",
 contact_description_too_short: "⚠️ Description too short (min 20 characters)",
-    
+
   },
   
   es: {
@@ -1897,8 +1897,8 @@ contact_inbox_title: "📬 Mis mensajes",
 contact_loading: "Cargando...",
 contact_inbox_empty: "📭 No hay mensajes por ahora",
 contact_message_too_short: "Mensaje demasiado corto (mín 10 caracteres)",
-contact_invalid_email: "⚠️ Correo inválido",
-contact_description_too_short: "⚠️ Descripción demasiado corta (mín 20 caracteres)"
+contact_invalid_email: "⚠️ Invalid email",
+contact_description_too_short: "⚠️ Description too short (min 20 characters)"
     
   }
 };
@@ -6219,8 +6219,8 @@ async function submitMessage() {
   
 // Validation
 if (messageText.length < 10) {
-  errorDiv.textContent = 'Message trop court (min 10 caractères)';
-  errorDiv.setAttribute('data-i18n', 'contact_message_too_short');
+  errorDiv.textContent = t('contact_message_too_short');
+  errorDiv.setAttribute('data-i18n', 'contact_message_too_short'); // utile si tu veux un scan SEO ou un outil externe plus tard
   errorDiv.style.display = 'block';
   successDiv.style.display = 'none';
   return;
@@ -6266,7 +6266,7 @@ async function submitBugReport() {
   
 // Validation email
 if (!email || !email.includes('@')) {
-  errorDiv.textContent = '⚠️ Email invalide';
+  errorDiv.textContent = t('contact_invalid_email');
   errorDiv.setAttribute('data-i18n', 'contact_invalid_email');
   errorDiv.style.display = 'block';
   successDiv.style.display = 'none';
@@ -6274,7 +6274,7 @@ if (!email || !email.includes('@')) {
 }
 
 if (description.length < 20) {
-  errorDiv.textContent = '⚠️ Description trop courte (min 20 caractères)';
+  errorDiv.textContent = t('contact_description_too_short');
   errorDiv.setAttribute('data-i18n', 'contact_description_too_short');
   errorDiv.style.display = 'block';
   successDiv.style.display = 'none';
@@ -6463,6 +6463,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
