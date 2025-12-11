@@ -6403,10 +6403,10 @@ function renderMessages(messages) {
     card.className = `message-card ${msg.isRead ? '' : 'unread'}`;
     
     const typeLabel = {
-      'suggestion': '💡 ' + t('contact_cat_suggestion'),
-      'question': '❓ ' + t('contact_cat_question'),
-      'feedback': '⭐ ' + t('contact_cat_feedback'),
-      'other': '📝 ' + t('contact_cat_other'),
+      'suggestion': '' + t('contact_cat_suggestion'),
+      'question': '' + t('contact_cat_question'),
+      'feedback': '' + t('contact_cat_feedback'),
+      'other': '' + t('contact_cat_other'),
       'bug': '🐛 Bug'
     }[msg.category] || '📝 ' + t('contact_cat_other');
     
@@ -6481,6 +6481,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
