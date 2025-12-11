@@ -6146,11 +6146,10 @@ function resetContactForms() {
   document.getElementById('message-error').style.display = 'none';
   document.getElementById('message-success').style.display = 'none';
   
-  // Bug report
+  // Bug report (sans screenshot)
   document.getElementById('bug-email').value = '';
   document.getElementById('bug-description').value = '';
   document.getElementById('bug-steps').value = '';
-  document.getElementById('bug-screenshot').value = '';
   document.getElementById('bug-char-count').textContent = '0';
   document.getElementById('bug-error').style.display = 'none';
   document.getElementById('bug-success').style.display = 'none';
@@ -6405,6 +6404,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
