@@ -1116,74 +1116,62 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
       </button>
     </div>
     
-    <!-- Bug report -->
-    <div id="bug-form" class="contact-form-content" style="display: none;">
-      <p class="contact-subtitle" data-i18n="contact_bug_subtitle">
-        Aide-nous à améliorer l'application 🐛
-      </p>
-      
-      <div class="warning-box" style="margin-bottom: 20px;">
-        <p data-i18n="contact_bug_warning">
-          ⚠️ Pour envoyer un screenshot, nous aurons besoin de ton email
-        </p>
-      </div>
-      
-      <div class="contact-field">
-        <label data-i18n="contact_email_label">Email :</label>
-        <input 
-          type="email" 
-          id="bug-email" 
-          class="contact-input" 
-          placeholder="ton@email.com"
-          data-i18n-placeholder="contact_email_placeholder"
-        />
-      </div>
-      
-      <div class="contact-field">
-        <label data-i18n="contact_bug_description_label">Description du bug :</label>
-        <textarea 
-          id="bug-description" 
-          class="contact-textarea" 
-          maxlength="500" 
-          placeholder="Décris le problème en quelques lignes..."
-          data-i18n-placeholder="contact_bug_description_placeholder"
-        ></textarea>
-        <div class="char-counter">
-          <span id="bug-char-count">0</span>/500
-        </div>
-      </div>
-      
-      <div class="contact-field">
-        <label data-i18n="contact_bug_steps_label">Étapes pour reproduire (optionnel) :</label>
-        <textarea 
-          id="bug-steps" 
-          class="contact-textarea small" 
-          maxlength="300" 
-          placeholder="1. Je clique sur...&#10;2. Ensuite..."
-          data-i18n-placeholder="contact_bug_steps_placeholder"
-        ></textarea>
-      </div>
-      
-      <div class="contact-field">
-        <label data-i18n="contact_bug_screenshot_label">Screenshot :</label>
-        <input 
-          type="file" 
-          id="bug-screenshot" 
-          class="contact-file-input" 
-          accept="image/*"
-        />
-        <div class="file-info" data-i18n="contact_bug_file_info">
-          📷 Formats acceptés : JPG, PNG (max 5MB)
-        </div>
-      </div>
-      
-      <div id="bug-error" class="error-message" style="display: none;"></div>
-      <div id="bug-success" class="success-message" style="display: none;"></div>
-      
-      <button class="arcade-button primary-button" onclick="submitBugReport()" data-i18n="contact_send">
-        ✉️ Envoyer
-      </button>
+<!-- Bug report -->
+<div id="bug-form" class="contact-form-content" style="display: none;">
+  <p class="contact-subtitle" data-i18n="contact_bug_subtitle">
+    Aide-nous à améliorer l'application 🐛
+  </p>
+  
+  <div class="contact-field">
+    <label data-i18n="contact_email_label">Email :</label>
+    <input 
+      type="email" 
+      id="bug-email" 
+      class="contact-input" 
+      placeholder="ton@email.com"
+      data-i18n-placeholder="contact_email_placeholder"
+    />
+  </div>
+  
+  <div class="contact-field">
+    <label data-i18n="contact_bug_description_label">Description du bug :</label>
+    <textarea 
+      id="bug-description" 
+      class="contact-textarea" 
+      maxlength="500" 
+      placeholder="Décris le problème en quelques lignes..."
+      data-i18n-placeholder="contact_bug_description_placeholder"
+    ></textarea>
+    <div class="char-counter">
+      <span id="bug-char-count">0</span>/500
     </div>
+  </div>
+  
+  <div class="contact-field">
+    <label data-i18n="contact_bug_steps_label">Étapes pour reproduire (optionnel) :</label>
+    <textarea 
+      id="bug-steps" 
+      class="contact-textarea small" 
+      maxlength="300" 
+      placeholder="1. Je clique sur...&#10;2. Ensuite..."
+      data-i18n-placeholder="contact_bug_steps_placeholder"
+    ></textarea>
+  </div>
+  
+  <div class="info-box" style="background: var(--blue-light); border: 2px solid var(--blue-dark); padding: 1em; border-radius: 8px; margin: 1em 0;">
+    <p style="margin: 0; color: var(--blue-dark); font-size: 0.95em;">
+      📷 <strong>Screenshot nécessaire ?</strong><br>
+      Si nous avons besoin d'une capture d'écran, nous te contacterons par email.
+    </p>
+  </div>
+  
+  <div id="bug-error" class="error-message" style="display: none;"></div>
+  <div id="bug-success" class="success-message" style="display: none;"></div>
+  
+  <button class="arcade-button primary-button" onclick="submitBugReport()" data-i18n="contact_send">
+    ✉️ Envoyer
+  </button>
+</div>
   </div>
 </div>
 
@@ -4742,7 +4730,7 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzLtM_CNhBBIDGFys9OZrApe2D1gmlOyQbLrXCSIU9XEN6vr1nT3eXz5NnMHHJZJw-L/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxWYGlOmUs5LomUwVYFNlFcab6f5ByUEXaIdcltVzwAzv027oZhnmFb6NQFagJOY7rZJQ/exec';
 
 
 // Fonction pour appeler l'API
@@ -6217,7 +6205,6 @@ async function submitBugReport() {
   const email = document.getElementById('bug-email').value.trim();
   const description = document.getElementById('bug-description').value.trim();
   const steps = document.getElementById('bug-steps').value.trim();
-  const screenshot = document.getElementById('bug-screenshot').files[0];
   const errorDiv = document.getElementById('bug-error');
   const successDiv = document.getElementById('bug-success');
   
@@ -6236,13 +6223,6 @@ async function submitBugReport() {
     return;
   }
   
-  if (screenshot && screenshot.size > 5 * 1024 * 1024) {
-    errorDiv.textContent = '⚠️ Screenshot trop lourd (max 5MB)';
-    errorDiv.style.display = 'block';
-    successDiv.style.display = 'none';
-    return;
-  }
-  
   try {
     // Collecter les infos techniques automatiquement
     const technicalInfo = {
@@ -6253,57 +6233,28 @@ async function submitBugReport() {
       language: currentLanguage
     };
     
-    let screenshotBase64 = null;
-    if (screenshot) {
-      screenshotBase64 = await fileToBase64(screenshot);
-    }
-    
-    // ✅ NOUVEAU : Utiliser un formulaire invisible pour contourner CORS
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.name = 'bug-report-frame';
-    document.body.appendChild(iframe);
-    
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = WEB_APP_URL;
-    form.target = 'bug-report-frame';
-    
-    const fields = {
-      action: 'submitBugReport',
+    // ✅ SIMPLIFIÉ : Plus de screenshot
+    const result = await callAPI('submitBugReport', {
       token: userToken || 'anonymous',
       email: email,
       description: description,
       steps: steps || 'Non spécifié',
-      technicalInfo: JSON.stringify(technicalInfo),
-      screenshot: screenshotBase64 || ''
-    };
-    
-    Object.entries(fields).forEach(([key, value]) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = value;
-      form.appendChild(input);
+      technicalInfo: JSON.stringify(technicalInfo)
     });
     
-    document.body.appendChild(form);
-    
-    // Afficher un message de succès immédiatement
-    successDiv.textContent = '✅ Bug reporté ! Merci pour ton aide 🐛✨';
-    successDiv.style.display = 'block';
-    errorDiv.style.display = 'none';
-    
-    // Soumettre le formulaire
-    form.submit();
-    
-    // Nettoyer après 2 secondes
-    setTimeout(() => {
-      document.body.removeChild(form);
-      document.body.removeChild(iframe);
-      closeContactForm();
-    }, 2000);
-    
+    if (result.success) {
+      successDiv.textContent = '✅ Bug reporté ! Merci pour ton aide 🐛✨';
+      successDiv.style.display = 'block';
+      errorDiv.style.display = 'none';
+      
+      setTimeout(() => {
+        closeContactForm();
+      }, 2000);
+    } else {
+      errorDiv.textContent = result.error || 'Erreur lors de l\'envoi';
+      errorDiv.style.display = 'block';
+      successDiv.style.display = 'none';
+    }
   } catch (error) {
     console.error('Erreur submitBugReport:', error);
     errorDiv.textContent = 'Erreur réseau. Vérifie ta connexion.';
@@ -6311,15 +6262,7 @@ async function submitBugReport() {
     successDiv.style.display = 'none';
   }
 }
-// Convertir fichier en base64
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+
 
 // Afficher la boîte de réception
 async function showContactInbox() {
@@ -6462,6 +6405,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
