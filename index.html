@@ -1158,12 +1158,12 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
     ></textarea>
   </div>
   
-  <div class="info-box" style="background: var(--blue-light); border: 2px solid var(--blue-dark); padding: 1em; border-radius: 8px; margin: 1em 0;">
-    <p style="margin: 0; color: var(--blue-dark); font-size: 0.95em;">
-      📷 <strong>Screenshot nécessaire ?</strong><br>
-      Si nous avons besoin d'une capture d'écran, nous te contacterons par email.
-    </p>
-  </div>
+<div class="info-box" style="background: var(--blue-light); border: 2px solid var(--blue-dark); padding: 1em; border-radius: 8px; margin: 1em 0;">
+  <p style="margin: 0; color: var(--blue-dark); font-size: 0.95em;">
+    <span data-i18n="contact_bug_screenshot_title">📷 Screenshot nécessaire ?</span><br>
+    <span data-i18n="contact_bug_screenshot_text">Si nous avons besoin d'une capture d'écran, nous te contacterons par email.</span>
+  </p>
+</div>
   
   <div id="bug-error" class="error-message" style="display: none;"></div>
   <div id="bug-success" class="success-message" style="display: none;"></div>
@@ -1407,6 +1407,29 @@ welcome_journey_starts: "Ton voyage commence maintenant 🌸",
 
         // Compte
     account_level_in_progress: "(en cours)",
+
+    contact_send_message: "💬 Envoyer un message",
+contact_message_subtitle: "Partage tes idées, suggestions ou questions 🌸",
+contact_category_label: "Catégorie :",
+contact_cat_suggestion: "💡 Suggestion",
+contact_cat_question: "❓ Question",
+contact_cat_feedback: "⭐ Retour d'expérience",
+contact_cat_other: "📝 Autre",
+contact_message_placeholder: "Ton message (max 500 caractères)...",
+contact_send: "✉️ Envoyer",
+contact_bug_subtitle: "Aide-nous à améliorer l'application 🐛",
+contact_email_label: "Email :",
+contact_email_placeholder: "ton@email.com",
+contact_bug_description_label: "Description du bug :",
+contact_bug_description_placeholder: "Décris le problème en quelques lignes...",
+contact_bug_steps_label: "Étapes pour reproduire (optionnel) :",
+contact_bug_steps_placeholder: "1. Je clique sur...\n2. Ensuite...",
+contact_inbox_title: "📬 Mes messages",
+contact_loading: "Chargement...",
+contact_inbox_empty: "📭 Aucun message pour le moment",
+    contact_bug_screenshot_title: "📷 Screenshot nécessaire ?",
+    contact_bug_screenshot_text: "Si nous avons besoin d'une capture d'écran, nous te contacterons par email.",
+
     
   },
   
@@ -1612,6 +1635,28 @@ welcome_journey_starts: "Your journey begins now 🌸",
      // Account
     account_level_in_progress: "(in progress)",
     
+ 
+contact_send_message: "💬 Send a message",
+contact_message_subtitle: "Share your ideas, suggestions, or questions 🌸",
+contact_category_label: "Category:",
+contact_cat_suggestion: "💡 Suggestion",
+contact_cat_question: "❓ Question",
+contact_cat_feedback: "⭐ Feedback",
+contact_cat_other: "📝 Other",
+contact_message_placeholder: "Your message (max 500 characters)...",
+contact_send: "✉️ Send",
+contact_bug_subtitle: "Help us improve the app 🐛",
+contact_email_label: "Email:",
+contact_email_placeholder: "your@email.com",
+contact_bug_description_label: "Bug description:",
+contact_bug_description_placeholder: "Describe the problem in a few lines...",
+contact_bug_steps_label: "Steps to reproduce (optional):",
+contact_bug_steps_placeholder: "1. I click on...\n2. Then...",
+contact_inbox_title: "📬 My messages",
+contact_loading: "Loading...",
+contact_inbox_empty: "📭 No messages yet",
+contact_bug_screenshot_title: "📷 Screenshot required?",
+contact_bug_screenshot_text: "If we need a screenshot, we will contact you by email.",
     
   },
   
@@ -1813,7 +1858,31 @@ revision_correct_answer: "👉 Respuesta correcta:",
     month_12: "diciembre",
     
     // Cuenta
-    account_level_in_progress: "(en progreso)"
+    account_level_in_progress: "(en progreso)",
+
+
+contact_send_message: "💬 Enviar un mensaje",
+contact_message_subtitle: "Comparte tus ideas, sugerencias o preguntas 🌸",
+contact_category_label: "Categoría:",
+contact_cat_suggestion: "💡 Sugerencia",
+contact_cat_question: "❓ Pregunta",
+contact_cat_feedback: "⭐ Comentario",
+contact_cat_other: "📝 Otro",
+contact_message_placeholder: "Tu mensaje (máx 500 caracteres)...",
+contact_send: "✉️ Enviar",
+contact_bug_subtitle: "Ayúdanos a mejorar la aplicación 🐛",
+contact_email_label: "Correo:",
+contact_email_placeholder: "tu@email.com",
+contact_bug_description_label: "Descripción del error:",
+contact_bug_description_placeholder: "Describe el problema en pocas líneas...",
+contact_bug_steps_label: "Pasos para reproducir (opcional):",
+contact_bug_steps_placeholder: "1. Hago clic en...\n2. Luego...",
+contact_inbox_title: "📬 Mis mensajes",
+contact_loading: "Cargando...",
+contact_inbox_empty: "📭 No hay mensajes por ahora",
+contact_bug_screenshot_title: "📷 ¿Se necesita captura de pantalla?",
+contact_bug_screenshot_text: "Si necesitamos una captura, nos pondremos en contacto contigo por correo."
+
  
     
   }
@@ -6376,6 +6445,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
