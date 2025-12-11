@@ -1435,7 +1435,18 @@ contact_inbox_empty: "📭 Aucun message pour le moment",
 contact_message_too_short: "Message trop court (min 10 caractères)",
 contact_invalid_email: "⚠️ Email invalide",
 contact_description_too_short: "⚠️ Description trop courte (min 20 caractères)",
-    
+contact_success_message: "✅ Message envoyé ! Nous te répondrons bientôt 🌸",
+contact_success_bug: "✅ Bug reporté ! Merci pour ton aide 🐛✨",
+contact_error_short: "Message trop court (min 10 caractères)",
+contact_error_email: "⚠️ Email invalide",
+contact_error_bug_short: "⚠️ Description trop courte (min 20 caractères)",
+contact_error_bug_size: "⚠️ Screenshot trop lourd (max 5MB)",
+contact_error_network: "Erreur réseau. Vérifie ta connexion.",
+contact_response_header: "🌸 Réponse de l'équipe",
+contact_waiting_response: "En attente de réponse...",
+contact_limit_reached: "Limite atteinte : 3 messages maximum par jour 🌸",
+contact_user_not_found: "Utilisateur non identifié. Connecte-toi d'abord.",
+contact_inbox_error: "❌ Erreur de chargement",
   },
   
   en: {
@@ -1668,7 +1679,18 @@ contact_inbox_empty: "📭 No messages yet",
 contact_message_too_short: "Message too short (min 10 characters)",
 contact_invalid_email: "⚠️ Invalid email",
 contact_description_too_short: "⚠️ Description too short (min 20 characters)",
-
+contact_success_message: "✅ Message sent! We'll reply soon 🌸",
+contact_success_bug: "✅ Bug reported! Thanks for your help 🐛✨",
+contact_error_short: "Message too short (min 10 characters)",
+contact_error_email: "⚠️ Invalid email",
+contact_error_bug_short: "⚠️ Description too short (min 20 characters)",
+contact_error_bug_size: "⚠️ Screenshot too large (max 5MB)",
+contact_error_network: "Network error. Check your connection.",
+contact_response_header: "🌸 Team response",
+contact_waiting_response: "Waiting for response...",
+contact_limit_reached: "Limit reached: 3 messages per day max 🌸",
+contact_user_not_found: "User not identified. Please log in first.",
+contact_inbox_error: "❌ Loading error",
   },
   
   es: {
@@ -1898,8 +1920,19 @@ contact_loading: "Cargando...",
 contact_inbox_empty: "📭 No hay mensajes por ahora",
 contact_message_too_short: "Mensaje demasiado corto (mín 10 caracteres)",
 contact_invalid_email: "⚠️ Email inválido",
-contact_description_too_short: "⚠️ Descripción demasiado corta (mín 20 caracteres)"
-    
+contact_description_too_short: "⚠️ Descripción demasiado corta (mín 20 caracteres)",
+contact_success_message: "✅ ¡Mensaje enviado! Te responderemos pronto 🌸",
+contact_success_bug: "✅ ¡Bug reportado! Gracias por tu ayuda 🐛✨",
+contact_error_short: "Mensaje demasiado corto (mín 10 caracteres)",
+contact_error_email: "⚠️ Email inválido",
+contact_error_bug_short: "⚠️ Descripción demasiado corta (mín 20 caracteres)",
+contact_error_bug_size: "⚠️ Captura demasiado pesada (máx 5MB)",
+contact_error_network: "Error de red. Verifica tu conexión.",
+contact_response_header: "🌸 Respuesta del equipo",
+contact_waiting_response: "Esperando respuesta...",
+contact_limit_reached: "Límite alcanzado: 3 mensajes máximo por día 🌸",
+contact_user_not_found: "Usuario no identificado. Conéctate primero.",
+contact_inbox_error: "❌ Error de carga"    
   }
 };
 
@@ -6217,17 +6250,15 @@ async function submitMessage() {
   const errorDiv = document.getElementById('message-error');
   const successDiv = document.getElementById('message-success');
   
-// Validation
-if (messageText.length < 10) {
-  errorDiv.textContent = t('contact_message_too_short');
-  errorDiv.setAttribute('data-i18n', 'contact_message_too_short'); // utile si tu veux un scan SEO ou un outil externe plus tard
-  errorDiv.style.display = 'block';
-  successDiv.style.display = 'none';
-  return;
-}
+  // Validation
+  if (messageText.length < 10) {
+    errorDiv.textContent = t('contact_error_short');
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+    return;
+  }
   
   try {
-    // Appel API (à implémenter côté Apps Script)
     const result = await callAPI('submitMessage', {
       token: userToken || 'anonymous',
       type: 'message',
@@ -6236,27 +6267,25 @@ if (messageText.length < 10) {
     });
     
     if (result.success) {
-      successDiv.textContent = '✅ Message envoyé ! Nous te répondrons bientôt 🌸';
+      successDiv.textContent = t('contact_success_message');
       successDiv.style.display = 'block';
       errorDiv.style.display = 'none';
       
-      // Réinitialiser le formulaire après 2 secondes
       setTimeout(() => {
         closeContactForm();
       }, 2000);
     } else {
-      errorDiv.textContent = result.error || 'Erreur lors de l\'envoi';
+      errorDiv.textContent = result.error || t('contact_error_network');
       errorDiv.style.display = 'block';
       successDiv.style.display = 'none';
     }
   } catch (error) {
     console.error('Erreur submitMessage:', error);
-    errorDiv.textContent = 'Erreur réseau. Vérifie ta connexion.';
+    errorDiv.textContent = t('contact_error_network');
     errorDiv.style.display = 'block';
     successDiv.style.display = 'none';
   }
 }
-
 async function submitBugReport() {
   const email = document.getElementById('bug-email').value.trim();
   const description = document.getElementById('bug-description').value.trim();
@@ -6264,25 +6293,22 @@ async function submitBugReport() {
   const errorDiv = document.getElementById('bug-error');
   const successDiv = document.getElementById('bug-success');
   
-// Validation email
-if (!email || !email.includes('@')) {
-  errorDiv.textContent = t('contact_invalid_email');
-  errorDiv.setAttribute('data-i18n', 'contact_invalid_email');
-  errorDiv.style.display = 'block';
-  successDiv.style.display = 'none';
-  return;
-}
-
-if (description.length < 20) {
-  errorDiv.textContent = t('contact_description_too_short');
-  errorDiv.setAttribute('data-i18n', 'contact_description_too_short');
-  errorDiv.style.display = 'block';
-  successDiv.style.display = 'none';
-  return;
-}
+  // Validation
+  if (!email || !email.includes('@')) {
+    errorDiv.textContent = t('contact_error_email');
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+    return;
+  }
+  
+  if (description.length < 20) {
+    errorDiv.textContent = t('contact_error_bug_short');
+    errorDiv.style.display = 'block';
+    successDiv.style.display = 'none';
+    return;
+  }
   
   try {
-    // Collecter les infos techniques automatiquement
     const technicalInfo = {
       userAgent: navigator.userAgent,
       screenSize: `${window.innerWidth}x${window.innerHeight}`,
@@ -6291,7 +6317,6 @@ if (description.length < 20) {
       language: currentLanguage
     };
     
-    // ✅ SIMPLIFIÉ : Plus de screenshot
     const result = await callAPI('submitBugReport', {
       token: userToken || 'anonymous',
       email: email,
@@ -6301,7 +6326,7 @@ if (description.length < 20) {
     });
     
     if (result.success) {
-      successDiv.textContent = '✅ Bug reporté ! Merci pour ton aide 🐛✨';
+      successDiv.textContent = t('contact_success_bug');
       successDiv.style.display = 'block';
       errorDiv.style.display = 'none';
       
@@ -6309,18 +6334,17 @@ if (description.length < 20) {
         closeContactForm();
       }, 2000);
     } else {
-      errorDiv.textContent = result.error || 'Erreur lors de l\'envoi';
+      errorDiv.textContent = result.error || t('contact_error_network');
       errorDiv.style.display = 'block';
       successDiv.style.display = 'none';
     }
   } catch (error) {
     console.error('Erreur submitBugReport:', error);
-    errorDiv.textContent = 'Erreur réseau. Vérifie ta connexion.';
+    errorDiv.textContent = t('contact_error_network');
     errorDiv.style.display = 'block';
     successDiv.style.display = 'none';
   }
 }
-
 
 // Afficher la boîte de réception
 async function showContactInbox() {
@@ -6329,14 +6353,11 @@ async function showContactInbox() {
   const empty = document.getElementById('inbox-empty');
   const messagesDiv = document.getElementById('inbox-messages');
   
-  // Masquer la section options
   document.getElementById('options').classList.remove('active');
   
-  // Afficher la modal
   inboxModal.style.display = 'flex';
   inboxModal.classList.add('active');
   
-  // Afficher le loader
   loading.style.display = 'flex';
   empty.style.display = 'none';
   messagesDiv.innerHTML = '';
@@ -6351,7 +6372,6 @@ async function showContactInbox() {
     if (result.success && result.messages && result.messages.length > 0) {
       renderMessages(result.messages);
       
-      // Marquer tous les messages comme lus
       await markAllMessagesAsRead();
       updateUnreadBadge(0);
     } else {
@@ -6360,11 +6380,10 @@ async function showContactInbox() {
   } catch (error) {
     console.error('Erreur showContactInbox:', error);
     loading.style.display = 'none';
-    empty.innerHTML = '<p>❌ Erreur de chargement</p>';
+    empty.innerHTML = `<p>${t('contact_inbox_error')}</p>`;
     empty.style.display = 'block';
   }
 }
-
 function closeContactInbox() {
   const inboxModal = document.getElementById('contact-inbox-modal');
   inboxModal.style.display = 'none';
@@ -6384,14 +6403,14 @@ function renderMessages(messages) {
     card.className = `message-card ${msg.isRead ? '' : 'unread'}`;
     
     const typeLabel = {
-      'suggestion': '💡 Suggestion',
-      'question': '❓ Question',
-      'feedback': '⭐ Retour',
-      'other': '📝 Autre',
+      'suggestion': '💡 ' + t('contact_cat_suggestion'),
+      'question': '❓ ' + t('contact_cat_question'),
+      'feedback': '⭐ ' + t('contact_cat_feedback'),
+      'other': '📝 ' + t('contact_cat_other'),
       'bug': '🐛 Bug'
-    }[msg.category] || '📝 Message';
+    }[msg.category] || '📝 ' + t('contact_cat_other');
     
-    const date = new Date(msg.date).toLocaleDateString('fr-FR', {
+    const date = new Date(msg.date).toLocaleDateString(currentLanguage === 'fr' ? 'fr-FR' : currentLanguage === 'es' ? 'es-ES' : 'en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -6406,17 +6425,16 @@ function renderMessages(messages) {
       ${msg.response ? `
         <div class="message-response">
           <div class="response-header">
-            🌸 Réponse de l'équipe
+            ${t('contact_response_header')}
           </div>
           <div class="response-text">${msg.response}</div>
         </div>
-      ` : '<p style="color: #999; font-style: italic;">En attente de réponse...</p>'}
+      ` : `<p style="color: #999; font-style: italic;">${t('contact_waiting_response')}</p>`}
     `;
     
     messagesDiv.appendChild(card);
   });
 }
-
 async function checkUnreadMessages() {
   if (!userToken) return;
   
@@ -6463,6 +6481,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
