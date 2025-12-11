@@ -4730,58 +4730,30 @@ renderHiraganaCards(list, niveau);
 
 // Initialisation avec  Apps Script
 // *** NOUVELLE URL DE VOTRE WEB APP  ***
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxWYGlOmUs5LomUwVYFNlFcab6f5ByUEXaIdcltVzwAzv027oZhnmFb6NQFagJOY7rZJQ/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyC_0EmavwGDmg0N8dAxTYNRs7dInhXREFFkB-D1Jv_At3Az_rBRaxEAfvNP7SOTQen2Q/exec';
 
 
 // Fonction pour appeler l'API
 async function callAPI(action, data = null) {
   try {
-    // Actions qui nécessitent POST (données volumineuses)
-    const postActions = ['submitBugReport'];
-    const usePost = postActions.includes(action);
-    
-    if (usePost) {
-      // Requête POST pour les données volumineuses
-      const response = await fetch(WEB_APP_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: action,
-          ...data
-        })
+    let params = new URLSearchParams({ action });
+
+    if (data) {
+      Object.entries(data).forEach(([key, value]) => {
+        params.append(key, value);
       });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
-      return result;
-      
-    } else {
-      // Requête GET classique
-      let params = new URLSearchParams({ action });
-
-      if (data) {
-        Object.entries(data).forEach(([key, value]) => {
-          params.append(key, value);
-        });
-      }
-
-      const url = `${WEB_APP_URL}?${params.toString()}`;
-      console.log(`🔍 Appel API: ${action} -> ${url.substring(0, 100)}...`);
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      const result = await response.json();
-      console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
-      return result;
     }
+
+    const url = `${WEB_APP_URL}?${params.toString()}`;
+    console.log(`🔍 Appel API: ${action}`);
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const result = await response.json();
+    console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
+    return result;
     
   } catch (error) {
     logError(`Erreur API (${action}): ${error.message}`);
@@ -6404,6 +6376,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
