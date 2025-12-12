@@ -629,9 +629,79 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
     max-height: calc(100vh - 150px);
   }
 }
+/* ========================================
+   TOAST ANIMATION
+   ======================================== */
+body, html {margin:0;padding:0;height:100%;background:#f5f5f5;overflow:hidden;font-family:sans-serif;}
+
+  #rotation-toast {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.88);
+    color:#fff;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    z-index:9999;
+  }
+
+  .phone {
+    width:84px;
+    height:150px;
+    border:6px solid #fff;           /* ← corrigé ici */
+    border-radius:16px;
+    position:relative;
+    margin-bottom:32px;
+    animation:rot 2.5s infinite ease-in-out;
+  }
+
+  .phone::before {
+    content:"";
+    position:absolute;
+    top:12px;
+    left:50%;
+    transform:translateX(-50%);
+    width:36px;
+    height:6px;
+    background:#fff;
+    border-radius:3px;
+  }
+
+  .phone::after {
+    content:"";
+    position:absolute;
+    bottom:14px;
+    left:50%;
+    transform:translateX(-50%);
+    width:44px;
+    height:44px;
+    background:#fff;
+    border-radius:50%;
+    opacity:0.15;
+  }
+
+  @keyframes rot {
+    0%,100% {transform:rotate(0deg);}
+    50%     {transform:rotate(-90deg);}
+  }
+
+  .text {font-size:18px; text-align:center;}
+  .small {font-size:14px; margin-top:8px; opacity:0.8;}
+
+  @media screen and (orientation:landscape) and (max-width:1024px) {
+    #rotation-toast {display:flex;}
+  }    
   </style>
 </head>
 <body>
+    <div id="rotation-toast">
+    <div class="phone"></div>
+    <div class="text">
+      🔒</div>
+    </div>
+  </div>
+
   <script>
   console.log('🔍 TEST - Langue navigateur:', navigator.language);
   console.log('🔍 TEST - localStorage avant:', localStorage.getItem('appLanguage'));
@@ -6481,6 +6551,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
