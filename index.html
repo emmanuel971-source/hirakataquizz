@@ -691,7 +691,106 @@ body, html {margin:0;padding:0;height:100%;overflow:hidden;font-family:sans-seri
 
   @media screen and (orientation:landscape) and (max-width:1024px) {
     #rotation-toast {display:flex;}
-  }    
+  }
+/* Contrôles du son */
+.sound-controls {
+  padding: 1em;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.sound-control-item {
+  background: var(--white);
+  border: 2px solid var(--brown-primary);
+  border-radius: 12px;
+  padding: 1.2em;
+  margin-bottom: 1em;
+  box-shadow: 0 4px 8px var(--shadow-black-light);
+}
+
+.sound-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: var(--brown-primary);
+  margin-bottom: 0.8em;
+}
+
+.sound-icon {
+  font-size: 1.5em;
+}
+
+.sound-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.sound-status {
+  font-size: 0.95em;
+  color: var(--gray-dark);
+  min-width: 100px;
+}
+
+/* Switch toggle moderne */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider-round {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--gray-light);
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider-round:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider-round {
+  background-color: var(--green-bright);
+}
+
+input:checked + .slider-round:before {
+  transform: translateX(26px);
+}
+
+.sound-info {
+  margin-top: 1.5em;
+  padding: 1em;
+  background: var(--blue-light);
+  border-left: 4px solid var(--blue-dark);
+  border-radius: 8px;
+  font-size: 0.9em;
+  color: var(--blue-dark);
+  line-height: 1.5;
+}    
   </style>
 </head>
 <body>
@@ -832,11 +931,47 @@ body, html {margin:0;padding:0;height:100%;overflow:hidden;font-family:sans-seri
   </div>
 
   <!-- Sous-rubrique Son -->
-  <div id="options-sound" class="options-sub hidden">
-    <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
-    <h2 data-i18n="options_sound">Son</h2>
-    <p>🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)</p>
+ <!-- Sous-rubrique Son -->
+<div id="options-sound" class="options-sub hidden">
+  <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
+  <h2 data-i18n="options_sound">Son</h2>
+  
+  <div class="sound-controls">
+    <!-- Contrôle des sons du jeu -->
+    <div class="sound-control-item">
+      <div class="sound-label">
+        <span class="sound-icon">🎮</span>
+        <span data-i18n="sound_game_effects">Sons du jeu</span>
+      </div>
+      <div class="sound-toggle">
+        <label class="switch">
+          <input type="checkbox" id="sound-slider" checked onchange="toggleSound(this.checked)">
+          <span class="slider-round"></span>
+        </label>
+        <span id="sound-status" class="sound-status">🔊 Activé</span>
+      </div>
+    </div>
+    
+    <!-- Contrôle des synthèses vocales -->
+    <div class="sound-control-item">
+      <div class="sound-label">
+        <span class="sound-icon">🗣️</span>
+        <span data-i18n="sound_voice_synthesis">Synthèses vocales</span>
+      </div>
+      <div class="sound-toggle">
+        <label class="switch">
+          <input type="checkbox" id="voice-slider" checked onchange="toggleVoice(this.checked)">
+          <span class="slider-round"></span>
+        </label>
+        <span id="voice-status" class="sound-status">🗣️ Activé</span>
+      </div>
+    </div>
+    
+    <div class="sound-info">
+      <p data-i18n="sound_info">💡 Les sons du jeu incluent les effets sonores et animations. Les synthèses vocales sont les prononciations des caractères japonais.</p>
+    </div>
   </div>
+</div>
   
 <!-- Sous-rubrique Langue -->
 <div id="options-language" class="options-sub hidden">
@@ -1303,7 +1438,10 @@ const translations = {
     options_sound: "Son",
     options_language: "Langue",
     options_back: "← Retour",
-    
+    sound_game_effects: "Sons du jeu",
+    sound_voice_synthesis: "Synthèses vocales",
+    sound_info: "💡 Les sons du jeu incluent les effets sonores et animations. Les synthèses vocales sont les prononciations des caractères japonais.",
+  
     // Difficulté
     difficulty_easy: "Facile (6)",
     difficulty_medium: "Moyen (8)",
@@ -1547,6 +1685,11 @@ contact_inbox_error: "❌ Erreur de chargement",
     options_sound: "Sound",
     options_language: "Language",
     options_back: "← Back",
+
+    sound_game_effects: "Game sounds",
+    sound_voice_synthesis: "Voice synthesis",
+    sound_info: "💡 Game sounds include sound effects and animations. Voice synthesis are the pronunciations of Japanese characters.",
+  
     
     // Difficulty
     difficulty_easy: "Easy (6)",
@@ -1791,6 +1934,11 @@ contact_inbox_error: "❌ Loading error",
     options_sound: "Sonido",
     options_language: "Idioma",
     options_back: "← Volver",
+
+    sound_game_effects: "Sonidos del juego",
+    sound_voice_synthesis: "Síntesis de voz",
+    sound_info: "💡 Los sonidos del juego incluyen efectos de sonido y animaciones. Las síntesis de voz son las pronunciaciones de los caracteres japoneses.",
+  
     
     // Dificultad
     difficulty_easy: "Fácil (6)",
@@ -3417,8 +3565,10 @@ function openGardenModal(item, emoji) {
   setTimeout(closeGardenModal, 2200);
 
   // Son du hiragana
+ if (voiceEnabled) { // ✅ AJOUT
   const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`);
   audio.play().catch(() => {});
+}
 }
 function getPlantEmoji(validation) {
     if (validation >= seuilValidation) {
@@ -3481,9 +3631,11 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   }, 300);
 
   // Son
+if (voiceEnabled) { // ✅ AJOUT
   new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`)
     .play()
     .catch(() => {});
+}
 
   // === ANIMATIONS APRÈS LE FADE VERS BLANC (0.8s) ===
   setTimeout(() => {
@@ -3805,6 +3957,9 @@ setTimeout(() => {
 }
   </script>
 <script>
+// Variables de contrôle du son (à ajouter après les autres variables globales)
+let soundEnabled = true;
+let voiceEnabled = true;  
 let pointsGagnesEnRevision = 0; // ✅ NOUVEAU : compteur de progression  
 let wasBlockedWhenEnteringRevision = false;
 let deficitInitialRevision = 0;  
@@ -4277,10 +4432,13 @@ console.error("Erreur lors de l'initialisation audio:", error.message);
 function getValidatedCountForLevel(level) {
 return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Validation) >= 5).length;
 }
+
+
 function playPopSound() {
+  if (!soundEnabled) return; // ✅ AJOUT
   initAudio();
   try {
-    const osc = audioContext.createOscillator();
+        const osc = audioContext.createOscillator();
     const gain = audioContext.createGain();
     osc.connect(gain);
     gain.connect(audioContext.destination);
@@ -4295,8 +4453,10 @@ function playPopSound() {
   }
 }
 function playMarioCoin() {
-initAudio();
-const notes = [659.25, 1046.50];
+  if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
+  const notes = [659.25, 1046.50];
 const durations = [0.1, 0.2];
 notes.forEach((freq, i) => {
 setTimeout(() => {
@@ -4312,10 +4472,15 @@ osc.start();
 osc.stop(audioContext.currentTime + durations[i]);
 }, i * 100);
 });
+  } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
 }
 
 function playSuccess90s() {
-initAudio();
+  if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
 const baseFreq = 587.33;
 const osc1 = audioContext.createOscillator();
 const gain1 = audioContext.createGain();
@@ -4338,11 +4503,16 @@ osc1.start();
 osc2.start();
 osc1.stop(audioContext.currentTime + 0.4);
 osc2.stop(audioContext.currentTime + 0.3);
-}
+  } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
+}  
 
 function playFail() {
-initAudio();
-const oscillator = audioContext.createOscillator();
+  if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
+  const oscillator = audioContext.createOscillator();
 const gainNode = audioContext.createGain();
 oscillator.connect(gainNode);
 gainNode.connect(audioContext.destination);
@@ -4353,12 +4523,16 @@ oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
 oscillator.frequency.exponentialRampToValueAtTime(110, audioContext.currentTime + 0.4);
 oscillator.start(audioContext.currentTime);
 oscillator.stop(audioContext.currentTime + 0.4);
-}
+  } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
+}  
 
 function playFireworkSound() {
-initAudio();
-try {
-const frequencies = [329.63, 415.30, 523.25, 659.25];
+  if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
+   const frequencies = [329.63, 415.30, 523.25, 659.25];
 frequencies.forEach((freq, i) => {
 setTimeout(() => {
 const osc = audioContext.createOscillator();
@@ -4377,15 +4551,16 @@ osc.start();
 osc.stop(audioContext.currentTime + 0.4);
 }, i * 150);
 });
-} catch (error) {
-logError('Erreur Firework: ' + error.message);
-}
+  } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
 }
 
 function playfireworksound2() {
-initAudio();
-try {
-const sequence = [554.37, 659.25, 830.61, 987.77];
+  if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
+   const sequence = [554.37, 659.25, 830.61, 987.77];
 sequence.forEach((freq, i) => {
 setTimeout(() => {
 const osc = audioContext.createOscillator();
@@ -4400,15 +4575,16 @@ osc.start();
 osc.stop(audioContext.currentTime + 0.2);
 }, i * 100);
 });
-} catch (error) {
-logError('Erreur fireworksound 2: ' + error.message);
-}
+  } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
 }
 
 function playfireworksound3() {
-initAudio();
-try {
-const sequence = [659.25, 783.99, 987.77, 1174.66];
+  if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
+    const sequence = [659.25, 783.99, 987.77, 1174.66];
 sequence.forEach((freq, i) => {
 setTimeout(() => {
 const osc = audioContext.createOscillator();
@@ -4423,15 +4599,16 @@ osc.start();
 osc.stop(audioContext.currentTime + 0.2);
 }, i * 100);
 });
-} catch (error) {
-logError('Erreur fireworksound 3: ' + error.message);
-}
+  } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
 }
 
 function playfireworksound4() {
-initAudio();
-try {
-const sequence = [783.99, 987.77, 1174.66, 1396.91];
+  if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
+   const sequence = [783.99, 987.77, 1174.66, 1396.91];
 sequence.forEach((freq, i) => {
 setTimeout(() => {
 const osc = audioContext.createOscillator();
@@ -4446,15 +4623,16 @@ osc.start();
 osc.stop(audioContext.currentTime + 0.2);
 }, i * 100);
 });
-} catch (error) {
-logError('Erreur fireworksound 4: ' + error.message);
-}
-}
+  } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
+}  
 
 function playLevelUp() {
-initAudio();
-try {
-const sequence = [523.25, 659.25, 783.99, 1046.50];
+  if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
+  const sequence = [523.25, 659.25, 783.99, 1046.50];
 const flourish = [783.99, 1046.50, 1318.51];
 sequence.forEach((freq, i) => {
 setTimeout(() => {
@@ -4505,14 +4683,16 @@ mod.start();
 osc.stop(audioContext.currentTime + 2.0);
 mod.stop(audioContext.currentTime + 2.0);
 }, 780);
-} catch (error) {
-logError('Erreur Level Up: ' + error.message);
-}
-}
+  } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
+}  
 
-// Son pour réponses correctes : Clochette zen
 function playZenBell() {
-  const oscillator = audioCtx.createOscillator();
+  if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
+   const oscillator = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
   
   oscillator.connect(gainNode);
@@ -4534,10 +4714,16 @@ function playZenBell() {
   oscillator.start(audioCtx.currentTime);
   oscillator.stop(audioCtx.currentTime + 0.3);
   console.log('🎶 Son joué : Goutte cristalline (fréquence aléatoire, 0.3s)');
+  } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
 }
-// Son pour réponses incorrectes : Bip atténué
+  
 function playSoftError() {
-  const oscillator = audioCtx.createOscillator();
+  if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
+     const oscillator = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
   oscillator.connect(gainNode);
   gainNode.connect(audioCtx.destination);
@@ -4549,8 +4735,49 @@ function playSoftError() {
 
   oscillator.start();
   oscillator.stop(audioCtx.currentTime + 0.4);
+  } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
 }
   
+
+// Fonctions de contrôle du son (à ajouter après les autres fonctions audio)
+
+function loadSoundSettings() {
+  const savedSound = localStorage.getItem('soundEnabled');
+  const savedVoice = localStorage.getItem('voiceEnabled');
+  
+  soundEnabled = savedSound !== null ? savedSound === 'true' : true;
+  voiceEnabled = savedVoice !== null ? savedVoice === 'true' : true;
+  
+  console.log('Sons chargés:', { soundEnabled, voiceEnabled });
+}
+
+function toggleSound(enabled) {
+  soundEnabled = enabled;
+  localStorage.setItem('soundEnabled', enabled);
+  updateSoundUI();
+  console.log('Sons du jeu:', enabled ? 'activés' : 'désactivés');
+}
+
+function toggleVoice(enabled) {
+  voiceEnabled = enabled;
+  localStorage.setItem('voiceEnabled', enabled);
+  updateSoundUI();
+  console.log('Synthèses vocales:', enabled ? 'activées' : 'désactivées');
+}
+
+function updateSoundUI() {
+  const soundSlider = document.getElementById('sound-slider');
+  const voiceSlider = document.getElementById('voice-slider');
+  const soundStatus = document.getElementById('sound-status');
+  const voiceStatus = document.getElementById('voice-status');
+  
+  if (soundSlider) soundSlider.checked = soundEnabled;
+  if (voiceSlider) voiceSlider.checked = voiceEnabled;
+  if (soundStatus) soundStatus.textContent = soundEnabled ? '🔊 Activé' : '🔇 Désactivé';
+  if (voiceStatus) voiceStatus.textContent = voiceEnabled ? '🗣️ Activé' : '🔇 Désactivé';
+}  
 function drawStar(ctx, x, y, radius, rotation = 0) {
 const points = 5;
 const outerRadius = radius;
@@ -5553,13 +5780,13 @@ document.getElementById("result").innerHTML = `
     ${t('quiz_correct_answer')} <strong>${correct1}</strong> ${t('quiz_answer_separator')} <strong>${correct2}</strong>
   </div>`;
 
-    if (current && current.Hiragana) {
-      const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
-      const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-      console.log("🎧 Lecture du son :", audioUrl);
-      const audio = new Audio(audioUrl);
-      audio.play().catch(e => console.warn("Erreur audio :", e));
-    } else {
+    if (current && current.Hiragana && voiceEnabled) { // ✅ AJOUT voiceEnabled
+  const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
+  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+  console.log("🎧 Lecture du son :", audioUrl);
+  const audio = new Audio(audioUrl);
+  audio.play().catch(e => console.warn("Erreur audio :", e));
+} else {
       console.warn("❗ Aucun Hiragana à prononcer.");
     }
 
@@ -6132,7 +6359,8 @@ window.onload = () => {
   
   // ✅ AJOUTÉ : Mettre à jour les textes avant initGame
   updateAllTexts();
-  
+  loadSoundSettings();
+  updateSoundUI();
   initGame();
 };
 // ✅ AJOUTÉ : Tracking des interactions utilisateur (anti-bot)
@@ -6551,6 +6779,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
