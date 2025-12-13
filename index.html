@@ -224,7 +224,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 .garden-card .info { margin: 1em 0; font-size: 1.2em; }
 .garden-card .close-btn { margin-top: 1.5em; padding: 0.8em 2em; font-size: 1.2em; }
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.0em; } .garden-bug { font-size: 0.8em; } .garden-hiragana { font-size: 1.0em; } .garden-level { gap: 0.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 95%; } .garden-item { aspect-ratio: 1; } }
-@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.7em; } .garden-hiragana { white-space: nowrap; font-size: 1.2em; } .garden-level { gap: 5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 75%;} .garden-legend { gap: 1em; font-size: 0.9em; } }
+@media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.7em; } .garden-hiragana { white-space: nowrap; font-size: 1.2em; } .garden-level { gap: 3.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 90%; } .garden-legend { gap: 1em; font-size: 0.9em; } }
 /* Animation pour le changement de statut de la plante (bloom/rotation subtile) */
 .plant-status-change {
   animation: plantBloom 0.5s ease-in-out;
@@ -804,7 +804,8 @@ input:checked + .slider-round:before {
 input:focus + .slider-round {
   box-shadow: 0 0 8px var(--green-bright);
 }
-</style>
+  
+  </style>
 </head>
 <body>
     <div id="rotation-toast">
@@ -3861,7 +3862,7 @@ function showReturningUserWelcome(pseudo) {
     top: 0;
     left: 0;
     width: 100vw;
-    height: var(--app-height);
+    height: 100vh;
     background: #F8F1E9;
     display: flex;
     flex-direction: column;
@@ -6464,16 +6465,6 @@ document.addEventListener("DOMContentLoaded", () => {
   panda.style.pointerEvents = "none"; 
   panda.style.opacity = "0.2"; // optionnel, pour indiquer que c'est inactif
 });
-function setVh() {
-  const vh = window.innerHeight * 0.01;
-  document.documentElement.style.setProperty('--vh', `${vh}px`);
-}
-
-window.addEventListener('resize', setVh);
-window.addEventListener('orientationchange', setVh);
-document.addEventListener('DOMContentLoaded', setVh);
-setVh();
-  
   // ========================================
 // FONCTIONS CONTACT & SUPPORT
 // ========================================
@@ -6797,17 +6788,6 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
 
 
