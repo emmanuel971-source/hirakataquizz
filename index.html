@@ -125,9 +125,7 @@ body.shake {animation: screenShake 0.4s ease-in-out;}
 .options-sub .arcade-button:first-child {margin-bottom: 20px;}
 .options-sub {opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease;}
 .options-sub.active {opacity: 1; transform: translateY(0);}
-.options-sub .back-button {
-  display: none;
-}
+
     
 .section {display: none;}
 .section.active {display: flex; flex-direction: column; height: 100vh;}
@@ -971,7 +969,7 @@ input:focus + .slider-round {
 
   <!-- Sous-rubrique Difficulté -->
   <div id="options-difficulty" class="options-sub hidden">
-    <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
+  <!--    <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button> -->
     <h2 data-i18n="options_difficulty">Difficulté</h2>
     <button class="arcade-button" onclick="setDifficulty(6)" data-i18n="difficulty_easy">Facile (6)</button>
     <button class="arcade-button" onclick="setDifficulty(8)" data-i18n="difficulty_medium">Moyen (8)</button>
@@ -980,7 +978,7 @@ input:focus + .slider-round {
 
 <!-- Sous-rubrique Son -->
 <div id="options-sound" class="options-sub hidden">
-  <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
+<!--  <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button> -->
   <h2 data-i18n="options_sound">Son</h2>
   
   <div class="sound-controls">
@@ -1018,7 +1016,7 @@ input:focus + .slider-round {
   
 <!-- Sous-rubrique Langue -->
 <div id="options-language" class="options-sub hidden">
-  <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button>
+<!--  <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button> -->
   <h2 data-i18n="options_language">Langue</h2>
   <button class="arcade-button" onclick="setLanguage('fr')">🇫🇷 Français</button>
   <button class="arcade-button" onclick="setLanguage('en')">🇬🇧 English</button>
@@ -1026,7 +1024,7 @@ input:focus + .slider-round {
 </div>
   <!-- Sous-rubrique Contact -->
 <div id="options-contact" class="options-sub hidden">
-  <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button>
+<!--  <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button> -->
   <h2 data-i18n="contact_title">Contact & Support</h2>
   <button class="arcade-button" onclick="showContactForm('message')" data-i18n="contact_send_message">
     💬 Envoyer un message
@@ -6839,6 +6837,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
