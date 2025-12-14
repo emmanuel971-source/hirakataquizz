@@ -3900,7 +3900,9 @@ function updateFilterCounts(data) {
 }
 // ✅ Fonction utilisant le PORTAL (comme les autres flashcards)
 function showUnlockFlashcard(featureName, emoji, message) {
+  console.log('🎭 showUnlockFlashcard appelée avec:', featureName);
   const portal = document.getElementById('modal-portal');
+  console.log('🎭 Portal trouvé:', portal ? 'OUI' : 'NON');
   
   portal.innerHTML = `
     <div class="revision-flashcard unlock-flashcard" style="background: linear-gradient(135deg, #d4edda 0%, #f8f1e9 100%); animation: popIn 0.6s ease-out forwards;">
@@ -5726,6 +5728,7 @@ statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTent
   }
 }
 function nextQuestion() {
+  console.log('📞 nextQuestion() appelée');
 document.getElementById("result").innerText = "";
 document.getElementById("continueBtn").style.visibility = "hidden";
 selections = { first: null, second: null };
@@ -5738,39 +5741,54 @@ parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
 if (kanas.length === 0) {
 const nouveauNiveau = determineNiveauActif(HiraganaList);
 if (nouveauNiveau !== niveauActif) {
-
-const ancienGroupe = getNiveauGroupe(niveauActif);
-const nouveauGroupe = getNiveauGroupe(nouveauNiveau);  
-niveauActif = nouveauNiveau;  
-localStorage.setItem('unlockedLevel', currentLevel + 1);  
-document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-updateLevelProgress(HiraganaList, niveauActif);
-updateRevisionButtonState();  
-updateApprendreButtonState(); // Nouvelle ligne  
-// Ajouter ici
+  console.log('🔍 DEBUT CHANGEMENT NIVEAU');
+  console.log('Ancien niveau:', niveauActif);
+  console.log('Nouveau niveau:', nouveauNiveau);
+  
+  const ancienGroupe = getNiveauGroupe(niveauActif);
+  const nouveauGroupe = getNiveauGroupe(nouveauNiveau);  
+  niveauActif = nouveauNiveau;  
+  
+  console.log('🔍 hasShownLevel4Menu =', hasShownLevel4Menu);
+  console.log('🔍 Test condition niveau 4:', niveauActif === 4, '&&', !hasShownLevel4Menu);
+  
+  localStorage.setItem('unlockedLevel', currentLevel + 1);  
+  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  updateLevelProgress(HiraganaList, niveauActif);
+  updateRevisionButtonState();  
+  updateApprendreButtonState();
+  
   // Déblocage mode révision (niveau 4)
   if (niveauActif === 4 && !hasShownLevel4Menu) {
+    console.log('✅ CONDITION VALIDÉE - Affichage carte niveau 4');
     hasShownLevel4Menu = true;
     setTimeout(() => {
+      console.log('🎬 APPEL showUnlockFlashcard pour niveau 4');
       showUnlockFlashcard(
         '🎮 Mode Révisions 🎮',
         '📚',
         'Tu peux maintenant réviser tes kanas !'
       );
     }, 2000);
+  } else {
+    console.log('❌ Condition niveau 4 NON validée');
   }
   
   // Déblocage Mon Jardin (niveau 5)
   if (niveauActif === 5 && !hasShownLevel5Garden) {
+    console.log('✅ CONDITION VALIDÉE - Affichage carte niveau 5');
     hasShownLevel5Garden = true;
     setTimeout(() => {
+      console.log('🎬 APPEL showUnlockFlashcard pour niveau 5');
       showUnlockFlashcard(
         '🌸 Mon Jardin 🌸',
         '🪴',
         'Ton jardin zen est maintenant accessible !'
       );
     }, 2000);
+  } else {
+    console.log('❌ Condition niveau 5 NON validée');
   }
   
   // Reste du code existant (blocage apprentissage etc.)
@@ -7040,6 +7058,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
