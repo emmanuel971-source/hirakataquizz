@@ -5862,7 +5862,10 @@ async function queueUpdateStats(params) {
     while (pendingUpdates.length > 0) {
       const update = pendingUpdates[0]; // On garde une référence
       const id = update.id; // On extrait id une fois pour éviter les bugs
-
+     // ✅ NOUVEAU : Extraire les infos de level up
+      const previousLevel = update.previousLevel;
+      const hasLeveledUp = update.hasLeveledUp;
+      const targetLevel = update.targetLevel;
       try {
         // Construire les paramètres API
         const apiParams = {
@@ -5900,48 +5903,42 @@ async function queueUpdateStats(params) {
           }
 
           // Gestion du level up
-// Gestion du level up
-if (result.newLevel && result.newLevel > niveauActif) {
-  const ancienNiveau = niveauActif; // ✅ Sauvegarder l'ancien niveau
-  niveauActif = result.newLevel;
-  console.log(`Level up détecté (serveur): Niveau ${ancienNiveau} → ${niveauActif}`);
-  
-  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
-  updateLevelProgress(HiraganaList, niveauActif);
-  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  renderHiraganaCards(HiraganaList, niveauActif);
-  updateMenuButtonStates();
-  triggerLevelUpAnimation(document.body);
-  
-  // ✅ Déblocages niveau 4 (Mode Révision)
-  if (niveauActif === 4 && !hasShownLevel4Menu) {
-    console.log('✅ CONDITION VALIDÉE - Affichage carte niveau 4');
-    hasShownLevel4Menu = true;
-    setTimeout(() => {
-      console.log('🎬 APPEL showUnlockFlashcard pour niveau 4');
-      showUnlockFlashcard(
-        '🎮 Mode Révisions 🎮',
-        '📚',
-        'Tu peux maintenant réviser tes kanas !'
-      );
-    }, 3500); // ✅ Attendre après l'animation de level up (3s)
-  }
-  
-  // ✅ Déblocage niveau 5 (Mon Jardin)
-  if (niveauActif === 5 && !hasShownLevel5Garden) {
-    console.log('✅ CONDITION VALIDÉE - Affichage carte niveau 5');
-    hasShownLevel5Garden = true;
-    setTimeout(() => {
-      console.log('🎬 APPEL showUnlockFlashcard pour niveau 5');
-      showUnlockFlashcard(
-        '🌸 Mon Jardin 🌸',
-        '🪴',
-        'Ton jardin zen est maintenant accessible !'
-      );
-    }, 3500); // ✅ Attendre après l'animation de level up
-  }
-}
-        } else {
+// ✅ REMPLACE le bloc "Gestion du level up" par :
+          if (hasLeveledUp && targetLevel > previousLevel) {
+            console.log(`🎊 Level up confirmé: ${previousLevel} → ${targetLevel}`);
+            
+            // Animation de level up (si pas déjà faite)
+            if (targetLevel > niveauActif) {
+              triggerLevelUpAnimation(document.body);
+            }
+            
+            // ✅ Déblocage niveau 4 (Mode Révision)
+            if (targetLevel === 4 && !hasShownLevel4Menu) {
+              console.log('✅ DÉBLOCAGE NIVEAU 4');
+              hasShownLevel4Menu = true;
+              setTimeout(() => {
+                showUnlockFlashcard(
+                  '🎮 Mode Révisions 🎮',
+                  '📚',
+                  'Tu peux maintenant réviser tes kanas !'
+                );
+              }, 3500);
+            }
+            
+            // ✅ Déblocage niveau 5 (Mon Jardin)
+            if (targetLevel === 5 && !hasShownLevel5Garden) {
+              console.log('✅ DÉBLOCAGE NIVEAU 5');
+              hasShownLevel5Garden = true;
+              setTimeout(() => {
+                showUnlockFlashcard(
+                  '🌸 Mon Jardin 🌸',
+                  '🪴',
+                  'Ton jardin zen est maintenant accessible !'
+                );
+              }, 3500);
+            }
+          }
+        }else {
           console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
         }
       } catch (error) {
@@ -6057,8 +6054,14 @@ document.getElementById("result").innerHTML = `
       console.warn("❗ Aucun Hiragana à prononcer.");
     }
 
-    const previousNiveau = niveauActif;
-    niveauActif = determineNiveauActif(HiraganaList);
+const previousNiveau = niveauActif;
+const calculatedNiveau = determineNiveauActif(HiraganaList);
+
+// ✅ Détecter le level up LOCAL (avant API)
+const hasLeveledUp = calculatedNiveau > previousNiveau;
+const targetLevel = calculatedNiveau;
+
+niveauActif = calculatedNiveau;
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
@@ -6071,11 +6074,14 @@ document.getElementById("result").innerHTML = `
     }
 
     queueUpdateStats({
-      token: userToken,
-      id: currentItemId,
-      scorePoints: score,
-      isRevisionMode: revisionMode.isActive
-    });
+  token: userToken,
+  id: currentItemId,
+  scorePoints: score,
+  isRevisionMode: revisionMode.isActive,
+  previousLevel: previousNiveau, // ✅ Passer l'ancien niveau
+  hasLeveledUp: hasLeveledUp,    // ✅ Indiquer si level up
+  targetLevel: targetLevel        // ✅ Le niveau cible
+});
   // ✅ NOUVEAU : Rafraîchir les stats si la page est ouverte
   if (document.getElementById('stats').classList.contains('active')) {
     setTimeout(() => {
@@ -7046,6 +7052,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
