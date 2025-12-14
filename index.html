@@ -4594,13 +4594,26 @@ function updateRevisionButtonState() {
   }
 }
 
-function testFeu() {
-const container = document.querySelector('.quiz-container');
-if (isMobile) {
-triggerLightFirework(container);
-} else {
-triggerAdvancedFirework(container);
-}
+function updateStatsButtonState() {
+  const statsButton = document.querySelector('button[onclick="showSection(\'stats\')"]');
+  if (!statsButton) return;
+  
+  if (niveauActif >= 5) {
+    statsButton.classList.remove('disabled');
+    statsButton.onclick = () => showSection('stats');
+    statsButton.title = '';
+  } else {
+    statsButton.classList.add('disabled');
+    statsButton.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Mon jardin disponible à partir du niveau 5');
+      return false;
+    };
+    statsButton.title = 'Disponible à partir du niveau 5';
+    statsButton.style.opacity = '0.5';
+    statsButton.style.cursor = 'not-allowed';
+  }
 }
 
 function triggerSakuraFall(container) {
@@ -5368,7 +5381,8 @@ function updateApprendreButtonState() {
 function updateMenuButtonStates() {
   updateApprendreButtonState();
   updateRevisionButtonState();
-}  
+  updateStatsButtonState(); // ✅ NOUVEAU
+}
 function updateLevelProgress(list, niveau) {
 renderHiraganaCards(list, niveau);
 }
@@ -7026,6 +7040,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
