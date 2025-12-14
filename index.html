@@ -90,7 +90,7 @@ body.shake {animation: screenShake 0.4s ease-in-out;}
 .menu .arcade-button {width: 300px !important; height: 80px !important; min-height: 80px !important; max-height: 80px !important; line-height: 80px !important; padding: 0 1.5em !important; font-size: 1.6em !important; box-sizing: border-box !important;}
 .arcade-button.disabled {background: var(--gray-light) !important; color: #999999 !important; cursor: not-allowed !important; opacity: 0.6; border-color: var(--gray-medium) !important;}
 .arcade-button.disabled:hover {transform: none !important; box-shadow: 0 4px 8px var(--shadow-black-strong) !important;}
-.options-menu, .options-sub {display: flex; flex-direction: column !important; align-items: center; gap: 15px; width: 100%;}
+.options-menu, .options-sub {position: fixed; top: 0; right: 0; width: 100%; height: 100%; background: var(--overlay-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; transform: translateX(100%); transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; opacity: 0; z-index: 999;}
 .options-sub .arcade-button, .options-menu .arcade-button {width: 300px !important;}
 .options-sub .arcade-button:first-child {margin-bottom: 20px;}
 .options-sub {opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease;}
@@ -6788,3 +6788,4 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
