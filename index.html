@@ -99,6 +99,13 @@ body.shake {animation: screenShake 0.4s ease-in-out;}
   font-size: 1.6em !important;
   box-sizing: border-box !important;
 }
+.options-sub .arcade-button {
+  height: auto !important;
+  min-height: 80px !important;
+  line-height: 1.2 !important;
+  padding: 0.6em 1.2em !important;
+  white-space: normal !important;
+}
 
 .arcade-button.disabled {background: var(--gray-light) !important; color: #999999 !important; cursor: not-allowed !important; opacity: 0.6; border-color: var(--gray-medium) !important;}
 .arcade-button.disabled:hover {transform: none !important; box-shadow: 0 4px 8px var(--shadow-black-strong) !important;}
@@ -107,6 +114,11 @@ body.shake {animation: screenShake 0.4s ease-in-out;}
 .options-sub {
   flex: 1;
   justify-content: center;
+}
+.menu .arcade-button,
+.options-menu .arcade-button,
+.options-sub .arcade-button {
+  font-size: 1.6em !important;
 }
 
     
@@ -6806,5 +6818,6 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
