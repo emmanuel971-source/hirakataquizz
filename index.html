@@ -91,8 +91,47 @@ body.shake {animation: screenShake 0.4s ease-in-out;}
 .arcade-button.disabled {background: var(--gray-light) !important; color: #999999 !important; cursor: not-allowed !important; opacity: 0.6; border-color: var(--gray-medium) !important;}
 .arcade-button.disabled:hover {transform: none !important; box-shadow: 0 4px 8px var(--shadow-black-strong) !important;}
 .options-menu, .options-sub {display: flex; flex-direction: column !important; align-items: center; gap: 15px; width: 100%;}
-.options-sub .arcade-button, .options-menu .arcade-button {width: 300px !important;}
-.options-sub .arcade-button:first-child {margin-bottom: 20px;}
+.options-sub .arcade-button {
+  width: 300px !important;
+  height: 80px !important;
+  min-height: 80px !important;
+  max-height: 80px !important;
+  line-height: 80px !important;
+  padding: 0 1.5em !important;
+  font-size: 1.6em !important;
+  box-sizing: border-box !important;
+}
+/* Système d'étoiles pour la difficulté */
+.difficulty-stars {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.difficulty-star {
+  font-size: 0.8em;
+  transition: all 0.3s ease;
+}
+
+.difficulty-star.lit {
+  color: #FFD700;
+  text-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
+  filter: brightness(1.5);
+}
+
+.difficulty-star.unlit {
+  color: rgba(139, 111, 71, 0.3);
+  filter: grayscale(100%);
+}
+
+.arcade-button.difficulty-selected {
+  background: linear-gradient(135deg, rgba(168, 213, 186, 0.3), rgba(253, 193, 197, 0.3)) !important;
+  border-color: var(--green-primary) !important;
+  box-shadow: 0 6px 12px var(--shadow-black-dark), inset 0 0 20px rgba(168, 213, 186, 0.2) !important;
+}    
+.options-menu .arcade-button {width: 300px !important;}
+.options-sub .arcade-button:first-child {margin-bottom: 0px;}
 .options-sub {opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease;}
 .options-sub.active {opacity: 1; transform: translateY(0);}
 .section {display: none;}
@@ -349,6 +388,59 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 @keyframes rollInDown {
   from { top: -70px; }
   to { top: 0; }
+}
+/* Animation kawaii pour les déblocages */
+@keyframes kawaii-bounce {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-5deg); }
+  50% { transform: scale(1.2) rotate(5deg); }
+  75% { transform: scale(1.1) rotate(-3deg); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+.unlock-flashcard {
+  background: linear-gradient(135deg, #d4edda 0%, #f8f1e9 100%);
+  padding: 3em;
+  border-radius: 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.unlock-emoji {
+  font-size: 5em;
+  animation: kawaii-bounce 1s ease-in-out infinite;
+  display: inline-block;
+  margin-bottom: 0.3em;
+}
+
+.unlock-sparkles {
+  position: absolute;
+  font-size: 2em;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.unlock-sparkles:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+.unlock-sparkles:nth-child(2) { top: 10%; right: 10%; animation-delay: 0.3s; }
+.unlock-sparkles:nth-child(3) { bottom: 15%; left: 15%; animation-delay: 0.6s; }
+.unlock-sparkles:nth-child(4) { bottom: 15%; right: 15%; animation-delay: 0.9s; }
+
+.unlock-title {
+  font-size: 2em;
+  font-weight: bold;
+  color: var(--brown-primary);
+  margin: 0.5em 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.unlock-message {
+  font-size: 1.3em;
+  color: var(--gray-dark);
+  margin-top: 1em;
 }    
 /* ========================================
    STYLES CONTACT & SUPPORT
@@ -935,14 +1027,38 @@ input:focus + .slider-round {
       <button class="arcade-button" onclick="showSubOptions('contact')" data-i18n="contact_title">📨 Contact</button>
   </div>
 
-  <!-- Sous-rubrique Difficulté -->
-  <div id="options-difficulty" class="options-sub hidden">
-    <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
-    <h2 data-i18n="options_difficulty">Difficulté</h2>
-    <button class="arcade-button" onclick="setDifficulty(6)" data-i18n="difficulty_easy">Facile (6)</button>
-    <button class="arcade-button" onclick="setDifficulty(8)" data-i18n="difficulty_medium">Moyen (8)</button>
-    <button class="arcade-button" onclick="setDifficulty(10)" data-i18n="difficulty_hard">Hard (10)</button>
-  </div>
+<!-- Sous-rubrique Difficulté -->
+<div id="options-difficulty" class="options-sub hidden">
+  <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
+  <h2 data-i18n="options_difficulty">Difficulté</h2>
+  <button class="arcade-button difficulty-btn" onclick="setDifficulty(6)" data-difficulty="6">
+    <span data-i18n="difficulty_easy">Facile</span>
+    <span class="difficulty-stars">
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+    </span>
+  </button>
+  <button class="arcade-button difficulty-btn" onclick="setDifficulty(8)" data-difficulty="8">
+    <span data-i18n="difficulty_medium">Moyen</span>
+    <span class="difficulty-stars">
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+    </span>
+  </button>
+  <button class="arcade-button difficulty-btn" onclick="setDifficulty(10)" data-difficulty="10">
+    <span data-i18n="difficulty_hard">Difficile</span>
+    <span class="difficulty-stars">
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+    </span>
+  </button>
+</div>
 
 <!-- Sous-rubrique Son -->
 <div id="options-sound" class="options-sub hidden">
@@ -2889,6 +3005,10 @@ function showSubOptions(section) {
   const sub = document.getElementById('options-' + section);
   sub.classList.remove("hidden");
   setTimeout(() => sub.classList.add("active"), 10);
+  // ✅ NOUVEAU : Initialiser les étoiles de difficulté
+  if (section === 'difficulty') {
+    updateDifficultyButtons(seuilValidation);
+  }
 }
 
 function backToOptions() {
@@ -2907,25 +3027,101 @@ function setDifficulty(value) {
   seuilValidation = value; 
   localStorage.setItem("difficulty", value);
 
-  // Mise en surbrillance du bouton choisi
-  document.querySelectorAll("#options-difficulty .arcade-button").forEach(btn => {
-    btn.classList.remove("clicked-glow");
-  });
-  event.target.classList.add("clicked-glow");
+  // Mise à jour visuelle des boutons
+  updateDifficultyButtons(value);
 
-  // ✅ Mettre à jour le bouton Apprendre
+  // Mise à jour du bouton Apprendre
   updateApprendreButtonState();
 
-alert(`${t('difficulty_set')} ${value}`);
-
- niveauActif = determineNiveauActif(HiraganaList);
+  niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  nextQuestion();      
-
-
+  nextQuestion();
 }
+function showUnlockFlashcard(featureName, emoji, message) {
+  const portal = document.getElementById('modal-portal');
+  
+  portal.innerHTML = `
+    <div class="unlock-flashcard" style="animation: popIn 0.6s ease-out forwards;">
+      <div class="unlock-sparkles">✨</div>
+      <div class="unlock-sparkles">✨</div>
+      <div class="unlock-sparkles">✨</div>
+      <div class="unlock-sparkles">✨</div>
+      
+      <div class="unlock-emoji">${emoji}</div>
+      <div class="unlock-title">${featureName}</div>
+      <div class="unlock-message">${message}</div>
+    </div>
+  `;
+  
+  portal.classList.add('active');
+  
+  // Jouer un son de célébration
+  if (soundEnabled) {
+    playLevelUp();
+  }
+  
+  // Fermer après 3 secondes
+  setTimeout(() => {
+    const flashcard = portal.querySelector('.unlock-flashcard');
+    if (flashcard) {
+      flashcard.style.transition = 'all 0.4s ease-in';
+      flashcard.style.opacity = '0';
+      flashcard.style.transform = 'scale(0.8)';
+    }
+    
+    setTimeout(() => {
+      portal.classList.remove('active');
+      portal.innerHTML = '';
+    }, 400);
+  }, 3000);
+}
+function updateDifficultyButtons(selectedValue) {
+  const buttons = document.querySelectorAll('.difficulty-btn');
+  
+  buttons.forEach(btn => {
+    const btnValue = parseInt(btn.getAttribute('data-difficulty'));
+    const stars = btn.querySelectorAll('.difficulty-star');
+    
+    if (btnValue === selectedValue) {
+      // Bouton sélectionné
+      btn.classList.add('difficulty-selected');
+      stars.forEach(star => {
+        star.classList.remove('unlit');
+        star.classList.add('lit');
+      });
+    } else {
+      // Boutons non sélectionnés
+      btn.classList.remove('difficulty-selected');
+      stars.forEach(star => {
+        star.classList.remove('lit');
+        star.classList.add('unlit');
+      });
+    }
+  });
+}
+function updateStatsButtonState() {
+  const statsButton = document.querySelector('button[onclick="showSection(\'stats\')"]');
+  if (!statsButton) return;
+  
+  if (niveauActif >= 5) {
+    statsButton.classList.remove('disabled');
+    statsButton.onclick = () => showSection('stats');
+    statsButton.title = '';
+  } else {
+    statsButton.classList.add('disabled');
+    statsButton.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Mon jardin disponible à partir du niveau 5');
+      return false;
+    };
+    statsButton.title = 'Disponible à partir du niveau 5';
+    statsButton.style.opacity = '0.5';
+    statsButton.style.cursor = 'not-allowed';
+  }
+}    
 function showSection(sectionId) {
   // ✅ CORRECTION : Gestion de l'affichage du hamburger avec classe
   const hamburger = document.querySelector('.hamburger');
@@ -4110,7 +4306,16 @@ function updateUnlockProgress() {
   fill.style.width = `${pourcentage}%`;
 
   console.log(`📊 Progress: ${deficitRestant}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%) | Points: ${pointsGagnesEnRevision}`);
-
+// Après la mise à jour de pointsGagnesEnRevision
+if (pointsGagnesEnRevision >= deficitInitialRevision && hasUnlockedInRevision) {
+  setTimeout(() => {
+    showUnlockFlashcard(
+      '🎌 Mode Apprendre Débloqué 🎌',
+      '🌱',
+      'Tu peux à nouveau apprendre de nouveaux kanas !'
+    );
+  }, 500);
+}
   if (pointsGagnesEnRevision >= deficitInitialRevision) {
     container.style.display = 'none';
     hasUnlockedInRevision = true;
@@ -5146,7 +5351,8 @@ function updateApprendreButtonState() {
 function updateMenuButtonStates() {
   updateApprendreButtonState();
   updateRevisionButtonState();
-}  
+  updateStatsButtonState(); // ✅ NOUVEAU
+} 
 function updateLevelProgress(list, niveau) {
 renderHiraganaCards(list, niveau);
 }
@@ -5513,12 +5719,28 @@ updateLevelProgress(HiraganaList, niveauActif);
 updateRevisionButtonState();  
 updateApprendreButtonState(); // Nouvelle ligne  
 // Ajouter ici
+// Dans la fonction nextQuestion, section où niveauActif change :
 if (niveauActif === 4 && !hasShownLevel4Menu) {
-    const menu = document.getElementById('menu');
-    const menuMessage = document.getElementById('menu-message');
-    menu.classList.add('active');
-    menuMessage.innerText = '🎮 Mode révisions débloqué 🎮';
-    hasShownLevel4Menu = true;
+  hasShownLevel4Menu = true;
+  setTimeout(() => {
+    showUnlockFlashcard(
+      '🎮 Mode Révisions 🎮',
+      '📚',
+      'Tu peux maintenant réviser tes kanas !'
+    );
+  }, 1000);
+}
+
+// Ajoute aussi pour le niveau 5 (Mon jardin)
+if (niveauActif === 5 && !localStorage.getItem('hasShownGardenUnlock')) {
+  localStorage.setItem('hasShownGardenUnlock', 'true');
+  setTimeout(() => {
+    showUnlockFlashcard(
+      '🌸 Mon Jardin 🌸',
+      '🪴',
+      'Ton jardin zen est maintenant accessible !'
+    );
+  }, 1000);
 }
 if (nouveauGroupe > ancienGroupe && nouveauGroupe >= 3 && isApprentissageBloque() && !hasShownBlockedMenu) {
   // Passer automatiquement en mode révision AVANT d'afficher le menu
@@ -6788,6 +7010,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
