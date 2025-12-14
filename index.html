@@ -998,10 +998,8 @@ input:focus + .slider-round {
 <!-- Sous-rubrique Difficulté -->
 <div id="options-difficulty" class="options-sub hidden">
   <h2 data-i18n="options_difficulty">Difficulté</h2>
-    <button class="arcade-button difficulty-btn" onclick="setDifficulty(10)" data-difficulty="10">
-      <span class="difficulty-stars">
-      <span class="difficulty-star">⭐</span>
-      <span class="difficulty-star">⭐</span>
+    <button class="arcade-button difficulty-btn" onclick="setDifficulty(6)" data-difficulty="6">
+       <span class="difficulty-stars">
       <span class="difficulty-star">⭐</span>
     </span>
   </button>  
@@ -1011,8 +1009,10 @@ input:focus + .slider-round {
       <span class="difficulty-star">⭐</span>
     </span>
   </button>
-  <button class="arcade-button difficulty-btn" onclick="setDifficulty(6)" data-difficulty="6">
-       <span class="difficulty-stars">
+    <button class="arcade-button difficulty-btn" onclick="setDifficulty(10)" data-difficulty="10">
+      <span class="difficulty-stars">
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
       <span class="difficulty-star">⭐</span>
     </span>
   </button>  
@@ -6902,6 +6902,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
