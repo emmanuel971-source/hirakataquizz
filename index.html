@@ -125,6 +125,10 @@ body.shake {animation: screenShake 0.4s ease-in-out;}
 .options-sub .arcade-button:first-child {margin-bottom: 20px;}
 .options-sub {opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease;}
 .options-sub.active {opacity: 1; transform: translateY(0);}
+.options-sub .back-button {
+  display: none;
+}
+    
 .section {display: none;}
 .section.active {display: flex; flex-direction: column; height: 100vh;}
 #revision-question {font-size: 1.5em; margin-top: 50px; margin-bottom: 30px; color: var(--brown-primary); text-shadow: 1px 1px 2px var(--shadow-brown-medium);}
@@ -2920,6 +2924,19 @@ function showSubOptions(section) {
   sub.classList.remove("hidden");
   setTimeout(() => sub.classList.add("active"), 10);
 }
+function resetOptionsView() {
+  // Réafficher le menu Options principal
+  const optionsMenu = document.querySelector(".options-menu");
+  if (optionsMenu) {
+    optionsMenu.classList.remove("hidden");
+  }
+
+  // Masquer toutes les sous-sections
+  document.querySelectorAll(".options-sub").forEach(div => {
+    div.classList.remove("active");
+    div.classList.add("hidden");
+  });
+}
 
 function backToOptions() {
   // Masquer toutes les sous-rubriques
@@ -3032,7 +3049,11 @@ document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
   document.getElementById(sectionId).classList.add('active');
-  
+  // ✅ Reset des Options à chaque entrée
+if (sectionId === 'options') {
+  resetOptionsView();
+}
+
   if (sectionId === 'create-account') {
     initPseudoCache();
     generateNewPseudo();
@@ -6818,6 +6839,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
