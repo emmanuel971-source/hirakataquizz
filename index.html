@@ -836,7 +836,35 @@ input:checked + .slider-round:before {
 input:focus + .slider-round {
   box-shadow: 0 0 8px var(--green-bright);
 }
-  
+/* Système d'étoiles pour la difficulté */
+.difficulty-stars {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.difficulty-star {
+  font-size: 0.8em;
+  transition: all 0.3s ease;
+}
+
+.difficulty-star.lit {
+  color: #FFD700;
+  text-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
+  filter: brightness(1.5);
+}
+
+.difficulty-star.unlit {
+  color: rgba(139, 111, 71, 0.3);
+  filter: grayscale(100%);
+}
+
+.arcade-button.difficulty-selected {
+  background: linear-gradient(135deg, rgba(168, 213, 186, 0.3), rgba(253, 193, 197, 0.3)) !important;
+  border-color: var(--green-primary) !important;
+  box-shadow: 0 6px 12px var(--shadow-black-dark), inset 0 0 20px rgba(168, 213, 186, 0.2) !important;
+}  
   </style>
 </head>
 <body>
@@ -967,14 +995,32 @@ input:focus + .slider-round {
       <button class="arcade-button" onclick="showSubOptions('contact')" data-i18n="contact_title">📨 Contact</button>
   </div>
 
-  <!-- Sous-rubrique Difficulté -->
-  <div id="options-difficulty" class="options-sub hidden">
-  <!--    <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button> -->
-    <h2 data-i18n="options_difficulty">Difficulté</h2>
-    <button class="arcade-button" onclick="setDifficulty(6)" data-i18n="difficulty_easy">Facile (6)</button>
-    <button class="arcade-button" onclick="setDifficulty(8)" data-i18n="difficulty_medium">Moyen (8)</button>
-    <button class="arcade-button" onclick="setDifficulty(10)" data-i18n="difficulty_hard">Hard (10)</button>
-  </div>
+<!-- Sous-rubrique Difficulté -->
+<div id="options-difficulty" class="options-sub hidden">
+  <button class="arcade-button" onclick="backToOptions()" data-i18n="options_back">← Retour</button>
+  <h2 data-i18n="options_difficulty">Difficulté</h2>
+  <button class="arcade-button difficulty-btn" onclick="setDifficulty(6)" data-difficulty="6">
+    <span data-i18n="difficulty_easy">Facile</span>
+    <span class="difficulty-stars">
+      <span class="difficulty-star">⭐</span>
+    </span>
+  </button>
+  <button class="arcade-button difficulty-btn" onclick="setDifficulty(8)" data-difficulty="8">
+    <span data-i18n="difficulty_medium">Moyen</span>
+    <span class="difficulty-stars">
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+    </span>
+  </button>
+  <button class="arcade-button difficulty-btn" onclick="setDifficulty(10)" data-difficulty="10">
+    <span data-i18n="difficulty_hard">Difficile</span>
+    <span class="difficulty-stars">
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+      <span class="difficulty-star">⭐</span>
+    </span>
+  </button>
+</div>
 
 <!-- Sous-rubrique Son -->
 <div id="options-sound" class="options-sub hidden">
@@ -1484,9 +1530,9 @@ const translations = {
     sound_info: "💡 Les sons du jeu incluent les effets sonores et animations. Les synthèses vocales sont les prononciations des caractères japonais.",
   
     // Difficulté
-    difficulty_easy: "Facile (6)",
-    difficulty_medium: "Moyen (8)",
-    difficulty_hard: "Hard (10)",
+    difficulty_easy: "",
+    difficulty_medium: "",
+    difficulty_hard: "",
     difficulty_set: "Difficulté réglée sur :",
     
     // Messages
@@ -1733,9 +1779,9 @@ contact_inbox_error: "❌ Erreur de chargement",
   
     
     // Difficulty
-    difficulty_easy: "Easy (6)",
-    difficulty_medium: "Medium (8)",
-    difficulty_hard: "Hard (10)",
+    difficulty_easy: "",
+    difficulty_medium: "",
+    difficulty_hard: "",
     difficulty_set: "Difficulty set to:",
     
     // Messages
@@ -1982,9 +2028,9 @@ contact_inbox_error: "❌ Loading error",
   
     
     // Dificultad
-    difficulty_easy: "Fácil (6)",
-    difficulty_medium: "Medio (8)",
-    difficulty_hard: "Difícil (10)",
+    difficulty_easy: "",
+    difficulty_medium: "",
+    difficulty_hard: "",
     difficulty_set: "Dificultad ajustada a:",
     
     // Mensajes
@@ -2921,6 +2967,10 @@ function showSubOptions(section) {
   const sub = document.getElementById('options-' + section);
   sub.classList.remove("hidden");
   setTimeout(() => sub.classList.add("active"), 10);
+   // ✅ NOUVEAU : Initialiser les étoiles de difficulté
+  if (section === 'difficulty') {
+    updateDifficultyButtons(seuilValidation);
+  }
 }
 function resetOptionsView() {
   // Réafficher le menu Options principal
@@ -2952,25 +3002,44 @@ function setDifficulty(value) {
   seuilValidation = value; 
   localStorage.setItem("difficulty", value);
 
-  // Mise en surbrillance du bouton choisi
-  document.querySelectorAll("#options-difficulty .arcade-button").forEach(btn => {
-    btn.classList.remove("clicked-glow");
-  });
-  event.target.classList.add("clicked-glow");
+  // Mise à jour visuelle des boutons
+  updateDifficultyButtons(value);
 
-  // ✅ Mettre à jour le bouton Apprendre
+  // Mise à jour du bouton Apprendre
   updateApprendreButtonState();
 
-alert(`${t('difficulty_set')} ${value}`);
-
- niveauActif = determineNiveauActif(HiraganaList);
+  niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  nextQuestion();      
-
-
+  nextQuestion();
 }
+
+function updateDifficultyButtons(selectedValue) {
+  const buttons = document.querySelectorAll('.difficulty-btn');
+  
+  buttons.forEach(btn => {
+    const btnValue = parseInt(btn.getAttribute('data-difficulty'));
+    const stars = btn.querySelectorAll('.difficulty-star');
+    
+    if (btnValue === selectedValue) {
+      // Bouton sélectionné
+      btn.classList.add('difficulty-selected');
+      stars.forEach(star => {
+        star.classList.remove('unlit');
+        star.classList.add('lit');
+      });
+    } else {
+      // Boutons non sélectionnés
+      btn.classList.remove('difficulty-selected');
+      stars.forEach(star => {
+        star.classList.remove('lit');
+        star.classList.add('unlit');
+      });
+    }
+  });
+}
+    
 function showSection(sectionId) {
   // ✅ CORRECTION : Gestion de l'affichage du hamburger avec classe
   const hamburger = document.querySelector('.hamburger');
@@ -6837,6 +6906,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
