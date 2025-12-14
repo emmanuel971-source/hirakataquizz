@@ -5758,52 +5758,9 @@ if (nouveauNiveau !== niveauActif) {
   updateLevelProgress(HiraganaList, niveauActif);
   updateRevisionButtonState();  
   updateApprendreButtonState();
-  
-  // Déblocage mode révision (niveau 4)
-  if (niveauActif === 4 && !hasShownLevel4Menu) {
-    console.log('✅ CONDITION VALIDÉE - Affichage carte niveau 4');
-    hasShownLevel4Menu = true;
-    setTimeout(() => {
-      console.log('🎬 APPEL showUnlockFlashcard pour niveau 4');
-      showUnlockFlashcard(
-        '🎮 Mode Révisions 🎮',
-        '📚',
-        'Tu peux maintenant réviser tes kanas !'
-      );
-    }, 2000);
-  } else {
-    console.log('❌ Condition niveau 4 NON validée');
-  }
-  
-  // Déblocage Mon Jardin (niveau 5)
-  if (niveauActif === 5 && !hasShownLevel5Garden) {
-    console.log('✅ CONDITION VALIDÉE - Affichage carte niveau 5');
-    hasShownLevel5Garden = true;
-    setTimeout(() => {
-      console.log('🎬 APPEL showUnlockFlashcard pour niveau 5');
-      showUnlockFlashcard(
-        '🌸 Mon Jardin 🌸',
-        '🪴',
-        'Ton jardin zen est maintenant accessible !'
-      );
-    }, 2000);
-  } else {
-    console.log('❌ Condition niveau 5 NON validée');
-  }
-  
-  // Reste du code existant (blocage apprentissage etc.)
-  if (nouveauGroupe > ancienGroupe && nouveauGroupe >= 3 && isApprentissageBloque() && !hasShownBlockedMenu) {
-    setTimeout(() => {
-      forceRevisionMode();
-      setTimeout(() => {
-        const menu = document.getElementById('menu');
-        const menuMessage = document.getElementById('menu-message');
-        menu.classList.add('active');
-        menuMessage.innerText = 'Mode Apprendre bloqué';
-        hasShownBlockedMenu = true;
-      }, 500);
-    }, 3000);
-  } 
+ 
+ 
+
 nextQuestion();
 return;
 }
@@ -5943,16 +5900,47 @@ async function queueUpdateStats(params) {
           }
 
           // Gestion du level up
-          if (result.newLevel && result.newLevel > niveauActif) {
-            niveauActif = result.newLevel;
-            console.log(`Level up détecté (serveur): Niveau ${niveauActif}`);
-            document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
-            updateLevelProgress(HiraganaList, niveauActif);
-            renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-            renderHiraganaCards(HiraganaList, niveauActif);
-            updateMenuButtonStates();
-            triggerLevelUpAnimation(document.body);
-          }
+// Gestion du level up
+if (result.newLevel && result.newLevel > niveauActif) {
+  const ancienNiveau = niveauActif; // ✅ Sauvegarder l'ancien niveau
+  niveauActif = result.newLevel;
+  console.log(`Level up détecté (serveur): Niveau ${ancienNiveau} → ${niveauActif}`);
+  
+  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  renderHiraganaCards(HiraganaList, niveauActif);
+  updateMenuButtonStates();
+  triggerLevelUpAnimation(document.body);
+  
+  // ✅ Déblocages niveau 4 (Mode Révision)
+  if (niveauActif === 4 && !hasShownLevel4Menu) {
+    console.log('✅ CONDITION VALIDÉE - Affichage carte niveau 4');
+    hasShownLevel4Menu = true;
+    setTimeout(() => {
+      console.log('🎬 APPEL showUnlockFlashcard pour niveau 4');
+      showUnlockFlashcard(
+        '🎮 Mode Révisions 🎮',
+        '📚',
+        'Tu peux maintenant réviser tes kanas !'
+      );
+    }, 3500); // ✅ Attendre après l'animation de level up (3s)
+  }
+  
+  // ✅ Déblocage niveau 5 (Mon Jardin)
+  if (niveauActif === 5 && !hasShownLevel5Garden) {
+    console.log('✅ CONDITION VALIDÉE - Affichage carte niveau 5');
+    hasShownLevel5Garden = true;
+    setTimeout(() => {
+      console.log('🎬 APPEL showUnlockFlashcard pour niveau 5');
+      showUnlockFlashcard(
+        '🌸 Mon Jardin 🌸',
+        '🪴',
+        'Ton jardin zen est maintenant accessible !'
+      );
+    }, 3500); // ✅ Attendre après l'animation de level up
+  }
+}
         } else {
           console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
         }
@@ -7058,6 +7046,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
