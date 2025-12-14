@@ -865,6 +865,59 @@ input:focus + .slider-round {
   border-color: var(--green-primary) !important;
   box-shadow: 0 6px 12px var(--shadow-black-dark), inset 0 0 20px rgba(168, 213, 186, 0.2) !important;
 }  
+/* Animation kawaii pour les déblocages */
+@keyframes kawaii-bounce {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-5deg); }
+  50% { transform: scale(1.2) rotate(5deg); }
+  75% { transform: scale(1.1) rotate(-3deg); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+.unlock-flashcard {
+  background: linear-gradient(135deg, #d4edda 0%, #f8f1e9 100%);
+  padding: 3em;
+  border-radius: 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.unlock-emoji {
+  font-size: 5em;
+  animation: kawaii-bounce 1s ease-in-out infinite;
+  display: inline-block;
+  margin-bottom: 0.3em;
+}
+
+.unlock-sparkles {
+  position: absolute;
+  font-size: 2em;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.unlock-sparkles:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+.unlock-sparkles:nth-child(2) { top: 10%; right: 10%; animation-delay: 0.3s; }
+.unlock-sparkles:nth-child(3) { bottom: 15%; left: 15%; animation-delay: 0.6s; }
+.unlock-sparkles:nth-child(4) { bottom: 15%; right: 15%; animation-delay: 0.9s; }
+
+.unlock-title {
+  font-size: 2em;
+  font-weight: bold;
+  color: var(--brown-primary);
+  margin: 0.5em 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.unlock-message {
+  font-size: 1.3em;
+  color: var(--gray-dark);
+  margin-top: 1em;
+}    
   </style>
 </head>
 <body>
@@ -3568,6 +3621,8 @@ if (userInteractions.clicks < 3 || userInteractions.keystrokes < 0) {
   
   delete window.tempPin;
 }
+let hasShownLevel4Menu = false;
+let hasShownLevel5Garden = false; // ✅ Nouveau    
 // ========================================
 // MON PARCOURS - FUNCTIONS
 // ========================================
@@ -3843,7 +3898,45 @@ function updateFilterCounts(data) {
   document.getElementById('count-review').textContent = `(${counts.review})`;
   document.getElementById('count-progress').textContent = `(${counts.progress})`;
 }
-
+// ✅ Fonction utilisant le PORTAL (comme les autres flashcards)
+function showUnlockFlashcard(featureName, emoji, message) {
+  const portal = document.getElementById('modal-portal');
+  
+  portal.innerHTML = `
+    <div class="revision-flashcard unlock-flashcard" style="background: linear-gradient(135deg, #d4edda 0%, #f8f1e9 100%); animation: popIn 0.6s ease-out forwards;">
+      <div class="unlock-sparkles" style="position: absolute; top: 10%; left: 10%; font-size: 2em; animation: sparkle 2s ease-in-out infinite;">✨</div>
+      <div class="unlock-sparkles" style="position: absolute; top: 10%; right: 10%; font-size: 2em; animation: sparkle 2s ease-in-out infinite; animation-delay: 0.3s;">✨</div>
+      <div class="unlock-sparkles" style="position: absolute; bottom: 15%; left: 15%; font-size: 2em; animation: sparkle 2s ease-in-out infinite; animation-delay: 0.6s;">✨</div>
+      <div class="unlock-sparkles" style="position: absolute; bottom: 15%; right: 15%; font-size: 2em; animation: sparkle 2s ease-in-out infinite; animation-delay: 0.9s;">✨</div>
+      
+      <div style="font-size: 5em; animation: kawaii-bounce 1s ease-in-out infinite; display: inline-block; margin-bottom: 0.3em;">${emoji}</div>
+      <div style="font-size: 2em; font-weight: bold; color: #8B6F47; margin: 0.5em 0; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">${featureName}</div>
+      <div style="font-size: 1.3em; color: #636E72; margin-top: 1em;">${message}</div>
+    </div>
+  `;
+  
+  portal.classList.add('active');
+  
+  // Son de célébration
+  if (soundEnabled) {
+    playLevelUp();
+  }
+  
+  // Fermer après 3 secondes
+  setTimeout(() => {
+    const flashcard = portal.querySelector('.revision-flashcard');
+    if (flashcard) {
+      flashcard.style.transition = 'all 0.4s ease-in';
+      flashcard.style.opacity = '0';
+      flashcard.style.transform = 'scale(0.8)';
+    }
+    
+    setTimeout(() => {
+      portal.classList.remove('active');
+      portal.innerHTML = '';
+    }, 400);
+  }, 3000);
+}
 /**
  * Filtre les données du parcours
  */
@@ -4098,7 +4191,7 @@ let previousValidationStates = new Map();
 let activeSparks = []; // Variable globale pour les particules
 let globalParticleCount = 0; // Compteur global
 let previousCharacter = null;
-let hasShownLevel4Menu = false; // Variable pour suivre si le menu a été affiché au niveau 4  
+
 let validationCache = {}; // Ajouter cette ligne près des autres variables globales
 let statsCache = {
   items: {}, // { [hiragana/katakana]: { tentatives, reussites, pourcentage } }
@@ -4225,12 +4318,27 @@ function updateUnlockProgress() {
 
   console.log(`📊 Progress: ${deficitRestant}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%) | Points: ${pointsGagnesEnRevision}`);
 
-  if (pointsGagnesEnRevision >= deficitInitialRevision) {
+if (pointsGagnesEnRevision >= deficitInitialRevision) {
     container.style.display = 'none';
+    
+    // ✅ Vérifier si c'était vraiment bloqué avant d'afficher la carte
+    const wasBlocked = hasUnlockedInRevision === false;
+    
     hasUnlockedInRevision = true;
     localStorage.setItem('apprentissageBloque', 'false');
     updateApprendreButtonState();
     console.log('🎉 Déblocage atteint');
+    
+    // ✅ Afficher la carte seulement si on vient de débloquer
+    if (wasBlocked) {
+      setTimeout(() => {
+        showUnlockFlashcard(
+          '🎌 Mode Apprendre Débloqué 🎌',
+          '🌱',
+          'Tu peux à nouveau apprendre de nouveaux kanas !'
+        );
+      }, 500);
+    }
   }
 
   if (pourcentage < 10 && pourcentage > 0) {
@@ -5627,27 +5735,43 @@ updateLevelProgress(HiraganaList, niveauActif);
 updateRevisionButtonState();  
 updateApprendreButtonState(); // Nouvelle ligne  
 // Ajouter ici
-if (niveauActif === 4 && !hasShownLevel4Menu) {
-    const menu = document.getElementById('menu');
-    const menuMessage = document.getElementById('menu-message');
-    menu.classList.add('active');
-    menuMessage.innerText = '🎮 Mode révisions débloqué 🎮';
+  // Déblocage mode révision (niveau 4)
+  if (niveauActif === 4 && !hasShownLevel4Menu) {
     hasShownLevel4Menu = true;
-}
-if (nouveauGroupe > ancienGroupe && nouveauGroupe >= 3 && isApprentissageBloque() && !hasShownBlockedMenu) {
-  // Passer automatiquement en mode révision AVANT d'afficher le menu
-  setTimeout(() => {
-    forceRevisionMode();
-    // Puis afficher le menu après un court délai
     setTimeout(() => {
-      const menu = document.getElementById('menu');
-      const menuMessage = document.getElementById('menu-message');
-      menu.classList.add('active');
-      menuMessage.innerText = 'Mode Apprendre bloqué';
-      hasShownBlockedMenu = true;
-    }, 500);
-  }, 3000);
-} 
+      showUnlockFlashcard(
+        '🎮 Mode Révisions 🎮',
+        '📚',
+        'Tu peux maintenant réviser tes kanas !'
+      );
+    }, 2000);
+  }
+  
+  // Déblocage Mon Jardin (niveau 5)
+  if (niveauActif === 5 && !hasShownLevel5Garden) {
+    hasShownLevel5Garden = true;
+    setTimeout(() => {
+      showUnlockFlashcard(
+        '🌸 Mon Jardin 🌸',
+        '🪴',
+        'Ton jardin zen est maintenant accessible !'
+      );
+    }, 2000);
+  }
+  
+  // Reste du code existant (blocage apprentissage etc.)
+  if (nouveauGroupe > ancienGroupe && nouveauGroupe >= 3 && isApprentissageBloque() && !hasShownBlockedMenu) {
+    setTimeout(() => {
+      forceRevisionMode();
+      setTimeout(() => {
+        const menu = document.getElementById('menu');
+        const menuMessage = document.getElementById('menu-message');
+        menu.classList.add('active');
+        menuMessage.innerText = 'Mode Apprendre bloqué';
+        hasShownBlockedMenu = true;
+      }, 500);
+    }, 3000);
+  } 
 nextQuestion();
 return;
 }
@@ -6902,6 +7026,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
