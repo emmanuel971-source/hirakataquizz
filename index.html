@@ -128,16 +128,7 @@ body.shake {animation: screenShake 0.4s ease-in-out;}
 
     
 .section {display: none;}
-.section.active {
-  min-height: 100vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 2rem;
-}
-@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {.section.active {
- min-height: 100svh;
-}
-}                                                                   
+.section.active {display: flex; flex-direction: column; height: 100vh;}
 #revision-question {font-size: 1.5em; margin-top: 50px; margin-bottom: 30px; color: var(--brown-primary); text-shadow: 1px 1px 2px var(--shadow-brown-medium);}
 .char-correct {background-color: var(--green-pale); border-radius: 5px; padding: 2px 4px;}
 .char-incorrect {background-color: var(--pink-light); border-radius: 5px; padding: 2px 4px;}
@@ -398,9 +389,9 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   max-width: 600px;
   margin: 0 auto;
   padding: 1em;
-  max-height: none !important;
-  min-height: auto !important;
-  overflow: visible !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 2em);
   box-sizing: border-box;
 }
 
@@ -4617,6 +4608,8 @@ function updateStatsButtonState() {
     statsButton.classList.remove('disabled');
     statsButton.onclick = () => showSection('stats');
     statsButton.title = '';
+    statsButton.style.opacity = '1';        // ✅ AJOUTE cette ligne
+    statsButton.style.cursor = 'pointer';   // ✅ AJOUTE cette ligne
   } else {
     statsButton.classList.add('disabled');
     statsButton.onclick = (e) => {
@@ -4630,7 +4623,6 @@ function updateStatsButtonState() {
     statsButton.style.cursor = 'not-allowed';
   }
 }
-
 function triggerSakuraFall(container) {
 for (let i = 0; i < 30; i++) {
 const sakura = document.createElement("div");
@@ -7065,7 +7057,6 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
-
 
 
 
