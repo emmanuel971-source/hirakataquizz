@@ -643,10 +643,14 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 
 /* Responsive */
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
-  .contact-form-container, .contact-inbox-container {
+  .contact-form-container,
+  .contact-inbox-container {
     padding: 0.5em;
-    max-height: calc(100vh - 1em);
+    max-height: none;
+    min-height: 100dvh;
+    overflow-y: auto;
   }
+}
   
   .contact-textarea {
     font-size: 1em;
@@ -1772,7 +1776,7 @@ contact_bug_steps_placeholder: "1. Je clique sur...\n2. Ensuite...",
 contact_bug_screenshot_title: "📷 Screenshot nécessaire ?",
 contact_bug_screenshot_text: "Si nous avons besoin d'une capture d'écran, nous te contacterons par email.",
 contact_report_bug: "🪳",
-contact_my_messages: "📬 Mes messages",
+contact_my_messages: "📬",
 contact_inbox_title: "📬 Mes messages",
 contact_loading: "Chargement...",
 contact_inbox_empty: "📭 Aucun message pour le moment",
@@ -2021,7 +2025,7 @@ contact_bug_steps_placeholder: "1. I click on...\n2. Then...",
 contact_bug_screenshot_title: "📷 Screenshot required?",
 contact_bug_screenshot_text: "If we need a screenshot, we will contact you by email.",
 contact_report_bug: "🪳",
-contact_my_messages: "📬 My messages",
+contact_my_messages: "📬",
 contact_inbox_title: "📬 My messages",
 contact_loading: "Loading...",
 contact_inbox_empty: "📭 No messages yet",
@@ -2268,7 +2272,7 @@ contact_bug_steps_placeholder: "1. Hago clic en...\n2. Luego...",
 contact_bug_screenshot_title: "📷 ¿Se necesita captura de pantalla?",
 contact_bug_screenshot_text: "Si necesitamos una captura, nos pondremos en contacto contigo por correo.",
 contact_report_bug: "🪳",
-contact_my_messages: "📬 Mis mensajes",
+contact_my_messages: "📬",
 contact_inbox_title: "📬 Mis mensajes",
 contact_loading: "Cargando...",
 contact_inbox_empty: "📭 No hay mensajes por ahora",
@@ -7052,6 +7056,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
