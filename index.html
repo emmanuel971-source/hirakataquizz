@@ -246,7 +246,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 .garden-plant { font-size: 3.4em; margin-bottom: 0.1em; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); transition: all 0.4s ease; }
 .garden-hiragana { font-size: 1.4em; font-weight: bold; color: var(--brown-primary); }
 .garden-decor { position: absolute; font-size: 3em; opacity: 0.4; pointer-events: none; z-index: 1; }
-.garden-bug { display: flex; align-items: center; justify-content: center; opacity: 0.85; }
+.garden- { display: flex; align-items: center; justify-content: center; opacity: 0.85; }
 .garden-modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; pointer-events: none; }
 .garden-modal.visible { opacity: 1; visibility: visible; pointer-events: auto; }
 .garden-card { background: var(--white); padding: 2em 2.5em; border-radius: 20px; text-align: center; max-width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
@@ -255,7 +255,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 .garden-card .romaji { font-size: 1.8em; margin: 0.8em 0; color: #555; }
 .garden-card .info { margin: 1em 0; font-size: 1.2em; }
 .garden-card .close-btn { margin-top: 1.5em; padding: 0.8em 2em; font-size: 1.2em; }
-@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.0em; } .garden-bug { font-size: 0.8em; } .garden-hiragana { font-size: 1.0em; } .garden-level { gap: 0.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 95%; } .garden-item { aspect-ratio: 1; } }
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.0em; } .garden- { font-size: 0.8em; } .garden-hiragana { font-size: 1.0em; } .garden-level { gap: 0.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 95%; } .garden-item { aspect-ratio: 1; } }
 @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.7em; } .garden-hiragana { white-space: nowrap; font-size: 1.2em; } .garden-level { gap: 3.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 90%; } .garden-legend { gap: 1em; font-size: 0.9em; } }
 /* Animation pour le changement de statut de la plante (bloom/rotation subtile) */
 .plant-status-change {
@@ -1128,8 +1128,8 @@ input:focus + .slider-round {
   <button class="arcade-button" onclick="showContactForm('message')" data-i18n="contact_send_message">
     💬 Envoyer un message
   </button>
-  <button class="arcade-button" onclick="showContactForm('bug')" data-i18n="contact_report_bug">
-    🐛 Reporter un bug
+  <button class="arcade-button" onclick="showContactForm('')" data-i18n="contact_report_">
+    🐛 Reporter un 
   </button>
   <button class="arcade-button" id="contact-inbox-btn" onclick="showContactInbox()" data-i18n="contact_my_messages">
     📬 Mes messages
@@ -1461,9 +1461,9 @@ input:focus + .slider-round {
       </button>
     </div>
     
-<!-- Bug report -->
-<div id="bug-form" class="contact-form-content" style="display: none;">
-  <p class="contact-subtitle" data-i18n="contact_bug_subtitle">
+<!--  report -->
+<div id="-form" class="contact-form-content" style="display: none;">
+  <p class="contact-subtitle" data-i18n="contact__subtitle">
     Aide-nous à améliorer l'application 🐛
   </p>
   
@@ -1471,7 +1471,7 @@ input:focus + .slider-round {
     <label data-i18n="contact_email_label">Email :</label>
     <input 
       type="email" 
-      id="bug-email" 
+      id="-email" 
       class="contact-input" 
       placeholder="ton@email.com"
       data-i18n-placeholder="contact_email_placeholder"
@@ -1479,41 +1479,41 @@ input:focus + .slider-round {
   </div>
   
   <div class="contact-field">
-    <label data-i18n="contact_bug_description_label">Description du bug :</label>
+    <label data-i18n="contact__description_label">Description du  :</label>
     <textarea 
-      id="bug-description" 
+      id="-description" 
       class="contact-textarea" 
       maxlength="500" 
       placeholder="Décris le problème en quelques lignes..."
-      data-i18n-placeholder="contact_bug_description_placeholder"
+      data-i18n-placeholder="contact__description_placeholder"
     ></textarea>
     <div class="char-counter">
-      <span id="bug-char-count">0</span>/500
+      <span id="-char-count">0</span>/500
     </div>
   </div>
   
   <div class="contact-field">
-    <label data-i18n="contact_bug_steps_label">Étapes pour reproduire (optionnel) :</label>
+    <label data-i18n="contact__steps_label">Étapes pour reproduire (optionnel) :</label>
     <textarea 
-      id="bug-steps" 
+      id="-steps" 
       class="contact-textarea small" 
       maxlength="300" 
       placeholder="1. Je clique sur...&#10;2. Ensuite..."
-      data-i18n-placeholder="contact_bug_steps_placeholder"
+      data-i18n-placeholder="contact__steps_placeholder"
     ></textarea>
   </div>
   
 <div class="info-box" style="background: var(--blue-light); border: 2px solid var(--blue-dark); padding: 1em; border-radius: 8px; margin: 1em 0;">
   <p style="margin: 0; color: var(--blue-dark); font-size: 0.95em;">
-    <span data-i18n="contact_bug_screenshot_title">📷 Screenshot nécessaire ?</span><br>
-    <span data-i18n="contact_bug_screenshot_text">Si nous avons besoin d'une capture d'écran, nous te contacterons par email.</span>
+    <span data-i18n="contact__screenshot_title">📷 Screenshot nécessaire ?</span><br>
+    <span data-i18n="contact__screenshot_text">Si nous avons besoin d'une capture d'écran, nous te contacterons par email.</span>
   </p>
 </div>
   
-  <div id="bug-error" class="error-message" style="display: none;"></div>
-  <div id="bug-success" class="success-message" style="display: none;"></div>
+  <div id="-error" class="error-message" style="display: none;"></div>
+  <div id="-success" class="success-message" style="display: none;"></div>
   
-  <button class="arcade-button primary-button" onclick="submitBugReport()" data-i18n="contact_send">
+  <button class="arcade-button primary-button" onclick="submitReport()" data-i18n="contact_send">
     ✉️ Envoyer
   </button>
 </div>
@@ -1766,7 +1766,7 @@ contact_cat_feedback: "⭐ Retour d'expérience",
 contact_cat_other: "📝 Autre",
 contact_message_placeholder: "Ton message (max 500 caractères)...",
 contact_send: "✉️ Envoyer",
-contact_bug_subtitle: "Reporter un bug...",
+contact_bug_subtitle: "Signaler un bug",
 contact_email_label: "Email :",
 contact_email_placeholder: "ton@email.com",
 contact_bug_description_label: "Description du bug :",
@@ -1775,7 +1775,7 @@ contact_bug_steps_label: "Étapes pour reproduire (optionnel) :",
 contact_bug_steps_placeholder: "1. Je clique sur...\n2. Ensuite...",
 contact_bug_screenshot_title: "📷 Screenshot nécessaire ?",
 contact_bug_screenshot_text: "Si nous avons besoin d'une capture d'écran, nous te contacterons par email.",
-contact_report_bug: "🪳",
+contact_report_bug: "🐞",
 contact_my_messages: "📬",
 contact_inbox_title: "📬 Mes messages",
 contact_loading: "Chargement...",
@@ -1784,7 +1784,7 @@ contact_message_too_short: "Message trop court (min 10 caractères)",
 contact_invalid_email: "⚠️ Email invalide",
 contact_description_too_short: "⚠️ Description trop courte (min 20 caractères)",
 contact_success_message: "✅ Message envoyé ! Nous te répondrons bientôt 🌸",
-contact_success_bug: "✅ Bug reporté ! Merci pour ton aide 🪲✨",
+contact_success_bug: "✅ Bug reporté ! Merci pour ton aide",
 contact_error_short: "Message trop court (min 10 caractères)",
 contact_error_email: "⚠️ Email invalide",
 contact_error_bug_short: "⚠️ Description trop courte (min 20 caractères)",
@@ -2024,7 +2024,7 @@ contact_cat_feedback: "⭐ Feedback",
 contact_cat_other: "📝 Other",
 contact_message_placeholder: "Your message (max 500 characters)...",
 contact_send: "✉️ Send",
-contact_bug_subtitle: "Report a bug...",
+contact_bug_subtitle: "Report a bug",
 contact_email_label: "Email:",
 contact_email_placeholder: "your@email.com",
 contact_bug_description_label: "Bug description:",
@@ -2033,7 +2033,7 @@ contact_bug_steps_label: "Steps to reproduce (optional):",
 contact_bug_steps_placeholder: "1. I click on...\n2. Then...",
 contact_bug_screenshot_title: "📷 Screenshot required?",
 contact_bug_screenshot_text: "If we need a screenshot, we will contact you by email.",
-contact_report_bug: "🪳",
+contact_report_bug: "🐞",
 contact_my_messages: "📬",
 contact_inbox_title: "📬 My messages",
 contact_loading: "Loading...",
@@ -2289,7 +2289,7 @@ contact_bug_steps_label: "Pasos para reproducir (opcional):",
 contact_bug_steps_placeholder: "1. Hago clic en...\n2. Luego...",
 contact_bug_screenshot_title: "📷 ¿Se necesita captura de pantalla?",
 contact_bug_screenshot_text: "Si necesitamos una captura, nos pondremos en contacto contigo por correo.",
-contact_report_bug: "🪳",
+contact_report_bug: "🐞",
 contact_my_messages: "📬",
 contact_inbox_title: "📬 Mis mensajes",
 contact_loading: "Cargando...",
@@ -7085,6 +7085,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
