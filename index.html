@@ -1766,7 +1766,7 @@ contact_cat_feedback: "⭐ Retour d'expérience",
 contact_cat_other: "📝 Autre",
 contact_message_placeholder: "Ton message (max 500 caractères)...",
 contact_send: "✉️ Envoyer",
-contact_bug_subtitle: "Aide-nous à améliorer l'application",
+contact_bug_subtitle: "Reporter un bug...",
 contact_email_label: "Email :",
 contact_email_placeholder: "ton@email.com",
 contact_bug_description_label: "Description du bug :",
@@ -2024,7 +2024,7 @@ contact_cat_feedback: "⭐ Feedback",
 contact_cat_other: "📝 Other",
 contact_message_placeholder: "Your message (max 500 characters)...",
 contact_send: "✉️ Send",
-contact_bug_subtitle: "Help us improve the app",
+contact_bug_subtitle: "Report a bug...",
 contact_email_label: "Email:",
 contact_email_placeholder: "your@email.com",
 contact_bug_description_label: "Bug description:",
@@ -2042,7 +2042,7 @@ contact_message_too_short: "Message too short (min 10 characters)",
 contact_invalid_email: "⚠️ Invalid email",
 contact_description_too_short: "⚠️ Description too short (min 20 characters)",
 contact_success_message: "✅ Message sent! We'll reply soon 🌸",
-contact_success_bug: "✅ Bug reported! Thanks for your help 🪲✨",
+contact_success_bug: "✅ Bug reported! Thanks for your help",
 contact_error_short: "Message too short (min 10 characters)",
 contact_error_email: "⚠️ Invalid email",
 contact_error_bug_short: "⚠️ Description too short (min 20 characters)",
@@ -2298,7 +2298,7 @@ contact_message_too_short: "Mensaje demasiado corto (mín 10 caracteres)",
 contact_invalid_email: "⚠️ Email inválido",
 contact_description_too_short: "⚠️ Descripción demasiado corta (mín 20 caracteres)",
 contact_success_message: "✅ ¡Mensaje enviado! Te responderemos pronto 🌸",
-contact_success_bug: "✅ ¡Bug reportado! Gracias por tu ayuda 🪲✨",
+contact_success_bug: "✅ ¡Bug reportado! Gracias por tu ayuda",
 contact_error_short: "Mensaje demasiado corto (mín 10 caracteres)",
 contact_error_email: "⚠️ Email inválido",
 contact_error_bug_short: "⚠️ Descripción demasiado corta (mín 20 caracteres)",
@@ -5954,7 +5954,7 @@ if (targetLevel === 4 && !hasShownLevel4Menu) {
       '📓',
       t('unlock_revision_message')
     );
-  }, 3000);
+  }, 10);
 }
             
 // ✅ Déblocage niveau 5 (Mon Jardin)
@@ -5967,7 +5967,7 @@ if (targetLevel === 5 && !hasShownLevel5Garden) {
       '🎍',
       t('unlock_garden_message')
     );
-  }, 3000);
+  }, 10);
 }
           }
         }else {
@@ -7085,6 +7085,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
