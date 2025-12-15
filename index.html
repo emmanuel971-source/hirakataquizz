@@ -6804,17 +6804,18 @@ function showContactForm(type) {
   formModal.style.display = 'flex';
   formModal.classList.add('active');
   
-  if (type === 'message') {
-    messageForm.style.display = 'block';
-    bugForm.style.display = 'none';
-    title.textContent = '💬 Envoyer un message';
-    title.setAttribute('data-i18n', 'contact_send_message');
-  } else if (type === 'bug') {
-    messageForm.style.display = 'none';
-    bugForm.style.display = 'block';
-    title.textContent = '🐛 Reporter un bug';
-    title.setAttribute('data-i18n', 'contact_report_bug');
-  }
+if (type === 'message') {
+  messageForm.style.display = 'block';
+  bugForm.style.display = 'none';
+  title.setAttribute('data-i18n', 'contact_send_message');
+} else if (type === 'bug') {
+  messageForm.style.display = 'none';
+  bugForm.style.display = 'block';
+  title.setAttribute('data-i18n', 'contact_report_bug');
+}
+
+// ✅ Mettre à jour tous les textes traduits
+updateAllTexts();
   
   // Réinitialiser les formulaires
   resetContactForms();
@@ -7084,6 +7085,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
