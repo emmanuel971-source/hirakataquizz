@@ -1792,7 +1792,9 @@ contact_error_bug_size: "⚠️ Screenshot trop lourd (max 5MB)",
 contact_error_network: "Erreur réseau. Vérifie ta connexion.",
 contact_response_header: "🌸 Réponse de l'équipe",
 contact_waiting_response: "En attente de réponse...",
-contact_limit_reached: "Limite atteinte : 3 messages maximum par jour 🌸",
+    contact_limit_reached: 'Limite atteinte : 3 messages maximum par jour 🌸',
+    contact_user_not_identified: 'Utilisateur non identifié. Connecte-toi d\'abord.',
+    contact_error_occurred: 'Une erreur est survenue',
 contact_user_not_found: "Utilisateur non identifié. Connecte-toi d'abord.",
 contact_inbox_error: "❌ Erreur de chargement",
 
@@ -2050,7 +2052,9 @@ contact_error_bug_size: "⚠️ Screenshot too large (max 5MB)",
 contact_error_network: "Network error. Check your connection.",
 contact_response_header: "🌸 Team response",
 contact_waiting_response: "Waiting for response...",
-contact_limit_reached: "Limit reached: 3 messages per day max 🌸",
+    contact_limit_reached: 'Limit reached: 3 messages maximum per day 🌸',
+    contact_user_not_identified: 'User not identified. Please log in first.',
+    contact_error_occurred: 'An error occurred',
 contact_user_not_found: "User not identified. Please log in first.",
 contact_inbox_error: "❌ Loading error",
 
@@ -2306,7 +2310,9 @@ contact_error_bug_size: "⚠️ Captura demasiado pesada (máx 5MB)",
 contact_error_network: "Error de red. Verifica tu conexión.",
 contact_response_header: "🌸 Respuesta del equipo",
 contact_waiting_response: "Esperando respuesta...",
-contact_limit_reached: "Límite alcanzado: 3 mensajes máximo por día 🌸",
+    contact_limit_reached: 'Límite alcanzado: 3 mensajes máximo por día 🌸',
+    contact_user_not_identified: 'Usuario no identificado. Inicia sesión primero.',
+    contact_error_occurred: 'Ocurrió un error',
 contact_user_not_found: "Usuario no identificado. Conéctate primero.",
 contact_inbox_error: "❌ Error de carga",
 
@@ -6847,7 +6853,6 @@ function resetContactForms() {
   document.getElementById('bug-error').style.display = 'none';
   document.getElementById('bug-success').style.display = 'none';
 }
-
 async function submitMessage() {
   const messageText = document.getElementById('message-text').value.trim();
   const category = document.getElementById('message-category').value;
@@ -6875,11 +6880,21 @@ async function submitMessage() {
       successDiv.style.display = 'block';
       errorDiv.style.display = 'none';
       
+      // ✅ Réinitialiser le formulaire
+      document.getElementById('message-text').value = '';
+      
       setTimeout(() => {
         closeContactForm();
       }, 2000);
     } else {
-      errorDiv.textContent = result.error || t('contact_error_network');
+      // ✅ Gestion des codes d'erreur
+      if (result.errorCode === 'LIMIT_REACHED') {
+        errorDiv.textContent = t('contact_limit_reached');
+      } else if (result.errorCode === 'USER_NOT_IDENTIFIED') {
+        errorDiv.textContent = t('contact_user_not_identified');
+      } else {
+        errorDiv.textContent = result.error || t('contact_error_network');
+      }
       errorDiv.style.display = 'block';
       successDiv.style.display = 'none';
     }
@@ -6890,6 +6905,7 @@ async function submitMessage() {
     successDiv.style.display = 'none';
   }
 }
+
 async function submitBugReport() {
   const email = document.getElementById('bug-email').value.trim();
   const description = document.getElementById('bug-description').value.trim();
@@ -6913,19 +6929,22 @@ async function submitBugReport() {
   }
   
   try {
+    // ✅ Collecter les infos techniques
     const technicalInfo = {
       userAgent: navigator.userAgent,
-      screenSize: `${window.innerWidth}x${window.innerHeight}`,
+      screenSize: `${window.screen.width}x${window.screen.height}`,
+      windowSize: `${window.innerWidth}x${window.innerHeight}`,
+      language: navigator.language,
+      platform: navigator.platform,
       currentLevel: niveauActif,
-      timestamp: new Date().toISOString(),
-      language: currentLanguage
+      timestamp: new Date().toISOString()
     };
     
     const result = await callAPI('submitBugReport', {
       token: userToken || 'anonymous',
       email: email,
       description: description,
-      steps: steps || 'Non spécifié',
+      steps: steps,
       technicalInfo: JSON.stringify(technicalInfo)
     });
     
@@ -6934,11 +6953,23 @@ async function submitBugReport() {
       successDiv.style.display = 'block';
       errorDiv.style.display = 'none';
       
+      // ✅ Réinitialiser le formulaire
+      document.getElementById('bug-email').value = '';
+      document.getElementById('bug-description').value = '';
+      document.getElementById('bug-steps').value = '';
+      
       setTimeout(() => {
         closeContactForm();
       }, 2000);
     } else {
-      errorDiv.textContent = result.error || t('contact_error_network');
+      // ✅ Gestion des codes d'erreur
+      if (result.errorCode === 'LIMIT_REACHED') {
+        errorDiv.textContent = t('contact_limit_reached');
+      } else if (result.errorCode === 'USER_NOT_IDENTIFIED') {
+        errorDiv.textContent = t('contact_user_not_identified');
+      } else {
+        errorDiv.textContent = result.error || t('contact_error_network');
+      }
       errorDiv.style.display = 'block';
       successDiv.style.display = 'none';
     }
@@ -7085,6 +7116,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
