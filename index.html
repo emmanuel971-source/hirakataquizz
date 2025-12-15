@@ -1795,6 +1795,15 @@ contact_waiting_response: "En attente de réponse...",
 contact_limit_reached: "Limite atteinte : 3 messages maximum par jour 🌸",
 contact_user_not_found: "Utilisateur non identifié. Connecte-toi d'abord.",
 contact_inbox_error: "❌ Erreur de chargement",
+
+    unlock_revision_title: 'Mode Révisions',
+    unlock_revision_message: 'Tu peux maintenant réviser tes kanas !',
+    unlock_garden_title: 'Mon Jardin',
+    unlock_garden_message: 'Ton jardin zen est maintenant accessible !',
+    unlock_learning_title: 'Mode Apprendre Débloqué',
+    unlock_learning_message: 'Tu peux à nouveau apprendre de nouveaux kanas !',    
+
+    
   },
   
   en: {
@@ -2044,6 +2053,15 @@ contact_waiting_response: "Waiting for response...",
 contact_limit_reached: "Limit reached: 3 messages per day max 🌸",
 contact_user_not_found: "User not identified. Please log in first.",
 contact_inbox_error: "❌ Loading error",
+
+   unlock_revision_title: 'Review Mode',
+    unlock_revision_message: 'You can now review your kanas!',
+    unlock_garden_title: 'My Garden',
+    unlock_garden_message: 'Your zen garden is now accessible!',
+    unlock_learning_title: 'Learning Mode Unlocked',
+    unlock_learning_message: 'You can learn new kanas again!',    
+
+    
   },
   
   es: {
@@ -2290,7 +2308,16 @@ contact_response_header: "🌸 Respuesta del equipo",
 contact_waiting_response: "Esperando respuesta...",
 contact_limit_reached: "Límite alcanzado: 3 mensajes máximo por día 🌸",
 contact_user_not_found: "Usuario no identificado. Conéctate primero.",
-contact_inbox_error: "❌ Error de carga"    
+contact_inbox_error: "❌ Error de carga",
+
+    unlock_revision_title: 'Modo Revisión',
+    unlock_revision_message: '¡Ahora puedes revisar tus kanas!',
+    unlock_garden_title: 'Mi Jardín',
+    unlock_garden_message: '¡Tu jardín zen ya está accesible!',
+    unlock_learning_title: 'Modo Aprendizaje Desbloqueado',
+    unlock_learning_message: '¡Puedes aprender nuevos kanas de nuevo!'
+
+    
   }
 };
 
@@ -4336,15 +4363,15 @@ if (pointsGagnesEnRevision >= deficitInitialRevision) {
     console.log('🎉 Déblocage atteint');
     
     // ✅ Afficher la carte seulement si on vient de débloquer
-    if (wasBlocked) {
-      setTimeout(() => {
-        showUnlockFlashcard(
-          'Mode Apprendre Débloqué',
-          '🌱',
-          'Tu peux à nouveau apprendre de nouveaux kanas !'
-        );
-      }, 500);
-    }
+if (wasBlocked) {
+  setTimeout(() => {
+    showUnlockFlashcard(
+      t('unlock_learning_title'),
+      '🌱',
+      t('unlock_learning_message')
+    );
+  }, 500);
+}
   }
 
   if (pourcentage < 10 && pourcentage > 0) {
@@ -5915,33 +5942,33 @@ async function queueUpdateStats(params) {
             // Animation de level up (si pas déjà faite)
             if (targetLevel > niveauActif) {
               triggerLevelUpAnimation(document.body);
-            }
+            }  
             
-            // ✅ Déblocage niveau 4 (Mode Révision)
-            if (targetLevel === 4 && !hasShownLevel4Menu) {
-              console.log('✅ DÉBLOCAGE NIVEAU 4');
-              hasShownLevel4Menu = true;
-              setTimeout(() => {
-                showUnlockFlashcard(
-                  'Mode Révisions',
-                  '📓 ',
-                  'Tu peux maintenant réviser tes kanas !'
-                );
-              }, 3500);
-            }
+             // ✅ Déblocage niveau 4 (Mode Révision)
+if (targetLevel === 4 && !hasShownLevel4Menu) {
+  console.log('✅ DÉBLOCAGE NIVEAU 4');
+  hasShownLevel4Menu = true;
+  setTimeout(() => {
+    showUnlockFlashcard(
+      t('unlock_revision_title'),
+      '📓',
+      t('unlock_revision_message')
+    );
+  }, 3000);
+}
             
-            // ✅ Déblocage niveau 5 (Mon Jardin)
-            if (targetLevel === 5 && !hasShownLevel5Garden) {
-              console.log('✅ DÉBLOCAGE NIVEAU 5');
-              hasShownLevel5Garden = true;
-              setTimeout(() => {
-                showUnlockFlashcard(
-                  'Mon Jardin',
-                  '🎍',
-                  'Ton jardin zen est maintenant accessible !'
-                );
-              }, 3500);
-            }
+// ✅ Déblocage niveau 5 (Mon Jardin)
+if (targetLevel === 5 && !hasShownLevel5Garden) {
+  console.log('✅ DÉBLOCAGE NIVEAU 5');
+  hasShownLevel5Garden = true;
+  setTimeout(() => {
+    showUnlockFlashcard(
+      t('unlock_garden_title'),
+      '🎍',
+      t('unlock_garden_message')
+    );
+  }, 3000);
+}
           }
         }else {
           console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
@@ -7057,6 +7084,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
