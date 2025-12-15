@@ -1,10 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <link rel="icon" href="data:,">
   <base target="_top">
   <style>
+/* Dans ton CSS */
+:root {
+  --app-height: 100vh;
+}
+
+body {
+  height: var(--app-height);
+  min-height: var(--app-height);
+  height: 100dvh; /* Fallback moderne */
+  min-height: 100dvh;
+}
+
+.section.active {
+  height: var(--app-height);
+  min-height: var(--app-height);
+}    
 :root {
 --brown-primary: #8B6F47; --beige-light: #F5E8C7; --beige-background: #F8F1E9; --green-primary: #A8D5BA; --green-light: #DDE6D5; --green-pale: #d4edda; --green-dark: #355E3B; --green-medium: #8BC34A; --green-bright: #4CAF50; --green-gradient-start: #66BB6A; --green-gradient-end: #81C784; --green-subtle-1: #f9fdf9; --green-subtle-2: #f5faf5; --green-subtle-3: #f0f8f0; --green-subtle-4: #ebf5eb; --pink-primary: #FDC1C5; --pink-pale: #f8d7da; --pink-light: #f8e7e6; --red-progress: #ff6b6b; --red-progress-light: #ff8e8e; --pink-subtle-1: #fdfafa; --pink-subtle-2: #fcf5f5; --pink-subtle-3: #faf0f1; --pink-subtle-4: #f8ebec; --white: #FFFFFF; --gray-very-light: #E8ECEF; --gray-light: #e0e0e0; --gray-medium: #ccc; --gray-dark: #636E72; --gray-text: #3c3f41; --blue-light: #d1e7ff; --blue-dark: #1a3c66; --blue-gradient-start: #E0F7FA; --yellow-pale: #fff3cd; --yellow-dark: #664d1a; --orange-pale: #ffe4b5; --orange-dark: #663b1a; --shadow-brown-light: rgba(139, 111, 71, 0.3); --shadow-brown-medium: rgba(139, 111, 71, 0.4); --shadow-brown-strong: rgba(139, 111, 71, 0.5); --shadow-black-light: rgba(0, 0, 0, 0.1); --shadow-black-medium: rgba(0, 0, 0, 0.15); --shadow-black-strong: rgba(0, 0, 0, 0.2); --shadow-black-dark: rgba(0, 0, 0, 0.25); --overlay-white-10: rgba(255, 255, 255, 0.1); --overlay-white-20: rgba(255, 255, 255, 0.2); --overlay-white-30: rgba(255, 255, 255, 0.3); --overlay-white-50: rgba(255, 255, 255, 0.5); --overlay-bg: rgba(248, 241, 233, 0.95); --overlay-green-08: rgba(168, 213, 186, 0.08); --overlay-green-05: rgba(168, 213, 186, 0.05); --overlay-green-03: rgba(139, 111, 71, 0.03); --overlay-green-10: rgba(168, 213, 186, 0.1); --overlay-green-20: rgba(168, 213, 186, 0.2); --overlay-green-30: rgba(168, 213, 186, 0.3); --overlay-green-40: rgba(168, 213, 186, 0.4); --overlay-green-50: rgba(168, 213, 186, 0.5); --overlay-pink-10: rgba(253, 193, 197, 0.1); --overlay-pink-50: rgba(253, 193, 197, 0.5); --overlay-red-10: rgba(220, 53, 69, 0.1); --overlay-green-success: rgba(40, 167, 69, 0.1);
 }
@@ -15,7 +31,7 @@ body::before {content: ''; position: absolute; top: 0; left: 0; background: url(
 h1 {margin: 0.5em 0; font-size: 1.8em; text-align: center; color: var(--brown-primary); text-shadow: 0 1px 2px var(--shadow-brown-light);}
 h2 {margin: 0.1em 0; font-size: 2.5em; text-align: center; color: var(--brown-primary); text-shadow: 0 1px 2px var(--shadow-brown-light); margin-bottom: 5px;}
 .menu {gap: 15px;}
-#welcome {display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center;}
+#welcome {display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100dvh; min-height: 100dvh; text-align: center;}
 .panda-logo {font-size: 12em; cursor: pointer; transition: transform 0.3s ease; animation: pandaPulse 2s ease-in-out infinite;}
 .panda-logo:hover {transform: scale(1.1);}
 @keyframes pandaPulse {0%, 100% { transform: scale(1); } 50% { transform: scale(1.20); }}
@@ -2326,8 +2342,46 @@ contact_inbox_error: "❌ Error de carga",
     
   }
 };
+// Dans ton JavaScript (au début)
+function setAppHeight() {
+  const doc = document.documentElement;
+  doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
 
+// Appeler immédiatement
+setAppHeight();
 
+// Recalculer lors du resize et de l'orientation
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', () => {
+  setTimeout(setAppHeight, 200);
+});
+
+// Déclencher un scroll minimal pour cacher la barre
+setTimeout(() => {
+  window.scrollTo(0, 1);
+}, 100);
+// Fonction pour masquer la barre d'adresse
+function hideAddressBar() {
+  // Pour iOS Safari et Chrome mobile
+  if (!window.location.hash) {
+    if (document.height < window.outerHeight) {
+      document.body.style.height = (window.outerHeight + 50) + 'px';
+    }
+    
+    setTimeout(() => {
+      window.scrollTo(0, 1);
+    }, 50);
+  }
+}
+
+// Appeler au chargement
+window.addEventListener('load', hideAddressBar);
+
+// Appeler aussi lors du changement d'orientation
+window.addEventListener('orientationchange', () => {
+  setTimeout(hideAddressBar, 200);
+});
 // Langue actuelle (détection auto ou sauvegardée)
 let currentLanguage = localStorage.getItem('appLanguage') || detectBrowserLanguage();
 
@@ -3259,8 +3313,10 @@ if (sectionId === 'stats') {
       }
     }, 100);
   }
-
-
+  // ✅ AJOUTE ça à la fin
+  if (window.innerWidth <= 768) { // Seulement sur mobile
+    setTimeout(hideAddressBar, 100);
+  }  
 }
 // ========================================
 // ONBOARDING - NAVIGATION ENTRE ÉTAPES
@@ -7116,6 +7172,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
