@@ -5274,7 +5274,13 @@ canvas.style.pointerEvents = 'none';
 canvas.style.zIndex = '20';
 canvas.width = 400;
 canvas.height = 400;
-container.appendChild(canvas);
+document.body.appendChild(canvas);  // ✅ Ajouter au body au lieu du container
+
+// Et ajuste la position
+const rect = container.getBoundingClientRect();
+canvas.style.position = 'fixed';  // ✅ fixed au lieu de absolute
+canvas.style.left = rect.left + rect.width / 2 + 'px';
+canvas.style.top = rect.top + rect.height / 2 + 'px';
 const ctx = canvas.getContext('2d');
 
 const colorPalettes = [
@@ -5306,7 +5312,10 @@ halo.style.transform = 'translate(-50%, -50%) scale(1)';
 halo.style.opacity = '1';
 halo.style.zIndex = '0';
 halo.style.pointerEvents = 'none';
-container.appendChild(halo);
+document.body.appendChild(halo);
+halo.style.position = 'fixed';
+halo.style.left = `${rect.left + rect.width / 2}px`;
+halo.style.top = `${rect.top + rect.height / 2}px`;
 halo.animate([
 { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
 { transform: 'translate(-50%, -50%) scale(6)', opacity: 0 }
@@ -6248,24 +6257,7 @@ console.log('🎆 DEBUG ANIMATIONS:', {
 
 updateStarsForHiragana(currentItemId, newValidation);
 
-// ✅ Déclencher les animations de validation
-if (isFinalValidation) {
-  const cards = document.querySelectorAll('.hiragana-card');
-  cards.forEach(card => {
-    const hiraganaChar = card.querySelector('.hiragana-char')?.textContent;
-    const hiragana = HiraganaList.find(h => 
-      h.Hiragana === hiraganaChar && h.ID == currentItemId
-    );
-    
-    if (hiragana) {
-      if (isMobile) {
-        triggerLightFirework(card);
-      } else {
-        triggerAdvancedFirework(card);
-      }
-    }
-  });
-}
+
 
 const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
     if (hiraganaIndex !== -1) {
@@ -7336,6 +7328,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
