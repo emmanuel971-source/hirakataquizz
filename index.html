@@ -6224,8 +6224,28 @@ async function checkAnswer() {
     const currentItemId = parseInt(current.ID);
     console.log(`📝 Réponse pour item ${currentItemId} (score: ${score})`);
 
-    updateStarsForHiragana(currentItemId, newValidation);
-    const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
+updateStarsForHiragana(currentItemId, newValidation);
+
+// ✅ Déclencher les animations de validation
+if (isFinalValidation) {
+  const cards = document.querySelectorAll('.hiragana-card');
+  cards.forEach(card => {
+    const hiraganaChar = card.querySelector('.hiragana-char')?.textContent;
+    const hiragana = HiraganaList.find(h => 
+      h.Hiragana === hiraganaChar && h.ID == currentItemId
+    );
+    
+    if (hiragana) {
+      if (isMobile) {
+        triggerLightFirework(card);
+      } else {
+        triggerAdvancedFirework(card);
+      }
+    }
+  });
+}
+
+const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
     if (hiraganaIndex !== -1) {
       HiraganaList[hiraganaIndex].Validation = newValidation.toString();
       HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
@@ -7294,6 +7314,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
