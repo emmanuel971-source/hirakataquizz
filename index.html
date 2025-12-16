@@ -6293,9 +6293,8 @@ const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
 
 document.getElementById("result").innerHTML = `
   <div class="result-line">${emoji} ${resultText} ${emoji}</div>
-  <div class="result-line highlight">
-    ${t('quiz_correct_answer')} <strong>${correct1}</strong> ${t('quiz_answer_separator')} <strong>${correct2}</strong>
-  </div>`;
+  
+ 
 
     if (current && current.Hiragana && voiceEnabled) { // ✅ AJOUT voiceEnabled
   const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
@@ -7331,6 +7330,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
