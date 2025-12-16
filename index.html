@@ -943,7 +943,6 @@ input:focus + .slider-round {
   align-items: center;
   justify-content: center;
 
-  /* Hauteur dédiée pour créer l’espace zen */
   height: 22vh;
   min-height: 120px;
 
@@ -952,14 +951,13 @@ input:focus + .slider-round {
 
 .menu-emoji-header span {
   display: inline-block;
-  font-size: 4.5rem; /* PLUS GROS */
+  font-size: 4.6rem;
   line-height: 1;
 
   opacity: 0;
   transform: scale(0.9);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
-
 
 .menu.active .menu-emoji-header span {
   opacity: 1;
@@ -972,6 +970,7 @@ input:focus + .slider-round {
   50%  { transform: scale(1.035); }
   100% { transform: scale(1); }
 }
+
     
   </style>
 </head>
@@ -2381,31 +2380,29 @@ contact_inbox_error: "❌ Error de carga",
     
   }
 };
+let lastSectionOpened = null;
+ const menuEmojis = ['🎋', '🍙', '🍵', '🪷', '🪴', '🐾', '🌱', '🍃', '🪨', '🌸', '🍜', '🍱', '⛩️', '🎌', '🐼'];
 
-let currentMenuEmojiMode = 'random'; // 'random' | 'options'
 function setMenuEmoji(emoji) {
-  const emojiEl = document.getElementById('menu-emoji');
-  if (!emojiEl) return;
+  const el = document.getElementById('menu-emoji');
+  if (!el) return;
 
-  emojiEl.style.opacity = '0';
+  el.style.opacity = '0';
 
   setTimeout(() => {
-    emojiEl.textContent = emoji;
-    emojiEl.style.opacity = '1';
+    el.textContent = emoji;
+    el.style.opacity = '1';
   }, 180);
 }
 
-
-function setRandomMenuEmoji() {
-  const randomEmoji = menuEmojis[Math.floor(Math.random() * menuEmojis.length)];
-  setMenuEmoji(randomEmoji);
-}
-function setRandomMenuEmoji() {
-  if (currentMenuEmojiMode !== 'random') return;
-
-  const menuEmojis = ['🎋', '🍙', '🍵', '🪷', '🪴', '🐾', '🌱', '🍃', '🪨', '🌸', '🍜', '🍱', '⛩️', '🎌', '🐼'];
-  const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-  setMenuEmoji(randomEmoji);
+function setMenuEmojiOnOpen() {
+  if (lastSectionOpened === 'options') {
+    setMenuEmoji('⚙️');
+  } else {
+    const randomEmoji =
+      menuEmojis[Math.floor(Math.random() * menuEmojis.length)];
+    setMenuEmoji(randomEmoji);
+  }
 }
 
     
@@ -3128,9 +3125,10 @@ function toggleMenu() {
       hamburger.classList.remove('hidden');
     }
   }
-  if (menu.classList.contains('active')) {
-  setRandomMenuEmoji();
+if (menu.classList.contains('active')) {
+  setMenuEmojiOnOpen();
 }
+
 
   // ✅ NOUVEAU : Fermer les modales contact si elles sont ouvertes
   if (menu.classList.contains('active')) {
@@ -3332,10 +3330,7 @@ document.querySelectorAll('.section').forEach(section => {
 if (sectionId === 'options') {
   resetOptionsView();
 }
-if (sectionId === 'options') {
-  currentMenuEmojiMode = 'options';
-  setMenuEmoji('⚙️');
-    }
+
   if (sectionId === 'create-account') {
     initPseudoCache();
     generateNewPseudo();
@@ -3388,9 +3383,7 @@ if (sectionId === 'stats') {
       }
     }, 100);
   }
-  if (sectionId !== 'options') {
-  currentMenuEmojiMode = 'random';
-}
+
 
   // ✅ AJOUTE ça à la fin
   if (window.innerWidth <= 768) { // Seulement sur mobile
@@ -7251,6 +7244,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
