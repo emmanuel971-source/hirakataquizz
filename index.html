@@ -938,6 +938,34 @@ input:focus + .slider-round {
   color: var(--gray-dark);
   margin-top: 1em;
 }    
+.menu-emoji-header {
+  text-align: center;
+  padding: 22px 0 12px;
+}
+
+.menu-emoji-header span {
+  display: inline-block;
+  font-size: 3.6rem;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* Quand le menu est ouvert */
+.menu.active .menu-emoji-header span {
+  opacity: 1;
+  transform: scale(1);
+  animation: zen-breath 6s ease-in-out infinite;
+}
+
+/* Animation "respiration zen" */
+@keyframes zen-breath {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+    
   </style>
 </head>
 <body>
@@ -965,6 +993,10 @@ input:focus + .slider-round {
 <!-- Menu -->
 
 <nav class="menu" id="menu">
+<div id="menu-emoji-header" class="menu-emoji-header">
+  <span id="menu-emoji"></span>
+</div>
+  
 <!--   <div id="menu-message" class="menu-message"></div>  -->
   <button class="arcade-button" onclick="showSection('quiz')" data-i18n="menu_learn">Apprendre</button>
   <button class="arcade-button" id="revision-button" onclick="showSection('mode2')" data-i18n="menu_revision">Mode révisions</button>
@@ -2342,6 +2374,27 @@ contact_inbox_error: "❌ Error de carga",
     
   }
 };
+const menuEmojis = ['🎋', '🍙', '🍵', '🪷', '🪴'];
+
+function setMenuEmoji(emoji) {
+  const emojiEl = document.getElementById('menu-emoji');
+  if (!emojiEl) return;
+
+  // petite disparition douce
+  emojiEl.style.opacity = '0';
+
+  setTimeout(() => {
+    emojiEl.textContent = emoji;
+    emojiEl.style.opacity = '1';
+  }, 200);
+}
+
+function setRandomMenuEmoji() {
+  const randomEmoji = menuEmojis[Math.floor(Math.random() * menuEmojis.length)];
+  setMenuEmoji(randomEmoji);
+}
+
+    
 // Dans ton JavaScript (au début)
 function setAppHeight() {
   const doc = document.documentElement;
@@ -3061,7 +3114,10 @@ function toggleMenu() {
       hamburger.classList.remove('hidden');
     }
   }
-  
+  if (menu.classList.contains('active')) {
+  setRandomMenuEmoji();
+}
+
   // ✅ NOUVEAU : Fermer les modales contact si elles sont ouvertes
   if (menu.classList.contains('active')) {
     const contactFormModal = document.getElementById('contact-form-modal');
@@ -3193,6 +3249,10 @@ function showSection(sectionId) {
       hamburger.classList.add('hidden');
     }
   }
+  if (sectionId === 'options') {
+  setMenuEmoji('⚙️');
+}
+
   // NOUVEAU : Vérifier le blocage seulement lors du retour au menu depuis le mode révision
   if (sectionId === 'menu-section' && revisionMode.isActive) {
     const wasBlocked = hasShownBlockedMenu; // État précédent
@@ -7172,6 +7232,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
