@@ -939,30 +939,37 @@ input:focus + .slider-round {
   margin-top: 1em;
 }    
 .menu-emoji-header {
-  text-align: center;
-  padding: 22px 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Hauteur dédiée pour créer l’espace zen */
+  height: 22vh;
+  min-height: 120px;
+
+  pointer-events: none;
 }
 
 .menu-emoji-header span {
   display: inline-block;
-  font-size: 3.6rem;
+  font-size: 4.5rem; /* PLUS GROS */
   line-height: 1;
+
   opacity: 0;
-  transform: scale(0.92);
+  transform: scale(0.9);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-/* Quand le menu est ouvert */
+
 .menu.active .menu-emoji-header span {
   opacity: 1;
   transform: scale(1);
-  animation: zen-breath 6s ease-in-out infinite;
+  animation: zen-breath 7s ease-in-out infinite;
 }
 
-/* Animation "respiration zen" */
 @keyframes zen-breath {
   0%   { transform: scale(1); }
-  50%  { transform: scale(1.03); }
+  50%  { transform: scale(1.035); }
   100% { transform: scale(1); }
 }
     
@@ -2374,23 +2381,30 @@ contact_inbox_error: "❌ Error de carga",
     
   }
 };
-const menuEmojis = ['🎋', '🍙', '🍵', '🪷', '🪴', '🐾', '🌱', '🍃', '🪨', '🌸', '🍜', '🍱', '⛩️', '🎌', '🐼'];
 
+let currentMenuEmojiMode = 'random'; // 'random' | 'options'
 function setMenuEmoji(emoji) {
   const emojiEl = document.getElementById('menu-emoji');
   if (!emojiEl) return;
 
-  // petite disparition douce
   emojiEl.style.opacity = '0';
 
   setTimeout(() => {
     emojiEl.textContent = emoji;
     emojiEl.style.opacity = '1';
-  }, 200);
+  }, 180);
 }
+
 
 function setRandomMenuEmoji() {
   const randomEmoji = menuEmojis[Math.floor(Math.random() * menuEmojis.length)];
+  setMenuEmoji(randomEmoji);
+}
+function setRandomMenuEmoji() {
+  if (currentMenuEmojiMode !== 'random') return;
+
+  const menuEmojis = ['🎋', '🍙', '🍵', '🪷', '🪴', '🐾', '🌱', '🍃', '🪨', '🌸', '🍜', '🍱', '⛩️', '🎌', '🐼'];
+  const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
   setMenuEmoji(randomEmoji);
 }
 
@@ -3249,12 +3263,7 @@ function showSection(sectionId) {
       hamburger.classList.add('hidden');
     }
   }
-if (sectionId === 'options') {
-  const emojiEl = document.getElementById('menu-emoji');
-  if (emojiEl) {
-    emojiEl.textContent = '⚙️';
-  }
-}
+
 
   // NOUVEAU : Vérifier le blocage seulement lors du retour au menu depuis le mode révision
   if (sectionId === 'menu-section' && revisionMode.isActive) {
@@ -3323,7 +3332,10 @@ document.querySelectorAll('.section').forEach(section => {
 if (sectionId === 'options') {
   resetOptionsView();
 }
-
+if (sectionId === 'options') {
+  currentMenuEmojiMode = 'options';
+  setMenuEmoji('⚙️');
+    }
   if (sectionId === 'create-account') {
     initPseudoCache();
     generateNewPseudo();
@@ -3376,6 +3388,10 @@ if (sectionId === 'stats') {
       }
     }, 100);
   }
+  if (sectionId !== 'options') {
+  currentMenuEmojiMode = 'random';
+}
+
   // ✅ AJOUTE ça à la fin
   if (window.innerWidth <= 768) { // Seulement sur mobile
     setTimeout(hideAddressBar, 100);
@@ -7235,6 +7251,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
