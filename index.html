@@ -973,11 +973,11 @@ input:focus + .slider-round {
 /* === BOUTONS ÉMOJIS CONTACT === */
 .contact-emoji-buttons {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 2.5em;
+  gap: 1.5em;
   margin: 2em 0;
-  flex-wrap: wrap;
 }
 
 .emoji-button {
@@ -1017,17 +1017,6 @@ input:focus + .slider-round {
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-/* Responsive mobile */
-@media (max-width: 768px) {
-  .emoji-button {
-    font-size: 3.5em;
-  }
-  
-  .contact-emoji-buttons {
-    gap: 1.5em;
-  }
 }
     
   </style>
@@ -1233,19 +1222,19 @@ input:focus + .slider-round {
   <button class="arcade-button" onclick="setLanguage('en')">🇬🇧 English</button>
   <button class="arcade-button" onclick="setLanguage('es')">🇪🇸 Español</button>
 </div>
-  <!-- Sous-rubrique Contact -->
+<!-- Sous-rubrique Contact -->
 <div id="options-contact" class="options-sub hidden">
 <!--  <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button> -->
   <h2 data-i18n="contact_title">Contact & Support</h2>
   
   <div class="contact-emoji-buttons">
-    <button class="emoji-button" onclick="showContactForm('message')" title="Envoyer un message">
+    <button class="emoji-button" onclick="showContactForm('message')" data-i18n="contact_send_message">
       💬
     </button>
-    <button class="emoji-button" onclick="showContactForm('bug')" title="Reporter un bug">
+    <button class="emoji-button" onclick="showContactForm('bug')" data-i18n="contact_report_bug">
       🐛
     </button>
-    <button class="emoji-button" id="contact-inbox-btn" onclick="showContactInbox()" title="Mes messages">
+    <button class="emoji-button" id="contact-inbox-btn" onclick="showContactInbox()" data-i18n="contact_my_messages">
       📬
     </button>
   </div>
@@ -7304,6 +7293,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
