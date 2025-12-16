@@ -47,9 +47,12 @@ h2 {margin: 0.1em 0; font-size: 2.5em; text-align: center; color: var(--brown-pr
 @keyframes pulse-unlock{0%,100%{box-shadow:0 0 8px rgba(255,107,107,.6)}50%{box-shadow:0 0 20px rgba(255,107,107,1)}}@keyframes pulse-unlock {0%, 100% { background: linear-gradient(90deg, var(--green-bright), var(--green-gradient-start)); } 50% { background: linear-gradient(90deg, var(--green-gradient-start), var(--green-gradient-end)); }}
 #progressBarContainer {display: flex; align-items: center; justify-content: space-between; gap: 0.5em; margin: 1em auto 0.3em auto; max-width: 50ch; width: 100%; margin-bottom: 10px;}
 .progress-bar-track {position: relative; height: 16px; background: linear-gradient(to right, var(--blue-gradient-start), var(--green-dark)); border-radius: 6px; flex: 1; box-shadow: 0 2px 4px var(--shadow-black-light);}
-.progress-marker {position: absolute; top: 45%; left: 0; transform: translate(-50%, -50%); font-size: 2em; transition: left 1.5s ease; color: var(--gray-dark);}
+.progress-marker {position: absolute; top: 45%; left: 0; transform: translate(-50%, -50%); font-size: 2em; transition: left 1.5s ease; color: var(--gray-dark);animation: pulse 2s ease-in-out infinite;}
 .side-emoji {font-size: 1.6em; line-height: 1; color: var(--gray-dark);}
-@keyframes pulse {0% { transform: translate(-50%, -50%) scale(1); } 100% { transform: translate(-50%, -50%) scale(1.2); }}
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); } 
+  50% { transform: translate(-50%, -50%) scale(1.15); }
+}
 .level {font-size: 1.6em; margin: 0.4em 0; margin-bottom: 50px;}
 .level-hiraganas {margin: 1em auto; max-width: 800px; flex-shrink: 0; margin-bottom: 25px;}
 .hiraganas-grid {display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 0.5em;}
@@ -5504,7 +5507,7 @@ if (newValidation >= 5 && previousValidation < 5) {
     card 
   });  
 if (isMobile) {
-triggerAdvancedFirework(card);
+triggerLightFirework(card);
 } else {
 triggerAdvancedFirework(card);
 }
@@ -7328,6 +7331,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
