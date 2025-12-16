@@ -5258,6 +5258,11 @@ ctx.fill();
 }
 
 function triggerAdvancedFirework(container) {
+  console.log('🎆 triggerAdvancedFirework APPELÉE', { 
+    container, 
+    activeSparks: activeSparks.length,
+    MAX: MAX_ACTIVE_PARTICLES 
+  });  
 initAudio();
 const validatedCount = getValidatedCountForLevel(niveauActif);
 const canvas = document.createElement('canvas');
@@ -5482,6 +5487,13 @@ star.classList.remove('filled', 'new-star');
 });
 
 if (newValidation >= 5 && previousValidation < 5) {
+  console.log('🎇 DEVRAIT DÉCLENCHER FIREWORK:', { 
+    hiraganaId, 
+    newValidation, 
+    previousValidation,
+    isMobile,
+    card 
+  });  
 if (isMobile) {
 triggerLightFirework(card);
 } else {
@@ -6220,7 +6232,17 @@ async function checkAnswer() {
       newValidation = Math.max(0, currentValidation - 2);
     }
     const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
-
+// ✅ AJOUTE CES LOGS ICI
+console.log('🎆 DEBUG ANIMATIONS:', {
+  score: score,
+  currentValidation: currentValidation,
+  newValidation: newValidation,
+  isFinalValidation: isFinalValidation,
+  condition1: score === 1,
+  condition2: currentValidation < 5,
+  condition3: newValidation >= 5,
+  itemId: current.ID
+});
     const currentItemId = parseInt(current.ID);
     console.log(`📝 Réponse pour item ${currentItemId} (score: ${score})`);
 
@@ -7314,6 +7336,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
