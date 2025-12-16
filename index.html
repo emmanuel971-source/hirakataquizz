@@ -970,7 +970,65 @@ input:focus + .slider-round {
   50%  { transform: scale(1.035); }
   100% { transform: scale(1); }
 }
+/* === BOUTONS ÉMOJIS CONTACT === */
+.contact-emoji-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2.5em;
+  margin: 2em 0;
+  flex-wrap: wrap;
+}
 
+.emoji-button {
+  font-size: 4.5em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.3em;
+  border-radius: 20px;
+  position: relative;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+}
+
+.emoji-button:hover {
+  transform: scale(1.15) rotate(-5deg);
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.25));
+}
+
+.emoji-button:active {
+  transform: scale(0.95);
+}
+
+/* Badge notification sur l'emoji 📬 */
+.emoji-button .notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #dc3545;
+  color: white;
+  font-size: 0.35em;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 1.2em;
+  height: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+  .emoji-button {
+    font-size: 3.5em;
+  }
+  
+  .contact-emoji-buttons {
+    gap: 1.5em;
+  }
+}
     
   </style>
 </head>
@@ -1179,16 +1237,18 @@ input:focus + .slider-round {
 <div id="options-contact" class="options-sub hidden">
 <!--  <button class="arcade-button" onclick="backToOptions()"><span data-i18n="options_back">← Retour</span></button> -->
   <h2 data-i18n="contact_title">Contact & Support</h2>
-  <button class="arcade-button" onclick="showContactForm('message')" data-i18n="contact_send_message">
-    💬 Envoyer un message
-  </button>
-  <button class="arcade-button" onclick="showContactForm('bug')" data-i18n="contact_report_bug">
-    🐛 Reporter un bug
-  </button>
-  <button class="arcade-button" id="contact-inbox-btn" onclick="showContactInbox()" data-i18n="contact_my_messages">
-    📬 Mes messages
-  </button>
-</div>
+  
+  <div class="contact-emoji-buttons">
+    <button class="emoji-button" onclick="showContactForm('message')" title="Envoyer un message">
+      💬
+    </button>
+    <button class="emoji-button" onclick="showContactForm('bug')" title="Reporter un bug">
+      🐛
+    </button>
+    <button class="emoji-button" id="contact-inbox-btn" onclick="showContactInbox()" title="Mes messages">
+      📬
+    </button>
+  </div>
 </div>
 <!-- ========================================
      HTML À AJOUTER APRÈS LA SECTION OPTIONS
@@ -7244,6 +7304,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
