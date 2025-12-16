@@ -2374,7 +2374,7 @@ contact_inbox_error: "❌ Error de carga",
     
   }
 };
-const menuEmojis = ['🎋', '🍙', '🍵', '🪷', '🪴'];
+const menuEmojis = ['🎋', '🍙', '🍵', '🪷', '🪴', '🐾', '🌱', '🍃', '🪨', '🌸', '🍜', '🍱', '⛩️', '🎌', '🐼'];
 
 function setMenuEmoji(emoji) {
   const emojiEl = document.getElementById('menu-emoji');
@@ -3249,8 +3249,11 @@ function showSection(sectionId) {
       hamburger.classList.add('hidden');
     }
   }
-  if (sectionId === 'options') {
-  setMenuEmoji('⚙️');
+if (sectionId === 'options') {
+  const emojiEl = document.getElementById('menu-emoji');
+  if (emojiEl) {
+    emojiEl.textContent = '⚙️';
+  }
 }
 
   // NOUVEAU : Vérifier le blocage seulement lors du retour au menu depuis le mode révision
@@ -7232,6 +7235,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
