@@ -4995,7 +4995,11 @@ function getValidatedCountForLevel(level) {
 return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Validation) >= 5).length;
 }
 
-function bambooDrop(){ const o=p(); if(!o.e)return; initAudio();
+function bambooDrop() {
+ if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
+  const o=p(); if(!o.e)return; 
   const osc=audioContext.createOscillator();
   const g=audioContext.createGain();
   const f=audioContext.createBiquadFilter();
@@ -5006,9 +5010,15 @@ function bambooDrop(){ const o=p(); if(!o.e)return; initAudio();
   g.gain.linearRampToValueAtTime(o.v,audioContext.currentTime+0.01);
   g.gain.exponentialRampToValueAtTime(0.001,audioContext.currentTime+o.d);
   osc.start(); osc.stop(audioContext.currentTime+o.d);
+    } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }  
 }
 
-function bambooHit(){ const o=p(); if(!o.e)return; initAudio();
+function bambooHit() {
+ if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try { const o=p(); if(!o.e)return;
   const osc=audioContext.createOscillator(); const g=audioContext.createGain(); const f=audioContext.createBiquadFilter();
   osc.type='triangle'; osc.frequency.value=o.f;
   f.type='bandpass'; f.frequency.value=500; f.Q.value=6;
@@ -5016,9 +5026,16 @@ function bambooHit(){ const o=p(); if(!o.e)return; initAudio();
   g.gain.setValueAtTime(o.v,audioContext.currentTime);
   g.gain.exponentialRampToValueAtTime(0.001,audioContext.currentTime+o.d*0.4);
   osc.start(); osc.stop(audioContext.currentTime+o.d*0.4);
+         } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
 }
 
-function tatamiFall(){ const o=p(); if(!o.e)return; initAudio();
+function tatamiFall(){ 
+   if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try { 
+  const o=p(); if(!o.e)return;
   const size=audioContext.sampleRate*o.d;
   const buf=audioContext.createBuffer(1,size,audioContext.sampleRate);
   const data=buf.getChannelData(0);
@@ -5027,9 +5044,16 @@ function tatamiFall(){ const o=p(); if(!o.e)return; initAudio();
   src.buffer=buf; f.type='lowpass'; f.frequency.value=180;
   src.connect(f); f.connect(g); g.connect(audioContext.destination);
   g.gain.value=o.v; src.start();
+      } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
 }
 
-function deepWoodHit(){ const o=p(); if(!o.e)return; initAudio();
+function deepWoodHit(){ 
+   if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try { 
+  const o=p(); if(!o.e)return;
   const osc=audioContext.createOscillator(); const g=audioContext.createGain();
   osc.type='sine';
   osc.frequency.setValueAtTime(o.f*0.6,audioContext.currentTime);
@@ -5038,6 +5062,9 @@ function deepWoodHit(){ const o=p(); if(!o.e)return; initAudio();
   g.gain.setValueAtTime(o.v,audioContext.currentTime);
   g.gain.exponentialRampToValueAtTime(0.001,audioContext.currentTime+o.d);
   osc.start(); osc.stop(audioContext.currentTime+o.d);
+      } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
 }
 
 function playPopSound() {
@@ -5059,7 +5086,9 @@ function playPopSound() {
   }
 }
     function playTwinkle() {
-      initAudio();
+        if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
       const vol = getGlobalVolume() * getLocalVolume(4) * 0.02;
       const timing = 60 * getLocalTiming(4) / getGlobalSpeed();
       const dur = 0.15 * getGlobalDuration();
@@ -5079,9 +5108,14 @@ function playPopSound() {
           osc.stop(audioContext.currentTime + dur);
         }, i * timing);
       });
+      } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
     }  
       function playJapaneseChime() {
-      initAudio();
+       if (!soundEnabled) return; // ✅ AJOUT
+  initAudio();
+  try {
       const vol = getGlobalVolume() * getLocalVolume(6) * 0.02;
       const timing = 120 * getLocalTiming(6) / getGlobalSpeed();
       const dur = 0.8 * getGlobalDuration();
@@ -5101,6 +5135,9 @@ function playPopSound() {
           osc.stop(audioContext.currentTime + dur);
         }, i * timing);
       });
+          } catch (error) {
+    logError('Erreur son pop: ' + error.message);
+  }
     }
 function playMarioCoin() {
   if (!soundEnabled) return; // ✅ AJOUT
@@ -7570,6 +7607,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
