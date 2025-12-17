@@ -6622,37 +6622,44 @@ if (score === 1) {
   const celebrationOverlay = document.getElementById("celebration-overlay");
   const celebrationContent = document.getElementById("celebration-content");
   
-  // Réinitialiser
-  celebrationContent.innerHTML = '';
-  celebrationContent.className = '';
-  celebrationOverlay.classList.remove('active');
+  // ✅ VÉRIFIER QUE LES ÉLÉMENTS EXISTENT
+  if (celebrationOverlay && celebrationContent) {
+    // Réinitialiser
+    celebrationContent.innerHTML = '';
+    celebrationContent.className = '';
+    celebrationOverlay.classList.remove('active');
 
-  // Ajouter l'animation avec un petit délai
-  setTimeout(() => {
-    celebrationOverlay.classList.add('active');
-    celebrationContent.className = 'anim-combo';
-    celebrationContent.innerHTML = `
-      <div class="result-line">
-        <div class="result-text">${resultText}</div>
-        <div class="result-emoji">${emoji}</div>
-      </div>
-    `;
-    
-    // Déclencher les étincelles
-    setTimeout(() => createSparklesAtQuestion(), 100);
-    
-    // Masquer après 1.5s
+    // Ajouter l'animation avec un petit délai
     setTimeout(() => {
-      celebrationOverlay.classList.remove('active');
-    }, 1500);
-  }, 10);
+      celebrationOverlay.classList.add('active');
+      celebrationContent.className = 'anim-combo';
+      celebrationContent.innerHTML = `
+        <div class="result-line">
+          <div class="result-text">${resultText}</div>
+          <div class="result-emoji">${emoji}</div>
+        </div>
+      `;
+      
+      // Déclencher les étincelles
+      setTimeout(() => createSparklesAtQuestion(), 100);
+      
+      // Masquer après 1.5s
+      setTimeout(() => {
+        celebrationOverlay.classList.remove('active');
+      }, 1500);
+    }, 10);
+  } else {
+    console.warn("❌ Les éléments celebration-overlay ou celebration-content sont introuvables dans le DOM");
+  }
   
 } else {
   playFail();
   
   // ✅ PAS D'ANIMATION POUR LES ÉCHECS
   const celebrationOverlay = document.getElementById("celebration-overlay");
-  celebrationOverlay.classList.remove('active');
+  if (celebrationOverlay) {
+    celebrationOverlay.classList.remove('active');
+  }
 }
 
     if (current && current.Hiragana && voiceEnabled) { // ✅ AJOUT voiceEnabled
@@ -7689,6 +7696,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
