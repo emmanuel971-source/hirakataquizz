@@ -6560,7 +6560,15 @@ if (score === 1) {
   if (!isFinalValidation) {
     playTwinkle();
   }
-  
+  const questionDiv = document.getElementById("question");
+  const resultDiv = document.getElementById("result");
+  const container = document.querySelector('.quiz-container');
+
+  // === 1. Force le masquage de la question (avec !important via setAttribute) ===
+  if (questionDiv) {
+    questionDiv.style.opacity = "0";
+    questionDiv.style.transition = "opacity 0.4s ease"; // On force la transition
+  }
   // ✅ ANIMATION UNIQUEMENT EN CAS DE SUCCÈS
   // Réinitialiser le conteneur
   const resultDiv = document.getElementById("result");
@@ -6580,7 +6588,29 @@ if (score === 1) {
     // Déclencher les étincelles après un court délai
     setTimeout(() => createSparkles(), 100);
   }, 10);
-  
+// === 5. Fin de l'animation ===
+  const animationDuration = 1800;
+
+  setTimeout(() => {
+    // Réaffiche la question
+    if (questionDiv) {
+      questionDiv.style.opacity = "1";
+    }
+
+    // Cache l'animation
+    resultDiv.style.opacity = "0";
+
+    // Nettoyage complet après fade out
+    setTimeout(() => {
+      resultDiv.innerHTML = "";
+      resultDiv.style.top = "";
+      resultDiv.style.left = "";
+      resultDiv.style.transform = "";
+      resultDiv.style.width = "";
+      resultDiv.style.height = "";
+    }, 500);
+
+  }, animationDuration);  
 } else {
   playFail();
   
@@ -7624,6 +7654,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
