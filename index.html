@@ -4999,17 +4999,27 @@ function bambooDrop() {
  if (!soundEnabled) return; // ✅ AJOUT
   initAudio();
   try {
-  const o=p(); if(!o.e)return; 
-  const osc=audioContext.createOscillator();
-  const g=audioContext.createGain();
-  const f=audioContext.createBiquadFilter();
-  osc.type='sine'; osc.frequency.value=o.f;
-  f.type='lowpass'; f.frequency.value=600; f.Q.value=8;
-  osc.connect(f); f.connect(g); g.connect(audioContext.destination);
-  g.gain.setValueAtTime(0,audioContext.currentTime);
-  g.gain.linearRampToValueAtTime(o.v,audioContext.currentTime+0.01);
-  g.gain.exponentialRampToValueAtTime(0.001,audioContext.currentTime+o.d);
-  osc.start(); osc.stop(audioContext.currentTime+o.d);
+  const osc = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  const filter = audioContext.createBiquadFilter();
+
+  osc.type = "sine";
+  osc.frequency.value = 180;
+
+  filter.type = "lowpass";
+  filter.frequency.value = 600;
+  filter.Q.value = 8;
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioContext.destination);
+
+  gain.gain.setValueAtTime(0, audioContext.currentTime);
+  gain.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.6);
+
+  osc.start();
+  osc.stop(audioContext.currentTime + 0.6);
     } catch (error) {
     logError('Erreur son pop: ' + error.message);
   }  
@@ -5018,52 +5028,51 @@ function bambooDrop() {
 function bambooHit() {
  if (!soundEnabled) return; // ✅ AJOUT
   initAudio();
-  try { const o=p(); if(!o.e)return;
-  const osc=audioContext.createOscillator(); const g=audioContext.createGain(); const f=audioContext.createBiquadFilter();
-  osc.type='triangle'; osc.frequency.value=o.f;
-  f.type='bandpass'; f.frequency.value=500; f.Q.value=6;
-  osc.connect(f); f.connect(g); g.connect(audioContext.destination);
-  g.gain.setValueAtTime(o.v,audioContext.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001,audioContext.currentTime+o.d*0.4);
-  osc.start(); osc.stop(audioContext.currentTime+o.d*0.4);
-         } catch (error) {
-    logError('Erreur son pop: ' + error.message);
+  try {   const osc = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  const filter = audioContext.createBiquadFilter();
+
+  osc.type = "triangle";
+  osc.frequency.value = 220;
+
+  filter.type = "bandpass";
+  filter.frequency.value = 500;
+  filter.Q.value = 6;
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioContext.destination);
+
+  gain.gain.setValueAtTime(0, audioContext.currentTime);
+  gain.gain.linearRampToValueAtTime(0.08, audioContext.currentTime + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.25);
+
+  osc.start();
+  osc.stop(audioContext.currentTime + 0.25);
   }
 }
 
-function tatamiFall(){ 
-   if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try { 
-  const o=p(); if(!o.e)return;
-  const size=audioContext.sampleRate*o.d;
-  const buf=audioContext.createBuffer(1,size,audioContext.sampleRate);
-  const data=buf.getChannelData(0);
-  for(let i=0;i<size;i++){ data[i]=(Math.random()*2-1)*Math.exp(-i/2000); }
-  const src=audioContext.createBufferSource(); const g=audioContext.createGain(); const f=audioContext.createBiquadFilter();
-  src.buffer=buf; f.type='lowpass'; f.frequency.value=180;
-  src.connect(f); f.connect(g); g.connect(audioContext.destination);
-  g.gain.value=o.v; src.start();
-      } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
-}
+
 
 function deepWoodHit(){ 
    if (!soundEnabled) return; // ✅ AJOUT
   initAudio();
   try { 
-  const o=p(); if(!o.e)return;
-  const osc=audioContext.createOscillator(); const g=audioContext.createGain();
-  osc.type='sine';
-  osc.frequency.setValueAtTime(o.f*0.6,audioContext.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(o.f*0.3,audioContext.currentTime+o.d);
-  osc.connect(g); g.connect(audioContext.destination);
-  g.gain.setValueAtTime(o.v,audioContext.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001,audioContext.currentTime+o.d);
-  osc.start(); osc.stop(audioContext.currentTime+o.d);
-      } catch (error) {
-    logError('Erreur son pop: ' + error.message);
+const osc = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(90, audioContext.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+
+  osc.connect(gain);
+  gain.connect(audioContext.destination);
+
+  gain.gain.setValueAtTime(0.08, audioContext.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+
+  osc.start();
+  osc.stop(audioContext.currentTime + 0.5);
   }
 }
 
@@ -5090,24 +5099,25 @@ function playPopSound() {
   initAudio();
   try {
      
-      const timing = 60;
-      const dur = 0.15;
-
-      const notes = [1046.50, 1318.51, 1567.98];
-      notes.forEach((freq, i) => {
-        setTimeout(() => {
-          const osc = audioContext.createOscillator();
-          const gain = audioContext.createGain();
-          osc.connect(gain);
-          gain.connect(audioContext.destination);
-          osc.type = 'sine';
-          osc.frequency.value = freq;
-          gain.gain.setValueAtTime(vol, audioContext.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + dur);
-          osc.start();
-          osc.stop(audioContext.currentTime + dur);
-        }, i * timing);
-      });
+       const notes = [1046.50, 1318.51, 1567.98]; // Do, Mi, Sol (aigus)
+    
+    notes.forEach((freq, i) => {
+      setTimeout(() => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        
+        // Très bref et doux
+        gain.gain.setValueAtTime(0.02, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
+        
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.15);
+      }, i * 60);
+    });
       } catch (error) {
     logError('Erreur son pop: ' + error.message);
   }
@@ -7607,6 +7617,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
