@@ -6410,36 +6410,43 @@ const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
       console.log(`🔄 HiraganaList[${hiraganaIndex}] mis à jour localement:`, HiraganaList[hiraganaIndex]);
     }
 
-    let emoji = "", resultText = "";
-    if (score === 1) {
-const emojisOK = ["🐝","🐛","🦋","🐌","🐞","🐜","🦗","🍀","🍃","🌳","💐","🌷","🌺","🌸"];
-emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-resultText = isFinalValidation ? t('msg_validated') : t('msg_perfect');
-if (!isFinalValidation) {
-  playMarioCoin();
-}
+let emoji = "", resultText = "";
+if (score === 1) {
+  const emojisOK = ["🐝","🐛","🦋","🐌","🐞","🐜","🦗","🍀","🍃","🌳","🌺","🌸","🌿","🌱","🎋","🦎"];
+  emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
+  resultText = isFinalValidation ? t('msg_validated') : t('msg_perfect');
+  if (!isFinalValidation) {
+    playMarioCoin();
+  }
+  
+  // ✅ ANIMATION UNIQUEMENT EN CAS DE SUCCÈS
+  // Réinitialiser le conteneur
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = '';
+  resultDiv.className = '';
+
+  // Ajouter l'animation avec un petit délai
+  setTimeout(() => {
+    resultDiv.className = 'anim-combo';
+    resultDiv.innerHTML = `
+      <div class="result-line">
+        <div class="result-text">${resultText}</div>
+        <div class="result-emoji">${emoji}</div>
+      </div>
+    `;
+    
+    // Déclencher les étincelles après un court délai
+    setTimeout(() => createSparkles(), 100);
+  }, 10);
+  
 } else {
   playFail();
-}
-
-// Réinitialiser le conteneur
-const resultDiv = document.getElementById("result");
-resultDiv.innerHTML = '';
-resultDiv.className = '';
-
-// Ajouter l'animation avec un petit délai
-setTimeout(() => {
-  resultDiv.className = 'anim-combo';
-  resultDiv.innerHTML = `
-    <div class="result-line">
-      <div class="result-text">${resultText}</div>
-      <div class="result-emoji">${emoji}</div>
-    </div>
-  `;
   
-  // Déclencher les étincelles après un court délai
-  setTimeout(() => createSparkles(), 100);
-}, 10);
+  // ✅ PAS D'ANIMATION POUR LES ÉCHECS - juste vider le résultat
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = '';
+  resultDiv.className = '';
+}
 
     if (current && current.Hiragana && voiceEnabled) { // ✅ AJOUT voiceEnabled
   const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
@@ -7475,6 +7482,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
