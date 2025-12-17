@@ -5089,9 +5089,9 @@ function playPopSound() {
         if (!soundEnabled) return; // ✅ AJOUT
   initAudio();
   try {
-      const vol = getGlobalVolume() * getLocalVolume(4) * 0.02;
-      const timing = 60 * getLocalTiming(4) / getGlobalSpeed();
-      const dur = 0.15 * getGlobalDuration();
+     
+      const timing = 60;
+      const dur = 0.15;
 
       const notes = [1046.50, 1318.51, 1567.98];
       notes.forEach((freq, i) => {
@@ -5116,9 +5116,9 @@ function playPopSound() {
        if (!soundEnabled) return; // ✅ AJOUT
   initAudio();
   try {
-      const vol = getGlobalVolume() * getLocalVolume(6) * 0.02;
-      const timing = 120 * getLocalTiming(6) / getGlobalSpeed();
-      const dur = 0.8 * getGlobalDuration();
+   
+      const timing = 120;
+      const dur = 0.8 ;
 
       const notes = [293.66, 329.63, 392.00, 440.00, 523.25];
       notes.forEach((freq, i) => {
@@ -7607,6 +7607,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
