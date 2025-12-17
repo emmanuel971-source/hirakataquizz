@@ -6292,18 +6292,20 @@ const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
 
     let emoji = "", resultText = "";
     if (score === 1) {
-      const emojisOK = ["🌸", "🎌", "🍵", "🪴", "🍙", "🌺", "⛩️", "🪷","🐾","🎋","🍱"];
+      const emojisOK = ["🐝","🐛","🦋","🐌","🐞","🐜","🦗","🍀","🍃","🌳","💐","🌷","🌺","🌸"];
       emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
       resultText = isFinalValidation ? t('msg_validated') : t('msg_perfect');
       if (!isFinalValidation) {
         playMarioCoin();
       }
-    } 
+    }  else {playFail();
+    }
 
 document.getElementById("result").innerHTML = `
   <div class="result-line">
-  <div class="result-emoji">${emoji}</div>
   <div class="result-text">${resultText}</div>
+  <div class="result-emoji">${emoji}</div>
+  
 </div>`;
 
     if (current && current.Hiragana && voiceEnabled) { // ✅ AJOUT voiceEnabled
@@ -7340,6 +7342,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
