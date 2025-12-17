@@ -93,23 +93,6 @@ h2 {margin: 0.1em 0; font-size: 2.5em; text-align: center; color: var(--brown-pr
 .result {animation: fadeIn 0.4s ease-in; font-size: 1.3em; line-height: 1.4em; margin: 0.5em 0 0.2em 0; min-height: 4.5em; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: var(--brown-primary);}
 .result-line.highlight {color: var(--brown-primary);}
 @keyframes fadeIn {from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }}
-/* ✅ NOUVEAU : Container pour l'animation de célébration à la place de la question */
-#celebration-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999;
-  pointer-events: none;
-}
-
-#celebration-overlay.active {
-  display: flex;
-}
 #continueBtn {visibility: hidden; margin: 0.5em auto; display: block; width: fit-content;}
 #boutonInstaller {margin: 0.5em auto; height: 3em; display: none;}
 @keyframes confettiFall {0% { transform: translateY(0); } 100% { transform: translateY(110vh) rotate(720deg); }}
@@ -1204,13 +1187,7 @@ input:focus + .slider-round {
       <div class="hiraganas-grid" id="hiraganaCards"></div>
     </div>
     <div class="quiz-container">
-      <div class="question" id="question" data-i18n="quiz_question_load" style="position: relative;">
-  load...
-  <!-- ✅ NOUVEAU : Container pour l'animation de célébration -->
-  <div id="celebration-overlay">
-    <div id="celebration-content"></div>
-  </div>
-</div>
+      <div class="question" id="question" data-i18n="quiz_question_load">load...</div>
       <div>
         <div class="answers" id="choices1"></div>
         <div class="answers" id="choices2"></div>
@@ -1221,7 +1198,7 @@ input:focus + .slider-round {
   <button class="arcade-button" id="boutonInstaller" data-i18n="quiz_install">Ajouter à l'écran d'accueil</button>
 </div>
     </div>
-
+  </div>
 
   <!-- Section Mode Katakana -->
 <!-- Section Mode révisions -->
@@ -6453,40 +6430,6 @@ if (targetLevel === 5 && !hasShownLevel5Garden) {
     }
   }
 }
-// Fonction pour créer les étincelles à la place de la question
-function createSparklesAtQuestion() {
-  const sparkleEmojis = ["✨", "⭐", "💫", "🌟", "✦"];
-  const celebrationContent = document.getElementById("celebration-content");
-  const sparkleCount = 12;
-  const sparkleSize = 0.8;
-  const sparkleOpacity = 0.3;
-  
-  for (let i = 0; i < sparkleCount; i++) {
-    const sparkle = document.createElement('div');
-    sparkle.className = 'sparkle';
-    
-    const sparkleChar = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
-    sparkle.textContent = sparkleChar;
-    
-    sparkle.style.fontSize = sparkleSize + 'rem';
-    sparkle.style.left = '50%';
-    sparkle.style.top = '50%';
-    
-    const angle = (Math.PI * 2 * i) / sparkleCount;
-    const distance = 80 + Math.random() * 40;
-    const tx = Math.cos(angle) * distance;
-    const ty = Math.sin(angle) * distance;
-    
-    sparkle.style.setProperty('--tx', `${tx}px`);
-    sparkle.style.setProperty('--ty', `${ty}px`);
-    sparkle.style.setProperty('--sparkle-opacity', sparkleOpacity);
-    sparkle.style.animationDelay = `${Math.random() * 0.2}s`;
-    
-    celebrationContent.appendChild(sparkle);
-    
-    setTimeout(() => sparkle.remove(), 1000);
-  }
-}  
 // Fonction pour créer les étincelles
 function createSparkles() {
   const sparkleEmojis = ["✨", "⭐", "💫", "🌟", "✦"];
@@ -6618,48 +6561,33 @@ if (score === 1) {
     playTwinkle();
   }
   
-  // ✅ ANIMATION À LA PLACE DE LA QUESTION
-  const celebrationOverlay = document.getElementById("celebration-overlay");
-  const celebrationContent = document.getElementById("celebration-content");
-  
-  // ✅ VÉRIFIER QUE LES ÉLÉMENTS EXISTENT
-  if (celebrationOverlay && celebrationContent) {
-    // Réinitialiser
-    celebrationContent.innerHTML = '';
-    celebrationContent.className = '';
-    celebrationOverlay.classList.remove('active');
+  // ✅ ANIMATION UNIQUEMENT EN CAS DE SUCCÈS
+  // Réinitialiser le conteneur
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = '';
+  resultDiv.className = '';
 
-    // Ajouter l'animation avec un petit délai
-    setTimeout(() => {
-      celebrationOverlay.classList.add('active');
-      celebrationContent.className = 'anim-combo';
-      celebrationContent.innerHTML = `
-        <div class="result-line">
-          <div class="result-text">${resultText}</div>
-          <div class="result-emoji">${emoji}</div>
-        </div>
-      `;
-      
-      // Déclencher les étincelles
-      setTimeout(() => createSparklesAtQuestion(), 100);
-      
-      // Masquer après 1.5s
-      setTimeout(() => {
-        celebrationOverlay.classList.remove('active');
-      }, 1500);
-    }, 10);
-  } else {
-    console.warn("❌ Les éléments celebration-overlay ou celebration-content sont introuvables dans le DOM");
-  }
+  // Ajouter l'animation avec un petit délai
+  setTimeout(() => {
+    resultDiv.className = 'anim-combo';
+    resultDiv.innerHTML = `
+      <div class="result-line">
+        <div class="result-text">${resultText}</div>
+        <div class="result-emoji">${emoji}</div>
+      </div>
+    `;
+    
+    // Déclencher les étincelles après un court délai
+    setTimeout(() => createSparkles(), 100);
+  }, 10);
   
 } else {
-  playFail();
+  deepWoodHit();
   
-  // ✅ PAS D'ANIMATION POUR LES ÉCHECS
-  const celebrationOverlay = document.getElementById("celebration-overlay");
-  if (celebrationOverlay) {
-    celebrationOverlay.classList.remove('active');
-  }
+  // ✅ PAS D'ANIMATION POUR LES ÉCHECS - juste vider le résultat
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = '';
+  resultDiv.className = '';
 }
 
     if (current && current.Hiragana && voiceEnabled) { // ✅ AJOUT voiceEnabled
@@ -6768,13 +6696,13 @@ if (validatedCount === itemCount-1) {
   playLevelUp();
   triggerLevelUpAnimation(document.body);
 } else if (validatedCount === 3) {
-playJapaneseChime();
+playfireworksound4();
 } else if (validatedCount === 2) {
-playJapaneseChime();
+playfireworksound3();
 } else if (validatedCount === 1) {
-playJapaneseChime();
+playfireworksound2();
 } else if (validatedCount === 0) {
-playJapaneseChime();
+playFireworkSound();
 }
  
 }
@@ -7696,59 +7624,6 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
