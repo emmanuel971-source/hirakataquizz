@@ -1118,64 +1118,7 @@ input:focus + .slider-round {
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
-/* Rend le conteneur de quiz relatif pour positionner #result en absolute */
-.quiz-container {
-  position: relative !important;
-  overflow: visible !important;
-}
-
-/* Positionne l'animation de bonne réponse à la place de la question */
-#result {
-  position: absolute !important;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 600px;
-  text-align: center;
-  z-index: 5 !important;           /* En dessous des sakura/fireworks/level-up */
-  pointer-events: none;            /* Ne bloque pas les clics */
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;               /* Pour que ça prenne bien la place */
-}
-
-/* Animation combo : on garde tes styles mais on optimise le centrage */
-.anim-combo {
-  animation: fadeIn 0.6s ease-out forwards;
-}
-
-.anim-combo .result-line {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.anim-combo .result-text {
-  font-size: 3rem;
-  margin-bottom: 1vh;
-  animation: comboPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.anim-combo .result-emoji {
-  font-size: 5rem;
-  animation: comboPulseWiggle 0.6s ease-out 0.1s backwards;
-}
-
-/* Fade in pour #result */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Masquage doux de la question pendant l'animation */
-.question {
-  transition: opacity 0.4s ease;
-}    
+    
   </style>
 </head>
 <body>
@@ -6611,67 +6554,33 @@ const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
 
 let emoji = "", resultText = "";
 if (score === 1) {
-  const emojisOK = ["🐛","🦗","🍀","🍃","🌳","🌿","🌱","🎋","🦎"];
+  const emojisOK = ["🐛","🐸","🌵","🌴","🍏","⛳","🏕️","⛺","🍀","🍃","🌳","🌿","🌱","🎋","🦎"];
   emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
   resultText = isFinalValidation ? t('msg_validated') : t('msg_perfect');
   if (!isFinalValidation) {
     playTwinkle();
   }
-
-  // === NOUVEAU : Animation centrée à la place de la question ===
-  const questionDiv = document.getElementById("question");
+  
+  // ✅ ANIMATION UNIQUEMENT EN CAS DE SUCCÈS
+  // Réinitialiser le conteneur
   const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = '';
+  resultDiv.className = '';
 
-  // Masque la question
-  if (questionDiv) questionDiv.style.opacity = "0";
-
-  // Prépare et affiche l'animation
-  resultDiv.innerHTML = `
-    <div class="result-line anim-combo">
-      <div class="result-text">${resultText}</div>
-      <div class="result-emoji">${emoji}</div>
-    </div>
-  `;
-  resultDiv.style.opacity = "1"; // Fade in immédiat
-
-  // Lance les étincelles
-  setTimeout(() => createSparkles(), 150);
-
-  // === Calcul du niveau APRÈS l'affichage (important pour éviter l'erreur) ===
-  const previousNiveau = niveauActif;
-  const calculatedNiveau = determineNiveauActif(HiraganaList);
-  const hasLeveledUp = calculatedNiveau > previousNiveau;
-
-  niveauActif = calculatedNiveau;
-  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
-  updateLevelProgress(HiraganaList, niveauActif);
-  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  renderHiraganaCards(HiraganaList, niveauActif);
-  updateMenuButtonStates();
-
-  // Animation level up si nécessaire
-  if (hasLeveledUp) {
-    triggerLevelUpAnimation(document.body);
-  }
-
-  // === Fin de l'animation : on réaffiche la question et on cache le résultat ===
-  const animationDuration = hasLeveledUp ? 4000 : 1800; // Plus long si level up
-
+  // Ajouter l'animation avec un petit délai
   setTimeout(() => {
-    // Réaffiche la question
-    if (questionDiv) questionDiv.style.opacity = "1";
-
-    // Cache l'animation de célébration
-    resultDiv.style.opacity = "0";
-    setTimeout(() => {
-      resultDiv.innerHTML = "";
-    }, 400);
-
-    // Passe à la question suivante (seulement si pas en mode révision)
-    if (!revisionMode.isActive) {
-      nextQuestion();
-    }
-  }, animationDuration);
+    resultDiv.className = 'anim-combo';
+    resultDiv.innerHTML = `
+      <div class="result-line">
+        <div class="result-text">${resultText}</div>
+        <div class="result-emoji">${emoji}</div>
+      </div>
+    `;
+    
+    // Déclencher les étincelles après un court délai
+    setTimeout(() => createSparkles(), 100);
+  }, 10);
+  
 } else {
   playFail();
   
@@ -7715,7 +7624,6 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
-
 
 
 
