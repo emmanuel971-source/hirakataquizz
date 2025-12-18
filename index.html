@@ -6575,22 +6575,24 @@ if (score === 1) {
   }
   const questionDiv = document.getElementById("question");
   const resultDiv = document.getElementById("result");
-  
-  // === Masquer la question ===
-  if (questionDiv) {
-    questionDiv.style.opacity = "0";
-    questionDiv.style.transition = "opacity 0.4s ease";
-  }
+  const container = document.querySelector('.quiz-container');
   
   // === POSITIONNER #result exactement sur la question ===
   const questionRect = questionDiv.getBoundingClientRect();
-  const containerRect = questionDiv.parentElement.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
   
   resultDiv.style.position = "absolute";
   resultDiv.style.top = (questionRect.top - containerRect.top) + "px";
   resultDiv.style.left = "0";
   resultDiv.style.right = "0";
   resultDiv.style.height = questionRect.height + "px";
+  resultDiv.style.zIndex = "10"; // ✅ Au-dessus de la question
+  
+  // === Masquer la question APRÈS avoir calculé sa position ===
+  if (questionDiv) {
+    questionDiv.style.opacity = "0";
+    questionDiv.style.transition = "opacity 0.4s ease";
+  }
   
   resultDiv.innerHTML = '';
   resultDiv.className = '';
@@ -6622,6 +6624,7 @@ if (score === 1) {
       resultDiv.style.left = "";
       resultDiv.style.right = "";
       resultDiv.style.height = "";
+      resultDiv.style.zIndex = "";
     }, 500);
   }, animationDuration);
 } else {
@@ -7667,6 +7670,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
