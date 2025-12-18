@@ -6577,6 +6577,13 @@ if (score === 1) {
   const resultDiv = document.getElementById("result");
   const container = document.querySelector('.quiz-container');
   
+  // ✅ RESET COMPLET des styles inline de la question
+  if (questionDiv) {
+    questionDiv.style.cssText = ''; // Efface TOUS les styles inline
+    // Force un reflow
+    void questionDiv.offsetHeight;
+  }
+  
   // === POSITIONNER #result exactement sur la question ===
   const questionRect = questionDiv.getBoundingClientRect();
   const containerRect = container.getBoundingClientRect();
@@ -6586,7 +6593,7 @@ if (score === 1) {
   resultDiv.style.left = "0";
   resultDiv.style.right = "0";
   resultDiv.style.height = questionRect.height + "px";
-  resultDiv.style.zIndex = "10"; // ✅ Au-dessus de la question
+  resultDiv.style.zIndex = "10";
   
   // === Masquer la question APRÈS avoir calculé sa position ===
   if (questionDiv) {
@@ -7674,6 +7681,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
