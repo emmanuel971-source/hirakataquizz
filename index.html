@@ -6754,71 +6754,75 @@ playFireworkSound();
 }
 
 function triggerLevelUpAnimation(container) {
-const toHide = ['#question', '#choices1', '#choices2'];
-toHide.forEach(id => {
-const el = document.querySelector(id);
-if (el) el.style.visibility = 'hidden';
-});
-
-triggerSakuraFall(container);
-
-setTimeout(() => {
-toHide.forEach(id => {
-const el = document.querySelector(id);
-if (el) {
-el.style.visibility = 'visible';
-el.style.opacity = 0;
-el.animate([
-{ opacity: 0 },
-{ opacity: 1 }
-], {
-duration: 600,
-fill: 'forwards'
-});
-}
-});
-}, 3000);
-
-const msgWrapper = document.createElement("div");
-msgWrapper.style.position = "fixed";
-msgWrapper.style.top = "40%";
-msgWrapper.style.left = "0";
-msgWrapper.style.width = "100vw";
-msgWrapper.style.textAlign = "center";
-msgWrapper.style.zIndex = 9999;
-msgWrapper.style.pointerEvents = "none";
-document.body.appendChild(msgWrapper);
-
+  const toHide = ['#question', '#choices1', '#choices2'];
+  toHide.forEach(id => {
+    const el = document.querySelector(id);
+    if (el) el.style.visibility = 'hidden';
+  });
+  
+  triggerSakuraFall(container);
+  
+  setTimeout(() => {
+    toHide.forEach(id => {
+      const el = document.querySelector(id);
+      if (el) {
+        el.style.visibility = 'visible';
+        // ❌ SUPPRIME cette ligne : el.style.opacity = 0;
+        
+        el.animate([
+          { opacity: 0 },
+          { opacity: 1 }
+        ], {
+          duration: 600,
+          fill: 'forwards'
+        }).onfinish = () => {
+          // ✅ AJOUTE ça : reset l'opacity inline après l'animation
+          el.style.opacity = '';
+        };
+      }
+    });
+  }, 3000);
+  
+  const msgWrapper = document.createElement("div");
+  msgWrapper.style.position = "fixed";
+  msgWrapper.style.top = "40%";
+  msgWrapper.style.left = "0";
+  msgWrapper.style.width = "100vw";
+  msgWrapper.style.textAlign = "center";
+  msgWrapper.style.zIndex = 9999;
+  msgWrapper.style.pointerEvents = "none";
+  document.body.appendChild(msgWrapper);
+  
   const msg = document.createElement("div");
-  msg.innerText = t('msg_level_up'); // ✅ MODIFIÉ
+  msg.innerText = t('msg_level_up');
   msg.style.display = "inline-block";
-msg.style.fontSize = "3em";
-msg.style.fontWeight = "bold";
-msg.style.color = "#8B6F47";
-msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #FDC1C5";
-msg.style.writingMode = "horizontal-tb";
-msg.style.whiteSpace = "nowrap";
-msgWrapper.appendChild(msg);
-
-msg.animate([
-{ transform: "translateY(0)", opacity: 1 },
-{ transform: "translateY(-40px)", opacity: 0 }
-], {
-duration: 3000,
-easing: "ease-out"
-}).onfinish = () => msgWrapper.remove();
-
-const marker = document.querySelector(".progress-marker");
-if (marker) {
-marker.animate([
-{ transform: "translate(-50%, -50%) rotate(0deg) scale(1)" },
-{ transform: "translate(-50%, -50%) rotate(180deg) scale(4)" },
-{ transform: "translate(-50%, -50%) rotate(360deg) scale(1)" }
-], {
-duration: 1000,
-easing: "ease-in-out"
-});
-}
+  msg.style.fontSize = "3em";
+  msg.style.fontWeight = "bold";
+  msg.style.color = "#8B6F47";
+  msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #FDC1C5";
+  msg.style.writingMode = "horizontal-tb";
+  msg.style.whiteSpace = "nowrap";
+  msgWrapper.appendChild(msg);
+  
+  msg.animate([
+    { transform: "translateY(0)", opacity: 1 },
+    { transform: "translateY(-40px)", opacity: 0 }
+  ], {
+    duration: 3000,
+    easing: "ease-out"
+  }).onfinish = () => msgWrapper.remove();
+  
+  const marker = document.querySelector(".progress-marker");
+  if (marker) {
+    marker.animate([
+      { transform: "translate(-50%, -50%) rotate(0deg) scale(1)" },
+      { transform: "translate(-50%, -50%) rotate(180deg) scale(4)" },
+      { transform: "translate(-50%, -50%) rotate(360deg) scale(1)" }
+    ], {
+      duration: 1000,
+      easing: "ease-in-out"
+    });
+  }
 }
 /**
  * pulse des items questions révisions
@@ -7670,6 +7674,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
