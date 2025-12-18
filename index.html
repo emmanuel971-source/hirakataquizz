@@ -6577,13 +6577,6 @@ if (score === 1) {
   const resultDiv = document.getElementById("result");
   const container = document.querySelector('.quiz-container');
   
-  // ✅ RESET COMPLET des styles inline de la question
-  if (questionDiv) {
-    questionDiv.style.cssText = ''; // Efface TOUS les styles inline
-    // Force un reflow
-    void questionDiv.offsetHeight;
-  }
-  
   // === POSITIONNER #result exactement sur la question ===
   const questionRect = questionDiv.getBoundingClientRect();
   const containerRect = container.getBoundingClientRect();
@@ -6595,10 +6588,9 @@ if (score === 1) {
   resultDiv.style.height = questionRect.height + "px";
   resultDiv.style.zIndex = "10";
   
-  // === Masquer la question APRÈS avoir calculé sa position ===
+  // === Masquer la question avec visibility au lieu d'opacity ===
   if (questionDiv) {
-    questionDiv.style.opacity = "0";
-    questionDiv.style.transition = "opacity 0.4s ease";
+    questionDiv.style.visibility = "hidden"; // ✅ Utilise visibility
   }
   
   resultDiv.innerHTML = '';
@@ -6621,7 +6613,7 @@ if (score === 1) {
   const animationDuration = 1800;
   setTimeout(() => {
     if (questionDiv) {
-      questionDiv.style.opacity = "1";
+      questionDiv.style.visibility = "visible"; // ✅ Réaffiche avec visibility
     }
     resultDiv.style.opacity = "0";
     setTimeout(() => {
@@ -7681,6 +7673,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
