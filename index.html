@@ -2608,7 +2608,7 @@ function setMenuEmoji(emoji) {
   setTimeout(() => {
     el.textContent = emoji;
     el.style.opacity = '1';
-     convertEmojisToTwemoji(el);
+     safeConvertEmojis(el);
   }, 180);
 }
 
@@ -2754,7 +2754,7 @@ function updateAllTexts() {
       loadingText.textContent = `(${t('welcome_loading')})`;
     }
   }
-    setTimeout(() => convertAllEmojis(), 50);
+    setTimeout(() => afeConvertEmojis(document.body), 50);
 }
 
 // Fonction auxiliaire pour mettre à jour les titres
@@ -4063,7 +4063,7 @@ function generateGarden() {
         `;
 
         currentRow.appendChild(itemDiv);
-        convertEmojisToTwemoji(itemDiv);
+        safeConvertEmojis(itemDiv);
         itemsInRow++;
       });
     }
@@ -4182,7 +4182,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
 
   // Activer le portal
   portal.classList.add('active');
-convertEmojisToTwemoji(portal);
+safeConvertEmojis(portal);
   // Fade vers blanc après 0.3s
   setTimeout(() => {
     const flashcard = portal.querySelector('.revision-flashcard');
@@ -4302,7 +4302,7 @@ function showUnlockFlashcard(featureName, emoji, message) {
   `;
   
   portal.classList.add('active');
-  convertEmojisToTwemoji(portal);
+  safeConvertEmojis(portal);
   // Son de célébration
   if (soundEnabled) {
     playLevelUp();
@@ -4619,9 +4619,23 @@ function startApp() {
   
   updateMenuMessage();
 }
+// === PROTECTION TWEMOJI ===
+window.safeConvertEmojis = function(element) {
+  if (!element || typeof twemoji === 'undefined') {
+    if (element) setTimeout(() => safeConvertEmojis(element), 200);
+    return;
+  }
+  twemoji.parse(element, { folder: 'svg', ext: '.svg' });
+};  
 // === FONCTION TWEMOJI UNIVERSELLE ===
-function convertEmojisToTwemoji(element) {
+function safeConvertEmojis(element) {
   if (!element) return;
+  
+  // Si twemoji n'est pas chargé, réessayer dans 200ms
+  if (typeof twemoji === 'undefined') {
+    setTimeout(() => safeConvertEmojis(element), 200);
+    return;
+  }
   
   twemoji.parse(element, {
     folder: 'svg',
@@ -4629,17 +4643,10 @@ function convertEmojisToTwemoji(element) {
   });
 }
 
-// Convertir automatiquement tous les emojis au chargement
-function convertAllEmojis() {
-  // ✅ ATTENDRE QUE TWEMOJI SOIT CHARGÉ
-  if (!window.twemojiLoaded || typeof twemoji === 'undefined') {
-    console.log('⏳ Attente du chargement de Twemoji...');
-    setTimeout(convertAllEmojis, 100);
-    return;
-  }
+
   
   console.log('✅ Twemoji chargé, conversion des emojis...');
-  convertEmojisToTwemoji(document.body);
+  safeConvertEmojis(document.body);
 }
 function updateMenuSectionMessage() {
   const messages = [
@@ -5903,7 +5910,7 @@ const pct = maxLevel > 1 ? ((currentLevel - 1) / (maxLevel - 1)) * 100 : 0;
 marker.style.left = `${Math.min(100, Math.max(0, pct))}%`;
 
 barTrack.appendChild(marker);
-convertEmojisToTwemoji(marker);
+safeConvertEmojis(marker);
 container.appendChild(leftEmoji);
 container.appendChild(barTrack);
 container.appendChild(rightEmoji);
@@ -6687,7 +6694,7 @@ if (score === 1) {
     `;
     resultDiv.style.opacity = "1"; 
       // ✅ AJOUTER CETTE LIGNE
-  convertEmojisToTwemoji(resultDiv);
+  safeConvertEmojis(resultDiv);
     setTimeout(() => createSparkles(), 100);
   }, 10);
 
@@ -7312,7 +7319,7 @@ window.onload = () => {
   loadSoundSettings();
   updateSoundUI();
   initGame();
-   setTimeout(convertAllEmojis, 500); // Petit délai pour s'assurer que tout est chargé
+   setTimeout(() => safeConvertEmojis(document.body), 1000); // Petit délai pour s'assurer que tout est chargé
 };
 // ✅ AJOUTÉ : Tracking des interactions utilisateur (anti-bot)
 document.addEventListener('click', () => userInteractions.clicks++);
@@ -7756,6 +7763,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
