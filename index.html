@@ -2754,7 +2754,7 @@ function updateAllTexts() {
       loadingText.textContent = `(${t('welcome_loading')})`;
     }
   }
-    setTimeout(() => afeConvertEmojis(document.body), 50);
+    setTimeout(() => safeConvertEmojis(document.body), 50);
 }
 
 // Fonction auxiliaire pour mettre à jour les titres
@@ -7760,6 +7760,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
