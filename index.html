@@ -5,7 +5,8 @@
   <link rel="icon" href="data:,">
   <base target="_top">
 <script type="module">
-import uEmojiParser from 'https://cdn.jsdelivr.net/npm/universal-emoji-parser@latest/dist/index.min.js';
+  src="https://cdn.jsdelivr.net/npm/universal-emoji-parser@latest/dist/index.min.js"
+  onload="window.twemojiLoaded = true"
 </script>
   <style>
 /* Dans ton CSS */
@@ -7775,6 +7776,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
