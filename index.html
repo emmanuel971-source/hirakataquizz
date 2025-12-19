@@ -4619,14 +4619,30 @@ function startApp() {
   
   updateMenuMessage();
 }
-// === PROTECTION TWEMOJI ===
-window.safeConvertEmojis = function(element) {
-  if (!element || typeof twemoji === 'undefined') {
-    if (element) setTimeout(() => safeConvertEmojis(element), 200);
+// === FONCTION UNIVERSELLE SÉCURISÉE AVEC LIMITE ===
+window.safeConvertEmojis = function(element, attempt = 0) {
+  const MAX_ATTEMPTS = 20; // Maximum 20 tentatives = 4 secondes
+  
+  if (!element) return;
+  
+  // Si twemoji n'est pas chargé après MAX_ATTEMPTS, abandonner
+  if (typeof twemoji === 'undefined') {
+    if (attempt < MAX_ATTEMPTS) {
+      console.log(`⏳ Tentative ${attempt + 1}/${MAX_ATTEMPTS} - Attente de Twemoji...`);
+      setTimeout(() => safeConvertEmojis(element, attempt + 1), 200);
+    } else {
+      console.warn('❌ Twemoji n\'a pas pu être chargé après', MAX_ATTEMPTS, 'tentatives');
+    }
     return;
   }
-  twemoji.parse(element, { folder: 'svg', ext: '.svg' });
-};  
+  
+  // Twemoji est chargé, convertir !
+  console.log('✅ Twemoji chargé, conversion des emojis...');
+  twemoji.parse(element, { 
+    folder: 'svg', 
+    ext: '.svg' 
+  });
+}; 
 // === FONCTION TWEMOJI UNIVERSELLE ===
 function safeConvertEmojis(element) {
   if (!element) return;
@@ -7760,6 +7776,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
