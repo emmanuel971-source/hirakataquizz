@@ -4,7 +4,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <link rel="icon" href="data:,">
   <base target="_top">
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js"></script>
+   <script 
+  src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js"
+  onload="window.twemojiLoaded = true"
+></script>
   <style>
 /* Dans ton CSS */
 :root {
@@ -4628,9 +4631,16 @@ function convertEmojisToTwemoji(element) {
 
 // Convertir automatiquement tous les emojis au chargement
 function convertAllEmojis() {
-  // Convertir le body entier
+  // ✅ ATTENDRE QUE TWEMOJI SOIT CHARGÉ
+  if (!window.twemojiLoaded || typeof twemoji === 'undefined') {
+    console.log('⏳ Attente du chargement de Twemoji...');
+    setTimeout(convertAllEmojis, 100);
+    return;
+  }
+  
+  console.log('✅ Twemoji chargé, conversion des emojis...');
   convertEmojisToTwemoji(document.body);
-}  
+}
 function updateMenuSectionMessage() {
   const messages = [
     'Continues à apprendre ! 🌸',
@@ -7746,6 +7756,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
