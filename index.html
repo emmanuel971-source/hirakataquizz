@@ -4,7 +4,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <link rel="icon" href="data:,">
   <base target="_top">
-<script src="https://cdn.jsdelivr.net/npm/openmoji@latest/data/openmoji.json"></script>
+<script 
+  src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js"
+  onload="window.twemojiLoaded = true"
+></script>
   <style>
 /* Dans ton CSS */
 :root {
@@ -4633,13 +4636,20 @@ window.safeConvertEmojis = function(element, attempt = 0) {
     return;
   }
   
-  // Twemoji est chargé, convertir !
-  console.log('✅ Twemoji chargé, conversion des emojis...');
+ console.log('✅ Twemoji chargé, conversion des emojis...');
   twemoji.parse(element, { 
     folder: 'svg', 
-    ext: '.svg' 
+    ext: '.svg',
+    // ✅ TESTE DIFFÉRENTS PACKS ICI
+   base: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/'
+    
+    // Ou essaye celui-ci (ancien style Twitter) :
+    // base: 'https://twemoji.maxcdn.com/v/latest/svg/'
+    
+    // Ou celui-ci (plus récent) :
+    // base: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/'
   });
-}; 
+};
 // === FONCTION TWEMOJI UNIVERSELLE ===
 function safeConvertEmojis(element) {
   if (!element) return;
@@ -7773,40 +7783,5 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
