@@ -4638,9 +4638,13 @@ window.safeConvertEmojis = function(element, attempt = 0) {
   
   console.log('✅ Twemoji chargé, conversion avec emojis Fluent 3D...');
   twemoji.parse(element, { 
-    folder: '', // ✅ Pas de sous-dossier
-    ext: '.png', // ✅ PNG au lieu de SVG
-    base: 'https://emmanuel971-source.github.io/hirakataquizz/emojis/' // ✅ TON serveur !
+    folder: '', // ✅ Chaîne vide = pas de sous-dossier
+    ext: '.png',
+    base: 'https://emmanuel971-source.github.io/hirakataquizz/emojis/',
+    // ✅ AJOUTE CETTE LIGNE pour forcer à ne pas utiliser de sous-dossier de taille
+    callback: function(icon, options) {
+      return options.base + icon + options.ext;
+    }
   });
 };
 // === FONCTION TWEMOJI UNIVERSELLE ===
@@ -7776,6 +7780,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
