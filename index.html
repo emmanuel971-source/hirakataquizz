@@ -6671,7 +6671,7 @@ const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
 
 let emoji = "", resultText = "";
 if (score === 1) {
-  const emojisOK = ["🐛","🐸","🌵","🌴","🍏","🍀","🌳","🌿","🌱","💩","👻","😸","😽","👽","🌈","🐻","🐺","🐌","💯","✅","🧠","🐶","🐵"];
+  const emojisOK = ["🦋","🐸","🌵","🌴","🍏","🍀","🌳","🌿","🌱","💩","👻","😸","😽","👽","🌈","🐻","🐞","🐌","🌞","✅","🧠","🐶","🐵"];
   emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
   resultText = isFinalValidation ? t('msg_validated') : t('msg_perfect');
   if (!isFinalValidation) {
@@ -7780,6 +7780,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
