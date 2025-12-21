@@ -36,9 +36,22 @@ h1 {margin: 0.5em 0; font-size: 1.8em; text-align: center; color: var(--brown-pr
 h2 {margin: 0.1em 0; font-size: 2.5em; text-align: center; color: var(--brown-primary); text-shadow: 0 1px 2px var(--shadow-brown-light); margin-bottom: 5px;}
 .menu {gap: 15px;}
 #welcome {display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100dvh; min-height: 100dvh; text-align: center;}
-.panda-logo {font-size: 12em; cursor: pointer; transition: transform 0.3s ease; animation: pandaPulse 2s ease-in-out infinite;}
+.panda-logo {
+  font-size: 12em;
+  cursor: pointer;
+  transition: transform 0.3s ease, opacity 0.6s ease;
+  animation: pandaPulse 2s ease-in-out infinite;
+  opacity: 0; /* ✅ Invisible au départ */
+}
+
+.panda-logo.loaded {
+  opacity: 1; /* ✅ Visible quand chargé */
+}
 .panda-logo:hover {transform: scale(1.1);}
-@keyframes pandaPulse {0%, 100% { transform: scale(1); } 50% { transform: scale(1.20); }}
+@keyframes pandaPulse {
+  0%, 100% { transform: scale(1); } 
+  50% { transform: scale(1.20); }
+}
 .welcome-title {font-size: 2.5em; color: var(--brown-primary); text-shadow: 0 1px 2px var(--shadow-brown-light); margin-top: 50px; margin-bottom: 5px;}
 .welcome-subtitle {font-size: 1.2em; color: var(--brown-primary); opacity: 0.8;}
 .loading-dots {font-size: 1.5em; color: var(--brown-primary); margin-top: 30px; animation: loadingDots 1.5s infinite; margin-bottom: 1px;}
@@ -7386,37 +7399,63 @@ if (sectionId === 'stats') {
 </body>  
 </body>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const panda = document.querySelector(".panda-logo");
-  if (panda) {
-   panda.addEventListener("click", () => {
-  document.getElementById("welcome").classList.add("hidden");
-  loadDifficulty();
-  updateMenuMessage();
-  updateApprendreButtonState();
+  if (!panda) return;
   
-  const menuBtn = document.querySelector(".hamburger");
-  if (menuBtn) menuBtn.classList.remove("hidden");
+  // ✅ NOUVEAU : Précharger l'image du panda Fluent 3D
+  const pandaImg = new Image();
+  pandaImg.src = 'https://emmanuel971-source.github.io/hirakataquizz/emojis/1f43c.png';
   
-  // ✅ NOUVEAU : Différencier new user vs returning user
-  if (!userToken || !currentUser) {
-    // 🆕 NEW USER : Création de compte
-    showSection('create-account');
-    generateNewPseudo();
-  } else {
-    // 🔁 RETURNING USER : Message de bienvenue + menu
-    showReturningUserWelcome(currentUser.pseudo);
-  }
+  await new Promise((resolve) => {
+    pandaImg.onload = () => {
+      console.log('✅ Panda Fluent 3D préchargé');
+      resolve();
+    };
+    pandaImg.onerror = () => {
+      console.warn('⚠️ Erreur chargement panda');
+      resolve();
+    };
+    // Timeout de sécurité
+    setTimeout(resolve, 500);
+  });
   
-  niveauActif = determineNiveauActif(HiraganaList);
-  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-  updateLevelProgress(HiraganaList, niveauActif);
-  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  nextQuestion();      
-  updateRevisionButtonState();
-  updateApprendreButtonState();
-});
-  }
+  // ✅ NOUVEAU : Convertir le panda en Fluent 3D
+  safeConvertEmojis(panda);
+  
+  // ✅ NOUVEAU : Attendre que Twemoji ait remplacé l'emoji puis fade in
+  setTimeout(() => {
+    panda.classList.add('loaded');
+  }, 200);
+  
+  // ✅ ANCIEN CODE : Événement click (inchangé)
+  panda.addEventListener("click", () => {
+    document.getElementById("welcome").classList.add("hidden");
+    loadDifficulty();
+    updateMenuMessage();
+    updateApprendreButtonState();
+    
+    const menuBtn = document.querySelector(".hamburger");
+    if (menuBtn) menuBtn.classList.remove("hidden");
+    
+    // ✅ NOUVEAU : Différencier new user vs returning user
+    if (!userToken || !currentUser) {
+      // 🆕 NEW USER : Création de compte
+      showSection('create-account');
+      generateNewPseudo();
+    } else {
+      // 🔁 RETURNING USER : Message de bienvenue + menu
+      showReturningUserWelcome(currentUser.pseudo);
+    }
+    
+    niveauActif = determineNiveauActif(HiraganaList);
+    document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+    updateLevelProgress(HiraganaList, niveauActif);
+    renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+    nextQuestion();      
+    updateRevisionButtonState();
+    updateApprendreButtonState();
+  });
   
   updateAllTexts();
 });
@@ -7780,6 +7819,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
