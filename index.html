@@ -5944,6 +5944,8 @@ safeConvertEmojis(marker);
 container.appendChild(leftEmoji);
 container.appendChild(barTrack);
 container.appendChild(rightEmoji);
+  // ✅ AJOUTER CETTE LIGNE
+  safeConvertEmojis(container);  
 }
 
 function determineNiveauActif(list) {
@@ -7331,7 +7333,35 @@ window.addEventListener('load', () => {
   initRevisionKeyboard();
 });
 
+// === PRÉCHARGEMENT DES EMOJIS ===
+const EMOJIS_USED = [
+  '🦋', '🐸', '🌵', '🌴', '🍏', '🍀', '🌳', '🌿', '🌱', '💩', '👻', '😸', '😽', '👽', '🌈', 
+  '🐻', '🐞', '🐌', '🌞', '✅', '🧠', '🐶', '🐵'
+];
+
+function preloadEmojis() {
+  console.log('🔄 Préchargement de', EMOJIS_USED.length, 'emojis Fluent 3D...');
   
+  let loaded = 0;
+  
+  EMOJIS_USED.forEach(emoji => {
+    // Gérer les emojis simples et composés (drapeaux, etc.)
+    const codes = [...emoji].map(c => c.codePointAt(0).toString(16));
+    const filename = codes.join('-');
+    
+    const img = new Image();
+    img.src = `https://emmanuel971-source.github.io/hirakataquizz/emojis/${filename}.png`;
+    
+    img.onload = () => {
+      loaded++;
+      console.log(`✅ ${emoji} (${filename}.png) préchargé [${loaded}/${EMOJIS_USED.length}]`);
+    };
+    
+    img.onerror = () => {
+      console.warn(`❌ ${emoji} (${filename}.png) introuvable !`);
+    };
+  });
+}  
   
   // Démarrage du jeu
 window.onload = () => {
@@ -7349,6 +7379,9 @@ window.onload = () => {
   loadSoundSettings();
   updateSoundUI();
   initGame();
+    
+  // ✅ Précharger les emojis en arrière-plan
+  setTimeout(preloadEmojis, 500);
    setTimeout(() => safeConvertEmojis(document.body), 1000); // Petit délai pour s'assurer que tout est chargé
 };
 // ✅ AJOUTÉ : Tracking des interactions utilisateur (anti-bot)
@@ -7819,6 +7852,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
