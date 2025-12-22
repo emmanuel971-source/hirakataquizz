@@ -7481,13 +7481,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       showReturningUserWelcome(currentUser.pseudo);
     }
     
-    niveauActif = determineNiveauActif(HiraganaList);
-    document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-    updateLevelProgress(HiraganaList, niveauActif);
-    renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-    nextQuestion();      
-    updateRevisionButtonState();
-    updateApprendreButtonState();
+  // ✅ GARDER UNIQUEMENT nextQuestion() (le reste est déjà fait dans initGame)
+  nextQuestion();
   });
   
   updateAllTexts();
@@ -7852,6 +7847,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
