@@ -1215,6 +1215,85 @@ img.emoji {
   width: 1em;
   height: 1em;
 }   
+.revision-flashcard .rev-content {
+  padding: 20px;
+  text-align: center;
+}
+
+.rev-romaji {
+  font-size: 3em;
+  font-weight: bold;
+  color: var(--brown-primary);
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.rev-counterpart {
+  font-size: 2.4em;
+  color: var(--gray-dark);
+  margin: 25px 0;
+  opacity: 0.9;
+}
+
+.rev-bottom-zone {
+  position: relative;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.rev-score {
+  font-size: 2em;
+  color: var(--brown-primary);
+  transition: opacity 0.6s ease;
+}
+
+#rev-new-score {
+  color: var(--green-primary);
+  font-weight: bold;
+}
+
+.rev-plant-transform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 5em;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.6s ease;
+}
+
+.rev-plant-transform .arrow {
+  font-size: 0.6em;
+  color: var(--green-primary);
+  animation: pulse 1.5s infinite;
+}
+
+/* Animations simples */
+@keyframes fadeOutLeft {
+  to { opacity: 0; transform: translateX(-20px); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(20px) scale(0.8); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Mobile */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  .rev-romaji { font-size: 2.6em; }
+  .rev-counterpart { font-size: 2.1em; }
+  .rev-score { font-size: 1.8em; }
+  .rev-plant-transform { font-size: 4.5em; gap: 15px; }
+}    
   </style>
 </head>
 <body>
@@ -4174,110 +4253,95 @@ function getPlantEmoji(validation) {
 // function openGardenModal du mode révisions  
 let modalCloseTimer = null; // Variable globale pour annuler le timer précédent    
 // Flashcard de révision utilisant le portal
-function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidation, animateStatusChange = false, animateScore = false) {
-  const portal = document.getElementById('modal-portal');
-  
-  // Emoji de l'ancienne plante (pour l'animation de changement de statut)
-  const oldPlant = animateStatusChange ? getPlantEmoji(oldValidation) : emoji;
+function openRevisionFlashcard(item, newPlantEmoji, isCorrect, oldValidation, newValidation, statusChanged, alwaysShowScore = true) {
+  // Créer ou récupérer la flashcard (comme tu le fais déjà probablement)
+  let flashcard = document.getElementById('revision-flashcard');
+  if (!flashcard) {
+    flashcard = document.createElement('div');
+    flashcard.id = 'revision-flashcard';
+    flashcard.className = 'revision-flashcard'; // tu as déjà une classe CSS pour le style global
+    document.body.appendChild(flashcard);
+  }
 
-  // Construire le contenu de la flashcard
-  portal.innerHTML = `
-    <div class="revision-flashcard" style="background-color: ${isCorrect ? '#d4edda' : '#f8d7da'};">
-      <div class="romaji-display" style="font-size: 3.8em; font-weight: bold; color: #333; margin-bottom: 0.4em;">
-        ${item.Romaji}
-      </div>
+  // Déterminer le caractère complémentaire
+  const isHiraganaQuestion = item.type === 'hiragana';
+  const counterpartChar = isHiraganaQuestion 
+    ? getLocalizedKatakana(item) 
+    : item.Hiragana;
+
+  // Feedback correct/incorrect via classe (tu peux l'utiliser dans ton CSS existant)
+  flashcard.className = 'revision-flashcard ' + (isCorrect ? 'correct' : 'incorrect');
+
+  // Nouveau contenu en 3 lignes claires
+  flashcard.innerHTML = `
+    <div class="rev-content">
+      <!-- Ligne 1 : Romaji -->
+      <div class="rev-romaji">${item.Romaji.toUpperCase()}</div>
       
-      <div class="score-display" style="font-size: 2.4em; font-weight: bold; margin: 0.6em 0; color: #8B6F47;">
-        Score : 
-        <div style="display: inline-block; position: relative; width: 90px; height: 70px; overflow: hidden; margin-left: 12px; vertical-align: middle;">
-          <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; line-height: 70px;">
-            ${oldValidation}
-          </div>
-          <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
-            ${newValidation}
-          </div>
+      <!-- Ligne 2 : Écriture complémentaire -->
+      <div class="rev-counterpart">${counterpartChar}</div>
+      
+      <!-- Ligne 3 : Zone score / animation plante -->
+      <div class="rev-bottom-zone">
+        <div class="rev-score" id="rev-score-display">
+          Validation : <span id="rev-score-number">${oldValidation}</span> → <span id="rev-new-score">${newValidation}</span>
         </div>
-      </div>
-
-      <div class="plant-display" id="plant-container" style="position: relative; font-size: 4.5em; min-height: 1.3em; margin: 0.8em 0;">
-        <span id="plant-old" style="display: inline-block; transition: transform 0.2s ease-out;">${oldPlant}</span>
-        <span id="plant-new" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; display: inline-block;">${emoji}</span>
-      </div>
-
-      <div class="char-display" style="font-size: 2.2em; color: #8B6F47; line-height: 1.4;">
-        ${item.Hiragana}　<span style="color: #666;">${getLocalizedKatakana(item) || ''}</span>
+        
+        ${statusChanged ? `
+          <div class="rev-plant-transform" id="rev-plant-transform">
+            <span class="old-plant">${getPlantEmoji(oldValidation)}</span>
+            <span class="arrow">➜</span>
+            <span class="new-plant">${newPlantEmoji}</span>
+          </div>
+        ` : ''}
       </div>
     </div>
   `;
 
-  // Activer le portal
-  portal.classList.add('active');
-safeConvertEmojis(portal);
-  // Fade vers blanc après 0.3s
+  // Afficher la flashcard (tu as déjà ton système d'apparition)
+  flashcard.classList.add('visible'); // ou ce que tu utilises déjà
+
+  // === Animations ===
   setTimeout(() => {
-    const flashcard = portal.querySelector('.revision-flashcard');
-    if (flashcard) {
-      flashcard.style.transition = 'background-color 0.5s ease-out';
-      flashcard.style.backgroundColor = '#ffffff';
+    // 1. Animation rouleau du score
+    const scoreNumber = document.getElementById('rev-score-number');
+    const newScore = document.getElementById('rev-new-score');
+    if (scoreNumber && newScore) {
+      scoreNumber.style.opacity = '0.4';
+      newScore.style.opacity = '1';
+      newScore.style.fontWeight = 'bold';
+      newScore.style.color = 'var(--green-primary)';
+    }
+
+    // 2. Si évolution de plante → fade out du score et reveal de la transformation
+    if (statusChanged) {
+      setTimeout(() => {
+        document.getElementById('rev-score-display').style.opacity = '0';
+        setTimeout(() => {
+          const transformZone = document.getElementById('rev-plant-transform');
+          if (transformZone) {
+            transformZone.style.opacity = '1';
+            transformZone.style.transform = 'scale(1)';
+            
+            // Petite animation des emojis plante
+            transformZone.querySelector('.old-plant').style.animation = 'fadeOutLeft 0.6s ease-out';
+            transformZone.querySelector('.new-plant').style.animation = 'fadeInRight 0.8s ease-out 0.3s forwards';
+          }
+        }, 400);
+      }, 1000);
     }
   }, 300);
 
-  // Son
-if (voiceEnabled) { // ✅ AJOUT
-  new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`)
-    .play()
-    .catch(() => {});
-}
-
-  // === ANIMATIONS APRÈS LE FADE VERS BLANC (0.8s) ===
+  // Disparition automatique (garde ton timing actuel, probablement ~3500ms)
   setTimeout(() => {
-    // 1. Animation du score (compteur à rouleaux)
-    if (animateScore) {
-      const oldS = document.getElementById('score-old');
-      const newS = document.getElementById('score-new');
-      
-      if (oldS && newS) {
-        if (isCorrect) {
-          oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
-          newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
-        } else {
-          oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
-          newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
-        }
+    flashcard.classList.remove('visible');
+    setTimeout(() => {
+      if (flashcard && flashcard.parentNode) {
+        flashcard.parentNode.removeChild(flashcard);
       }
-    }
-
-    // 2. Animation de changement de plante
-    if (animateStatusChange) {
-      const oldP = document.getElementById('plant-old');
-      const newP = document.getElementById('plant-new');
-
-      if (oldP && newP) {
-        // Étape 1 : Ancienne plante grossit x1.5
-        oldP.style.transform = 'scale(1.5)';
-
-        // Étape 2 (200ms) : Transition vers nouvelle plante
-        setTimeout(() => {
-          oldP.style.opacity = '0';
-          newP.style.opacity = '1';
-          newP.style.transform = 'translate(-50%, -50%) scale(1.5)';
-        }, 200);
-
-        // Étape 3 (400ms) : Nouvelle plante revient à taille normale
-        setTimeout(() => {
-          newP.style.transition = 'transform 0.2s ease-out';
-          newP.style.transform = 'translate(-50%, -50%) scale(1)';
-        }, 400);
-      }
-    }
-  }, 800);
-
-  // Fermeture automatique après 3 secondes
-  setTimeout(() => {
-    closeRevisionFlashcard();
-  }, 3000);
+    }, 500);
+  }, 3500);
 }
-
 // Fonction pour fermer la flashcard de révision
 function closeRevisionFlashcard() {
   const portal = document.getElementById('modal-portal');
@@ -7865,6 +7929,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
