@@ -1300,6 +1300,50 @@ img.emoji {
     transform: translate(-50%, -50%) scale(1) rotate(0deg);
     filter: brightness(1);
   }
+}
+/* 🎨 Animation jelly pour la transformation */
+@keyframes jelly {
+  0%, 100% { transform: scale(1, 1); }
+  25% { transform: scale(0.9, 1.1); }
+  50% { transform: scale(1.1, 0.9); }
+  75% { transform: scale(0.95, 1.05); }
+}
+
+.jelly {
+  animation: jelly 0.6s ease-in-out;
+}
+
+/* ✨ Effet shine pour la transformation */
+.shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+  animation: shineEffect 0.8s ease-out forwards;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes shineEffect {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* 🍃 Sparkles spécifiques pour leaf */
+.sparkle-leaf {
+  animation: sparkleFloat 0.8s ease-out forwards;
 }    
   </style>
 </head>
@@ -4304,7 +4348,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           </div>
           
           <!-- ✅ Container plante avec position relative pour les sparkles -->
-          <div id="plant-container" style="position: absolute; opacity: 0; font-size: 4.5em;">
+          <div id="plant-container" style="position: relative; opacity: 0; font-size: 4.5em;">
             <span id="plant-old" style="display: inline-block;">${oldPlant}</span>
             <span id="plant-new" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; display: inline-block;">${emoji}</span>
           </div>
@@ -4378,7 +4422,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           scoreContainer.style.opacity = '0';
         }
         
-        // ✅ ANIMATION PERFECTIONNÉE : Shake crescendo → Explosion → Pop
+        // ✅ ANIMATION AVEC TES NOUVELLES ANIMATIONS JELLY + SPARKLES
         if (plantContainer) {
           plantContainer.style.opacity = '1';
           plantContainer.style.transition = 'opacity 0.3s ease-in';
@@ -4387,31 +4431,41 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           const newP = document.getElementById('plant-new');
 
           if (oldP && newP) {
-            // 🎬 PHASE 1 : Shake crescendo (doux → intense) - 0.6s
+            // 🎬 PHASE 1 : Ancienne plante avec effet jelly
             setTimeout(() => {
-              oldP.style.animation = 'plantShakeCrescendo 0.6s ease-in forwards';
-            }, 50);
-
-            // 🎬 PHASE 2 : EXPLOSION directe (pas de zoom) + SPARKLES + Nouvelle plante (0.6s)
-            setTimeout(() => {
-              // Ancienne plante disparaît avec effet d'explosion (SANS zoom intermédiaire)
-              oldP.style.transition = 'all 0.15s ease-out';
-              oldP.style.transform = 'scale(2) rotate(180deg)';
-              oldP.style.opacity = '0';
-              oldP.style.filter = 'blur(15px) brightness(3)';
+              oldP.classList.add('jelly');
               
-              // ✨ SPARKLES
-              createSparklesForPlant(plantContainer);
+              // ✨ Sparkles avec type "leaf" pour la transformation
+              spawnSparklesForPlant(plantContainer, "leaf");
               
-              // Son de célébration
+              // 🔔 Son triste (passage à un statut inférieur)
               if (soundEnabled) {
-                playTwinkle();
+                playSoftError(); // ou créer une fonction sadSound()
               }
               
-              // Nouvelle plante apparaît avec pop shimmer
-              newP.style.opacity = '1';
-              newP.style.animation = 'plantPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards';
-            }, 650);
+              // ✨ Effet shine
+              const shine = document.createElement("div");
+              shine.className = "shine";
+              shine.style.position = "absolute";
+              shine.style.top = "0";
+              shine.style.left = "0";
+              shine.style.right = "0";
+              shine.style.bottom = "0";
+              shine.style.pointerEvents = "none";
+              plantContainer.appendChild(shine);
+              setTimeout(() => shine.remove(), 800);
+              
+              // 🌿 Transformation après 300ms
+              setTimeout(() => {
+                oldP.style.transition = 'opacity 0.2s ease-out';
+                oldP.style.opacity = '0';
+                
+                // Nouvelle plante apparaît
+                newP.style.opacity = '1';
+                newP.style.animation = 'plantPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards';
+              }, 300);
+              
+            }, 50);
           }
         }
       }, 700); // Attendre fin animation score
@@ -4424,6 +4478,42 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   }, 3000);
 }
 
+// ✅ NOUVELLE FONCTION : Sparkles adaptée pour la flashcard avec type
+function spawnSparklesForPlant(container, type = "leaf") {
+  const sparkleCount = type === "leaf" ? 12 : 8;
+  const sparkleEmojis = type === "leaf" 
+    ? ["🍃", "🌿", "💚", "✨"] 
+    : ["✨", "⭐", "💫", "🌟", "✦"];
+  
+  for (let i = 0; i < sparkleCount; i++) {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle-leaf';
+    sparkle.style.position = 'absolute';
+    sparkle.style.pointerEvents = 'none';
+    sparkle.style.fontSize = '0.6rem';
+    sparkle.style.left = '50%';
+    sparkle.style.top = '50%';
+    
+    const sparkleChar = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+    sparkle.textContent = sparkleChar;
+    
+    // Direction aléatoire en cercle
+    const angle = (Math.PI * 2 * i) / sparkleCount + (Math.random() - 0.5) * 0.5;
+    const distance = 50 + Math.random() * 40;
+    const tx = Math.cos(angle) * distance;
+    const ty = Math.sin(angle) * distance;
+    
+    sparkle.style.setProperty('--tx', `${tx}px`);
+    sparkle.style.setProperty('--ty', `${ty}px`);
+    sparkle.style.setProperty('--sparkle-opacity', 0.5);
+    sparkle.style.animation = `sparkleFloat 0.8s ease-out forwards`;
+    sparkle.style.animationDelay = `${Math.random() * 0.1}s`;
+    
+    container.appendChild(sparkle);
+    
+    setTimeout(() => sparkle.remove(), 900);
+  }
+}
 // ✅ Fonction Sparkles (inchangée)
 function createSparklesForPlant(container) {
   const sparkleEmojis = ["✨", "⭐", "💫", "🌟", "✦"];
@@ -8083,6 +8173,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
