@@ -180,7 +180,7 @@ body.shake {animation: screenShake 0.4s ease-in-out;}
 @keyframes revisionPulse {0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); }}
 #revision-input-display {font-size: 2em; margin: 0 auto 10px auto; height: 25px; padding: 10px; border: 2px solid transparent; border-radius: 12px; width: 300px; text-align: center; background: var(--white); box-shadow: 0 4px 8px var(--shadow-black-light); display: flex; align-items: center; justify-content: center; overflow: hidden;}
 .revision-keyboard {display: grid; grid-template-columns: repeat(5, 60px); gap: 8px; justify-content: center; margin-bottom: 10px; margin-top: 0;}
-.revision-key {width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border: 2px solid transparent; border-radius: 10px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 2.5em; position: relative; overflow: hidden; touch-action: manipulation; background: linear-gradient(145deg, var(--overlay-white-30), var(--overlay-white-10)); box-shadow: inset 0 2px 4px var(--shadow-black-light), 0 4px 8px var(--shadow-black-medium); text-shadow: 0 1px 2px var(--shadow-black-strong);}
+.revision-key {width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border: 2px solid transparent; border-radius: 10px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 2.5em; font-weight: bold; position: relative; overflow: hidden; touch-action: manipulation; background: linear-gradient(145deg, var(--overlay-white-30), var(--overlay-white-10)); box-shadow: inset 0 2px 4px var(--shadow-black-light), 0 4px 8px var(--shadow-black-medium); text-shadow: 0 1px 2px var(--shadow-black-strong);}
 .revision-key:active, .revision-key.active {animation: pressAndRelease 0.3s ease forwards;}
 .revision-key::after {content: ''; position: absolute; width: 100px; height: 100px; background: linear-gradient(45deg, transparent, var(--overlay-white-50), transparent); transform: translateX(-100%) rotate(45deg); transition: transform 0.3s ease; pointer-events: none;}
 .revision-key:active::after, .revision-key.active::after {transform: translateX(100%) rotate(45deg);}
@@ -4174,45 +4174,76 @@ function getPlantEmoji(validation) {
 // function openGardenModal du mode révisions  
 let modalCloseTimer = null; // Variable globale pour annuler le timer précédent    
 // Flashcard de révision utilisant le portal
+// Flashcard de révision utilisant le portal
 function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidation, animateStatusChange = false, animateScore = false) {
   const portal = document.getElementById('modal-portal');
   
   // Emoji de l'ancienne plante (pour l'animation de changement de statut)
   const oldPlant = animateStatusChange ? getPlantEmoji(oldValidation) : emoji;
 
+  // ✅ NOUVEAU : Déterminer quel caractère afficher (inverse de la question)
+  const displayChar = revisionMode.currentItem.type === 'hiragana' 
+    ? getLocalizedKatakana(item)  // Si question était Hiragana → afficher Katakana
+    : item.Hiragana;                // Si question était Katakana → afficher Hiragana
+
   // Construire le contenu de la flashcard
   portal.innerHTML = `
     <div class="revision-flashcard" style="background-color: ${isCorrect ? '#d4edda' : '#f8d7da'};">
-      <div class="romaji-display" style="font-size: 3.8em; font-weight: bold; color: #333; margin-bottom: 0.4em;">
+      
+      <!-- 1️⃣ LIGNE 1 : ROMAJI (principal) -->
+      <div class="romaji-display" style="font-size: 4em; font-weight: bold; color: #333; margin-bottom: 0.5em;">
         ${item.Romaji}
       </div>
       
-      <div class="score-display" style="font-size: 2.4em; font-weight: bold; margin: 0.6em 0; color: #8B6F47;">
-        Score : 
-        <div style="display: inline-block; position: relative; width: 90px; height: 70px; overflow: hidden; margin-left: 12px; vertical-align: middle;">
-          <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; line-height: 70px;">
-            ${oldValidation}
-          </div>
-          <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
-            ${newValidation}
-          </div>
-        </div>
+      <!-- 2️⃣ LIGNE 2 : KATAKANA ou HIRAGANA (opposé de la question) -->
+      <div class="char-display" style="font-size: 2.8em; color: #8B6F47; margin-bottom: 0.5em;">
+        ${displayChar}
       </div>
-
-      <div class="plant-display" id="plant-container" style="position: relative; font-size: 4.5em; min-height: 1.3em; margin: 0.8em 0;">
-        <span id="plant-old" style="display: inline-block; transition: transform 0.2s ease-out;">${oldPlant}</span>
-        <span id="plant-new" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; display: inline-block;">${emoji}</span>
-      </div>
-
-      <div class="char-display" style="font-size: 2.2em; color: #8B6F47; line-height: 1.4;">
-        ${item.Hiragana}　<span style="color: #666;">${getLocalizedKatakana(item) || ''}</span>
+      
+      <!-- 3️⃣ LIGNE 3 : SCORE + ANIMATION (ou EMOJI si changement de statut) -->
+      <div id="line3-container" style="position: relative; min-height: 100px; display: flex; align-items: center; justify-content: center;">
+        
+        ${animateStatusChange ? `
+          <!-- CAS A : Animation de changement de statut (score → emoji) -->
+          <div id="score-container" style="font-size: 2.4em; font-weight: bold; color: #8B6F47;">
+            Score : 
+            <div style="display: inline-block; position: relative; width: 90px; height: 70px; overflow: hidden; margin-left: 12px; vertical-align: middle;">
+              <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; line-height: 70px;">
+                ${oldValidation}
+              </div>
+              <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
+                ${newValidation}
+              </div>
+            </div>
+          </div>
+          
+          <div id="plant-container" style="position: absolute; opacity: 0; font-size: 4.5em;">
+            <span id="plant-old" style="display: inline-block; transition: transform 0.2s ease-out;">${oldPlant}</span>
+            <span id="plant-new" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; display: inline-block;">${emoji}</span>
+          </div>
+        ` : `
+          <!-- CAS B : Animation de score simple (pas de changement de statut) -->
+          <div style="font-size: 2.4em; font-weight: bold; color: #8B6F47;">
+            Score : 
+            <div style="display: inline-block; position: relative; width: 90px; height: 70px; overflow: hidden; margin-left: 12px; vertical-align: middle;">
+              <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; line-height: 70px;">
+                ${oldValidation}
+              </div>
+              <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
+                ${newValidation}
+              </div>
+            </div>
+          </div>
+        `}
+        
       </div>
     </div>
   `;
 
   // Activer le portal
   portal.classList.add('active');
-safeConvertEmojis(portal);
+  safeConvertEmojis(portal);
+
   // Fade vers blanc après 0.3s
   setTimeout(() => {
     const flashcard = portal.querySelector('.revision-flashcard');
@@ -4223,11 +4254,11 @@ safeConvertEmojis(portal);
   }, 300);
 
   // Son
-if (voiceEnabled) { // ✅ AJOUT
-  new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`)
-    .play()
-    .catch(() => {});
-}
+  if (voiceEnabled) {
+    new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(item.Hiragana)}.mp3`)
+      .play()
+      .catch(() => {});
+  }
 
   // === ANIMATIONS APRÈS LE FADE VERS BLANC (0.8s) ===
   setTimeout(() => {
@@ -4247,28 +4278,46 @@ if (voiceEnabled) { // ✅ AJOUT
       }
     }
 
-    // 2. Animation de changement de plante
+    // 2. Animation de changement de statut (score disparaît → emoji apparaît)
     if (animateStatusChange) {
-      const oldP = document.getElementById('plant-old');
-      const newP = document.getElementById('plant-new');
+      const scoreContainer = document.getElementById('score-container');
+      const plantContainer = document.getElementById('plant-container');
+      
+      // Attendre la fin de l'animation du score (0.7s) puis transition
+      setTimeout(() => {
+        // Faire disparaître le score
+        if (scoreContainer) {
+          scoreContainer.style.transition = 'opacity 0.3s ease-out';
+          scoreContainer.style.opacity = '0';
+        }
+        
+        // Faire apparaître le container de plante
+        if (plantContainer) {
+          plantContainer.style.opacity = '1';
+          plantContainer.style.transition = 'opacity 0.3s ease-in';
+          
+          const oldP = document.getElementById('plant-old');
+          const newP = document.getElementById('plant-new');
 
-      if (oldP && newP) {
-        // Étape 1 : Ancienne plante grossit x1.5
-        oldP.style.transform = 'scale(1.5)';
+          if (oldP && newP) {
+            // Étape 1 : Ancienne plante grossit x1.5
+            oldP.style.transform = 'scale(1.5)';
 
-        // Étape 2 (200ms) : Transition vers nouvelle plante
-        setTimeout(() => {
-          oldP.style.opacity = '0';
-          newP.style.opacity = '1';
-          newP.style.transform = 'translate(-50%, -50%) scale(1.5)';
-        }, 200);
+            // Étape 2 (200ms) : Transition vers nouvelle plante
+            setTimeout(() => {
+              oldP.style.opacity = '0';
+              newP.style.opacity = '1';
+              newP.style.transform = 'translate(-50%, -50%) scale(1.5)';
+            }, 200);
 
-        // Étape 3 (400ms) : Nouvelle plante revient à taille normale
-        setTimeout(() => {
-          newP.style.transition = 'transform 0.2s ease-out';
-          newP.style.transform = 'translate(-50%, -50%) scale(1)';
-        }, 400);
-      }
+            // Étape 3 (400ms) : Nouvelle plante revient à taille normale
+            setTimeout(() => {
+              newP.style.transition = 'transform 0.2s ease-out';
+              newP.style.transform = 'translate(-50%, -50%) scale(1)';
+            }, 400);
+          }
+        }
+      }, 700); // Attendre fin animation score
     }
   }, 800);
 
@@ -4277,7 +4326,6 @@ if (voiceEnabled) { // ✅ AJOUT
     closeRevisionFlashcard();
   }, 3000);
 }
-
 // Fonction pour fermer la flashcard de révision
 function closeRevisionFlashcard() {
   const portal = document.getElementById('modal-portal');
@@ -7865,6 +7913,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
