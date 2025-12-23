@@ -1214,7 +1214,35 @@ img.emoji {
 .side-emoji img.emoji {
   width: 1em;
   height: 1em;
-}   
+} 
+/* ✨ Animation de tremblement pour l'ancienne plante */
+@keyframes plantShake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(-3px, 0) rotate(-3deg); }
+  50% { transform: translate(3px, 0) rotate(3deg); }
+  75% { transform: translate(-3px, 0) rotate(-3deg); }
+}
+
+/* 🎉 Animation pop pour la nouvelle plante */
+@keyframes plantPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    filter: brightness(0.5);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.3) rotate(-5deg);
+    filter: brightness(1.5);
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(0.95) rotate(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    filter: brightness(1);
+  }
+}    
   </style>
 </head>
 <body>
@@ -4176,13 +4204,14 @@ let modalCloseTimer = null; // Variable globale pour annuler le timer précéden
 // Flashcard de révision utilisant le portal
 // Flashcard de révision utilisant le portal
 // Flashcard de révision utilisant le portal
+// Flashcard de révision utilisant le portal
 function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidation, animateStatusChange = false, animateScore = false) {
   const portal = document.getElementById('modal-portal');
   
   // Emoji de l'ancienne plante (pour l'animation de changement de statut)
   const oldPlant = animateStatusChange ? getPlantEmoji(oldValidation) : emoji;
 
-  // ✅ NOUVEAU : Déterminer quel caractère afficher (inverse de la question)
+  // ✅ Déterminer quel caractère afficher (inverse de la question)
   const displayChar = revisionMode.currentItem.type === 'hiragana' 
     ? getLocalizedKatakana(item)  // Si question était Hiragana → afficher Katakana
     : item.Hiragana;                // Si question était Katakana → afficher Hiragana
@@ -4196,7 +4225,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
         ${item.Romaji}
       </div>
       
-      <!-- 2️⃣ LIGNE 2 : KATAKANA ou HIRAGANA (opposé de la question) - ✅ TAILLE + BOLD -->
+      <!-- 2️⃣ LIGNE 2 : KATAKANA ou HIRAGANA (opposé de la question) -->
       <div class="char-display" style="font-size: 4em; font-weight: bold; color: #8B6F47; margin-bottom: 0.5em;">
         ${displayChar}
       </div>
@@ -4218,7 +4247,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
             </div>
           </div>
           
-          <!-- ✅ CORRECTION : Container plante avec oldPlant VISIBLE dès le départ -->
+          <!-- ✅ Container plante avec position relative pour les sparkles -->
           <div id="plant-container" style="position: absolute; opacity: 0; font-size: 4.5em;">
             <span id="plant-old" style="display: inline-block;">${oldPlant}</span>
             <span id="plant-new" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; display: inline-block;">${emoji}</span>
@@ -4280,7 +4309,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
       }
     }
 
-    // 2. Animation de changement de statut (score disparaît → emoji apparaît)
+    // 2. Animation de changement de statut ULTRA SATISFAISANTE 🎊
     if (animateStatusChange) {
       const scoreContainer = document.getElementById('score-container');
       const plantContainer = document.getElementById('plant-container');
@@ -4293,7 +4322,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           scoreContainer.style.opacity = '0';
         }
         
-        // ✅ CORRECTION : Faire apparaître le container ET l'ancienne plante
+        // ✅ NOUVELLE ANIMATION ULTRA SATISFAISANTE
         if (plantContainer) {
           plantContainer.style.opacity = '1';
           plantContainer.style.transition = 'opacity 0.3s ease-in';
@@ -4302,25 +4331,37 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           const newP = document.getElementById('plant-new');
 
           if (oldP && newP) {
-            // ✅ Étape 1 : Ancienne plante grossit x1.5 (BIEN VISIBLE)
+            // 🎬 PHASE 1 : Ancienne plante apparaît avec tremblement (0-0.3s)
             setTimeout(() => {
-              oldP.style.transition = 'transform 0.3s ease-out';
-              oldP.style.transform = 'scale(1.5)';
-            }, 50); // Petit délai pour s'assurer que le container est visible
+              oldP.style.animation = 'plantShake 0.3s ease-in-out';
+            }, 50);
 
-            // ✅ Étape 2 (350ms) : Transition vers nouvelle plante
+            // 🎬 PHASE 2 : Ancienne plante grossit rapidement (0.3-0.5s)
             setTimeout(() => {
-              oldP.style.transition = 'opacity 0.2s ease-out';
+              oldP.style.transition = 'transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+              oldP.style.transform = 'scale(1.8)';
+            }, 350);
+
+            // 🎬 PHASE 3 : EXPLOSION + SPARKLES + Nouvelle plante (0.5s)
+            setTimeout(() => {
+              // Ancienne plante disparaît avec effet d'explosion
+              oldP.style.transition = 'all 0.2s ease-out';
+              oldP.style.transform = 'scale(2.5)';
               oldP.style.opacity = '0';
+              oldP.style.filter = 'blur(10px) brightness(2)';
+              
+              // ✨ SPARKLES (réutiliser la fonction du mode Apprendre)
+              createSparklesForPlant(plantContainer);
+              
+              // Son de célébration
+              if (soundEnabled) {
+                playTwinkle(); // ou créer un son spécifique
+              }
+              
+              // Nouvelle plante apparaît avec pop
               newP.style.opacity = '1';
-              newP.style.transform = 'translate(-50%, -50%) scale(1.5)';
-            }, 400);
-
-            // ✅ Étape 3 (600ms) : Nouvelle plante revient à taille normale
-            setTimeout(() => {
-              newP.style.transition = 'transform 0.2s ease-out';
-              newP.style.transform = 'translate(-50%, -50%) scale(1)';
-            }, 600);
+              newP.style.animation = 'plantPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards';
+            }, 550);
           }
         }
       }, 700); // Attendre fin animation score
@@ -4331,6 +4372,43 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   setTimeout(() => {
     closeRevisionFlashcard();
   }, 3000);
+}
+
+// ✅ NOUVELLE FONCTION : Sparkles pour la transformation de plante
+function createSparklesForPlant(container) {
+  const sparkleEmojis = ["✨", "⭐", "💫", "🌟", "✦"];
+  const sparkleCount = 12;
+  const sparkleSize = 0.6;
+  const sparkleOpacity = 0.4;
+  
+  for (let i = 0; i < sparkleCount; i++) {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    sparkle.style.position = 'absolute';
+    sparkle.style.pointerEvents = 'none';
+    
+    const sparkleChar = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+    sparkle.textContent = sparkleChar;
+    
+    sparkle.style.fontSize = sparkleSize + 'rem';
+    sparkle.style.left = '50%';
+    sparkle.style.top = '50%';
+    
+    // Direction aléatoire en cercle
+    const angle = (Math.PI * 2 * i) / sparkleCount;
+    const distance = 60 + Math.random() * 30;
+    const tx = Math.cos(angle) * distance;
+    const ty = Math.sin(angle) * distance;
+    
+    sparkle.style.setProperty('--tx', `${tx}px`);
+    sparkle.style.setProperty('--ty', `${ty}px`);
+    sparkle.style.setProperty('--sparkle-opacity', sparkleOpacity);
+    sparkle.style.animationDelay = `${Math.random() * 0.1}s`;
+    
+    container.appendChild(sparkle);
+    
+    setTimeout(() => sparkle.remove(), 800);
+  }
 }
 // Fonction pour fermer la flashcard de révision
 function closeRevisionFlashcard() {
@@ -7919,6 +7997,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
