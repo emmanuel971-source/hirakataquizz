@@ -1300,50 +1300,109 @@ img.emoji {
     transform: translate(-50%, -50%) scale(1) rotate(0deg);
     filter: brightness(1);
   }
-}
-/* 🎨 Animation jelly pour la transformation */
-@keyframes jelly {
-  0%, 100% { transform: scale(1, 1); }
-  25% { transform: scale(0.9, 1.1); }
-  50% { transform: scale(1.1, 0.9); }
-  75% { transform: scale(0.95, 1.05); }
+} 
+/* 🫨 WOBBLE pour flashcard (500ms FIXE) */
+.wobble {
+  animation: wobbleFlashcard 500ms ease-in forwards;
 }
 
-.jelly {
-  animation: jelly 0.6s ease-in-out;
+@keyframes wobbleFlashcard {
+  0%   { transform: translate(0) rotate(0); }
+  20%  { transform: translate(-1px) rotate(-1deg); }
+  40%  { transform: translate(1px) rotate(1deg); }
+  60%  { transform: translate(-3px) rotate(-3deg); }
+  80%  { transform: translate(4px) rotate(4deg); }
+  100% { transform: translate(-6px) rotate(-6deg); }
 }
 
-/* ✨ Effet shine pour la transformation */
-.shine {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
-  animation: shineEffect 0.8s ease-out forwards;
-  pointer-events: none;
-  z-index: 10;
+/* 💥 EXPLOSION */
+.explode {
+  transition: transform 0.12s ease-out, opacity 0.12s, filter 0.12s;
+  transform: scale(2) rotate(160deg);
+  opacity: 0;
+  filter: blur(14px) brightness(2.5);
 }
 
-@keyframes shineEffect {
+/* 🌸 POP */
+.pop {
+  animation: popFlashcard 0.45s cubic-bezier(.68,-.55,.25,1.55) forwards;
+}
+
+@keyframes popFlashcard {
   0% {
     opacity: 0;
-    transform: scale(0.5);
+    transform: scale(0) rotate(0);
+    filter: brightness(.6);
   }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
+  60% {
+    transform: scale(1.3) rotate(-6deg);
+    filter: brightness(1.6);
   }
   100% {
-    opacity: 0;
-    transform: scale(1.5);
+    opacity: 1;
+    transform: scale(1) rotate(0);
+    filter: brightness(1);
   }
 }
 
-/* 🍃 Sparkles spécifiques pour leaf */
-.sparkle-leaf {
-  animation: sparkleFloat 0.8s ease-out forwards;
+/* 🍮 JELLY / BLOBBLE */
+.jelly {
+  animation: jellyFlashcard 1.25s cubic-bezier(.25,1.6,.4,1);
+}
+
+@keyframes jellyFlashcard {
+  0%   { transform: scale(1,1) rotate(0); }
+  15%  { transform: scale(1.45,.6) rotate(-14deg); }
+  35%  { transform: scale(.8,1.3) rotate(10deg); }
+  55%  { transform: scale(1.25,.9) rotate(-8deg); }
+  75%  { transform: scale(.95,1.05) rotate(4deg); }
+  100% { transform: scale(1,1) rotate(0); }
+}
+
+/* ✨ SPARKLES pour flashcard */
+.sparkle-flashcard {
+  position: absolute;
+  font-size: 22px;
+  pointer-events: none;
+  animation: sparkleFlashcard 1.3s ease-out forwards;
+}
+
+@keyframes sparkleFlashcard {
+  from {
+    opacity: 1;
+    transform: translate(0,0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform:
+      translate(var(--x), var(--y))
+      scale(.2)
+      rotate(360deg);
+  }
+}
+
+/* ✨ SHINE pour flashcard */
+.shine-flashcard {
+  position: absolute;
+  inset: -30px;
+  background: linear-gradient(
+    120deg,
+    transparent 40%,
+    rgba(255,255,255,.95) 50%,
+    transparent 60%
+  );
+  animation: shineFlashcard 0.8s ease-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes shineFlashcard {
+  from { transform: translateX(-180%); }
+  to   { transform: translateX(180%); }
+}
+
+.plant-emoji {
+  display: inline-block;
 }    
   </style>
 </head>
@@ -4316,6 +4375,10 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
     ? getLocalizedKatakana(item)  // Si question était Hiragana → afficher Katakana
     : item.Hiragana;                // Si question était Katakana → afficher Hiragana
 
+  // ✅ Déterminer le type de transformation (flower ou leaf)
+  const isUpgrade = newValidation > oldValidation; // 🌿 → 🌸
+  const isDowngrade = newValidation < oldValidation; // 🌸 → 🌿
+
   // Construire le contenu de la flashcard
   portal.innerHTML = `
     <div class="revision-flashcard" style="background-color: ${isCorrect ? '#d4edda' : '#f8d7da'};">
@@ -4347,10 +4410,9 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
             </div>
           </div>
           
-          <!-- ✅ Container plante avec position relative pour les sparkles -->
-          <div id="plant-container" style="position: relative; opacity: 0; font-size: 4.5em;">
-            <span id="plant-old" style="display: inline-block;">${oldPlant}</span>
-            <span id="plant-new" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; display: inline-block;">${emoji}</span>
+          <!-- ✅ Container plante CENTRÉ avec position relative pour les sparkles -->
+          <div id="plant-game" style="position: absolute; opacity: 0; display: flex; align-items: center; justify-content: center;">
+            <span id="plant-emoji" class="plant-emoji" style="font-size: 4.5em; position: relative; z-index: 2; filter: drop-shadow(0 12px 24px rgba(0,0,0,.2));">${oldPlant}</span>
           </div>
         ` : `
           <!-- CAS B : Animation de score simple (pas de changement de statut) -->
@@ -4409,10 +4471,11 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
       }
     }
 
-    // 2. Animation de changement de statut ULTRA SATISFAISANTE 🎊
+    // 2. Animation de changement de statut AVEC TES VRAIES ANIMATIONS 🎊
     if (animateStatusChange) {
       const scoreContainer = document.getElementById('score-container');
-      const plantContainer = document.getElementById('plant-container');
+      const plantGame = document.getElementById('plant-game');
+      const plantEmoji = document.getElementById('plant-emoji');
       
       // Attendre la fin de l'animation du score (0.7s) puis transition
       setTimeout(() => {
@@ -4422,51 +4485,53 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           scoreContainer.style.opacity = '0';
         }
         
-        // ✅ ANIMATION AVEC TES NOUVELLES ANIMATIONS JELLY + SPARKLES
-        if (plantContainer) {
-          plantContainer.style.opacity = '1';
-          plantContainer.style.transition = 'opacity 0.3s ease-in';
+        // ✅ FAIRE APPARAÎTRE LE CONTAINER PLANTE
+        if (plantGame && plantEmoji) {
+          plantGame.style.opacity = '1';
+          plantGame.style.transition = 'opacity 0.3s ease-in';
           
-          const oldP = document.getElementById('plant-old');
-          const newP = document.getElementById('plant-new');
-
-          if (oldP && newP) {
-            // 🎬 PHASE 1 : Ancienne plante avec effet jelly
-            setTimeout(() => {
-              oldP.classList.add('jelly');
+          setTimeout(() => {
+            // 🌿 → 🌸 (UPGRADE)
+            if (isUpgrade) {
+              plantEmoji.classList.add('wobble');
               
-              // ✨ Sparkles avec type "leaf" pour la transformation
-              spawnSparklesForPlant(plantContainer, "leaf");
+              setTimeout(() => {
+                plantEmoji.classList.add('explode');
+                spawnSparklesInFlashcard(plantGame, "flower");
+                
+                if (soundEnabled) {
+                  happySoundFlashcard();
+                }
+                
+                setTimeout(() => {
+                  plantEmoji.textContent = emoji;
+                  plantEmoji.className = 'plant-emoji pop';
+                  safeConvertEmojis(plantEmoji);
+                }, 60);
+                
+              }, 500); // Durée du wobble
+            }
+            
+            // 🌸 → 🌿 (DOWNGRADE)
+            else if (isDowngrade) {
+              plantEmoji.classList.add('jelly');
+              spawnSparklesInFlashcard(plantGame, "leaf");
               
-              // 🔔 Son triste (passage à un statut inférieur)
               if (soundEnabled) {
-                playSoftError(); // ou créer une fonction sadSound()
+                sadSoundFlashcard();
               }
               
-              // ✨ Effet shine
               const shine = document.createElement("div");
-              shine.className = "shine";
-              shine.style.position = "absolute";
-              shine.style.top = "0";
-              shine.style.left = "0";
-              shine.style.right = "0";
-              shine.style.bottom = "0";
-              shine.style.pointerEvents = "none";
-              plantContainer.appendChild(shine);
+              shine.className = "shine-flashcard";
+              plantGame.appendChild(shine);
               setTimeout(() => shine.remove(), 800);
               
-              // 🌿 Transformation après 300ms
               setTimeout(() => {
-                oldP.style.transition = 'opacity 0.2s ease-out';
-                oldP.style.opacity = '0';
-                
-                // Nouvelle plante apparaît
-                newP.style.opacity = '1';
-                newP.style.animation = 'plantPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards';
+                plantEmoji.textContent = emoji;
+                safeConvertEmojis(plantEmoji);
               }, 300);
-              
-            }, 50);
-          }
+            }
+          }, 100);
         }
       }, 700); // Attendre fin animation score
     }
@@ -4478,42 +4543,104 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   }, 3000);
 }
 
-// ✅ NOUVELLE FONCTION : Sparkles adaptée pour la flashcard avec type
-function spawnSparklesForPlant(container, type = "leaf") {
-  const sparkleCount = type === "leaf" ? 12 : 8;
-  const sparkleEmojis = type === "leaf" 
-    ? ["🍃", "🌿", "💚", "✨"] 
-    : ["✨", "⭐", "💫", "🌟", "✦"];
-  
-  for (let i = 0; i < sparkleCount; i++) {
-    const sparkle = document.createElement('div');
-    sparkle.className = 'sparkle-leaf';
-    sparkle.style.position = 'absolute';
-    sparkle.style.pointerEvents = 'none';
-    sparkle.style.fontSize = '0.6rem';
-    sparkle.style.left = '50%';
-    sparkle.style.top = '50%';
+// ✅ SPARKLES POUR FLASHCARD (adapté de ton code)
+function spawnSparklesInFlashcard(container, type) {
+  const icons =
+    type === "flower"
+      ? ["✨","🌸","💖","⭐"]
+      : ["🍃","💨","✨"];
+
+  const count = 14 + Math.floor(Math.random() * 6);
+
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement("div");
+    s.className = "sparkle-flashcard";
+    s.textContent = icons[Math.floor(Math.random() * icons.length)];
+    s.style.position = "absolute";
+    s.style.fontSize = "22px";
+    s.style.pointerEvents = "none";
+    s.style.left = "50%";
+    s.style.top = "50%";
+    s.style.setProperty("--x", `${(Math.random() - .5) * 240}px`);
+    s.style.setProperty("--y", `${(Math.random() - .8) * 240}px`);
+    s.style.animation = "sparkleFlashcard 1.3s ease-out forwards";
     
-    const sparkleChar = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
-    sparkle.textContent = sparkleChar;
-    
-    // Direction aléatoire en cercle
-    const angle = (Math.PI * 2 * i) / sparkleCount + (Math.random() - 0.5) * 0.5;
-    const distance = 50 + Math.random() * 40;
-    const tx = Math.cos(angle) * distance;
-    const ty = Math.sin(angle) * distance;
-    
-    sparkle.style.setProperty('--tx', `${tx}px`);
-    sparkle.style.setProperty('--ty', `${ty}px`);
-    sparkle.style.setProperty('--sparkle-opacity', 0.5);
-    sparkle.style.animation = `sparkleFloat 0.8s ease-out forwards`;
-    sparkle.style.animationDelay = `${Math.random() * 0.1}s`;
-    
-    container.appendChild(sparkle);
-    
-    setTimeout(() => sparkle.remove(), 900);
+    container.appendChild(s);
+    setTimeout(() => s.remove(), 1300);
   }
 }
+
+// ✅ SONS ADAPTÉS (utilisant le même AudioContext)
+function happySoundFlashcard() {
+  const ctx = audioCtx; // Utiliser le contexte global
+  
+  function pluck(freq, duration = 0.15, gain = 0.15) {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(gain, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(g).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  }
+  
+  function noisePop() {
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    }
+    const src = ctx.createBufferSource();
+    const g = ctx.createGain();
+    g.gain.value = 0.18;
+    src.buffer = buffer;
+    src.connect(g).connect(ctx.destination);
+    src.start();
+  }
+  
+  noisePop();
+  [880, 1175, 1568].forEach((f, i) =>
+    setTimeout(() => pluck(f, 0.16, 0.18), i * 90)
+  );
+}
+
+function sadSoundFlashcard() {
+  const ctx = audioCtx; // Utiliser le contexte global
+  
+  function pluck(freq, duration = 0.28, gain = 0.12) {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(gain, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(g).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  }
+  
+  function noisePop() {
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    }
+    const src = ctx.createBufferSource();
+    const g = ctx.createGain();
+    g.gain.value = 0.18;
+    src.buffer = buffer;
+    src.connect(g).connect(ctx.destination);
+    src.start();
+  }
+  
+  noisePop();
+  [740, 587, 440].forEach((f, i) =>
+    setTimeout(() => pluck(f, 0.28, 0.12), i * 120)
+  );
+}
+
 // ✅ Fonction Sparkles (inchangée)
 function createSparklesForPlant(container) {
   const sparkleEmojis = ["✨", "⭐", "💫", "🌟", "✦"];
@@ -8173,23 +8300,4 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
