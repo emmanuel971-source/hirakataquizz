@@ -4175,6 +4175,7 @@ function getPlantEmoji(validation) {
 let modalCloseTimer = null; // Variable globale pour annuler le timer précédent    
 // Flashcard de révision utilisant le portal
 // Flashcard de révision utilisant le portal
+// Flashcard de révision utilisant le portal
 function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidation, animateStatusChange = false, animateScore = false) {
   const portal = document.getElementById('modal-portal');
   
@@ -4195,8 +4196,8 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
         ${item.Romaji}
       </div>
       
-      <!-- 2️⃣ LIGNE 2 : KATAKANA ou HIRAGANA (opposé de la question) -->
-      <div class="char-display" style="font-size: 2.8em; color: #8B6F47; margin-bottom: 0.5em;">
+      <!-- 2️⃣ LIGNE 2 : KATAKANA ou HIRAGANA (opposé de la question) - ✅ TAILLE + BOLD -->
+      <div class="char-display" style="font-size: 4em; font-weight: bold; color: #8B6F47; margin-bottom: 0.5em;">
         ${displayChar}
       </div>
       
@@ -4217,8 +4218,9 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
             </div>
           </div>
           
+          <!-- ✅ CORRECTION : Container plante avec oldPlant VISIBLE dès le départ -->
           <div id="plant-container" style="position: absolute; opacity: 0; font-size: 4.5em;">
-            <span id="plant-old" style="display: inline-block; transition: transform 0.2s ease-out;">${oldPlant}</span>
+            <span id="plant-old" style="display: inline-block;">${oldPlant}</span>
             <span id="plant-new" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; display: inline-block;">${emoji}</span>
           </div>
         ` : `
@@ -4291,7 +4293,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           scoreContainer.style.opacity = '0';
         }
         
-        // Faire apparaître le container de plante
+        // ✅ CORRECTION : Faire apparaître le container ET l'ancienne plante
         if (plantContainer) {
           plantContainer.style.opacity = '1';
           plantContainer.style.transition = 'opacity 0.3s ease-in';
@@ -4300,21 +4302,25 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           const newP = document.getElementById('plant-new');
 
           if (oldP && newP) {
-            // Étape 1 : Ancienne plante grossit x1.5
-            oldP.style.transform = 'scale(1.5)';
-
-            // Étape 2 (200ms) : Transition vers nouvelle plante
+            // ✅ Étape 1 : Ancienne plante grossit x1.5 (BIEN VISIBLE)
             setTimeout(() => {
+              oldP.style.transition = 'transform 0.3s ease-out';
+              oldP.style.transform = 'scale(1.5)';
+            }, 50); // Petit délai pour s'assurer que le container est visible
+
+            // ✅ Étape 2 (350ms) : Transition vers nouvelle plante
+            setTimeout(() => {
+              oldP.style.transition = 'opacity 0.2s ease-out';
               oldP.style.opacity = '0';
               newP.style.opacity = '1';
               newP.style.transform = 'translate(-50%, -50%) scale(1.5)';
-            }, 200);
+            }, 400);
 
-            // Étape 3 (400ms) : Nouvelle plante revient à taille normale
+            // ✅ Étape 3 (600ms) : Nouvelle plante revient à taille normale
             setTimeout(() => {
               newP.style.transition = 'transform 0.2s ease-out';
               newP.style.transform = 'translate(-50%, -50%) scale(1)';
-            }, 400);
+            }, 600);
           }
         }
       }, 700); // Attendre fin animation score
@@ -7913,6 +7919,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
