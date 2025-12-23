@@ -1242,6 +1242,64 @@ img.emoji {
     transform: translate(-50%, -50%) scale(1) rotate(0deg);
     filter: brightness(1);
   }
+}
+/* ✨ Animation de tremblement CRESCENDO (doux → intense) */
+@keyframes plantShakeCrescendo {
+  0% { 
+    transform: translate(0, 0) rotate(0deg); 
+  }
+  10% { 
+    transform: translate(-1px, 0) rotate(-1deg); 
+  }
+  20% { 
+    transform: translate(1px, 0) rotate(1deg); 
+  }
+  30% { 
+    transform: translate(-2px, 0) rotate(-2deg); 
+  }
+  40% { 
+    transform: translate(2px, 0) rotate(2deg); 
+  }
+  50% { 
+    transform: translate(-3px, 0) rotate(-3deg); 
+  }
+  60% { 
+    transform: translate(3px, 0) rotate(3deg); 
+  }
+  70% { 
+    transform: translate(-5px, 0) rotate(-5deg); 
+  }
+  80% { 
+    transform: translate(5px, 0) rotate(5deg); 
+  }
+  90% { 
+    transform: translate(-7px, 0) rotate(-7deg); 
+  }
+  100% { 
+    transform: translate(7px, 0) rotate(7deg); 
+    /* ✅ PAS de scale ici, juste le tremblement intense */
+  }
+}
+
+/* 🎉 Animation pop pour la nouvelle plante (inchangée) */
+@keyframes plantPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    filter: brightness(0.5);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.3) rotate(-5deg);
+    filter: brightness(1.5);
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(0.95) rotate(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    filter: brightness(1);
+  }
 }    
   </style>
 </head>
@@ -4201,9 +4259,7 @@ function getPlantEmoji(validation) {
   }    
 // function openGardenModal du mode révisions  
 let modalCloseTimer = null; // Variable globale pour annuler le timer précédent    
-// Flashcard de révision utilisant le portal
-// Flashcard de révision utilisant le portal
-// Flashcard de révision utilisant le portal
+
 // Flashcard de révision utilisant le portal
 function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidation, animateStatusChange = false, animateScore = false) {
   const portal = document.getElementById('modal-portal');
@@ -4322,7 +4378,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           scoreContainer.style.opacity = '0';
         }
         
-        // ✅ NOUVELLE ANIMATION ULTRA SATISFAISANTE
+        // ✅ ANIMATION PERFECTIONNÉE : Shake crescendo → Explosion → Pop
         if (plantContainer) {
           plantContainer.style.opacity = '1';
           plantContainer.style.transition = 'opacity 0.3s ease-in';
@@ -4331,37 +4387,31 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           const newP = document.getElementById('plant-new');
 
           if (oldP && newP) {
-            // 🎬 PHASE 1 : Ancienne plante apparaît avec tremblement (0-0.3s)
+            // 🎬 PHASE 1 : Shake crescendo (doux → intense) - 0.6s
             setTimeout(() => {
-              oldP.style.animation = 'plantShake 0.3s ease-in-out';
+              oldP.style.animation = 'plantShakeCrescendo 0.6s ease-in forwards';
             }, 50);
 
-            // 🎬 PHASE 2 : Ancienne plante grossit rapidement (0.3-0.5s)
+            // 🎬 PHASE 2 : EXPLOSION directe (pas de zoom) + SPARKLES + Nouvelle plante (0.6s)
             setTimeout(() => {
-              oldP.style.transition = 'transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-              oldP.style.transform = 'scale(1.8)';
-            }, 350);
-
-            // 🎬 PHASE 3 : EXPLOSION + SPARKLES + Nouvelle plante (0.5s)
-            setTimeout(() => {
-              // Ancienne plante disparaît avec effet d'explosion
-              oldP.style.transition = 'all 0.2s ease-out';
-              oldP.style.transform = 'scale(2.5)';
+              // Ancienne plante disparaît avec effet d'explosion (SANS zoom intermédiaire)
+              oldP.style.transition = 'all 0.15s ease-out';
+              oldP.style.transform = 'scale(2) rotate(180deg)';
               oldP.style.opacity = '0';
-              oldP.style.filter = 'blur(10px) brightness(2)';
+              oldP.style.filter = 'blur(15px) brightness(3)';
               
-              // ✨ SPARKLES (réutiliser la fonction du mode Apprendre)
+              // ✨ SPARKLES
               createSparklesForPlant(plantContainer);
               
               // Son de célébration
               if (soundEnabled) {
-                playTwinkle(); // ou créer un son spécifique
+                playTwinkle();
               }
               
-              // Nouvelle plante apparaît avec pop
+              // Nouvelle plante apparaît avec pop shimmer
               newP.style.opacity = '1';
               newP.style.animation = 'plantPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards';
-            }, 550);
+            }, 650);
           }
         }
       }, 700); // Attendre fin animation score
@@ -4372,6 +4422,42 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   setTimeout(() => {
     closeRevisionFlashcard();
   }, 3000);
+}
+
+// ✅ Fonction Sparkles (inchangée)
+function createSparklesForPlant(container) {
+  const sparkleEmojis = ["✨", "⭐", "💫", "🌟", "✦"];
+  const sparkleCount = 12;
+  const sparkleSize = 0.6;
+  const sparkleOpacity = 0.4;
+  
+  for (let i = 0; i < sparkleCount; i++) {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    sparkle.style.position = 'absolute';
+    sparkle.style.pointerEvents = 'none';
+    
+    const sparkleChar = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+    sparkle.textContent = sparkleChar;
+    
+    sparkle.style.fontSize = sparkleSize + 'rem';
+    sparkle.style.left = '50%';
+    sparkle.style.top = '50%';
+    
+    const angle = (Math.PI * 2 * i) / sparkleCount;
+    const distance = 60 + Math.random() * 30;
+    const tx = Math.cos(angle) * distance;
+    const ty = Math.sin(angle) * distance;
+    
+    sparkle.style.setProperty('--tx', `${tx}px`);
+    sparkle.style.setProperty('--ty', `${ty}px`);
+    sparkle.style.setProperty('--sparkle-opacity', sparkleOpacity);
+    sparkle.style.animationDelay = `${Math.random() * 0.1}s`;
+    
+    container.appendChild(sparkle);
+    
+    setTimeout(() => sparkle.remove(), 800);
+  }
 }
 
 // ✅ NOUVELLE FONCTION : Sparkles pour la transformation de plante
@@ -7997,6 +8083,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
