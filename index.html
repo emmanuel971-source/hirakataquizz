@@ -4456,20 +4456,21 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   // === ANIMATIONS APRÈS LE FADE VERS BLANC (0.8s) ===
   setTimeout(() => {
     // 1. Animation du score (compteur à rouleaux)
-// 1. Animation du score (compteur à rouleaux)
 if (animateScore) {
-  const oldS = document.getElementById('score-old');
-  const newS = document.getElementById('score-new');
+  const oldScoreContainer = document.getElementById('score-old').parentElement; // Le container avec overflow hidden
   
-  if (oldS && newS) {
-    const diff = Math.abs(newValidation - oldValidation);
+  const diff = Math.abs(newValidation - oldValidation);
+  
+  // Si différence > 1, on fait défiler tous les chiffres intermédiaires
+  if (diff > 1) {
+    animateScoreCounter(oldScoreContainer, oldValidation, newValidation, newValidation > oldValidation);
+  } else {
+    // Animation simple si diff = 1
+    const oldS = document.getElementById('score-old');
+    const newS = document.getElementById('score-new');
     
-    // Si différence > 1, on fait défiler tous les chiffres intermédiaires
-    if (diff > 1) {
-      animateScoreCounter(oldS, oldValidation, newValidation, isCorrect);
-    } else {
-      // Animation simple si diff = 1
-      if (isCorrect) {
+    if (oldS && newS) {
+      if (newValidation > oldValidation) {
         oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
         newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
       } else {
@@ -4555,45 +4556,67 @@ setTimeout(() => {
 }, closingDelay);
 }
 // ✅ NOUVELLE FONCTION : Animation compteur avec défilement intermédiaire
-function animateScoreCounter(element, startValue, endValue, isIncreasing) {
+// ✅ Animation compteur à ROULEAU avec défilement mécanique
+function animateScoreCounter(container, startValue, endValue, isIncreasing) {
   const diff = Math.abs(endValue - startValue);
-  const duration = 700; // Durée totale en ms
+  const duration = 700; // Durée totale
   const stepDuration = duration / diff; // Temps par chiffre
   
-  let currentValue = startValue;
-  const direction = isIncreasing ? 1 : -1;
+  // Créer tous les chiffres intermédiaires dans une bande verticale
+  const roller = document.createElement('div');
+  roller.style.position = 'absolute';
+  roller.style.width = '100%';
+  roller.style.height = '70px';
+  roller.style.overflow = 'hidden';
+  roller.style.left = '0';
+  roller.style.top = '0';
   
-  function updateCounter() {
-    if ((isIncreasing && currentValue < endValue) || (!isIncreasing && currentValue > endValue)) {
-      currentValue += direction;
-      
-      // Créer l'animation de transition
-      element.style.transition = `transform ${stepDuration}ms ease-in-out, opacity ${stepDuration}ms ease-in-out`;
-      
-      // Animation slide up/down
-      if (isIncreasing) {
-        element.style.transform = 'translateY(-10px)';
-        element.style.opacity = '0';
-      } else {
-        element.style.transform = 'translateY(10px)';
-        element.style.opacity = '0';
-      }
-      
-      setTimeout(() => {
-        element.textContent = currentValue;
-        element.style.transform = 'translateY(0)';
-        element.style.opacity = '1';
-        
+  const strip = document.createElement('div');
+  strip.style.position = 'relative';
+  strip.style.transition = `top ${stepDuration}ms ease-in-out`;
+  
+  // Générer tous les chiffres de la séquence
+  const values = [];
+  if (isIncreasing) {
+    for (let i = startValue; i <= endValue; i++) values.push(i);
+  } else {
+    for (let i = startValue; i >= endValue; i--) values.push(i);
+  }
+  
+  // Créer un div pour chaque chiffre
+  values.forEach((value, index) => {
+    const digit = document.createElement('div');
+    digit.textContent = value;
+    digit.style.width = '100%';
+    digit.style.height = '70px';
+    digit.style.lineHeight = '70px';
+    digit.style.textAlign = 'center';
+    digit.style.fontSize = '1em';
+    digit.style.color = '#333';
+    
 
-        // Continuer le défilement
-        if (currentValue !== endValue) {
-          setTimeout(updateCounter, stepDuration * 0.3); // Petit délai entre chaque chiffre
-        }
-      }, stepDuration * 0.5);
+    
+    strip.appendChild(digit);
+  });
+  
+  roller.appendChild(strip);
+  
+  // Remplacer le contenu du container
+  container.innerHTML = '';
+  container.appendChild(roller);
+  
+  // Animer le défilement
+  let currentStep = 0;
+  function roll() {
+    if (currentStep < values.length - 1) {
+      currentStep++;
+      strip.style.top = `-${currentStep * 70}px`;
+      setTimeout(roll, stepDuration);
     }
   }
   
-  updateCounter();
+  // Démarrer l'animation après un micro-délai
+  setTimeout(roll, 50);
 }
 // ✅ SPARKLES POUR FLASHCARD (adapté de ton code)
 function spawnSparklesInFlashcard(container, type) {
@@ -8352,6 +8375,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
