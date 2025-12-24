@@ -5253,6 +5253,12 @@ function calculerDeficitMaximum() {
   return totalItems * (seuilValidation - 5); // Déficit max = passage de 5 au seuil
 }
 function updateUnlockProgress() {
+  console.log('🔍 updateUnlockProgress appelée:', {
+  isActive: revisionMode.isActive,
+  wasBlocked: wasBlockedWhenEnteringRevision,
+  hasUnlocked: hasUnlockedInRevision,
+  deficit: deficitInitialRevision
+});
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
 
@@ -8358,6 +8364,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
