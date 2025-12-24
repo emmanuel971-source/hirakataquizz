@@ -4404,7 +4404,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
               <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; line-height: 70px;">
                 ${oldValidation}
               </div>
-              <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
+              <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; font-weight: bold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
                 ${newValidation}
               </div>
             </div>
@@ -4422,7 +4422,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
               <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; line-height: 70px;">
                 ${oldValidation}
               </div>
-              <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
+              <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; font-weight: bold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
                 ${newValidation}
               </div>
             </div>
@@ -4456,28 +4456,29 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   // === ANIMATIONS APRÈS LE FADE VERS BLANC (0.8s) ===
   setTimeout(() => {
     // 1. Animation du score (compteur à rouleaux)
-  if (animateScore) {
+// 1. Animation du score (compteur à rouleaux)
+if (animateScore) {
   const oldS = document.getElementById('score-old');
   const newS = document.getElementById('score-new');
   
   if (oldS && newS) {
-    // Comparaison des scores (assure-toi que ce sont des nombres)
-    const scoreIncreasing = parseInt(newValidation) > parseInt(oldValidation);
-
-    if (scoreIncreasing) {
-      // Score augmente → rouleau tourne VERS LE BAS
-      // Ancien descend, nouveau arrive par le haut
-      oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
-      newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
+    const diff = Math.abs(newValidation - oldValidation);
+    
+    // Si différence > 1, on fait défiler tous les chiffres intermédiaires
+    if (diff > 1) {
+      animateScoreCounter(oldS, oldValidation, newValidation, isCorrect);
     } else {
-      // Score diminue → rouleau tourne VERS LE HAUT
-      // Ancien monte, nouveau arrive par le bas
-      oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
-      newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
+      // Animation simple si diff = 1
+      if (isCorrect) {
+        oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
+        newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
+      } else {
+        oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
+        newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
+      }
     }
   }
 }
-
     // 2. Animation de changement de statut AVEC TES VRAIES ANIMATIONS 🎊
     if (animateStatusChange) {
       const scoreContainer = document.getElementById('score-container');
@@ -4553,7 +4554,47 @@ setTimeout(() => {
   closeRevisionFlashcard();
 }, closingDelay);
 }
+// ✅ NOUVELLE FONCTION : Animation compteur avec défilement intermédiaire
+function animateScoreCounter(element, startValue, endValue, isIncreasing) {
+  const diff = Math.abs(endValue - startValue);
+  const duration = 700; // Durée totale en ms
+  const stepDuration = duration / diff; // Temps par chiffre
+  
+  let currentValue = startValue;
+  const direction = isIncreasing ? 1 : -1;
+  
+  function updateCounter() {
+    if ((isIncreasing && currentValue < endValue) || (!isIncreasing && currentValue > endValue)) {
+      currentValue += direction;
+      
+      // Créer l'animation de transition
+      element.style.transition = `transform ${stepDuration}ms ease-in-out, opacity ${stepDuration}ms ease-in-out`;
+      
+      // Animation slide up/down
+      if (isIncreasing) {
+        element.style.transform = 'translateY(-10px)';
+        element.style.opacity = '0';
+      } else {
+        element.style.transform = 'translateY(10px)';
+        element.style.opacity = '0';
+      }
+      
+      setTimeout(() => {
+        element.textContent = currentValue;
+        element.style.transform = 'translateY(0)';
+        element.style.opacity = '1';
+        
 
+        // Continuer le défilement
+        if (currentValue !== endValue) {
+          setTimeout(updateCounter, stepDuration * 0.3); // Petit délai entre chaque chiffre
+        }
+      }, stepDuration * 0.5);
+    }
+  }
+  
+  updateCounter();
+}
 // ✅ SPARKLES POUR FLASHCARD (adapté de ton code)
 function spawnSparklesInFlashcard(container, type) {
   const icons =
@@ -8311,6 +8352,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
