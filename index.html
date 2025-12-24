@@ -4404,7 +4404,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
               <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; line-height: 70px;">
                 ${oldValidation}
               </div>
-              <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
+              <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
                 ${newValidation}
               </div>
             </div>
@@ -8311,6 +8311,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
