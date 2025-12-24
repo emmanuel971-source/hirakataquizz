@@ -4457,19 +4457,24 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   setTimeout(() => {
     // 1. Animation du score (compteur à rouleaux)
     if (animateScore) {
-      const oldS = document.getElementById('score-old');
-      const newS = document.getElementById('score-new');
-      
-      if (oldS && newS) {
-        if (isCorrect) {
-          oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
-          newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
-        } else {
-          oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
-          newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
-        }
-      }
+  const oldS = document.getElementById('score-old');
+  const newS = document.getElementById('score-new');
+  
+  if (oldS && newS) {
+    // On compare les valeurs numériques des scores
+    const scoreIncreasing = parseInt(newValidation) > parseInt(oldValidation);
+
+    if (scoreIncreasing) {
+      // Score augmente → rouleau descend : ancien monte, nouveau arrive par le haut
+      oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
+      newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';  // changé ici !
+    } else {
+      // Score diminue → rouleau monte : ancien descend, nouveau arrive par le bas
+      oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
+      newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';     // changé ici !
     }
+  }
+}
 
     // 2. Animation de changement de statut AVEC TES VRAIES ANIMATIONS 🎊
     if (animateStatusChange) {
@@ -8304,6 +8309,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
