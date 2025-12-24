@@ -4537,10 +4537,14 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
     }
   }, 800);
 
-  // Fermeture automatique après 3 secondes
-  setTimeout(() => {
-    closeRevisionFlashcard();
-  }, 3000);
+  // ✅ Fermeture adaptative selon le type d'animation
+const closingDelay = animateStatusChange 
+  ? (isUpgrade ? 2500 : 2800)  // Upgrade = 2.5s, Downgrade = 2.8s (jelly plus long)
+  : 1500;  // Pas de changement = fermeture rapide après le score
+
+setTimeout(() => {
+  closeRevisionFlashcard();
+}, closingDelay);
 }
 
 // ✅ SPARKLES POUR FLASHCARD (adapté de ton code)
@@ -8300,6 +8304,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
