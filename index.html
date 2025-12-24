@@ -4456,7 +4456,10 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   // === ANIMATIONS APRÈS LE FADE VERS BLANC (0.8s) ===
   setTimeout(() => {
     // 1. Animation du score (compteur à rouleaux)
-
+if (animateScore && oldValidation !== newValidation) {  // ✅ Ajout de la condition
+  const oldS = document.getElementById('score-old');
+  const newS = document.getElementById('score-new');
+  
 if (animateScore) {
   const oldS = document.getElementById('score-old');
   const newS = document.getElementById('score-new');
@@ -8351,6 +8354,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
