@@ -4457,18 +4457,20 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   setTimeout(() => {
     // 1. Animation du score (compteur à rouleaux)
 if (animateScore) {
-  const oldScoreContainer = document.getElementById('score-old').parentElement; // Le container avec overflow hidden
+  const oldS = document.getElementById('score-old');
+  const newS = document.getElementById('score-new');
+  const oldScoreContainer = oldS.parentElement; // Le container avec overflow hidden
   
   const diff = Math.abs(newValidation - oldValidation);
   
   // Si différence > 1, on fait défiler tous les chiffres intermédiaires
   if (diff > 1) {
+    // ✅ DÉSACTIVER les animations CSS existantes
+    oldS.style.animation = 'none';
+    newS.style.display = 'none'; // Cacher le newS car on gère tout avec le rouleau
+    
     animateScoreCounter(oldScoreContainer, oldValidation, newValidation, newValidation > oldValidation);
   } else {
-    // Animation simple si diff = 1
-    const oldS = document.getElementById('score-old');
-    const newS = document.getElementById('score-new');
-    
     if (oldS && newS) {
       if (newValidation > oldValidation) {
         oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
@@ -8375,6 +8377,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
