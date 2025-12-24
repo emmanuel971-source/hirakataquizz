@@ -4456,23 +4456,63 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   // === ANIMATIONS APRÈS LE FADE VERS BLANC (0.8s) ===
   setTimeout(() => {
     // 1. Animation du score (compteur à rouleaux)
+
 if (animateScore) {
   const oldS = document.getElementById('score-old');
   const newS = document.getElementById('score-new');
-  const oldScoreContainer = oldS.parentElement; // Le container avec overflow hidden
   
-  const diff = Math.abs(newValidation - oldValidation);
-  
-  // Si différence > 1, on fait défiler tous les chiffres intermédiaires
-  if (diff > 1) {
-    // ✅ DÉSACTIVER les animations CSS existantes
-    oldS.style.animation = 'none';
-    newS.style.display = 'none'; // Cacher le newS car on gère tout avec le rouleau
+  if (oldS && newS) {
+    const diff = Math.abs(newValidation - oldValidation);
+    const isGoingUp = newValidation > oldValidation;
     
-    animateScoreCounter(oldScoreContainer, oldValidation, newValidation, newValidation > oldValidation);
-  } else {
-    if (oldS && newS) {
-      if (newValidation > oldValidation) {
+    if (diff > 1) {
+      // ✅ SOLUTION SIMPLE : Enchaîner plusieurs animations
+      let currentValue = oldValidation;
+      const direction = isGoingUp ? 1 : -1;
+      
+      function rollNext() {
+        if (currentValue !== endValue) {
+          const nextValue = currentValue + direction;
+          
+          // Créer les deux divs pour cette étape
+          oldS.textContent = currentValue;
+          newS.textContent = nextValue;
+          
+          // Reset positions
+          oldS.style.animation = 'none';
+          newS.style.animation = 'none';
+          oldS.style.top = '0';
+          newS.style.top = isGoingUp ? '70px' : '-70px';
+          
+          // Forcer le reflow
+          void oldS.offsetHeight;
+          
+          // Lancer l'animation
+          if (isGoingUp) {
+            oldS.style.animation = 'rollDown 0.35s ease-in-out forwards';
+            newS.style.animation = 'rollInDown 0.35s ease-in-out forwards';
+          } else {
+            oldS.style.animation = 'rollUp 0.35s ease-in-out forwards';
+            newS.style.animation = 'rollInUp 0.35s ease-in-out forwards';
+          }
+          
+          currentValue = nextValue;
+          
+          // Attendre la fin de l'animation avant la prochaine
+          setTimeout(rollNext, 350);
+        } else {
+          // Dernière étape : effet doré
+          newS.style.color = '#FFD700';
+          newS.style.textShadow = '0 0 10px gold';
+        }
+      }
+      
+      const endValue = newValidation;
+      rollNext();
+      
+    } else {
+      // Animation simple si diff = 1
+      if (isGoingUp) {
         oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
         newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
       } else {
@@ -4557,69 +4597,7 @@ setTimeout(() => {
   closeRevisionFlashcard();
 }, closingDelay);
 }
-// ✅ NOUVELLE FONCTION : Animation compteur avec défilement intermédiaire
-// ✅ Animation compteur à ROULEAU avec défilement mécanique
-function animateScoreCounter(container, startValue, endValue, isIncreasing) {
-  const diff = Math.abs(endValue - startValue);
-  const duration = 700; // Durée totale
-  const stepDuration = duration / diff; // Temps par chiffre
-  
-  // Créer tous les chiffres intermédiaires dans une bande verticale
-  const roller = document.createElement('div');
-  roller.style.position = 'absolute';
-  roller.style.width = '100%';
-  roller.style.height = '70px';
-  roller.style.overflow = 'hidden';
-  roller.style.left = '0';
-  roller.style.top = '0';
-  
-  const strip = document.createElement('div');
-  strip.style.position = 'relative';
-  strip.style.transition = `top ${stepDuration}ms ease-in-out`;
-  
-  // Générer tous les chiffres de la séquence
-  const values = [];
-  if (isIncreasing) {
-    for (let i = startValue; i <= endValue; i++) values.push(i);
-  } else {
-    for (let i = startValue; i >= endValue; i--) values.push(i);
-  }
-  
-  // Créer un div pour chaque chiffre
-  values.forEach((value, index) => {
-    const digit = document.createElement('div');
-    digit.textContent = value;
-    digit.style.width = '100%';
-    digit.style.height = '70px';
-    digit.style.lineHeight = '70px';
-    digit.style.textAlign = 'center';
-    digit.style.fontSize = '1em';
-    digit.style.color = '#333';
-    
 
-    
-    strip.appendChild(digit);
-  });
-  
-  roller.appendChild(strip);
-  
-  // Remplacer le contenu du container
-  container.innerHTML = '';
-  container.appendChild(roller);
-  
-  // Animer le défilement
-  let currentStep = 0;
-  function roll() {
-    if (currentStep < values.length - 1) {
-      currentStep++;
-      strip.style.top = `-${currentStep * 70}px`;
-      setTimeout(roll, stepDuration);
-    }
-  }
-  
-  // Démarrer l'animation après un micro-délai
-  setTimeout(roll, 50);
-}
 // ✅ SPARKLES POUR FLASHCARD (adapté de ton code)
 function spawnSparklesInFlashcard(container, type) {
   const icons =
@@ -8377,6 +8355,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
