@@ -4539,7 +4539,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
 
   // ✅ Fermeture adaptative selon le type d'animation
 const closingDelay = animateStatusChange 
-  ? (isUpgrade ? 2500 : 2800)  // Upgrade = 2.5s, Downgrade = 2.8s (jelly plus long)
+  ? (isUpgrade ? 2900 : 2800)  // Upgrade = 2.5s trop court test à 2900 pour voir, Downgrade = 2.8s (jelly plus long)
   : 1500;  // Pas de changement = fermeture rapide après le score
 
 setTimeout(() => {
@@ -8304,6 +8304,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
