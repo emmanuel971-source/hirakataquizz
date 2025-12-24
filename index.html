@@ -4411,7 +4411,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
           </div>
           
           <!-- ✅ Container plante CENTRÉ avec position relative pour les sparkles -->
-          <div id="plant-game" style="position: absolute; opacity: 0; display: flex; align-items: center; justify-content: center;">
+          <div id="plant-game" style="position: absolute; opacity: 0; display: flex; align-items: center; justify-content: center; overflow: hidden;">
             <span id="plant-emoji" class="plant-emoji" style="font-size: 4.5em; position: relative; z-index: 2; filter: drop-shadow(0 12px 24px rgba(0,0,0,.2));">${oldPlant}</span>
           </div>
         ` : `
@@ -8300,4 +8300,5 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
