@@ -7611,8 +7611,10 @@ if (firstCard && revisionMode.currentItem) {
 
   console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
   console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
- // ✅ Afficher la barre à chaque nouvelle question (sans la recalculer)
+// ✅ FORCER l'affichage de la barre à chaque nouvelle question
+setTimeout(() => {
   updateUnlockProgress();
+}, 200);
 }  
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
@@ -8356,6 +8358,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
