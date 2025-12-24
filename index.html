@@ -3786,6 +3786,7 @@ if (sectionId === 'options') {
     setTimeout(() => {
       initRevisionKeyboard();
       startRevisionQuestion();
+      updateUnlockProgress(); // ✅ AJOUTE cette ligne
     }, 100);
   } else {
     revisionMode.isActive = false;
@@ -8355,6 +8356,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
