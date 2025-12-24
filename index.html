@@ -4456,22 +4456,24 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   // === ANIMATIONS APRÈS LE FADE VERS BLANC (0.8s) ===
   setTimeout(() => {
     // 1. Animation du score (compteur à rouleaux)
-    if (animateScore) {
+  if (animateScore) {
   const oldS = document.getElementById('score-old');
   const newS = document.getElementById('score-new');
   
   if (oldS && newS) {
-    // On compare les valeurs numériques des scores
+    // Comparaison des scores (assure-toi que ce sont des nombres)
     const scoreIncreasing = parseInt(newValidation) > parseInt(oldValidation);
 
     if (scoreIncreasing) {
-      // Score augmente → rouleau descend : ancien monte, nouveau arrive par le haut
-      oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
-      newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';  // changé ici !
-    } else {
-      // Score diminue → rouleau monte : ancien descend, nouveau arrive par le bas
+      // Score augmente → rouleau tourne VERS LE BAS
+      // Ancien descend, nouveau arrive par le haut
       oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
-      newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';     // changé ici !
+      newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
+    } else {
+      // Score diminue → rouleau tourne VERS LE HAUT
+      // Ancien monte, nouveau arrive par le bas
+      oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
+      newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
     }
   }
 }
@@ -8309,6 +8311,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
