@@ -7997,7 +7997,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       // 🔁 RETURNING USER : Message de bienvenue + menu
       showReturningUserWelcome(currentUser.pseudo);
     }
-    
+   // ✅ VÉRIFIER SI MODE APPRENDRE EST BLOQUÉ ET REDIRIGER
+if (isApprentissageBloque()) {
+  console.log('🚫 Mode Apprendre bloqué détecté au démarrage');
+  wasBlockedWhenEnteringRevision = true;
+  deficitInitialRevision = calculerDeficitValidation();
+  pointsGagnesEnRevision = 0;
+  
+  setTimeout(() => {
+    showSection('mode2');
+  }, 100);
+} 
   // ✅ GARDER UNIQUEMENT nextQuestion() (le reste est déjà fait dans initGame)
   nextQuestion();
   });
@@ -8364,6 +8374,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
