@@ -4460,24 +4460,63 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   const oldS = document.getElementById('score-old');
   const newS = document.getElementById('score-new');
   
-  if (oldS && newS) {
-    // Comparaison des scores (assure-toi que ce sont des nombres)
-    const scoreIncreasing = parseInt(newValidation) > parseInt(oldValidation);
+  if (!oldS || !newS) return;
+
+  const oldValue = parseInt(oldValidation);
+  const newValue = parseInt(newValidation);
+
+  // Cas simple : augmentation ou diminution de 1 seul point
+  if (Math.abs(newValue - oldValue) <= 1) {
+    const scoreIncreasing = newValue > oldValue;
 
     if (scoreIncreasing) {
-      // Score augmente → rouleau tourne VERS LE BAS
-      // Ancien descend, nouveau arrive par le haut
+      // Augmente : rouleau descend (10 → 11)
       oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
       newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
     } else {
-      // Score diminue → rouleau tourne VERS LE HAUT
-      // Ancien monte, nouveau arrive par le bas
+      // Diminue de 1 : rouleau monte (10 → 9)
       oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
       newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
     }
+    return;
+  }
+
+  // Cas spécial : diminution de plus d'1 point → animation en chaîne
+  if (newValue < oldValue) {
+    let current = oldValue;
+    const steps = [];
+
+    // On crée la liste des valeurs intermédiaires (ex: 10 → 9 → 8)
+    while (current > newValue) {
+      steps.push(current - 1);  // on ajoute la prochaine valeur descendante
+      current--;
+    }
+
+    // On lance les animations en séquence
+    let delay = 0;
+    const duration = 0.7;  // durée d'une animation en secondes
+
+    steps.forEach((nextValue, index) => {
+      setTimeout(() => {
+        // On met à jour le texte du "nouveau" score
+        newS.textContent = nextValue;
+
+        // Direction : toujours descente du rouleau quand on perd des points
+        oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
+        newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
+
+        // À la dernière étape, on met aussi à jour oldS pour la prochaine fois
+        if (index === steps.length - 1) {
+          setTimeout(() => {
+            oldS.textContent = nextValue;
+          }, duration * 1000);
+        }
+      }, delay * 1000);
+
+      delay += duration + 0.1;  // petite pause entre chaque étape pour plus de fluidité
+    });
   }
 }
-
     // 2. Animation de changement de statut AVEC TES VRAIES ANIMATIONS 🎊
     if (animateStatusChange) {
       const scoreContainer = document.getElementById('score-container');
@@ -8311,6 +8350,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
