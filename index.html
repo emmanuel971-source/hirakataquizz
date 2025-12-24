@@ -4422,7 +4422,7 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
               <div id="score-old" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; line-height: 70px;">
                 ${oldValidation}
               </div>
-              <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
+              <div id="score-new" style="position: absolute; left: 0; width: 100%; text-align: center; font-size: 1em; color: #333; font-weight: bold; text-shadow: 0 0 10px gold; line-height: 70px; top: ${isCorrect ? '70px' : '-70px'};">
                 ${newValidation}
               </div>
             </div>
@@ -4456,20 +4456,27 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
   // === ANIMATIONS APRÈS LE FADE VERS BLANC (0.8s) ===
   setTimeout(() => {
     // 1. Animation du score (compteur à rouleaux)
-    if (animateScore) {
-      const oldS = document.getElementById('score-old');
-      const newS = document.getElementById('score-new');
-      
-      if (oldS && newS) {
-        if (isCorrect) {
-          oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
-          newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
-        } else {
-          oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
-          newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
-        }
-      }
+  if (animateScore) {
+  const oldS = document.getElementById('score-old');
+  const newS = document.getElementById('score-new');
+  
+  if (oldS && newS) {
+    // Comparaison des scores (assure-toi que ce sont des nombres)
+    const scoreIncreasing = parseInt(newValidation) > parseInt(oldValidation);
+
+    if (scoreIncreasing) {
+      // Score augmente → rouleau tourne VERS LE BAS
+      // Ancien descend, nouveau arrive par le haut
+      oldS.style.animation = 'rollDown 0.7s ease-in-out forwards';
+      newS.style.animation = 'rollInDown 0.7s ease-in-out forwards';
+    } else {
+      // Score diminue → rouleau tourne VERS LE HAUT
+      // Ancien monte, nouveau arrive par le bas
+      oldS.style.animation = 'rollUp 0.7s ease-in-out forwards';
+      newS.style.animation = 'rollInUp 0.7s ease-in-out forwards';
     }
+  }
+}
 
     // 2. Animation de changement de statut AVEC TES VRAIES ANIMATIONS 🎊
     if (animateStatusChange) {
@@ -8304,6 +8311,8 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
+
 
 
 
