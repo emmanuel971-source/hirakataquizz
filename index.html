@@ -2047,29 +2047,32 @@ img.emoji {
 // ============================================================================
 // 🌍 SECTION 1 : TRADUCTIONS & INTERNATIONALISATION
 // ============================================================================
-
 const translations = {
   fr: {
     // Menu
     menu_learn: "Apprendre",
     menu_revision: "Mode révisions",
     menu_options: "Options",
-    menu_close: "Fermer",
+    menu_stats: "Mon jardin",
     
     // Page d'accueil
     welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
     welcome_subtitle: "Apprenez à lire le Japonais",
     welcome_loading: "Chargement...",
     welcome_touch: "Touchez le panda pour entrer !",
+    welcome_loading_dots: "(Chargement... )",
+    welcome_user: "Bienvenue",
+    welcome_back: "Bon retour",
+    welcome_journey_starts: "Ton voyage commence maintenant 🌸",
     
     // Quiz
-    quiz_title: "🎌⛩️ Apprenez les Kanas ⛩️🎌",
     quiz_level: "Niveau actuel :",
+    quiz_level_display: "Niveau actuel :",
     quiz_continue: "🌱 OK... j'ai capté 🌱",
     quiz_install: "Ajouter à l'écran d'accueil",
-    
-    // Révisions
-    revision_title: "🎌⛩️ Réviser les Kanas ⛩️🎌",
+    quiz_question_load: "load...",
+    quiz_current_level: "Niveau actuel :",
+    quiz_correct_answer: "👉 Bonne réponse :",
     
     // Options
     options_title: "Options",
@@ -2079,19 +2082,10 @@ const translations = {
     options_back: "← Retour",
     sound_game_effects: "Sons du jeu",
     sound_voice_synthesis: "Synthèses vocales",
-    sound_info: "💡 Les sons du jeu incluent les effets sonores et animations. Les synthèses vocales sont les prononciations des caractères japonais.",
-  
-    // Difficulté
-    difficulty_easy: "",
-    difficulty_medium: "",
-    difficulty_hard: "",
-    difficulty_set: "Difficulté réglée sur :",
     
     // Messages
     msg_perfect: "Correct !",
     msg_validated: "Validé !",
-    msg_almost: "Presque...",
-    msg_notquite: "Pas tout à fait...",
     msg_correct: "👉 Bonne réponse :",
     msg_level_up: "🍃LEVEL UP!🎋",
     
@@ -2101,14 +2095,21 @@ const translations = {
     menu_msg_still_blocked: "Mode Apprendre encore bloqué",
     menu_msg_revision_unlocked: "🎮 Mode révisions débloqué 🎮",
     
-    // Révision disponibilité
+    // Révision
     revision_available_level4: "Mode révision disponible à partir du niveau 4",
     revision_no_items: "Aucun item disponible pour révision",
-
-     // Mon compte
-  account_title: "Mon compte",
-  account_change_device: "📱 Changer d'appareil",
-  
+    revision_ok: "OK",
+    revision_wrong: "Faux",
+    revision_correct_answer: "👉 Bonne réponse :",
+    
+    // Mon compte
+    account_title: "Mon compte",
+    account_change_device: "📱 Changer d'appareil",
+    account_pseudo_label: "Pseudo :",
+    account_level_label: "Niveau :",
+    account_default_value: "-",
+    account_level_in_progress: "(en cours)",
+    
     // Onboarding
     onboarding_welcome: "Bienvenue ! 🌸",
     onboarding_subtitle: "Commençons ton apprentissage",
@@ -2120,57 +2121,32 @@ const translations = {
     onboarding_back: "Retour",
     onboarding_pin_title: "Sécurise ton compte 🔐",
     onboarding_pin_subtitle: "Entre ta date de naissance",
-    onboarding_pin_example: "Exemple : né(e) le 12 mai → 1205",
     onboarding_confirm_title: "Confirmation",
     onboarding_confirm_question: "Tu es né(e) le",
     onboarding_warning: "⚠️ Cette date te servira à récupérer ton compte en cas de besoin",
     onboarding_correct: "Corriger",
     onboarding_confirm: "C'est correct !",
-    rate_limit_error: "🚫 Trop de tentatives. Veuillez réessayer dans quelques minutes.",
-    wait_seconds: "⏱️ Veuillez réessayer dans",
-    second: "seconde",
-    seconds: "secondes",
     onboarding_day: "Jour",
     onboarding_month: "Mois",
-    onboarding_pin_subtitle: "Entre ta date de naissance",
     
-    // Mon Parcours (anciennement Stats)
-    menu_stats: "Mon jardin",
+    // Connexion
+    login_title: "Connexion 🔐",
+    login_subtitle: "Retrouve ton compte",
+    login_pseudo_label: "Ton pseudo",
+    login_pseudo_placeholder: "ton pseudo",
+    login_pin_label: "Ta date d'anniversaire :",
+    login_connect: "Me connecter",
+    
+    // Mon Jardin
     stats_title: "🐼 Mon jardin",
-    stats_filter_all: "Tous",
-    stats_filter_acquired: "Maîtrisé",
-    stats_filter_review: "À entretenir",
-    stats_filter_progress: "En cours",
-    stats_table_hiragana: "Hiragana",
-    stats_table_katakana: "Kata/trad.",
-    stats_table_romaji: "Romaji",
-    stats_table_status: "Statut",
+    stats_no_items: "Aucun item dans cette catégorie",
     garden_legend_learning: "En cours",
     garden_legend_practice: "À entretenir",
     garden_legend_mastered: "Maîtrisé",
-  
-  // Connexion
-  login_title: "Connexion 🔐",
-  create_account_already_have: "J'ai déjà un compte",
-  login_subtitle: "Retrouve ton compte",
-  login_pseudo_label: "Ton pseudo",
-  login_pin_label: "Ta date d'anniversaire :",
-  login_connect: "Me connecter",
-  create_account_confirm_yes: "✅ Oui, c'est correct", // FR
-  create_account_correct_pin: "✏️ Non, corriger", // FR  
-  welcome_loading_dots: "(Chargement... )",
-quiz_level_display: "Niveau actuel :",
-quiz_question_load: "load...",
-options_sound_description: "🔊 Ici tu pourras ajouter des réglages (volume, mute, etc.)",
-account_pseudo_label: "Pseudo :",
-account_level_label: "Niveau :",
-account_default_value: "-",
-pseudo_input_placeholder: "Ton pseudo...",
-confirm_date_question_mark: "?",
-login_pseudo_placeholder: "ton pseudo",
-loader_preparing: "Préparation de ton jardin zen...",
-welcome_journey_starts: "Ton voyage commence maintenant 🌸",  
-
+    
+    // Placeholders
+    pseudo_input_placeholder: "Ton pseudo...",
+    
     // Erreurs
     error_pseudo_too_short: "Le pseudo doit contenir au moins 2 caractères",
     error_pseudo_too_long: "Le pseudo ne peut pas dépasser 20 caractères",
@@ -2188,7 +2164,6 @@ welcome_journey_starts: "Ton voyage commence maintenant 🌸",
     error_select_birthdate: "Veuillez sélectionner votre date de naissance",
     error_wrong_credentials: "Pseudo ou date de naissance incorrect",
     error_token_update: "Erreur lors de la mise à jour du token",
-    stats_no_items: "Aucun item dans cette catégorie",
     
     // Loaders
     loader_meditation: "🧘 Méditation en cours...",
@@ -2196,12 +2171,9 @@ welcome_journey_starts: "Ton voyage commence maintenant 🌸",
     loader_cherry: "🌸 Plantation des cerisiers...",
     loader_garden: "🎋 Arrangement du jardin zen...",
     loader_ceremony: "🎌 Préparation de la cérémonie...",
+    loader_preparing: "Préparation de ton jardin zen...",
     
-    // Bienvenue
-    welcome_user: "Bienvenue",
-    welcome_back: "Bon retour",
-    
-    // Proverbes
+    // Proverbes (utilisés dans showReturningUserWelcome)
     proverb_1: "Un voyage de mille lieues commence toujours par un premier pas 🌸",
     proverb_2: "La patience est la clé de la joie 🍃",
     proverb_3: "Chaque jour est une nouvelle chance d'apprendre 🎋",
@@ -2228,17 +2200,7 @@ welcome_journey_starts: "Ton voyage commence maintenant 🌸",
     proverb_24: "Le parfum du thé n'a pas besoin de paroles 🍵",
     proverb_25: "La discipline n'est pas une chaîne, mais une clé 🗝️",
     
-    // Quiz
-    quiz_current_level: "Niveau actuel :",
-    quiz_correct_answer: "👉 Bonne réponse :",
-    quiz_answer_separator: "—",
-    
-    // Révision
-    revision_ok: "OK",
-    revision_wrong: "Faux",
-    revision_correct_answer: "👉 Bonne réponse :",
-
-        // Mois
+    // Mois
     month_01: "janvier",
     month_02: "février",
     month_03: "mars",
@@ -2251,60 +2213,57 @@ welcome_journey_starts: "Ton voyage commence maintenant 🌸",
     month_10: "octobre",
     month_11: "novembre",
     month_12: "décembre",
-
-        // Compte
-    account_level_in_progress: "(en cours)",
-
-contact_title: "Contact",
-contact_send_message: "✉️",
-contact_message_subtitle: "Partage tes idées, suggestions ou questions",
-contact_category_label: "Catégorie :",
-contact_cat_suggestion: "💡 Suggestion",
-contact_cat_question: "❓ Question",
-contact_cat_feedback: "⭐ Retour d'expérience",
-contact_cat_other: "📝 Autre",
-contact_message_placeholder: "Ton message (max 500 caractères)...",
-contact_send: "✉️ Envoyer",
-contact_bug_subtitle: "Signaler un bug",
-contact_email_label: "Email :",
-contact_email_placeholder: "ton@email.com",
-contact_bug_description_label: "Description du bug :",
-contact_bug_description_placeholder: "Décris le problème en quelques lignes...",
-contact_bug_steps_label: "Étapes pour reproduire (optionnel) :",
-contact_bug_steps_placeholder: "1. Je clique sur...\n2. Ensuite...",
-contact_bug_screenshot_title: "📷 Screenshot nécessaire ?",
-contact_bug_screenshot_text: "Si nous avons besoin d'une capture d'écran, nous te contacterons par email.",
-contact_report_bug: "🐞",
-contact_my_messages: "📬",
-contact_inbox_title: "📬 Mes messages",
-contact_loading: "Chargement...",
-contact_inbox_empty: "📭 Aucun message pour le moment",
-contact_message_too_short: "Message trop court (min 10 caractères)",
-contact_invalid_email: "⚠️ Email invalide",
-contact_description_too_short: "⚠️ Description trop courte (min 20 caractères)",
-contact_success_message: "✅ Message envoyé ! Nous te répondrons bientôt 🌸",
-contact_success_bug: "✅ Bug reporté ! Merci pour ton aide",
-contact_error_short: "Message trop court (min 10 caractères)",
-contact_error_email: "⚠️ Email invalide",
-contact_error_bug_short: "⚠️ Description trop courte (min 20 caractères)",
-contact_error_bug_size: "⚠️ Screenshot trop lourd (max 5MB)",
-contact_error_network: "Erreur réseau. Vérifie ta connexion.",
-contact_response_header: "🌸 Réponse de l'équipe",
-contact_waiting_response: "En attente de réponse...",
+    
+    // Contact
+    contact_title: "Contact",
+    contact_send_message: "✉️",
+    contact_message_subtitle: "Partage tes idées, suggestions ou questions",
+    contact_category_label: "Catégorie :",
+    contact_cat_suggestion: "💡 Suggestion",
+    contact_cat_question: "❓ Question",
+    contact_cat_feedback: "⭐ Retour d'expérience",
+    contact_cat_other: "📝 Autre",
+    contact_message_placeholder: "Ton message (max 500 caractères)...",
+    contact_send: "✉️ Envoyer",
+    contact_bug_subtitle: "Signaler un bug",
+    contact_email_label: "Email :",
+    contact_email_placeholder: "ton@email.com",
+    contact_bug_description_label: "Description du bug :",
+    contact_bug_description_placeholder: "Décris le problème en quelques lignes...",
+    contact_bug_steps_label: "Étapes pour reproduire (optionnel) :",
+    contact_bug_steps_placeholder: "1. Je clique sur...\n2. Ensuite...",
+    contact_bug_screenshot_title: "📷 Screenshot nécessaire ?",
+    contact_bug_screenshot_text: "Si nous avons besoin d'une capture d'écran, nous te contacterons par email.",
+    contact_report_bug: "🐞",
+    contact_my_messages: "📬",
+    contact_inbox_title: "📬 Mes messages",
+    contact_loading: "Chargement...",
+    contact_inbox_empty: "📭 Aucun message pour le moment",
+    contact_message_too_short: "Message trop court (min 10 caractères)",
+    contact_invalid_email: "⚠️ Email invalide",
+    contact_description_too_short: "⚠️ Description trop courte (min 20 caractères)",
+    contact_success_message: "✅ Message envoyé ! Nous te répondrons bientôt 🌸",
+    contact_success_bug: "✅ Bug reporté ! Merci pour ton aide",
+    contact_error_short: "Message trop court (min 10 caractères)",
+    contact_error_email: "⚠️ Email invalide",
+    contact_error_bug_short: "⚠️ Description trop courte (min 20 caractères)",
+    contact_error_bug_size: "⚠️ Screenshot trop lourd (max 5MB)",
+    contact_error_network: "Erreur réseau. Vérifie ta connexion.",
+    contact_response_header: "🌸 Réponse de l'équipe",
+    contact_waiting_response: "En attente de réponse...",
     contact_limit_reached: 'Limite atteinte : 3 messages maximum par jour 🌸',
     contact_user_not_identified: 'Utilisateur non identifié. Connecte-toi d\'abord.',
     contact_error_occurred: 'Une erreur est survenue',
-contact_user_not_found: "Utilisateur non identifié. Connecte-toi d'abord.",
-contact_inbox_error: "❌ Erreur de chargement",
-
+    contact_user_not_found: "Utilisateur non identifié. Connecte-toi d'abord.",
+    contact_inbox_error: "❌ Erreur de chargement",
+    
+    // Déblocages
     unlock_revision_title: 'Mode Révisions',
     unlock_revision_message: 'Tu peux maintenant réviser tes kanas !',
     unlock_garden_title: 'Mon Jardin',
     unlock_garden_message: 'Ton jardin zen est maintenant accessible !',
     unlock_learning_title: 'Mode Apprendre Débloqué',
-    unlock_learning_message: 'Tu peux à nouveau apprendre de nouveaux kanas !',    
-
-    
+    unlock_learning_message: 'Tu peux à nouveau apprendre de nouveaux kanas !'
   },
   
   en: {
@@ -2312,22 +2271,26 @@ contact_inbox_error: "❌ Erreur de chargement",
     menu_learn: "Learn",
     menu_revision: "Revision Mode",
     menu_options: "Options",
-    menu_close: "Close",
+    menu_stats: "My Garden",
     
     // Welcome page
     welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
     welcome_subtitle: "Learn to read Japanese",
     welcome_loading: "Loading...",
     welcome_touch: "Touch the panda to enter!",
+    welcome_loading_dots: "(Loading... )",
+    welcome_user: "Welcome",
+    welcome_back: "Welcome back",
+    welcome_journey_starts: "Your journey begins now 🌸",
     
     // Quiz
-    quiz_title: "🎌⛩️ Learn the Kanas ⛩️🎌",
     quiz_level: "Current level:",
+    quiz_level_display: "Current level:",
     quiz_continue: "🌱 OK... got it 🌱",
     quiz_install: "Add to home screen",
-    
-    // Revision
-    revision_title: "🎌⛩️ Review the Kanas ⛩️🎌",
+    quiz_question_load: "load...",
+    quiz_current_level: "Current level:",
+    quiz_correct_answer: "👉 Correct answer:",
     
     // Options
     options_title: "Options",
@@ -2335,23 +2298,12 @@ contact_inbox_error: "❌ Erreur de chargement",
     options_sound: "Sound",
     options_language: "Language",
     options_back: "← Back",
-
     sound_game_effects: "Game sounds",
     sound_voice_synthesis: "Voice synthesis",
-    sound_info: "💡 Game sounds include sound effects and animations. Voice synthesis are the pronunciations of Japanese characters.",
-  
-    
-    // Difficulty
-    difficulty_easy: "",
-    difficulty_medium: "",
-    difficulty_hard: "",
-    difficulty_set: "Difficulty set to:",
     
     // Messages
     msg_perfect: "Perfect!",
     msg_validated: "Validated! 🎉",
-    msg_almost: "Almost...",
-    msg_notquite: "Not quite...",
     msg_correct: "👉 Correct answer:",
     msg_level_up: "🍃LEVEL UP!🎋",
     
@@ -2361,14 +2313,21 @@ contact_inbox_error: "❌ Erreur de chargement",
     menu_msg_still_blocked: "Learn Mode still blocked",
     menu_msg_revision_unlocked: "Revision mode unlocked",
     
-    // Revision availability
+    // Revision
     revision_available_level4: "Revision mode available from level 4",
     revision_no_items: "No items available for revision",
-
+    revision_ok: "OK",
+    revision_wrong: "Wrong",
+    revision_correct_answer: "👉 Correct answer:",
+    
     // My account
-  account_title: "My Account",
-  account_change_device: "📱 Change Device",
-  
+    account_title: "My Account",
+    account_change_device: "📱 Change Device",
+    account_pseudo_label: "Nickname:",
+    account_level_label: "Level:",
+    account_default_value: "-",
+    account_level_in_progress: "(in progress)",
+    
     // Onboarding
     onboarding_welcome: "Welcome! 🌸",
     onboarding_subtitle: "Let's begin your learning",
@@ -2380,56 +2339,32 @@ contact_inbox_error: "❌ Erreur de chargement",
     onboarding_back: "Back",
     onboarding_pin_title: "Secure your account 🔐",
     onboarding_pin_subtitle: "Enter your birth date",
-    onboarding_pin_example: "Example: born May 12th → 1205",
     onboarding_confirm_title: "Confirmation",
     onboarding_confirm_question: "You were born on",
     onboarding_warning: "⚠️ This date will allow you to recover your account if needed",
     onboarding_correct: "Correct",
     onboarding_confirm: "That's correct",
-    rate_limit_error: "🚫 Too many attempts. Please try again in a few minutes.",
-    wait_seconds: "⏱️ Please wait",
-    second: "second",
-    seconds: "seconds",
     onboarding_day: "Day",
     onboarding_month: "Month",
-    onboarding_pin_subtitle: "Enter your birth date",
-    // Mon Parcours
-    menu_stats: "My Garden",
+    
+    // Login
+    login_title: "Login 🔐",
+    login_subtitle: "Find your account",
+    login_pseudo_label: "Your nickname",
+    login_pseudo_placeholder: "your nickname",
+    login_pin_label: "Your Birthdate :",
+    login_connect: "🎋 Connect",
+    
+    // My Garden
     stats_title: "🐼 My Garden",
-    stats_filter_all: "All",
-    stats_filter_acquired: "Mastered",
-    stats_filter_review: "To practice",
-    stats_filter_progress: "Learning",
-    stats_table_hiragana: "Hiragana",
-    stats_table_katakana: "Kata/trad.",
-    stats_table_romaji: "Romaji",
-    stats_table_status: "Status",
+    stats_no_items: "No items in this category",
     garden_legend_learning: "Learning",
     garden_legend_practice: "Practice",
     garden_legend_mastered: "Mastered",
- 
-  // Login
-  login_title: "Login 🔐",
     
-  login_subtitle: "Find your account",
-  login_pseudo_label: "Your nickname",
-  login_pin_label: "Your Birthdate :",
-  login_connect: "🎋 Connect",
-  create_account_confirm_yes: "✅ Yes, that's correct", // EN
-  create_account_correct_pin: "✏️ No, correct it", // EN  
-  welcome_loading_dots: "(Loading... )",
-quiz_level_display: "Current level:",
-quiz_question_load: "load...",
-options_sound_description: "🔊 Here you can add settings (volume, mute, etc.)",
-account_pseudo_label: "Nickname:",
-account_level_label: "Level:",
-account_default_value: "-",
-pseudo_input_placeholder: "Your nickname...",
-confirm_date_question_mark: "?",
-login_pseudo_placeholder: "your nickname",
-loader_preparing: "Preparing your zen garden...",
-welcome_journey_starts: "Your journey begins now 🌸",  
-
+    // Placeholders
+    pseudo_input_placeholder: "Your nickname...",
+    
     // Errors
     error_pseudo_too_short: "Nickname must contain at least 2 characters",
     error_pseudo_too_long: "Nickname cannot exceed 20 characters",
@@ -2447,7 +2382,6 @@ welcome_journey_starts: "Your journey begins now 🌸",
     error_select_birthdate: "Please select your birth date",
     error_wrong_credentials: "Incorrect nickname or birth date",
     error_token_update: "Error updating token",
-    stats_no_items: "No items in this category",
     
     // Loaders
     loader_meditation: "🧘 Meditating...",
@@ -2455,10 +2389,7 @@ welcome_journey_starts: "Your journey begins now 🌸",
     loader_cherry: "🌸 Planting cherry trees...",
     loader_garden: "🎋 Arranging zen garden...",
     loader_ceremony: "🎌 Preparing ceremony...",
-    
-    // Welcome
-    welcome_user: "Welcome",
-    welcome_back: "Welcome back",
+    loader_preparing: "Preparing your zen garden...",
     
     // Proverbs
     proverb_1: "A journey of a thousand miles begins with a single step 🌸",
@@ -2487,17 +2418,7 @@ welcome_journey_starts: "Your journey begins now 🌸",
     proverb_24: "The fragrance of tea needs no words 🍵",
     proverb_25: "Discipline is not a chain, but a key 🗝️",
     
-    // Quiz
-    quiz_current_level: "Current level:",
-    quiz_correct_answer: "👉 Correct answer:",
-    quiz_answer_separator: "—",
-    
-    // Revision
-    revision_ok: "OK",
-    revision_wrong: "Wrong",
-    revision_correct_answer: "👉 Correct answer:",
-
-        // Months
+    // Months
     month_01: "January",
     month_02: "February",
     month_03: "March",
@@ -2510,61 +2431,57 @@ welcome_journey_starts: "Your journey begins now 🌸",
     month_10: "October",
     month_11: "November",
     month_12: "December",
-
-     // Account
-    account_level_in_progress: "(in progress)",
     
- 
-contact_title: "Contact",
-contact_send_message: "✉️",
-contact_message_subtitle: "Share your ideas, suggestions, or questions",
-contact_category_label: "Category:",
-contact_cat_suggestion: "💡 Suggestion",
-contact_cat_question: "❓ Question",
-contact_cat_feedback: "⭐ Feedback",
-contact_cat_other: "📝 Other",
-contact_message_placeholder: "Your message (max 500 characters)...",
-contact_send: "✉️ Send",
-contact_bug_subtitle: "Report a bug",
-contact_email_label: "Email:",
-contact_email_placeholder: "your@email.com",
-contact_bug_description_label: "Bug description:",
-contact_bug_description_placeholder: "Describe the problem in a few lines...",
-contact_bug_steps_label: "Steps to reproduce (optional):",
-contact_bug_steps_placeholder: "1. I click on...\n2. Then...",
-contact_bug_screenshot_title: "📷 Screenshot required?",
-contact_bug_screenshot_text: "If we need a screenshot, we will contact you by email.",
-contact_report_bug: "🐞",
-contact_my_messages: "📬",
-contact_inbox_title: "📬 My messages",
-contact_loading: "Loading...",
-contact_inbox_empty: "📭 No messages yet",
-contact_message_too_short: "Message too short (min 10 characters)",
-contact_invalid_email: "⚠️ Invalid email",
-contact_description_too_short: "⚠️ Description too short (min 20 characters)",
-contact_success_message: "✅ Message sent! We'll reply soon 🌸",
-contact_success_bug: "✅ Bug reported! Thanks for your help",
-contact_error_short: "Message too short (min 10 characters)",
-contact_error_email: "⚠️ Invalid email",
-contact_error_bug_short: "⚠️ Description too short (min 20 characters)",
-contact_error_bug_size: "⚠️ Screenshot too large (max 5MB)",
-contact_error_network: "Network error. Check your connection.",
-contact_response_header: "🌸 Team response",
-contact_waiting_response: "Waiting for response...",
+    // Contact
+    contact_title: "Contact",
+    contact_send_message: "✉️",
+    contact_message_subtitle: "Share your ideas, suggestions, or questions",
+    contact_category_label: "Category:",
+    contact_cat_suggestion: "💡 Suggestion",
+    contact_cat_question: "❓ Question",
+    contact_cat_feedback: "⭐ Feedback",
+    contact_cat_other: "📝 Other",
+    contact_message_placeholder: "Your message (max 500 characters)...",
+    contact_send: "✉️ Send",
+    contact_bug_subtitle: "Report a bug",
+    contact_email_label: "Email:",
+    contact_email_placeholder: "your@email.com",
+    contact_bug_description_label: "Bug description:",
+    contact_bug_description_placeholder: "Describe the problem in a few lines...",
+    contact_bug_steps_label: "Steps to reproduce (optional):",
+    contact_bug_steps_placeholder: "1. I click on...\n2. Then...",
+    contact_bug_screenshot_title: "📷 Screenshot required?",
+    contact_bug_screenshot_text: "If we need a screenshot, we will contact you by email.",
+    contact_report_bug: "🐞",
+    contact_my_messages: "📬",
+    contact_inbox_title: "📬 My messages",
+    contact_loading: "Loading...",
+    contact_inbox_empty: "📭 No messages yet",
+    contact_message_too_short: "Message too short (min 10 characters)",
+    contact_invalid_email: "⚠️ Invalid email",
+    contact_description_too_short: "⚠️ Description too short (min 20 characters)",
+    contact_success_message: "✅ Message sent! We'll reply soon 🌸",
+    contact_success_bug: "✅ Bug reported! Thanks for your help",
+    contact_error_short: "Message too short (min 10 characters)",
+    contact_error_email: "⚠️ Invalid email",
+    contact_error_bug_short: "⚠️ Description too short (min 20 characters)",
+    contact_error_bug_size: "⚠️ Screenshot too large (max 5MB)",
+    contact_error_network: "Network error. Check your connection.",
+    contact_response_header: "🌸 Team response",
+    contact_waiting_response: "Waiting for response...",
     contact_limit_reached: 'Limit reached: 3 messages maximum per day 🌸',
     contact_user_not_identified: 'User not identified. Please log in first.',
     contact_error_occurred: 'An error occurred',
-contact_user_not_found: "User not identified. Please log in first.",
-contact_inbox_error: "❌ Loading error",
-
-   unlock_revision_title: 'Review Mode',
+    contact_user_not_found: "User not identified. Please log in first.",
+    contact_inbox_error: "❌ Loading error",
+    
+    // Unlocks
+    unlock_revision_title: 'Review Mode',
     unlock_revision_message: 'You can now review your kanas!',
     unlock_garden_title: 'My Garden',
     unlock_garden_message: 'Your zen garden is now accessible!',
     unlock_learning_title: 'Learning Mode Unlocked',
-    unlock_learning_message: 'You can learn new kanas again!',    
-
-    
+    unlock_learning_message: 'You can learn new kanas again!'
   },
   
   es: {
@@ -2572,22 +2489,26 @@ contact_inbox_error: "❌ Loading error",
     menu_learn: "Aprender",
     menu_revision: "Modo revisión",
     menu_options: "Opciones",
-    menu_close: "Cerrar",
+    menu_stats: "Mi Jardin",
     
     // Página de bienvenida
     welcome_title: "🎌🌸 Kanas-Zen-Garden 🌸🎌",
     welcome_subtitle: "Aprende a leer Japonés",
     welcome_loading: "Cargando...",
     welcome_touch: "¡Toca el panda para entrar!",
+    welcome_loading_dots: "(Cargando... )",
+    welcome_user: "Bienvenido",
+    welcome_back: "Bienvenido de nuevo",
+    welcome_journey_starts: "Tu viaje comienza ahora 🌸",
     
     // Quiz
-    quiz_title: "🎌⛩️ Aprende los Kanas ⛩️🎌",
     quiz_level: "Nivel actual:",
+    quiz_level_display: "Nivel actual:",
     quiz_continue: "🌱 OK... lo entendí 🌱",
     quiz_install: "Añadir a pantalla de inicio",
-    
-    // Revisión
-    revision_title: "🎌⛩️ Revisar los Kanas ⛩️🎌",
+    quiz_question_load: "load...",
+    quiz_current_level: "Nivel actual:",
+    quiz_correct_answer: "👉 Respuesta correcta:",
     
     // Opciones
     options_title: "Opciones",
@@ -2595,23 +2516,12 @@ contact_inbox_error: "❌ Loading error",
     options_sound: "Sonido",
     options_language: "Idioma",
     options_back: "← Volver",
-
     sound_game_effects: "Sonidos del juego",
     sound_voice_synthesis: "Síntesis de voz",
-    sound_info: "💡 Los sonidos del juego incluyen efectos de sonido y animaciones. Las síntesis de voz son las pronunciaciones de los caracteres japoneses.",
-  
-    
-    // Dificultad
-    difficulty_easy: "",
-    difficulty_medium: "",
-    difficulty_hard: "",
-    difficulty_set: "Dificultad ajustada a:",
     
     // Mensajes
     msg_perfect: "¡Perfecto!",
     msg_validated: "¡Validado! 🎉",
-    msg_almost: "Casi...",
-    msg_notquite: "No del todo...",
     msg_correct: "👉 Respuesta correcta:",
     msg_level_up: "🍃¡SUBIDA DE NIVEL!🎋",
     
@@ -2624,10 +2534,18 @@ contact_inbox_error: "❌ Loading error",
     // Disponibilidad revisión
     revision_available_level4: "Modo revisión disponible desde el nivel 4",
     revision_no_items: "No hay elementos disponibles para revisión",
-     // Mi cuenta
-  account_title: "Mi Cuenta",
-  account_change_device: "📱 Cambiar de Dispositivo",
-  
+    revision_ok: "OK",
+    revision_wrong: "Falso",
+    revision_correct_answer: "👉 Respuesta correcta:",
+    
+    // Mi cuenta
+    account_title: "Mi Cuenta",
+    account_change_device: "📱 Cambiar de Dispositivo",
+    account_pseudo_label: "Apodo:",
+    account_level_label: "Nivel:",
+    account_default_value: "-",
+    account_level_in_progress: "(en progreso)",
+    
     // Onboarding
     onboarding_welcome: "¡Bienvenido! 🌸",
     onboarding_subtitle: "Comencemos tu aprendizaje",
@@ -2639,55 +2557,32 @@ contact_inbox_error: "❌ Loading error",
     onboarding_back: "Volver",
     onboarding_pin_title: "Asegura tu cuenta 🔐",
     onboarding_pin_subtitle: "Ingresa tu fecha de nacimiento",
-    onboarding_pin_example: "Ejemplo: nacido el 12 de mayo → 1205",
     onboarding_confirm_title: "Confirmación",
     onboarding_confirm_question: "Naciste el",
     onboarding_warning: "⚠️ Esta fecha le permitirá recuperar su cuenta si es necesario",
     onboarding_correct: "Corregir",
     onboarding_confirm: "Es correcto",
-    rate_limit_error: "🚫 Demasiados intentos. Inténtalo de nuevo en unos minutos.",
-    wait_seconds: "⏱️ Por favor espera",
-    second: "segundo",
-    seconds: "segundos",
     onboarding_day: "Día",
     onboarding_month: "Mes",
-    onboarding_pin_subtitle: "Ingresa tu fecha de nacimiento",
-    // Mon Parcours
-    menu_stats: "Mi Jardin",
+    
+    // Conexión
+    login_title: "Conexión 🔐",
+    login_subtitle: "Encuentra tu cuenta",
+    login_pseudo_label: "Tu apodo",
+    login_pseudo_placeholder: "tu apodo",
+    login_pin_label: "Tu fecha de nacimiento :",
+    login_connect: "🎋 Conectarme",
+    
+    // Mi Jardin
     stats_title: "🐼 Mi Jardin",
-    stats_filter_all: "Todos",
-    stats_filter_acquired: "Dominado",
-    stats_filter_review: "A practicar",
-    stats_filter_progress: "Aprendiendo",
-    stats_table_hiragana: "Hiragana",
-    stats_table_katakana: "Kata/trad.",
-    stats_table_romaji: "Romaji",
-    stats_table_status: "Estado",
+    stats_no_items: "No hay elementos en esta categoría",
     garden_legend_learning: "En curso",
     garden_legend_practice: "Repasar",
     garden_legend_mastered: "Dominado",
     
-  // Conexión
-  login_title: "Conexión 🔐",
-  login_subtitle: "Encuentra tu cuenta",
-  login_pseudo_label: "Tu apodo",
-  login_pin_label: "Tu fecha de nacimiento :",
-  login_connect: "🎋 Conectarme",
-  create_account_confirm_yes: "✅ Sí, es correcto", // ES
-  create_account_correct_pin: "✏️ No, corregir", // ES  
-  welcome_loading_dots: "(Cargando... )",
-quiz_level_display: "Nivel actual:",
-quiz_question_load: "load...",
-options_sound_description: "🔊 Aquí podrás añadir ajustes (volumen, silenciar, etc.)",
-account_pseudo_label: "Apodo:",
-account_level_label: "Nivel:",
-account_default_value: "-",
-pseudo_input_placeholder: "Tu apodo...",
-confirm_date_question_mark: "?",
-login_pseudo_placeholder: "tu apodo",
-loader_preparing: "Preparando tu jardín zen...",
-welcome_journey_starts: "Tu viaje comienza ahora 🌸",
-
+    // Placeholders
+    pseudo_input_placeholder: "Tu apodo...",
+    
     // Errores
     error_pseudo_too_short: "El apodo debe contener al menos 2 caracteres",
     error_pseudo_too_long: "El apodo no puede exceder 20 caracteres",
@@ -2705,7 +2600,6 @@ welcome_journey_starts: "Tu viaje comienza ahora 🌸",
     error_select_birthdate: "Por favor seleccione su fecha de nacimiento",
     error_wrong_credentials: "Apodo o fecha de nacimiento incorrecta",
     error_token_update: "Error al actualizar el token",
-    stats_no_items: "No hay elementos en esta categoría",
     
     // Cargadores
     loader_meditation: "🧘 Meditando...",
@@ -2713,66 +2607,50 @@ welcome_journey_starts: "Tu viaje comienza ahora 🌸",
     loader_cherry: "🌸 Plantando cerezos...",
     loader_garden: "🎋 Arreglando jardín zen...",
     loader_ceremony: "🎌 Preparando ceremonia...",
-    
-    // Bienvenida
-    welcome_user: "Bienvenido",
-    welcome_back: "Bienvenido de nuevo",
-    
+    loader_preparing: "Preparando tu jardín zen...",
+
     // Proverbios
-    proverb_1: "Un viaje de mil millas comienza con un solo paso 🌸",
-    proverb_2: "La paciencia es la clave de la alegría 🍃",
-    proverb_3: "Cada día es una nueva oportunidad para aprender 🎋",
-    proverb_4: "Incluso un viaje de mil kilómetros comienza con un paso 👣",
-    proverb_5: "El viento no deja huella, pero transforma el cielo 🌬️",
-    proverb_6: "El conocimiento es un tesoro que sigue a su dueño a todas partes 💎",
-    proverb_7: "Un pequeño progreso cada día conduce al éxito 🌱",
-    proverb_8: "La perseverancia es la madre del éxito 🏔️",
-    proverb_9: "Quien sube lentamente, sube con seguridad 🧗",
-    proverb_10: "El camino es más importante que el destino 🛤️",
-    proverb_11: "Más vale tarde que nunca ⏰",
-    proverb_12: "Cuando el viento se detiene, las hojas descansan — así va la mente en paz 🍂",
-    proverb_13: "En la gota de rocío, se refleja todo el universo 💧",
-    proverb_14: "El silencio no está vacío — está lleno de respuestas 🕊️",
-    proverb_15: "Una piedra inmóvil en el arroyo aprende el paso del tiempo ⛰️",
-    proverb_16: "Afila tu mente como se pule una espada — lentamente, pacientemente ⚔️",
-    proverb_17: "No es la fuerza, sino la constancia, la que parte la piedra 💧",
-    proverb_18: "Cada día, avanza con un paso invisible pero real 👣",
-    proverb_19: "La flor no abre sus pétalos en una sola mañana 🌸",
-    proverb_20: "Cada experto fue una vez un principiante🌟",
+proverb_1: "Un viaje de mil millas comienza con un solo paso 🌸",
+proverb_2: "La paciencia es la clave de la alegría 🍃",
+proverb_3: "Cada día es una nueva oportunidad para aprender 🎋",
+proverb_4: "Incluso un viaje de mil kilómetros comienza con un paso 👣",
+proverb_5: "El viento no deja huella, pero transforma el cielo 🌬️",
+proverb_6: "El conocimiento es un tesoro que sigue a su dueño a todas partes 💎",
+proverb_7: "Un pequeño progreso cada día conduce al éxito 🌱",
+proverb_8: "La perseverancia es la madre del éxito 🏔️",
+proverb_9: "Quien sube lentamente, sube con seguridad 🧗",
+proverb_10: "El camino es más importante que el destino 🛤️",
+proverb_11: "Más vale tarde que nunca ⏰",
+proverb_12: "Cuando el viento se detiene, las hojas descansan — así va la mente en paz 🍂",
+proverb_13: "En la gota de rocío, se refleja todo el universo 💧",
+proverb_14: "El silencio no está vacío — está lleno de respuestas 🕊️",
+proverb_15: "Una piedra inmóvil en el arroyo aprende el paso del tiempo ⛰️",
+proverb_16: "Afila tu mente como se pule una espada — lentamente, pacientemente ⚔️",
+proverb_17: "No es la fuerza, sino la constancia, la que parte la piedra 💧",
+proverb_18: "Cada día, avanza con un paso invisible pero real 👣",
+proverb_19: "La flor no abre sus pétalos en una sola mañana 🌸",
+proverb_20: "Cada experto fue una vez un principiante 🌟",
 proverb_21: "El fracaso es el fundamento del éxito 🌸",
 proverb_22: "Incluso la sombra de un árbol habla del sol 🌳",
 proverb_23: "La niebla oculta la montaña, pero la montaña permanece ⛰️",
 proverb_24: "El aroma del té no necesita palabras 🍵",
 proverb_25: "La disciplina no es una cadena, sino una llave 🗝️",
-// Quiz
-quiz_current_level: "Nivel actual:",
-quiz_correct_answer: "👉 Respuesta correcta:",
-quiz_answer_separator: "—",
 
-// Revisión
-revision_ok: "OK",
-revision_wrong: "Falso",
-revision_correct_answer: "👉 Respuesta correcta:",
+// Meses
+month_01: "enero",
+month_02: "febrero",
+month_03: "marzo",
+month_04: "abril",
+month_05: "mayo",
+month_06: "junio",
+month_07: "julio",
+month_08: "agosto",
+month_09: "septiembre",
+month_10: "octubre",
+month_11: "noviembre",
+month_12: "diciembre",
 
-        
-    // Meses
-    month_01: "enero",
-    month_02: "febrero",
-    month_03: "marzo",
-    month_04: "abril",
-    month_05: "mayo",
-    month_06: "junio",
-    month_07: "julio",
-    month_08: "agosto",
-    month_09: "septiembre",
-    month_10: "octubre",
-    month_11: "noviembre",
-    month_12: "diciembre",
-    
-    // Cuenta
-    account_level_in_progress: "(en progreso)",
-
-
+// Contacto
 contact_title: "Contacto",
 contact_send_message: "✉️",
 contact_message_subtitle: "Comparte tus ideas, sugerencias o preguntas",
@@ -2809,23 +2687,21 @@ contact_error_bug_size: "⚠️ Captura demasiado pesada (máx 5MB)",
 contact_error_network: "Error de red. Verifica tu conexión.",
 contact_response_header: "🌸 Respuesta del equipo",
 contact_waiting_response: "Esperando respuesta...",
-    contact_limit_reached: 'Límite alcanzado: 3 mensajes máximo por día 🌸',
-    contact_user_not_identified: 'Usuario no identificado. Inicia sesión primero.',
-    contact_error_occurred: 'Ocurrió un error',
+contact_limit_reached: 'Límite alcanzado: 3 mensajes máximo por día 🌸',
+contact_user_not_identified: 'Usuario no identificado. Inicia sesión primero.',
+contact_error_occurred: 'Ocurrió un error',
 contact_user_not_found: "Usuario no identificado. Conéctate primero.",
 contact_inbox_error: "❌ Error de carga",
 
-    unlock_revision_title: 'Modo Revisión',
-    unlock_revision_message: '¡Ahora puedes revisar tus kanas!',
-    unlock_garden_title: 'Mi Jardín',
-    unlock_garden_message: '¡Tu jardín zen ya está accesible!',
-    unlock_learning_title: 'Modo Aprendizaje Desbloqueado',
-    unlock_learning_message: '¡Puedes aprender nuevos kanas de nuevo!'
-
-    
-  }
-};
-
+// Desbloqueos
+unlock_revision_title: 'Modo Revisión',
+unlock_revision_message: '¡Ahora puedes revisar tus kanas!',
+unlock_garden_title: 'Mi Jardín',
+unlock_garden_message: '¡Tu jardín zen ya está accesible!',
+unlock_learning_title: 'Modo Aprendizaje Desbloqueado',
+unlock_learning_message: '¡Puedes aprender nuevos kanas de nuevo!'
+}
+};  
 
 let currentLanguage = localStorage.getItem('appLanguage') || detectBrowserLanguage();
 
@@ -8312,3 +8188,4 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
