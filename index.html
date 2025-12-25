@@ -4313,7 +4313,7 @@ setTimeout(() => {
   }
 
   function addBugToRow(row) {
-    const bugs = ['🐛', '🦋', '🐝', '🐞', '🦗', '🦟', '🍂'];
+    const bugs = ['🐛', '🦋', '🐝', '🐞', '🐌', '🪵', '🐜'];
     const bugDiv = document.createElement('div');
     bugDiv.className = 'garden-item garden-bug';
     bugDiv.innerHTML = `<div style="font-size:2.8em;">${bugs[Math.floor(Math.random() * bugs.length)]}</div>`;
@@ -4401,8 +4401,9 @@ function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidat
         ${item.Romaji}
       </div>
       
-      <!-- 2️⃣ LIGNE 2 : KATAKANA ou HIRAGANA (opposé de la question) -->
-      <div class="char-display" style="font-size: 4em; font-weight: bold; color: #8B6F47; margin-bottom: 0.5em;">
+<!-- 2️⃣ LIGNE 2 : KATAKANA ou HIRAGANA (opposé de la question) -->
+<div class="char-display" style="font-size: 4em !important; font-weight: bold; color: #8B6F47; margin-bottom: 0.5em;">
+      
         ${displayChar}
       </div>
       
@@ -7865,7 +7866,7 @@ window.addEventListener('load', () => {
 // === PRÉCHARGEMENT DES EMOJIS ===
 const EMOJIS_USED = [
   '🦋', '🐸', '🌵', '🌴', '🍏', '🍀', '🌳', '🌿', '🌱', '💩', '👻', '😸', '😽', '👽', '🌈', 
-  '🐻', '🐞', '🐌', '🌞', '✅', '🧠', '🐶', '🐵', '🗾', '🪵', '🗻'
+  '🐻', '🐞', '🐌', '🌞', '✅', '🧠', '🐶', '🐵', '🗾', '🪵', '🗻','🐝','🐜'
 ];
 
 function preloadEmojis() {
@@ -8386,6 +8387,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
