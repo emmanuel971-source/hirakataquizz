@@ -2977,23 +2977,7 @@ if (!authResult.success) {
   console.error('❌ Erreur connexion:', error);
 }
 }
-function showLoginFromCreate() {
-  // Masquer la section create-account
-  document.getElementById('create-account').classList.remove('active');
   
-  // Afficher la section login
-  document.getElementById('login').classList.add('active');
-  
-  // Vider les champs par sécurité
-  document.getElementById('login-pseudo').value = '';
-  document.getElementById('login-pin').value = '';
-  
-  // Masquer les messages d'erreur/succès
-  document.getElementById('login-error').style.display = 'none';
-  document.getElementById('login-success').style.display = 'none';
-  
-  console.log('🔄 Navigation vers connexion depuis création de compte');
-}    
 function showLoginFromOnboarding() {
   document.getElementById('create-account').classList.remove('active');
   document.getElementById('login').classList.add('active');
@@ -3524,41 +3508,7 @@ if (userInteractions.clicks < 3 || userInteractions.keystrokes < 0) {
 }
 
 
-// --- Fonctions utilitaires auth ---
-function formatPinToDate(pin) {
-  if (!pin || pin.length !== 4) return null;
-  const day = pin.substring(0, 2);
-  const month = pin.substring(2, 4);
-  
-  // ✅ Utiliser les traductions selon la langue
-  const monthsKeys = ['month_01', 'month_02', 'month_03', 'month_04', 'month_05', 'month_06',
-                      'month_07', 'month_08', 'month_09', 'month_10', 'month_11', 'month_12'];
-  const monthName = t(monthsKeys[parseInt(month) - 1]);
-  
-  return { day, month, monthName, formatted: `${day}/${month}` };
-}
-function validatePin(pin) {
-  if (!pin || pin.length !== 4) {
-    return { valid: false, error: 'Le PIN doit contenir exactement 4 chiffres' };
-  }
-  
-  if (!/^\d{4}$/.test(pin)) {
-    return { valid: false, error: 'Le PIN doit contenir uniquement des chiffres' };
-  }
-  
-  const day = parseInt(pin.substring(0, 2));
-  const month = parseInt(pin.substring(2, 4));
-  
-  if (day < 1 || day > 31) {
-    return { valid: false, error: 'Le jour doit être entre 01 et 31' };
-  }
-  
-  if (month < 1 || month > 12) {
-    return { valid: false, error: 'Le mois doit être entre 01 et 12' };
-  }
-  
-  return { valid: true };
-}
+
 
 // --- Loaders & animations d'accueil ---
 function showAccountCreationLoader() {
@@ -8188,4 +8138,5 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
