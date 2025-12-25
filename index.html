@@ -4340,7 +4340,9 @@ function openGardenModal(item, emoji) {
   document.getElementById('modal-romaji').textContent = item.Romaji;
   document.getElementById('modal-level').textContent = item.Niveau;
   document.getElementById('modal-validation').textContent = validationCache[parseInt(item.ID)] || 0;
-
+setTimeout(() => {
+  safeConvertEmojis(document.querySelector('.garden-card'));
+}, 100);  // Délai de 100ms pour s'assurer que le contenu est rendu
   document.getElementById('garden-modal').classList.add('visible');
   
   // Ferme automatiquement après 2,2 secondes
@@ -8374,6 +8376,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
