@@ -4292,6 +4292,16 @@ function generateGarden() {
   // Compléter la dernière ligne si elle n'est pas pleine
   if (currentRow && itemsInRow < itemsPerRow) {
     addEmptySlots(currentRow, itemsPerRow - itemsInRow);
+
+
+  // À la fin de generateGarden() ou équivalent
+setTimeout(() => {
+  const gardenGround = document.getElementById('garden-ground');
+  if (gardenGround) {
+    safeConvertEmojis(gardenGround);
+    console.log('✅ Emojis du jardin (plantes + bugs) convertis en Fluent 3D');
+  }
+}, 100); // Petit délai pour laisser le DOM se stabiliser
   }
 
   // === Fonctions utilitaires ===
@@ -8376,6 +8386,7 @@ async function markAllMessagesAsRead() {
 }
 </script>  
 </html>
+
 
 
 
