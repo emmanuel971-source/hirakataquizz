@@ -2924,7 +2924,12 @@ let userInteractions = {
 // --- Cache pseudos ---
 let pseudoCache = [];
 let currentPseudoIndex = 0;
-
+// ✅ AJOUT : Constante des noms de mois (utilisée par les sélecteurs de date)
+const MONTH_NAMES = {
+  fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+};
 // --- Fonctions authentification ---
 async function initUserSystem() {
   
@@ -3300,9 +3305,10 @@ if (!validPattern.test(pseudo)) {
   console.log(`✅ Pseudo validé: ${pseudo}`);
   goToStep(3);
 }
-function initBirthdateSelectors() {
-  const daySelect = document.getElementById('birth-day');
-  const monthSelect = document.getElementById('birth-month');
+// ✅ NOUVELLE FONCTION : Générique pour remplir les sélecteurs de date
+function populateBirthdateSelectors(dayId, monthId) {
+  const daySelect = document.getElementById(dayId);
+  const monthSelect = document.getElementById(monthId);
   
   if (!daySelect || !monthSelect) return;
   
@@ -3314,14 +3320,7 @@ function initBirthdateSelectors() {
   }
   
   // Générer les mois avec la langue actuelle
-  const months = {
-    fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
-    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-  };
-  
-  // ✅ MODIFIÉ : Utiliser currentLanguage au lieu de le redéfinir
-  const monthNames = months[currentLanguage] || months.en;
+  const monthNames = MONTH_NAMES[currentLanguage] || MONTH_NAMES.en;
   monthSelect.innerHTML = '<option value="">--</option>';
   
   for (let i = 1; i <= 12; i++) {
@@ -3329,37 +3328,13 @@ function initBirthdateSelectors() {
     monthSelect.innerHTML += `<option value="${month}">${monthNames[i-1]}</option>`;
   }
   
-  console.log(`📅 Sélecteurs de date initialisés en ${currentLanguage}`);
+  console.log(`📅 Sélecteurs ${dayId}/${monthId} initialisés en ${currentLanguage}`);
+}  
+function initBirthdateSelectors() {
+  populateBirthdateSelectors('birth-day', 'birth-month');
 }
 function initLoginBirthdateSelectors() {
-  const daySelect = document.getElementById('login-birth-day');
-  const monthSelect = document.getElementById('login-birth-month');
-  
-  if (!daySelect || !monthSelect) return;
-  
-  // Générer les jours (01-31)
-  daySelect.innerHTML = '<option value="">--</option>';
-  for (let i = 1; i <= 31; i++) {
-    const day = String(i).padStart(2, '0');
-    daySelect.innerHTML += `<option value="${day}">${day}</option>`;
-  }
-  
-  // Générer les mois avec la langue actuelle
-  const months = {
-    fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
-    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-  };
-  
-  const monthNames = months[currentLanguage] || months.en;
-  monthSelect.innerHTML = '<option value="">--</option>';
-  
-  for (let i = 1; i <= 12; i++) {
-    const month = String(i).padStart(2, '0');
-    monthSelect.innerHTML += `<option value="${month}">${monthNames[i-1]}</option>`;
-  }
-  
-  console.log(`📅 Sélecteurs de date login initialisés en ${currentLanguage}`);
+  populateBirthdateSelectors('login-birth-day', 'login-birth-month');
 }
 function validateBirthdateAndContinue() {
   const daySelect = document.getElementById('birth-day');
@@ -8274,6 +8249,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
