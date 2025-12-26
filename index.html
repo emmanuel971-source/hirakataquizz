@@ -1404,6 +1404,10 @@ img.emoji {
 .plant-emoji {
   display: inline-block;
 }    
+.insect-card {
+  background: linear-gradient(180deg, #f7fff5, #ffffff);
+}
+    
   </style>
 </head>
 <body>
@@ -1898,9 +1902,16 @@ img.emoji {
   <span data-i18n="garden_score"></span>
   <span id="modal-validation"></span>
 </div>
-
   </div>
 </div>
+<!-- Flashcard modale insecte test -->  
+<div id="insect-modal" class="garden-modal">
+  <div class="garden-card insect-card">
+    <div id="insect-emoji" class="garden-plant"></div>
+    <div id="insect-text" class="garden-hiragana"></div>
+  </div>
+</div>
+
     
 </div>
 </div>  
@@ -2071,7 +2082,34 @@ img.emoji {
 // ============================================================================
 // 🌍 SECTION 1 : TRADUCTIONS & INTERNATIONALISATION
 // ============================================================================
-const translations = {
+
+  // 🐞 MESSAGES DES INSECTES (PHASE 1) ---------------- a intégrer plus tard à translation
+const insectMessages = [
+  {
+    emoji: '🐞',
+    text: 'Chaque plante ici représente un caractère que tu as rencontré.'
+  },
+  {
+    emoji: '🦋',
+    text: 'Un jardin pousse mieux quand on y revient souvent.'
+  },
+  {
+    emoji: '🐝',
+    text: 'Tu n’as pas besoin d’aller vite. Les plantes aiment la patience.'
+  },
+  {
+    emoji: '🐛',
+    text: 'Même une petite révision peut redonner de la force à une plante.'
+  },
+  {
+    emoji: '🐜',
+    text: 'Observe ton jardin. Il raconte ton parcours.'
+  }
+];
+
+  
+// ============================================================================  
+  const translations = {
   fr: {
     // Menu
     menu_learn: "Apprendre",
@@ -5889,13 +5927,20 @@ setTimeout(() => {
     return row;
   }
 
-  function addBugToRow(row) {
-    const bugs = ['🐛', '🦋', '🐝', '🐞', '🐌', '🪵', '🐜'];
-    const bugDiv = document.createElement('div');
-    bugDiv.className = 'garden-item garden-bug';
-    bugDiv.innerHTML = `<div style="font-size:2.8em;">${bugs[Math.floor(Math.random() * bugs.length)]}</div>`;
-    row.appendChild(bugDiv);
-  }
+function addBugToRow(row) {
+  const bugs = ['🐛', '🦋', '🐝', '🐞', '🐜'];
+  const emoji = bugs[Math.floor(Math.random() * bugs.length)];
+
+  const bugDiv = document.createElement('div');
+  bugDiv.className = 'garden-item garden-bug';
+  bugDiv.innerHTML = `<div style="font-size:2.8em;">${emoji}</div>`;
+
+  bugDiv.onclick = () => openInsectFlashcard(emoji);
+
+  row.appendChild(bugDiv);
+  safeConvertEmojis(bugDiv);
+}
+
 
   function addEmptySlots(row, count) {
     for (let i = 0; i < count; i++) {
@@ -6519,7 +6564,39 @@ console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${global
 // ============================================================================
 
 let modalCloseTimer = null;
+// ============================================================================TEST
 
+function openInsectFlashcard(forcedEmoji = null) {
+  const modal = document.getElementById('insect-modal');
+  const emojiDiv = document.getElementById('insect-emoji');
+  const textDiv = document.getElementById('insect-text');
+
+  if (!modal || !emojiDiv || !textDiv) return;
+
+  // Tirage aléatoire
+  const message = insectMessages[Math.floor(Math.random() * insectMessages.length)];
+
+  emojiDiv.textContent = forcedEmoji || message.emoji;
+  textDiv.textContent = message.text;
+
+  modal.classList.add('visible');
+
+  // Conversion emojis (important chez toi)
+  setTimeout(() => {
+    safeConvertEmojis(modal);
+  }, 50);
+
+  // Fermeture auto douce
+  setTimeout(closeInsectFlashcard, 2500);
+}
+
+function closeInsectFlashcard() {
+  const modal = document.getElementById('insect-modal');
+  if (modal) modal.classList.remove('visible');
+}
+// ============================================================================TEST
+
+  
 // --- Fonctions flashcards ---
 function openRevisionFlashcard(item, emoji, isCorrect, oldValidation, newValidation, animateStatusChange = false, animateScore = false) {
   const portal = document.getElementById('modal-portal');
@@ -8171,6 +8248,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
