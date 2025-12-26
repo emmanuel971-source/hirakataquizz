@@ -3748,7 +3748,7 @@ let revisionKatakanaTable = {};
 
 // --- Variables de progression ---
 let niveauActif = 1;
-let seuilValidation = parseInt(localStorage.getItem('difficulty')) || 6;
+let seuilValidation = parseInt(localStorage.getItem('seuilValidation')) || 10;
 let previousValidationStates = new Map();
 
 // --- Groupes de niveaux ---
@@ -3969,49 +3969,43 @@ function analyzeRomajiSegments(romajiInput) {
     charCounts: segments.map(() => 1) // Chaque segment = 1 caractère visuel
   };
 }
-// ✅ AJOUT : Constantes pour la segmentation romaji (utilisées par smartSegmentRomaji)
-const ROMAJI_SPECIAL_SYLLABLES = [
-  'tsu', 'shi', 'chi', 'sha', 'sho', 'shu', 'cha', 'cho', 'chu',
-  'nya', 'nyo', 'nyu', 'hya', 'hyo', 'hyu', 'mya', 'myo', 'myu',
-  'rya', 'ryo', 'ryu', 'gya', 'gyo', 'gyu', 'bya', 'byo', 'byu',
-  'pya', 'pyo', 'pyu', 'kya', 'kyo', 'kyu', 'ja', 'ji', 'ju', 'jo'
-];
-
-const ROMAJI_BASIC_SYLLABLES = [
-  'ka', 'ki', 'ku', 'ke', 'ko', 'ga', 'gi', 'gu', 'ge', 'go',
-  'sa', 'shi', 'su', 'se', 'so', 'za', 'ji', 'zu', 'ze', 'zo',
-  'ta', 'chi', 'tsu', 'te', 'to', 'da', 'ji', 'zu', 'de', 'do',
-  'na', 'ni', 'nu', 'ne', 'no',
-  'ha', 'hi', 'fu', 'he', 'ho', 'ba', 'bi', 'bu', 'be', 'bo', 'pa', 'pi', 'pu', 'pe', 'po',
-  'ma', 'mi', 'mu', 'me', 'mo',
-  'ya', 'yu', 'yo',
-  'ra', 'ri', 'ru', 're', 'ro',
-  'wa', 'wi', 'we', 'wo', 'n'
-];
-
-const ROMAJI_VOWELS = ['a', 'i', 'u', 'e', 'o'];
-
-// ✅ Pré-calculer et trier une seule fois
-const ROMAJI_ALL_SYLLABLES = [
-  ...ROMAJI_SPECIAL_SYLLABLES, 
-  ...ROMAJI_BASIC_SYLLABLES, 
-  ...ROMAJI_VOWELS
-].sort((a, b) => b.length - a.length);  // Tri par longueur décroissante
-
 function smartSegmentRomaji(romaji) {
   if (!romaji || typeof romaji !== 'string') {
     console.warn("smartSegmentRomaji: romaji invalide", romaji);
     return [romaji || ''];
   }
   
+  const specialSyllables = [
+    'tsu', 'shi', 'chi', 'sha', 'sho', 'shu', 'cha', 'cho', 'chu',
+    'nya', 'nyo', 'nyu', 'hya', 'hyo', 'hyu', 'mya', 'myo', 'myu',
+    'rya', 'ryo', 'ryu', 'gya', 'gyo', 'gyu', 'bya', 'byo', 'byu',
+    'pya', 'pyo', 'pyu', 'kya', 'kyo', 'kyu', 'ja', 'ji', 'ju', 'jo'
+  ];
+
+  const basicSyllables = [
+    'ka', 'ki', 'ku', 'ke', 'ko', 'ga', 'gi', 'gu', 'ge', 'go',
+    'sa', 'shi', 'su', 'se', 'so', 'za', 'ji', 'zu', 'ze', 'zo',
+    'ta', 'chi', 'tsu', 'te', 'to', 'da', 'ji', 'zu', 'de', 'do',
+    'na', 'ni', 'nu', 'ne', 'no',
+    'ha', 'hi', 'fu', 'he', 'ho', 'ba', 'bi', 'bu', 'be', 'bo', 'pa', 'pi', 'pu', 'pe', 'po',
+    'ma', 'mi', 'mu', 'me', 'mo',
+    'ya', 'yu', 'yo',
+    'ra', 'ri', 'ru', 're', 'ro',
+    'wa', 'wi', 'we', 'wo', 'n'
+  ];
+
+  const vowels = ['a', 'i', 'u', 'e', 'o'];
+
+  const allSyllables = [...specialSyllables, ...basicSyllables, ...vowels];
+
   const segments = [];
   let remaining = romaji.toLowerCase();
   
   while (remaining.length > 0) {
     let found = false;
     
-    // ✅ Utiliser la liste pré-triée
-    for (const syllable of ROMAJI_ALL_SYLLABLES) {
+    // Essayer les syllabes les plus longues d'abord
+    for (const syllable of allSyllables.sort((a, b) => b.length - a.length)) {
       if (remaining.startsWith(syllable)) {
         segments.push(syllable);
         remaining = remaining.slice(syllable.length);
@@ -4022,7 +4016,7 @@ function smartSegmentRomaji(romaji) {
     
     // Fallback : prendre 2 caractères si possible (consonne + voyelle), sinon 1
     if (!found) {
-      if (remaining.length >= 2 && !ROMAJI_VOWELS.includes(remaining[0])) {
+      if (remaining.length >= 2 && !vowels.includes(remaining[0])) { // Si commence par consonne
         segments.push(remaining.slice(0, 2));
         remaining = remaining.slice(2);
       } else {
@@ -4033,7 +4027,8 @@ function smartSegmentRomaji(romaji) {
   }
   
   return segments.length > 0 ? segments : [romaji];
-} 
+}
+  
 
 
 // ============================================================================
@@ -4041,7 +4036,7 @@ function smartSegmentRomaji(romaji) {
 // ============================================================================
 
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyGFB7HG_yEoJfYcj6hTd2ijKA-CNnz15WGRkTL63rSdHDikSOHS8RDRoqQEd8ytPKCeQ/exec';
-const DEBUG_API = false;  // Mettre true pour debug
+
 let pendingUpdates = [];
 
 // --- Fonctions API ---
@@ -4063,13 +4058,12 @@ async function callAPI(action, data = null) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     const result = await response.json();
-    if (DEBUG_API) {
-  console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
-}
+    console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
     return result;
     
   } catch (error) {
     logError(`Erreur API (${action}): ${error.message}`);
+    console.error(`⚠️ Détails erreur:`, error);
     return { error: error.message };
   }
 }
@@ -4161,26 +4155,13 @@ if (targetLevel === 5 && !hasShownLevel5Garden) {
         }else {
           console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
         }
-} catch (error) {
-  console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
-  
-  // ✅ Retry avec backoff exponentiel (3 tentatives max)
-  if (!update.retryCount) update.retryCount = 0;
-  
-  if (update.retryCount < 3) {
-    update.retryCount++;
-    console.log(`🔄 Retry ${update.retryCount}/3 pour item ${id}`);
-    
-    // Repousser à la fin de la file avec délai
-    setTimeout(() => {
-      pendingUpdates.push(update);
-    }, Math.pow(2, update.retryCount) * 1000);  // 2s, 4s, 8s
-  } else {
-    console.error(`❌ Abandon après 3 tentatives pour item ${id}`);
-  }
-  
-  pendingUpdates.shift();
-}
+      } catch (error) {
+        // ERREUR CRITIQUE ICI : on utilise `id` qui est bien défini
+        console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
+      } finally {
+        // Toujours retirer l'élément, même en cas d'erreur
+        pendingUpdates.shift();
+      }
     }
   }
 }
@@ -8268,8 +8249,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
-
-
 
 
 
