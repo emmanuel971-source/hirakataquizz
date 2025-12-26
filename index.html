@@ -2083,29 +2083,6 @@ img.emoji {
 // 🌍 SECTION 1 : TRADUCTIONS & INTERNATIONALISATION
 // ============================================================================
 
-  // 🐞 MESSAGES DES INSECTES (PHASE 1) ---------------- a intégrer plus tard à translation
-const insectMessages = [
-  {
-    emoji: '🐞',
-    text: 'Chaque plante ici représente un caractère que tu as rencontré.'
-  },
-  {
-    emoji: '🦋',
-    text: 'Un jardin pousse mieux quand on y revient souvent.'
-  },
-  {
-    emoji: '🐝',
-    text: 'Tu n’as pas besoin d’aller vite. Les plantes aiment la patience.'
-  },
-  {
-    emoji: '🐛',
-    text: 'Même une petite révision peut redonner de la force à une plante.'
-  },
-  {
-    emoji: '🐜',
-    text: 'Observe ton jardin. Il raconte ton parcours.'
-  }
-];
 
   
 // ============================================================================  
@@ -2207,6 +2184,13 @@ const insectMessages = [
     garden_legend_mastered: "Maîtrisé",
     garden_level: "Niveau",
     garden_score: "Score actuel",
+    
+    // Insectes – messages jardin
+insect_msg_01: "Chaque plante ici représente un caractère que tu as rencontré.",
+insect_msg_02: "Un jardin pousse mieux quand on y revient souvent.",
+insect_msg_03: "Tu n’as pas besoin d’aller vite. Les plantes aiment la patience.",
+insect_msg_04: "Même une petite révision peut redonner de la force à une plante.",
+insect_msg_05: "Observe ton jardin. Il raconte ton parcours.",
 
     
     // Placeholders
@@ -2429,6 +2413,12 @@ const insectMessages = [
     garden_level: "Level",
     garden_score: "Current score",
 
+    insect_msg_01: "Each plant here represents a character you have encountered.",
+insect_msg_02: "A garden grows better when you come back to it often.",
+insect_msg_03: "You don’t need to rush. Plants grow with patience.",
+insect_msg_04: "Even a short review can bring strength back to a plant.",
+insect_msg_05: "Look at your garden. It tells the story of your journey.",
+
     
     // Placeholders
     pseudo_input_placeholder: "Your nickname...",
@@ -2650,7 +2640,12 @@ const insectMessages = [
     garden_level: "Nivel",
     garden_score: "Puntuación actual",
 
-    
+    insect_msg_01: "Cada planta aquí representa un carácter que has encontrado.",
+insect_msg_02: "Un jardín crece mejor cuando vuelves a visitarlo a menudo.",
+insect_msg_03: "No hace falta ir rápido. Las plantas crecen con paciencia.",
+insect_msg_04: "Incluso una pequeña revisión puede devolver fuerza a una planta.",
+insect_msg_05: "Observa tu jardín. Cuenta la historia de tu recorrido.",
+
     // Placeholders
     pseudo_input_placeholder: "Tu apodo...",
     
@@ -6565,6 +6560,39 @@ console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${global
 
 let modalCloseTimer = null;
 // ============================================================================TEST
+let recentInsectMessageKeys = [];
+const MAX_RECENT_INSECT_MESSAGES = 2;
+function getRandomInsectMessage() {
+  let available = insectMessages.filter(
+    msg => !recentInsectMessageKeys.includes(msg.key)
+  );
+
+  // Sécurité : si tout a été utilisé récemment
+  if (available.length === 0) {
+    available = [...insectMessages];
+    recentInsectMessageKeys = [];
+  }
+
+  const selected = available[Math.floor(Math.random() * available.length)];
+
+  // Mise à jour mémoire courte
+  recentInsectMessageKeys.push(selected.key);
+  if (recentInsectMessageKeys.length > MAX_RECENT_INSECT_MESSAGES) {
+    recentInsectMessageKeys.shift();
+  }
+
+  return selected;
+}
+
+  
+  // 🐞 Insectes – clés de messages (i18n)
+const insectMessages = [
+  { emoji: '🐞', key: 'insect_msg_01' },
+  { emoji: '🦋', key: 'insect_msg_02' },
+  { emoji: '🐝', key: 'insect_msg_03' },
+  { emoji: '🐛', key: 'insect_msg_04' },
+  { emoji: '🐜', key: 'insect_msg_05' }
+];
 
 function openInsectFlashcard(forcedEmoji = null) {
   const modal = document.getElementById('insect-modal');
@@ -6573,22 +6601,20 @@ function openInsectFlashcard(forcedEmoji = null) {
 
   if (!modal || !emojiDiv || !textDiv) return;
 
-  // Tirage aléatoire
-  const message = insectMessages[Math.floor(Math.random() * insectMessages.length)];
+  const message = getRandomInsectMessage();
 
   emojiDiv.textContent = forcedEmoji || message.emoji;
-  textDiv.textContent = message.text;
+  textDiv.textContent = t(message.key);
 
   modal.classList.add('visible');
 
-  // Conversion emojis (important chez toi)
   setTimeout(() => {
     safeConvertEmojis(modal);
   }, 50);
 
-  // Fermeture auto douce
   setTimeout(closeInsectFlashcard, 2500);
 }
+
 
 function closeInsectFlashcard() {
   const modal = document.getElementById('insect-modal');
@@ -8248,6 +8274,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
