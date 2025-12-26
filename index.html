@@ -4160,13 +4160,26 @@ if (targetLevel === 5 && !hasShownLevel5Garden) {
         }else {
           console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
         }
-      } catch (error) {
-        // ERREUR CRITIQUE ICI : on utilise `id` qui est bien défini
-        console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
-      } finally {
-        // Toujours retirer l'élément, même en cas d'erreur
-        pendingUpdates.shift();
-      }
+} catch (error) {
+  console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
+  
+  // ✅ Retry avec backoff exponentiel (3 tentatives max)
+  if (!update.retryCount) update.retryCount = 0;
+  
+  if (update.retryCount < 3) {
+    update.retryCount++;
+    console.log(`🔄 Retry ${update.retryCount}/3 pour item ${id}`);
+    
+    // Repousser à la fin de la file avec délai
+    setTimeout(() => {
+      pendingUpdates.push(update);
+    }, Math.pow(2, update.retryCount) * 1000);  // 2s, 4s, 8s
+  } else {
+    console.error(`❌ Abandon après 3 tentatives pour item ${id}`);
+  }
+  
+  pendingUpdates.shift();
+}
     }
   }
 }
@@ -8254,6 +8267,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
