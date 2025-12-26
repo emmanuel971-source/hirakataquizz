@@ -4115,38 +4115,42 @@ async function callAPI(action, data = null) {
   }
 }
 async function queueUpdateStats(params) {
-  // On cherche si une mise à jour pour cet item existe déjà dans la file
-  const existingIndex = pendingUpdates.findIndex(u => u.id === params.id);
+  // On crée une copie propre des params pour éviter les références mutables
+  const updateToQueue = { ...params };
+
+  // Chercher si une entrée pour cet item existe déjà dans la file
+  const existingIndex = pendingUpdates.findIndex(u => u.id === updateToQueue.id);
 
   if (existingIndex !== -1) {
     // Mise à jour existante → on cumule les points
-    pendingUpdates[existingIndex].scorePoints += params.scorePoints;
+    pendingUpdates[existingIndex].scorePoints += updateToQueue.scorePoints;
 
-    // On garde les infos de level up les plus récentes (si présentes)
-    if (params.hasLeveledUp) {
+    // On garde les métadonnées de level up les plus récentes (les plus importantes)
+    if (updateToQueue.hasLeveledUp) {
       pendingUpdates[existingIndex].hasLeveledUp = true;
-      pendingUpdates[existingIndex].previousLevel = params.previousLevel;
-      pendingUpdates[existingIndex].targetLevel = params.targetLevel;
+      pendingUpdates[existingIndex].targetLevel = updateToQueue.targetLevel;
+      pendingUpdates[existingIndex].previousLevel = updateToQueue.previousLevel;
     }
 
     // Optionnel : mettre à jour le timestamp pour debug
     pendingUpdates[existingIndex].timestamp = Date.now();
+
+    console.log(`🔄 Mise à jour fusionnée pour item ${updateToQueue.id} → scorePoints cumulé = ${pendingUpdates[existingIndex].scorePoints}`);
   } else {
     // Nouvelle entrée
-    pendingUpdates.push({
-      ...params,
-      timestamp: Date.now() // utile pour debug ou tri éventuel
-    });
+    pendingUpdates.push(updateToQueue);
+    console.log(`➕ Nouvelle mise à jour ajoutée pour item ${updateToQueue.id}`);
   }
 
+  // Sauvegarde immédiate (important !)
   savePendingUpdates();
 
-  // On ne lance processQueue que si c'était la première entrée
-  // (ou si on veut relancer à chaque ajout, mais ici on préfère éviter les boucles inutiles)
-  if (pendingUpdates.length === 1) {
+  // On ne lance la file que si c'est la première fois ou si on a ajouté un nouvel item
+  // (pas besoin de relancer si on a juste cumulé)
+  if (pendingUpdates.length === 1 || existingIndex === -1) {
     processQueue();
   }
-}  
+}
 async function processQueue() {
   if (!navigator.onLine) {
     console.log('📴 Hors ligne → synchronisation en attente');
@@ -4154,8 +4158,9 @@ async function processQueue() {
   }
 
   while (pendingUpdates.length > 0) {
+    // On shift ici pour éviter de garder une référence mutable
     const update = pendingUpdates.shift();
-    savePendingUpdates();
+    savePendingUpdates(); // Sauvegarde après retrait
 
     const {
       id,
@@ -4168,17 +4173,19 @@ async function processQueue() {
     } = update;
 
     try {
-      const result = await callAPI('updateStats', {
+      const apiParams = {
         token,
         id,
-        scorePoints,           // ← ici, c'est le total cumulé !
+        scorePoints,           // ← maintenant c'est le total cumulé !
         isRevisionMode
-      });
+      };
+
+      const result = await callAPI('updateStats', apiParams);
 
       if (result.success) {
-        console.log(`✅ Stats synchronisées pour item ${id}: Validation=${result.newValidation}, Level=${result.newLevel}`);
+        console.log(`✅ Stats synchronisées pour item ${id} (score cumulé ${scorePoints}): Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
 
-        // Mise à jour locale
+        // Mise à jour locale avec le résultat du serveur (le plus fiable)
         const hiraganaIndex = HiraganaList.findIndex(h => h.ID == id);
         if (hiraganaIndex !== -1) {
           HiraganaList[hiraganaIndex].Validation = result.newValidation;
@@ -4187,6 +4194,7 @@ async function processQueue() {
 
           validationCache[id] = result.newValidation;
 
+          // statsCache
           const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
           itemStats.tentatives += scorePoints;
           itemStats.reussites += scorePoints;
@@ -4196,17 +4204,18 @@ async function processQueue() {
           statsCache.items[id] = itemStats;
         }
 
-        // Gestion level up (se déclenche seulement si l'update contenait un level up)
+        // Gestion level up avec les métadonnées les plus récentes
         if (hasLeveledUp && targetLevel > previousLevel) {
-          console.log(`🎊 Level up confirmé: ${previousLevel} → ${targetLevel}`);
+          console.log(`🎊 Level up confirmé (dernière version): ${previousLevel} → ${targetLevel}`);
 
           if (targetLevel > niveauActif) {
             triggerLevelUpAnimation(document.body);
           }
 
+          // Déblocages avec persistance des flags
           if (targetLevel === 4 && !hasShownLevel4Menu) {
             hasShownLevel4Menu = true;
-            savePendingUpdates(); // persiste le flag
+            savePendingUpdates();
             setTimeout(() => showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message')), 1);
           }
 
@@ -4221,24 +4230,25 @@ async function processQueue() {
         pendingUpdates.unshift(update);
         savePendingUpdates();
         console.error(`❌ Erreur API pour item ${id}:`, result.error);
-        break; // on attend avant de retenter
+        break; // On attend avant de retenter
       }
     } catch (error) {
-      // Erreur réseau → on remet en file
+      // Erreur réseau → remise en file
       pendingUpdates.unshift(update);
       savePendingUpdates();
-      console.warn(`🌐 Échec réseau pour item ${id}`);
+      console.warn(`🌐 Échec réseau pour item ${id} → retentative plus tard`);
       break;
     }
 
-    // Optionnel : petite pause pour éviter de surcharger le serveur
+    // Petite pause pour ne pas saturer le serveur même si plusieurs items différents
     await new Promise(r => setTimeout(r, 300));
   }
 
   if (pendingUpdates.length === 0) {
-    console.log('🎉 File de synchronisation vidée !');
-    // Bonus : recharger les stats depuis le serveur pour être sûr
-    // await loadUserProgress(); // décommente si tu veux
+    console.log('🎉 File de synchronisation complètement vidée !');
+    // Option très recommandée : recharger les stats du serveur pour être sûr
+    // (surtout après un gros batch hors-ligne)
+    // await refreshUserStatsFromServer();
   }
 }
 // ============================================================================
@@ -8340,6 +8350,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
