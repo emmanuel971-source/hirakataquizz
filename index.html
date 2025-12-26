@@ -4040,52 +4040,10 @@ function smartSegmentRomaji(romaji) {
 // 🌐 SECTION 4 : API & COMMUNICATION SERVEUR
 // ============================================================================
 
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwI7RXn6WXI6TXFxuSVLHA-Fs78aoH6L27SzgB08H_LTIC7Ow0eal9nbj3k-e9V726NTQ/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwcH4nze8uzSQPLkCwR1Xtst01gy9uCUzBbcfBZMbmUe2b2Lx0KQXlqDh4WNYH6fultfA/exec';
 
-let pendingUpdates = []; // File d'attente en mémoire
+let pendingUpdates = [];
 
-// Clé pour localStorage (change si tu veux un nom unique à ton app)
-const PENDING_UPDATES_KEY = 'hiragana_pending_stats_updates';
-
-// Chargement au démarrage de l'app
-function loadPendingUpdates() {
-  const saved = localStorage.getItem(PENDING_UPDATES_KEY);
-  if (saved) {
-    try {
-      pendingUpdates = JSON.parse(saved);
-
-      // Charger aussi les flags de déblocage déjà montrés (pour éviter de les remontrer au démarrage)
-      const flags = localStorage.getItem('hiragana_unlock_flags');
-      if (flags) {
-        const parsed = JSON.parse(flags);
-        hasShownLevel4Menu = parsed.hasShownLevel4Menu || false;
-        hasShownLevel5Garden = parsed.hasShownLevel5Garden || false;
-      }
-
-      console.log(`📥 ${pendingUpdates.length} mise(s) à jour en attente chargées depuis localStorage`);
-      if (pendingUpdates.length > 0) {
-        processQueue(); // On tente de synchroniser dès maintenant si connexion OK
-      }
-    } catch (e) {
-      console.error("❌ Erreur lors du chargement de la file d'attente", e);
-      pendingUpdates = [];
-    }
-  }
-}
-
-// Sauvegarde de la file + flags
-function savePendingUpdates() {
-  try {
-    localStorage.setItem(PENDING_UPDATES_KEY, JSON.stringify(pendingUpdates));
-    localStorage.setItem('hiragana_unlock_flags', JSON.stringify({
-      hasShownLevel4Menu,
-      hasShownLevel5Garden
-    }));
-  } catch (e) {
-    console.error("❌ Impossible de sauvegarder la file d'attente (quota ?)", e);
-  }
-}
-  
 // --- Fonctions API ---
 async function callAPI(action, data = null) {
   try {
@@ -4115,143 +4073,92 @@ async function callAPI(action, data = null) {
   }
 }
 async function queueUpdateStats(params) {
-  const updateToQueue = { ...params };
+  pendingUpdates.push(params);
 
-  const existingIndex = pendingUpdates.findIndex(u => u.id === updateToQueue.id);
+  // Lancer le traitement uniquement si c'était vide avant
+  if (pendingUpdates.length === 1) {
+    // Boucle de traitement
+    while (pendingUpdates.length > 0) {
+      // ⚠️ On retire l'élément DÈS LE DÉBUT pour éviter toute référence persistante
+      const update = pendingUpdates.shift();
 
-  if (existingIndex !== -1) {
-    pendingUpdates[existingIndex].scorePoints += updateToQueue.scorePoints;
-    if (updateToQueue.hasLeveledUp) {
-      pendingUpdates[existingIndex].hasLeveledUp = true;
-      pendingUpdates[existingIndex].targetLevel = updateToQueue.targetLevel;
-      pendingUpdates[existingIndex].previousLevel = updateToQueue.previousLevel;
-    }
-    console.log(`🔄 Fusion pour item ${updateToQueue.id}: score cumulé = ${pendingUpdates[existingIndex].scorePoints}`);
-  } else {
-    pendingUpdates.push(updateToQueue);
-    console.log(`➕ Ajout pour item ${updateToQueue.id}`);
-  }
+      // On extrait TOUT ce dont on a besoin immédiatement
+      const id = update.id;
+      const previousLevel = update.previousLevel;
+      const hasLeveledUp = update.hasLeveledUp;
+      const targetLevel = update.targetLevel;
+      const scorePoints = update.scorePoints;
+      const isRevisionMode = update.isRevisionMode || false;
+      const token = update.token;
 
-  savePendingUpdates();
+      try {
+        const apiParams = {
+          token,
+          id,
+          scorePoints,
+          isRevisionMode
+        };
 
-  if (pendingUpdates.length === 1 || existingIndex === -1) {
-    processQueue();
-  }
-}
-async function processQueue() {
-  if (!navigator.onLine) {
-    console.log('📴 Hors ligne → attente');
-    return;
-  }
+        const result = await callAPI('updateStats', apiParams);
 
-  // Envoi des updates cumulés
-  while (pendingUpdates.length > 0) {
-    const update = pendingUpdates.shift();
-    savePendingUpdates();
+        if (result.success) {
+          console.log(`File: Stats synchronisées pour item ${id}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
 
-    const { id, token, scorePoints, isRevisionMode = false, previousLevel, hasLeveledUp, targetLevel } = update;
+          // Mise à jour locale (inchangée)
+          const hiraganaIndex = HiraganaList.findIndex(h => h.ID == id);
+          if (hiraganaIndex !== -1) {
+            HiraganaList[hiraganaIndex].Validation = result.newValidation;
+            HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
+            HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + scorePoints;
+            validationCache[id] = result.newValidation;
 
-    try {
-      const result = await callAPI('updateStats', { token, id, scorePoints, isRevisionMode });
+            // Mise à jour statsCache (inchangée)
+            const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+            itemStats.tentatives += 1;
+            itemStats.reussites += scorePoints;
+            itemStats.pourcentage = itemStats.tentatives > 0
+              ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
+              : 0;
+            statsCache.items[id] = itemStats;
+          }
 
-      if (result.success) {
-        console.log(`✅ Synchro item ${id} (cumul ${scorePoints}): Validation=${result.newValidation}, Level=${result.newLevel}`);
+          // Gestion du level up – maintenant avec les bonnes valeurs
+          if (hasLeveledUp && targetLevel > previousLevel) {
+            console.log(`🎊 Level up confirmé: ${previousLevel} → ${targetLevel}`);
 
-        // Mise à jour locale (comme avant)
-        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == id);
-        if (hiraganaIndex !== -1) {
-          HiraganaList[hiraganaIndex].Validation = result.newValidation;
-          HiraganaList[hiraganaIndex].Tentatives += scorePoints; // Cumul
-          HiraganaList[hiraganaIndex]['Réussites'] += scorePoints;
-          validationCache[id] = result.newValidation;
+            if (targetLevel > niveauActif) {
+              triggerLevelUpAnimation(document.body);
+            }
 
-          const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-          itemStats.tentatives += scorePoints;
-          itemStats.reussites += scorePoints;
-          itemStats.pourcentage = itemStats.tentatives > 0 ? Math.round((itemStats.reussites / itemStats.tentatives) * 100) : 0;
-          statsCache.items[id] = itemStats;
-        }
+            if (targetLevel === 4 && !hasShownLevel4Menu) {
+              hasShownLevel4Menu = true;
+              setTimeout(() => {
+                showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
+              }, 1);
+            }
 
-        // Level up
-        if (hasLeveledUp && targetLevel > previousLevel) {
-          console.log(`🎊 Level up: ${previousLevel} → ${targetLevel}`);
-          // Animations et déblocages comme avant
-        }
-      } else {
-        pendingUpdates.unshift(update);
-        savePendingUpdates();
-        console.error(`❌ Erreur API item ${id}`);
-        break;
-      }
-    } catch (error) {
-      pendingUpdates.unshift(update);
-      savePendingUpdates();
-      console.warn(`🌐 Réseau KO item ${id}`);
-      break;
-    }
-
-    await new Promise(r => setTimeout(r, 500)); // Pause pour Apps Script
-  }
-
-  // ⚠️ VÉRIFICATION CHECKSUM après tentative de vidage
-  if (pendingUpdates.length === 0) {
-    console.log('📥 File vidée → vérification checksum...');
-
-    const maxRetries = 3;
-    let retries = 0;
-    let synced = false;
-
-    while (retries < maxRetries && !synced) {
-      await new Promise(r => setTimeout(r, 1000)); // Attente 1s pour propagation Apps Script
-
-      const localChecksum = calculateLocalStatsChecksum();
-      const serverResult = await callAPI('getStatsChecksum', { token: userToken });
-
-      if (serverResult.success) {
-        if (localChecksum === serverResult.checksum) {
-          synced = true;
-          console.log('✅ Checksum match ! Synchro confirmée.');
-          await refreshUserStatsFromServer(); // Alignement final si besoin
+            if (targetLevel === 5 && !hasShownLevel5Garden) {
+              hasShownLevel5Garden = true;
+              setTimeout(() => {
+                showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
+              }, 1);
+            }
+          }
         } else {
-          console.warn(`⚠️ Checksum mismatch (local=${localChecksum}, server=${serverResult.checksum}) → retry #${retries + 1}`);
-          // Re-queue les updates originales pour retry (ou recharge stats et compare diffs)
-          pendingUpdates = JSON.parse(localStorage.getItem(PENDING_UPDATES_KEY)) || []; // Restaure depuis sauvegarde
-          savePendingUpdates();
-          processQueue(); // Retry
+          console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
+          // Optionnel : remettre en file d'attente en cas d'échec ?
+          // pendingUpdates.unshift(update); // si tu veux retenter
         }
-      } else {
-        console.error('❌ Erreur checksum API');
-        break;
+      } catch (error) {
+        console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
+        // Même chose : éventuellement retenter plus tard
       }
-
-      retries++;
-    }
-
-    if (!synced) {
-      console.error('❌ Synchro échouée après retries – garder en local pour prochaine fois');
-    } else {
-      console.log('🎉 Synchro totale confirmée !');
+      // Pas de finally avec shift() → déjà fait au début
     }
   }
 }
-function calculateLocalStatsChecksum() {
-  let checksum = 0;
-  let itemCount = 0;
 
-  for (const item of HiraganaList) {
-    const tentatives = item.Tentatives || 0;
-    if (tentatives > 0) { // Seulement les items "touchés"
-      checksum += item.Validation || 0;
-      checksum += tentatives;
-      itemCount++;
-    }
-  }
 
-  checksum += itemCount * 1000; // Même offset que serveur
-
-  console.log('🔢 Checksum local calculé :', checksum, `(items touchés: ${itemCount})`);
-  return checksum;
-} 
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
 // ============================================================================
@@ -7963,23 +7870,6 @@ renderProgressBar(niveauActif, totalLevels);
     document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
   }
-  // Au démarrage
-loadPendingUpdates();
-
-// Écouteurs de connexion
-window.addEventListener('online', () => {
-  console.log('🔗 Connexion revenue → reprise de la synchronisation');
-  if (pendingUpdates.length > 0) {
-    processQueue();
-  }
-});
-
-// Optionnel : tentative périodique toutes les 30 secondes (utile si l'événement online rate)
-setInterval(() => {
-  if (navigator.onLine && pendingUpdates.length > 0) {
-    processQueue();
-  }
-}, 30000);
 }
 
 async function loadRemainingDataInBackground(profile) {
@@ -8351,14 +8241,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
-
-
-
-
-
-
-
-
 
 
 
