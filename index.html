@@ -4213,9 +4213,7 @@ if (result.success) {
         saveSyncQueue();
       }, 30000);
 
-    } else {
-      throw new Error(result.error || 'Erreur serveur inconnue');
-    }
+    } 
 
   } catch (error) {
     console.error(`❌ Erreur sync item ${item.id}:`, error.message);
@@ -8487,6 +8485,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
