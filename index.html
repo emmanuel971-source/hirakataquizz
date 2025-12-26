@@ -3748,7 +3748,7 @@ let revisionKatakanaTable = {};
 
 // --- Variables de progression ---
 let niveauActif = 1;
-let seuilValidation = parseInt(localStorage.getItem('seuilValidation')) || 10;
+let seuilValidation = parseInt(localStorage.getItem('difficulty')) || 6;
 let previousValidationStates = new Map();
 
 // --- Groupes de niveaux ---
@@ -3969,43 +3969,49 @@ function analyzeRomajiSegments(romajiInput) {
     charCounts: segments.map(() => 1) // Chaque segment = 1 caractère visuel
   };
 }
+// ✅ AJOUT : Constantes pour la segmentation romaji (utilisées par smartSegmentRomaji)
+const ROMAJI_SPECIAL_SYLLABLES = [
+  'tsu', 'shi', 'chi', 'sha', 'sho', 'shu', 'cha', 'cho', 'chu',
+  'nya', 'nyo', 'nyu', 'hya', 'hyo', 'hyu', 'mya', 'myo', 'myu',
+  'rya', 'ryo', 'ryu', 'gya', 'gyo', 'gyu', 'bya', 'byo', 'byu',
+  'pya', 'pyo', 'pyu', 'kya', 'kyo', 'kyu', 'ja', 'ji', 'ju', 'jo'
+];
+
+const ROMAJI_BASIC_SYLLABLES = [
+  'ka', 'ki', 'ku', 'ke', 'ko', 'ga', 'gi', 'gu', 'ge', 'go',
+  'sa', 'shi', 'su', 'se', 'so', 'za', 'ji', 'zu', 'ze', 'zo',
+  'ta', 'chi', 'tsu', 'te', 'to', 'da', 'ji', 'zu', 'de', 'do',
+  'na', 'ni', 'nu', 'ne', 'no',
+  'ha', 'hi', 'fu', 'he', 'ho', 'ba', 'bi', 'bu', 'be', 'bo', 'pa', 'pi', 'pu', 'pe', 'po',
+  'ma', 'mi', 'mu', 'me', 'mo',
+  'ya', 'yu', 'yo',
+  'ra', 'ri', 'ru', 're', 'ro',
+  'wa', 'wi', 'we', 'wo', 'n'
+];
+
+const ROMAJI_VOWELS = ['a', 'i', 'u', 'e', 'o'];
+
+// ✅ Pré-calculer et trier une seule fois
+const ROMAJI_ALL_SYLLABLES = [
+  ...ROMAJI_SPECIAL_SYLLABLES, 
+  ...ROMAJI_BASIC_SYLLABLES, 
+  ...ROMAJI_VOWELS
+].sort((a, b) => b.length - a.length);  // Tri par longueur décroissante
+
 function smartSegmentRomaji(romaji) {
   if (!romaji || typeof romaji !== 'string') {
     console.warn("smartSegmentRomaji: romaji invalide", romaji);
     return [romaji || ''];
   }
   
-  const specialSyllables = [
-    'tsu', 'shi', 'chi', 'sha', 'sho', 'shu', 'cha', 'cho', 'chu',
-    'nya', 'nyo', 'nyu', 'hya', 'hyo', 'hyu', 'mya', 'myo', 'myu',
-    'rya', 'ryo', 'ryu', 'gya', 'gyo', 'gyu', 'bya', 'byo', 'byu',
-    'pya', 'pyo', 'pyu', 'kya', 'kyo', 'kyu', 'ja', 'ji', 'ju', 'jo'
-  ];
-
-  const basicSyllables = [
-    'ka', 'ki', 'ku', 'ke', 'ko', 'ga', 'gi', 'gu', 'ge', 'go',
-    'sa', 'shi', 'su', 'se', 'so', 'za', 'ji', 'zu', 'ze', 'zo',
-    'ta', 'chi', 'tsu', 'te', 'to', 'da', 'ji', 'zu', 'de', 'do',
-    'na', 'ni', 'nu', 'ne', 'no',
-    'ha', 'hi', 'fu', 'he', 'ho', 'ba', 'bi', 'bu', 'be', 'bo', 'pa', 'pi', 'pu', 'pe', 'po',
-    'ma', 'mi', 'mu', 'me', 'mo',
-    'ya', 'yu', 'yo',
-    'ra', 'ri', 'ru', 're', 'ro',
-    'wa', 'wi', 'we', 'wo', 'n'
-  ];
-
-  const vowels = ['a', 'i', 'u', 'e', 'o'];
-
-  const allSyllables = [...specialSyllables, ...basicSyllables, ...vowels];
-
   const segments = [];
   let remaining = romaji.toLowerCase();
   
   while (remaining.length > 0) {
     let found = false;
     
-    // Essayer les syllabes les plus longues d'abord
-    for (const syllable of allSyllables.sort((a, b) => b.length - a.length)) {
+    // ✅ Utiliser la liste pré-triée
+    for (const syllable of ROMAJI_ALL_SYLLABLES) {
       if (remaining.startsWith(syllable)) {
         segments.push(syllable);
         remaining = remaining.slice(syllable.length);
@@ -4016,7 +4022,7 @@ function smartSegmentRomaji(romaji) {
     
     // Fallback : prendre 2 caractères si possible (consonne + voyelle), sinon 1
     if (!found) {
-      if (remaining.length >= 2 && !vowels.includes(remaining[0])) { // Si commence par consonne
+      if (remaining.length >= 2 && !ROMAJI_VOWELS.includes(remaining[0])) {
         segments.push(remaining.slice(0, 2));
         remaining = remaining.slice(2);
       } else {
@@ -4027,8 +4033,7 @@ function smartSegmentRomaji(romaji) {
   }
   
   return segments.length > 0 ? segments : [romaji];
-}
-  
+} 
 
 
 // ============================================================================
@@ -8249,6 +8254,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
