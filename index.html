@@ -4073,25 +4073,30 @@ async function callAPI(action, data = null) {
   }
 }
 async function queueUpdateStats(params) {
-  // 1. Ajouter à la file
   pendingUpdates.push(params);
 
-  // 2. Traiter la file si c'est le premier élément
+  // Lancer le traitement uniquement si c'était vide avant
   if (pendingUpdates.length === 1) {
+    // Boucle de traitement
     while (pendingUpdates.length > 0) {
-      const update = pendingUpdates[0]; // On garde une référence
-      const id = update.id; // On extrait id une fois pour éviter les bugs
-     // ✅ NOUVEAU : Extraire les infos de level up
+      // ⚠️ On retire l'élément DÈS LE DÉBUT pour éviter toute référence persistante
+      const update = pendingUpdates.shift();
+
+      // On extrait TOUT ce dont on a besoin immédiatement
+      const id = update.id;
       const previousLevel = update.previousLevel;
       const hasLeveledUp = update.hasLeveledUp;
       const targetLevel = update.targetLevel;
+      const scorePoints = update.scorePoints;
+      const isRevisionMode = update.isRevisionMode || false;
+      const token = update.token;
+
       try {
-        // Construire les paramètres API
         const apiParams = {
-          token: update.token,
-          id: id,
-          scorePoints: update.scorePoints,
-          isRevisionMode: update.isRevisionMode || false
+          token,
+          id,
+          scorePoints,
+          isRevisionMode
         };
 
         const result = await callAPI('updateStats', apiParams);
@@ -4099,72 +4104,56 @@ async function queueUpdateStats(params) {
         if (result.success) {
           console.log(`File: Stats synchronisées pour item ${id}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
 
-          // Mise à jour locale de HiraganaList
+          // Mise à jour locale (inchangée)
           const hiraganaIndex = HiraganaList.findIndex(h => h.ID == id);
           if (hiraganaIndex !== -1) {
             HiraganaList[hiraganaIndex].Validation = result.newValidation;
             HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
-            HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + update.scorePoints;
-
-            // Mise à jour du cache de validation
+            HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + scorePoints;
             validationCache[id] = result.newValidation;
 
-            // Mise à jour statsCache
+            // Mise à jour statsCache (inchangée)
             const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
             itemStats.tentatives += 1;
-            itemStats.reussites += update.scorePoints;
-            itemStats.pourcentage = itemStats.tentatives > 0 
-              ? Math.round((itemStats.reussites / itemStats.tentatives) * 100) 
+            itemStats.reussites += scorePoints;
+            itemStats.pourcentage = itemStats.tentatives > 0
+              ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
               : 0;
             statsCache.items[id] = itemStats;
-
-            console.log(`HiraganaList[${hiraganaIndex}] synchronisé avec serveur:`, HiraganaList[hiraganaIndex]);
           }
 
-          // Gestion du level up
-// ✅ REMPLACE le bloc "Gestion du level up" par :
+          // Gestion du level up – maintenant avec les bonnes valeurs
           if (hasLeveledUp && targetLevel > previousLevel) {
             console.log(`🎊 Level up confirmé: ${previousLevel} → ${targetLevel}`);
-            
-            // Animation de level up (si pas déjà faite)
+
             if (targetLevel > niveauActif) {
               triggerLevelUpAnimation(document.body);
-            }  
-            
-             // ✅ Déblocage niveau 4 (Mode Révision)
-if (targetLevel === 4 && !hasShownLevel4Menu) {
-  console.log('✅ DÉBLOCAGE NIVEAU 4');
-  hasShownLevel4Menu = true;
-  setTimeout(() => {
-    showUnlockFlashcard(
-      t('unlock_revision_title'),
-      '📓',
-      t('unlock_revision_message')
-    );
-  }, 1);
-}
-            
-// ✅ Déblocage niveau 5 (Mon Jardin)
-if (targetLevel === 5 && !hasShownLevel5Garden) {
-  console.log('✅ DÉBLOCAGE NIVEAU 5');
-  hasShownLevel5Garden = true;
-  setTimeout(() => {
-    showUnlockFlashcard(
-      t('unlock_garden_title'),
-      '🎍',
-      t('unlock_garden_message')
-    );
-  }, 1);
-}
+            }
+
+            if (targetLevel === 4 && !hasShownLevel4Menu) {
+              hasShownLevel4Menu = true;
+              setTimeout(() => {
+                showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
+              }, 1);
+            }
+
+            if (targetLevel === 5 && !hasShownLevel5Garden) {
+              hasShownLevel5Garden = true;
+              setTimeout(() => {
+                showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
+              }, 1);
+            }
           }
-        }else {
+        } else {
           console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
+          // Optionnel : remettre en file d'attente en cas d'échec ?
+          // pendingUpdates.unshift(update); // si tu veux retenter
         }
-} catch (error) {
-  console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
-} finally {
-  pendingUpdates.shift();  // ⚠️ Supprime même en cas d'erreur réseau
-}
+      } catch (error) {
+        console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
+        // Même chose : éventuellement retenter plus tard
+      }
+      // Pas de finally avec shift() → déjà fait au début
     }
   }
 }
@@ -8252,6 +8241,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
