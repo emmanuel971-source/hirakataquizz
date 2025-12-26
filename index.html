@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -1893,10 +1892,13 @@ img.emoji {
     <h2 id="modal-hiragana" style="margin:0.2em 0; font-size:3em;"></h2>
     <div class="katakana" id="modal-katakana" style="font-size:1.8em; color:#8B6F47;"></div>
     <div class="romaji" id="modal-romaji" style="font-size:1.6em; color:#555;"></div>
-    <div class="info" style="margin-top:1em;">
-      Niveau <span id="modal-level"></span> • 
-      Score actuel = <span id="modal-validation"></span>
-    </div>
+   <div class="info">
+  <span data-i18n="garden_level"></span>
+  <span id="modal-level"></span> •
+  <span data-i18n="garden_score"></span>
+  <span id="modal-validation"></span>
+</div>
+
   </div>
 </div>
     
@@ -2165,6 +2167,9 @@ const translations = {
     garden_legend_learning: "En cours",
     garden_legend_practice: "À entretenir",
     garden_legend_mastered: "Maîtrisé",
+    garden_level: "Niveau",
+    garden_score: "Score actuel",
+
     
     // Placeholders
     pseudo_input_placeholder: "Ton pseudo...",
@@ -2383,6 +2388,9 @@ const translations = {
     garden_legend_learning: "Learning",
     garden_legend_practice: "Practice",
     garden_legend_mastered: "Mastered",
+    garden_level: "Level",
+    garden_score: "Current score",
+
     
     // Placeholders
     pseudo_input_placeholder: "Your nickname...",
@@ -2601,6 +2609,9 @@ const translations = {
     garden_legend_learning: "En curso",
     garden_legend_practice: "Repasar",
     garden_legend_mastered: "Dominado",
+    garden_level: "Nivel",
+    garden_score: "Puntuación actual",
+
     
     // Placeholders
     pseudo_input_placeholder: "Tu apodo...",
@@ -8160,6 +8171,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
