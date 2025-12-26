@@ -4114,6 +4114,39 @@ async function callAPI(action, data = null) {
     return { error: error.message };
   }
 }
+async function queueUpdateStats(params) {
+  // On cherche si une mise à jour pour cet item existe déjà dans la file
+  const existingIndex = pendingUpdates.findIndex(u => u.id === params.id);
+
+  if (existingIndex !== -1) {
+    // Mise à jour existante → on cumule les points
+    pendingUpdates[existingIndex].scorePoints += params.scorePoints;
+
+    // On garde les infos de level up les plus récentes (si présentes)
+    if (params.hasLeveledUp) {
+      pendingUpdates[existingIndex].hasLeveledUp = true;
+      pendingUpdates[existingIndex].previousLevel = params.previousLevel;
+      pendingUpdates[existingIndex].targetLevel = params.targetLevel;
+    }
+
+    // Optionnel : mettre à jour le timestamp pour debug
+    pendingUpdates[existingIndex].timestamp = Date.now();
+  } else {
+    // Nouvelle entrée
+    pendingUpdates.push({
+      ...params,
+      timestamp: Date.now() // utile pour debug ou tri éventuel
+    });
+  }
+
+  savePendingUpdates();
+
+  // On ne lance processQueue que si c'était la première entrée
+  // (ou si on veut relancer à chaque ajout, mais ici on préfère éviter les boucles inutiles)
+  if (pendingUpdates.length === 1) {
+    processQueue();
+  }
+}  
 async function processQueue() {
   if (!navigator.onLine) {
     console.log('📴 Hors ligne → synchronisation en attente');
@@ -8307,6 +8340,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
