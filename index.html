@@ -4035,14 +4035,54 @@ function smartSegmentRomaji(romaji) {
   return segments.length > 0 ? segments : [romaji];
 }
 
-
 // ============================================================================
-// 🌐 SECTION 4 : API & COMMUNICATION SERVEUR
+// 🌐 SECTION 4 : API & COMMUNICATION SERVEUR (VERSION ROBUSTE)
 // ============================================================================
 
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwcH4nze8uzSQPLkCwR1Xtst01gy9uCUzBbcfBZMbmUe2b2Lx0KQXlqDh4WNYH6fultfA/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbytIoG0z9pd_zHH4s5xn5ATvBoPDNo9lRL2Ys29lV4MfkAYb4vwJkJeelYxGMGqAnrXTQ/exec';
 
-let pendingUpdates = [];
+// ✅ NOUVEAU : Système de synchronisation robuste
+let syncQueue = [];              // File en mémoire
+let isSyncing = false;           // Flag de synchronisation en cours
+let isOnline = navigator.onLine; // État réseau
+let syncRetryTimeout = null;     // Timer pour retry
+const MAX_RETRY_ATTEMPTS = 5;    // Nombre max de tentatives
+const SYNC_STORAGE_KEY = 'pendingSync'; // Clé localStorage
+
+// ✅ NOUVEAU : Charger la file au démarrage
+function loadSyncQueue() {
+  try {
+    const saved = localStorage.getItem(SYNC_STORAGE_KEY);
+    if (saved) {
+      syncQueue = JSON.parse(saved);
+      console.log(`📥 File de sync restaurée: ${syncQueue.length} items`);
+    }
+  } catch (error) {
+    console.error('❌ Erreur chargement file de sync:', error);
+    syncQueue = [];
+  }
+}
+
+// ✅ NOUVEAU : Sauvegarder la file
+function saveSyncQueue() {
+  try {
+    localStorage.setItem(SYNC_STORAGE_KEY, JSON.stringify(syncQueue));
+  } catch (error) {
+    console.error('❌ Erreur sauvegarde file de sync:', error);
+  }
+}
+
+// ✅ NOUVEAU : Détection changement réseau
+window.addEventListener('online', () => {
+  console.log('🌐 Connexion rétablie');
+  isOnline = true;
+  processSyncQueue(); // Relancer la sync
+});
+
+window.addEventListener('offline', () => {
+  console.log('📡 Connexion perdue - Mode offline');
+  isOnline = false;
+});
 
 // --- Fonctions API ---
 async function callAPI(action, data = null) {
@@ -4063,101 +4103,307 @@ async function callAPI(action, data = null) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     const result = await response.json();
-    console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
+    
     return result;
     
   } catch (error) {
-    logError(`Erreur API (${action}): ${error.message}`);
-    console.error(`⚠️ Détails erreur:`, error);
-    return { error: error.message };
+    console.error(`⚠️ Erreur API (${action}):`, error.message);
+    return { success: false, error: error.message };
   }
 }
+
+// ✅ REFACTORISÉ : Ajouter une mise à jour stats à la file
 async function queueUpdateStats(params) {
-  pendingUpdates.push(params);
+  const update = {
+    id: params.id,
+    token: params.token,
+    scorePoints: params.scorePoints,
+    isRevisionMode: params.isRevisionMode || false,
+    previousLevel: params.previousLevel,
+    hasLeveledUp: params.hasLeveledUp,
+    targetLevel: params.targetLevel,
+    timestamp: Date.now(),
+    retryCount: 0,
+    status: 'pending' // pending | syncing | synced | failed
+  };
 
-  // Lancer le traitement uniquement si c'était vide avant
-  if (pendingUpdates.length === 1) {
-    // Boucle de traitement
-    while (pendingUpdates.length > 0) {
-      // ⚠️ On retire l'élément DÈS LE DÉBUT pour éviter toute référence persistante
-      const update = pendingUpdates.shift();
+  // Ajouter à la file
+  syncQueue.push(update);
+  saveSyncQueue();
+  
+  console.log(`📝 Ajout à la file de sync: item ${update.id} (file: ${syncQueue.length} items)`);
 
-      // On extrait TOUT ce dont on a besoin immédiatement
-      const id = update.id;
-      const previousLevel = update.previousLevel;
-      const hasLeveledUp = update.hasLeveledUp;
-      const targetLevel = update.targetLevel;
-      const scorePoints = update.scorePoints;
-      const isRevisionMode = update.isRevisionMode || false;
-      const token = update.token;
+  // Lancer le traitement
+  processSyncQueue();
+}
 
-      try {
-        const apiParams = {
-          token,
-          id,
-          scorePoints,
-          isRevisionMode
-        };
+// ✅ NOUVEAU : Traiter la file de synchronisation
+async function processSyncQueue() {
+  // Éviter traitement simultané
+  if (isSyncing) {
+    console.log('⏳ Sync déjà en cours, skip');
+    return;
+  }
 
-        const result = await callAPI('updateStats', apiParams);
+  // Pas de connexion = mode offline
+  if (!isOnline) {
+    console.log('📡 Offline - Sync différée');
+    return;
+  }
 
-        if (result.success) {
-          console.log(`File: Stats synchronisées pour item ${id}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
+  // File vide = rien à faire
+  const pendingItems = syncQueue.filter(item => item.status === 'pending');
+  if (pendingItems.length === 0) {
+    console.log('✅ File de sync vide');
+    return;
+  }
 
-          // Mise à jour locale (inchangée)
-          const hiraganaIndex = HiraganaList.findIndex(h => h.ID == id);
-          if (hiraganaIndex !== -1) {
-            HiraganaList[hiraganaIndex].Validation = result.newValidation;
-            HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
-            HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + scorePoints;
-            validationCache[id] = result.newValidation;
+  isSyncing = true;
+  console.log(`🔄 Traitement de ${pendingItems.length} items en attente`);
 
-            // Mise à jour statsCache (inchangée)
-            const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-            itemStats.tentatives += 1;
-            itemStats.reussites += scorePoints;
-            itemStats.pourcentage = itemStats.tentatives > 0
-              ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
-              : 0;
-            statsCache.items[id] = itemStats;
-          }
+  // Traiter un item à la fois (pour éviter race conditions)
+  const item = pendingItems[0];
+  
+  try {
+    // Marquer comme en cours
+    item.status = 'syncing';
+    saveSyncQueue();
 
-          // Gestion du level up – maintenant avec les bonnes valeurs
-          if (hasLeveledUp && targetLevel > previousLevel) {
-            console.log(`🎊 Level up confirmé: ${previousLevel} → ${targetLevel}`);
+    // Appel API
+    const result = await callAPI('updateStats', {
+      token: item.token,
+      id: item.id,
+      scorePoints: item.scorePoints,
+      isRevisionMode: item.isRevisionMode
+    });
 
-            if (targetLevel > niveauActif) {
-              triggerLevelUpAnimation(document.body);
-            }
+if (result.success) {
+  console.log(`✅ Item ${item.id} synchronisé: Validation=${result.newValidation}`);
 
-            if (targetLevel === 4 && !hasShownLevel4Menu) {
-              hasShownLevel4Menu = true;
-              setTimeout(() => {
-                showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
-              }, 1);
-            }
+  // ✅ NOUVEAU : Vérifier le checksum
+  const localChecksum = generateClientChecksum(
+    item.id, 
+    result.newValidation, 
+    result.tentatives
+  );
+  
+  if (result.checksum && result.checksum !== localChecksum) {
+    console.error(`🚨 CHECKSUM MISMATCH pour item ${item.id}`);
+    console.error(`   Serveur: ${result.checksum}, Client: ${localChecksum}`);
+    
+    // Forcer resync complète
+    await resyncFromServer();
+    return;
+  }
 
-            if (targetLevel === 5 && !hasShownLevel5Garden) {
-              hasShownLevel5Garden = true;
-              setTimeout(() => {
-                showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
-              }, 1);
-            }
-          }
-        } else {
-          console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
-          // Optionnel : remettre en file d'attente en cas d'échec ?
-          // pendingUpdates.unshift(update); // si tu veux retenter
-        }
-      } catch (error) {
-        console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
-        // Même chose : éventuellement retenter plus tard
+  // Mise à jour locale
+  updateLocalStats(item, result);
+        
+        // Gestion level up
+        handleLevelUp(item);
       }
-      // Pas de finally avec shift() → déjà fait au début
+
+      // Marquer comme synchronisé
+      item.status = 'synced';
+      saveSyncQueue();
+
+      // Retirer de la file après délai de sécurité (30s)
+      setTimeout(() => {
+        syncQueue = syncQueue.filter(i => i !== item);
+        saveSyncQueue();
+      }, 30000);
+
+    } else {
+      throw new Error(result.error || 'Erreur serveur inconnue');
+    }
+
+  } catch (error) {
+    console.error(`❌ Erreur sync item ${item.id}:`, error.message);
+
+    // Incrémenter retry
+    item.retryCount++;
+    item.status = 'pending';
+    saveSyncQueue();
+
+    if (item.retryCount >= MAX_RETRY_ATTEMPTS) {
+      console.error(`🚨 ÉCHEC DÉFINITIF après ${MAX_RETRY_ATTEMPTS} tentatives pour item ${item.id}`);
+      item.status = 'failed';
+      saveSyncQueue();
+      
+      // ⚠️ Notifier l'utilisateur
+      showSyncError(item);
+    } else {
+      // Retry avec backoff exponentiel
+      const delay = Math.min(30000, Math.pow(2, item.retryCount) * 1000); // Max 30s
+      console.log(`🔄 Retry ${item.retryCount}/${MAX_RETRY_ATTEMPTS} dans ${delay/1000}s`);
+      
+      clearTimeout(syncRetryTimeout);
+      syncRetryTimeout = setTimeout(() => {
+        processSyncQueue();
+      }, delay);
+    }
+  } finally {
+    isSyncing = false;
+  }
+
+  // Traiter l'item suivant
+  setTimeout(() => processSyncQueue(), 500);
+}
+// ✅ NOUVELLE FONCTION : Générer checksum côté client (doit matcher le serveur)
+function generateClientChecksum(itemId, validation, tentatives) {
+  const data = `${itemId}-${validation}-${tentatives}`;
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    const char = data.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36);
+}
+// ✅ NOUVEAU : Mise à jour locale après sync réussie
+function updateLocalStats(item, serverResult) {
+  const hiraganaIndex = HiraganaList.findIndex(h => h.ID == item.id);
+  if (hiraganaIndex !== -1) {
+    HiraganaList[hiraganaIndex].Validation = serverResult.newValidation;
+    HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
+    HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + item.scorePoints;
+
+    // Cache
+    validationCache[item.id] = serverResult.newValidation;
+
+    // Stats
+    const itemStats = statsCache.items[item.id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+    itemStats.tentatives += 1;
+    itemStats.reussites += item.scorePoints;
+    itemStats.pourcentage = itemStats.tentatives > 0 
+      ? Math.round((itemStats.reussites / itemStats.tentatives) * 100) 
+      : 0;
+    statsCache.items[item.id] = itemStats;
+  }
+}
+
+// ✅ NOUVEAU : Gérer les level up
+function handleLevelUp(item) {
+  if (item.hasLeveledUp && item.targetLevel > item.previousLevel) {
+    console.log(`🎊 Level up: ${item.previousLevel} → ${item.targetLevel}`);
+    
+    if (item.targetLevel > niveauActif) {
+      triggerLevelUpAnimation(document.body);
+    }
+    
+    // Déblocages
+    if (item.targetLevel === 4 && !hasShownLevel4Menu) {
+      hasShownLevel4Menu = true;
+      setTimeout(() => {
+        showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
+      }, 1);
+    }
+    
+    if (item.targetLevel === 5 && !hasShownLevel5Garden) {
+      hasShownLevel5Garden = true;
+      setTimeout(() => {
+        showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
+      }, 1);
     }
   }
 }
 
+// ✅ NOUVEAU : Resynchronisation complète depuis le serveur
+async function resyncFromServer() {
+  console.log('🔄 RESYNC COMPLÈTE depuis le serveur...');
+  
+  if (!userToken) {
+    console.error('❌ Impossible de resync sans token');
+    return;
+  }
+
+  try {
+    // Recharger les stats serveur
+    const result = await callAPI('getUserStats', { token: userToken });
+    
+    if (result.success) {
+      const serverStats = result.stats || {};
+      
+      // Comparer et corriger
+      HiraganaList.forEach(item => {
+        const itemId = item.ID.toString();
+        const serverData = serverStats[itemId] || { validation: 0, tentatives: 0, reussites: 0 };
+        
+        // Forcer les valeurs serveur
+        item.Validation = serverData.validation;
+        item.Tentatives = serverData.tentatives;
+        item['Réussites'] = serverData.reussites;
+        
+        validationCache[parseInt(item.ID)] = parseInt(serverData.validation);
+      });
+      
+      // Recalculer niveau actif
+      niveauActif = determineNiveauActif(HiraganaList);
+      
+      // Rafraîchir UI
+      const maxLevel = getMaxLevel(HiraganaList);
+      document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+      updateLevelProgress(HiraganaList, niveauActif);
+      renderProgressBar(niveauActif, maxLevel);
+      renderHiraganaCards(HiraganaList, niveauActif);
+      
+      console.log('✅ Resync complète réussie');
+    }
+  } catch (error) {
+    console.error('❌ Échec resync:', error);
+  }
+}
+
+// ✅ NOUVEAU : Afficher erreur de sync à l'utilisateur
+function showSyncError(item) {
+  // Créer une notification discrète
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #ff6b6b;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 99999;
+    max-width: 300px;
+    font-size: 0.9em;
+  `;
+  
+  notification.innerHTML = `
+    <strong>⚠️ Erreur de synchronisation</strong><br>
+    <span style="font-size: 0.85em; opacity: 0.9;">
+      Impossible de sauvegarder votre progression (item ${item.id}). 
+      Vérifiez votre connexion.
+    </span>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.transition = 'opacity 0.5s';
+    notification.style.opacity = '0';
+    setTimeout(() => notification.remove(), 500);
+  }, 5000);
+}
+
+// ✅ NOUVEAU : Obtenir le statut de la file
+function getSyncStatus() {
+  const pending = syncQueue.filter(i => i.status === 'pending').length;
+  const syncing = syncQueue.filter(i => i.status === 'syncing').length;
+  const failed = syncQueue.filter(i => i.status === 'failed').length;
+  
+  return {
+    total: syncQueue.length,
+    pending,
+    syncing,
+    failed,
+    isOnline,
+    isSyncing
+  };
+}
 
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
@@ -8241,6 +8487,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
