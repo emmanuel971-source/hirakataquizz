@@ -8377,8 +8377,16 @@ speechSynthesis.onvoiceschanged = () => {
 };
 
 // --- Nettoyage particules ---
-setInterval(cleanupOldParticles, 3000);
+// --- setInterval(cleanupOldParticles, 3000);
 
+// Charger la file persistante
+loadSyncQueue();
+
+// Lancer la sync si items en attente
+if (syncQueue.length > 0) {
+  console.log(`📥 ${syncQueue.length} items en attente de sync`);
+  setTimeout(() => processSyncQueue(), 2000);
+}
 
 // ============================================================================
 // 🐼 SECTION 18 : ÉVÉNEMENTS PANDA & ÉCRAN D'ACCUEIL
@@ -8485,6 +8493,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
