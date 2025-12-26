@@ -4114,27 +4114,15 @@ async function callAPI(action, data = null) {
     return { error: error.message };
   }
 }
-async function queueUpdateStats(params) {
-  // Ajouter à la file et sauvegarder immédiatement
-  pendingUpdates.push(params);
-  savePendingUpdates();
-
-  // Traiter uniquement si c'est le premier (évite les lancements multiples)
-  if (pendingUpdates.length === 1) {
-    processQueue();
-  }
-}
 async function processQueue() {
-  // Si pas de connexion, on attend → la fonction sera rappelée plus tard
   if (!navigator.onLine) {
     console.log('📴 Hors ligne → synchronisation en attente');
     return;
   }
 
   while (pendingUpdates.length > 0) {
-    // On prend et retire immédiatement l'élément pour éviter tout mélange
     const update = pendingUpdates.shift();
-    savePendingUpdates(); // Sauvegarde à chaque retrait
+    savePendingUpdates();
 
     const {
       id,
@@ -4150,25 +4138,24 @@ async function processQueue() {
       const result = await callAPI('updateStats', {
         token,
         id,
-        scorePoints,
+        scorePoints,           // ← ici, c'est le total cumulé !
         isRevisionMode
       });
 
       if (result.success) {
         console.log(`✅ Stats synchronisées pour item ${id}: Validation=${result.newValidation}, Level=${result.newLevel}`);
 
-        // === Mise à jour locale (HiraganaList, caches, etc.) ===
+        // Mise à jour locale
         const hiraganaIndex = HiraganaList.findIndex(h => h.ID == id);
         if (hiraganaIndex !== -1) {
           HiraganaList[hiraganaIndex].Validation = result.newValidation;
-          HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
+          HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + scorePoints;
           HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + scorePoints;
 
           validationCache[id] = result.newValidation;
 
-          // Mise à jour statsCache
           const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-          itemStats.tentatives += 1;
+          itemStats.tentatives += scorePoints;
           itemStats.reussites += scorePoints;
           itemStats.pourcentage = itemStats.tentatives > 0
             ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
@@ -4176,7 +4163,7 @@ async function processQueue() {
           statsCache.items[id] = itemStats;
         }
 
-        // === Gestion du level up (avec les bonnes valeurs de CET update) ===
+        // Gestion level up (se déclenche seulement si l'update contenait un level up)
         if (hasLeveledUp && targetLevel > previousLevel) {
           console.log(`🎊 Level up confirmé: ${previousLevel} → ${targetLevel}`);
 
@@ -4184,51 +4171,41 @@ async function processQueue() {
             triggerLevelUpAnimation(document.body);
           }
 
-          // Déblocage niveau 4
           if (targetLevel === 4 && !hasShownLevel4Menu) {
             hasShownLevel4Menu = true;
-            savePendingUpdates(); // Persiste le flag
-            setTimeout(() => {
-              showUnlockFlashcard(
-                t('unlock_revision_title'),
-                '📓',
-                t('unlock_revision_message')
-              );
-            }, 1);
+            savePendingUpdates(); // persiste le flag
+            setTimeout(() => showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message')), 1);
           }
 
-          // Déblocage niveau 5
           if (targetLevel === 5 && !hasShownLevel5Garden) {
             hasShownLevel5Garden = true;
-            savePendingUpdates(); // Persiste le flag
-            setTimeout(() => {
-              showUnlockFlashcard(
-                t('unlock_garden_title'),
-                '🎍',
-                t('unlock_garden_message')
-              );
-            }, 1);
+            savePendingUpdates();
+            setTimeout(() => showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message')), 1);
           }
         }
       } else {
-        // Erreur côté serveur → on remet en tête pour retenter plus tard
-        console.error(`❌ Erreur API pour item ${id}:`, result.error);
+        // Erreur serveur → on remet en file
         pendingUpdates.unshift(update);
         savePendingUpdates();
-        break; // On attend avant de retenter
+        console.error(`❌ Erreur API pour item ${id}:`, result.error);
+        break; // on attend avant de retenter
       }
     } catch (error) {
-      // Erreur réseau → on remet en tête et on attend la reconnexion
-      console.warn(`🌐 Échec réseau pour item ${id}, en attente...`, error.message);
+      // Erreur réseau → on remet en file
       pendingUpdates.unshift(update);
       savePendingUpdates();
-      break; // Sort de la boucle pour ne pas boucler en vain
+      console.warn(`🌐 Échec réseau pour item ${id}`);
+      break;
     }
+
+    // Optionnel : petite pause pour éviter de surcharger le serveur
+    await new Promise(r => setTimeout(r, 300));
   }
 
-  // Si il reste des éléments, on retentera plus tard
   if (pendingUpdates.length === 0) {
     console.log('🎉 File de synchronisation vidée !');
+    // Bonus : recharger les stats depuis le serveur pour être sûr
+    // await loadUserProgress(); // décommente si tu veux
   }
 }
 // ============================================================================
@@ -8330,6 +8307,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
