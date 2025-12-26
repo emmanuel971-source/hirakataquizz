@@ -4205,7 +4205,7 @@ async function processQueue() {
       await new Promise(r => setTimeout(r, 1000)); // Attente 1s pour propagation Apps Script
 
       const localChecksum = calculateLocalStatsChecksum();
-      const serverResult = await callAPI('getStatsChecksum', { token: /* ton token */ });
+      const serverResult = await callAPI('getStatsChecksum', { token: userToken });
 
       if (serverResult.success) {
         if (localChecksum === serverResult.checksum) {
@@ -8341,6 +8341,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
