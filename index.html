@@ -4040,7 +4040,7 @@ function smartSegmentRomaji(romaji) {
 // 🌐 SECTION 4 : API & COMMUNICATION SERVEUR
 // ============================================================================
 
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwRCgPZfZAtMuX9S2iMJMXe9Mam_J5A4qCwJmWbCBBX8olFthIVGB6Syla2U7L9Wn5ZsA/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwI7RXn6WXI6TXFxuSVLHA-Fs78aoH6L27SzgB08H_LTIC7Ow0eal9nbj3k-e9V726NTQ/exec';
 
 let pendingUpdates = []; // File d'attente en mémoire
 
@@ -4236,12 +4236,22 @@ async function processQueue() {
 }
 function calculateLocalStatsChecksum() {
   let checksum = 0;
+  let itemCount = 0;
+
   for (const item of HiraganaList) {
-    checksum += item.Validation || 0;
+    const tentatives = item.Tentatives || 0;
+    if (tentatives > 0) { // Seulement les items "touchés"
+      checksum += item.Validation || 0;
+      checksum += tentatives;
+      itemCount++;
+    }
   }
-  console.log('🔢 Checksum local calculé :', checksum);
+
+  checksum += itemCount * 1000; // Même offset que serveur
+
+  console.log('🔢 Checksum local calculé :', checksum, `(items touchés: ${itemCount})`);
   return checksum;
-}  
+} 
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
 // ============================================================================
@@ -8341,6 +8351,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
