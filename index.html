@@ -4162,23 +4162,8 @@ if (targetLevel === 5 && !hasShownLevel5Garden) {
         }
 } catch (error) {
   console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
-  
-  // ✅ Retry avec backoff exponentiel (3 tentatives max)
-  if (!update.retryCount) update.retryCount = 0;
-  
-  if (update.retryCount < 3) {
-    update.retryCount++;
-    console.log(`🔄 Retry ${update.retryCount}/3 pour item ${id}`);
-    
-    // Repousser à la fin de la file avec délai
-    setTimeout(() => {
-      pendingUpdates.push(update);
-    }, Math.pow(2, update.retryCount) * 1000);  // 2s, 4s, 8s
-  } else {
-    console.error(`❌ Abandon après 3 tentatives pour item ${id}`);
-  }
-  
-  pendingUpdates.shift();
+} finally {
+  pendingUpdates.shift();  // ⚠️ Supprime même en cas d'erreur réseau
 }
     }
   }
@@ -8267,6 +8252,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
