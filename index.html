@@ -4226,10 +4226,9 @@ class SyncManager {
       const params = new URLSearchParams(payload);
       const url = `${WEB_APP_URL}?${params.toString()}`;
       
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      });
+const response = await fetch(url, {
+  method: 'GET'
+});
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -8430,6 +8429,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
