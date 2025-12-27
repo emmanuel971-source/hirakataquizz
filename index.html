@@ -4088,8 +4088,6 @@ async function callAPI(action, data = null) {
 // ====================================
 const LocalStorage = {
   KEYS: {
-    PENDING_UPDATES: 'quiz_pending_updates',
-    LAST_SYNC: 'quiz_last_sync',
     SESSION_UPDATES: 'quiz_session_updates'
   },
   
@@ -4130,19 +4128,21 @@ class SyncManager {
     this.isSyncing = false;
     this.syncInterval = null;
     this.sessionUpdates = this.loadSessionUpdates();
-    this.lastServerState = LocalStorage.get(LocalStorage.KEYS.LAST_SYNC) || {};
     
     // Auto-sync toutes les 30 secondes si des données en attente
     this.startAutoSync();
     
     // Sync avant fermeture de page
-    window.addEventListener('beforeunload', () => this.syncNow());
+    window.addEventListener('beforeunload', () => {
+      if (this.sessionUpdates.length > 0) {
+        this.syncNow();
+      }
+    });
   }
   
   loadSessionUpdates() {
     const saved = LocalStorage.get(LocalStorage.KEYS.SESSION_UPDATES) || [];
-    const pending = LocalStorage.get(LocalStorage.KEYS.PENDING_UPDATES) || [];
-    return [...saved, ...pending];
+    return saved;
   }
   
   // Ajouter une mise à jour à la session en cours
@@ -4156,7 +4156,7 @@ class SyncManager {
     LocalStorage.set(LocalStorage.KEYS.SESSION_UPDATES, this.sessionUpdates);
     console.log(`📝 Mise à jour ajoutée (total: ${this.sessionUpdates.length})`);
     
-    // Déclencher une sync si pas déjà en cours
+    // Déclencher une sync si pas déjà en cours et au moins 5 items
     if (!this.isSyncing && this.sessionUpdates.length >= 5) {
       this.syncNow(); // Sync automatique tous les 5 items
     }
@@ -4171,54 +4171,52 @@ class SyncManager {
     this.isSyncing = true;
     console.log(`🔄 Début synchronisation de ${this.sessionUpdates.length} mises à jour`);
     
+    // Sauvegarder les updates à envoyer
+    const updatesToSend = [...this.sessionUpdates];
+    
     try {
-      const result = await this.sendBatchUpdate();
+      const result = await this.sendBatchUpdate(updatesToSend);
       
       if (result.success) {
         console.log('✅ Synchronisation réussie');
         
-        // Vérifier la cohérence des données
-        const isConsistent = this.verifyConsistency(result.serverState);
+        // Vider la queue (uniquement les updates envoyés)
+        this.sessionUpdates = this.sessionUpdates.filter(u => 
+          !updatesToSend.find(sent => 
+            sent.id === u.id && sent.timestamp === u.timestamp
+          )
+        );
         
-        if (isConsistent) {
-          // Tout est OK, on vide la queue
-          this.sessionUpdates = [];
-          LocalStorage.remove(LocalStorage.KEYS.SESSION_UPDATES);
-          LocalStorage.remove(LocalStorage.KEYS.PENDING_UPDATES);
-          
-          // Sauvegarder l'état serveur
-          this.lastServerState = result.serverState;
-          LocalStorage.set(LocalStorage.KEYS.LAST_SYNC, result.serverState);
-          
-          // Mettre à jour l'UI avec les données serveur
+        LocalStorage.set(LocalStorage.KEYS.SESSION_UPDATES, this.sessionUpdates);
+        
+        // Mettre à jour l'UI avec les données serveur
+        if (result.serverState) {
           this.updateLocalState(result.serverState);
-          
-          return { success: true, syncedCount: result.processedCount };
-        } else {
-          console.warn('⚠️ Désynchronisation détectée, nouvelle tentative...');
-          return await this.handleDesync(result.serverState);
         }
+        
+        return { success: true, syncedCount: result.processedCount };
+        
       } else {
         console.error('❌ Échec synchronisation:', result.error);
-        return await this.handleSyncError(result.error);
+        return await this.handleSyncError(result.error, updatesToSend);
       }
       
     } catch (error) {
       console.error('❌ Erreur réseau:', error);
-      return await this.handleSyncError(error.message);
+      return await this.handleSyncError(error.message, updatesToSend);
       
     } finally {
       this.isSyncing = false;
     }
   }
   
-  async sendBatchUpdate() {
+  async sendBatchUpdate(updates) {
     const token = getUserToken(); // Fonction à adapter selon votre système
     
     const payload = {
       action: 'batchUpdateStats',
       token: token,
-      updates: JSON.stringify(this.sessionUpdates),
+      updates: JSON.stringify(updates),
       clientTimestamp: Date.now()
     };
     
@@ -4226,9 +4224,9 @@ class SyncManager {
       const params = new URLSearchParams(payload);
       const url = `${WEB_APP_URL}?${params.toString()}`;
       
-const response = await fetch(url, {
-  method: 'GET'
-});
+      const response = await fetch(url, {
+        method: 'GET'
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -4241,97 +4239,35 @@ const response = await fetch(url, {
     }
   }
   
-  // Vérifier que les données client correspondent au serveur
-  verifyConsistency(serverState) {
-    if (!serverState || !serverState.items) {
-      return false;
-    }
-    
-    // Vérifier quelques items clés
-    for (const update of this.sessionUpdates.slice(-5)) { // Vérifier les 5 derniers
-      const itemId = update.id.toString();
-      const serverItem = serverState.items[itemId];
-      
-      if (!serverItem) {
-        console.warn(`Item ${itemId} absent du serveur`);
-        return false;
-      }
-      
-      // Vérifier que le nombre de tentatives correspond
-      const expectedTentatives = (this.lastServerState.items?.[itemId]?.tentatives || 0) + 
-                                  this.sessionUpdates.filter(u => u.id == itemId).length;
-      
-      if (serverItem.tentatives < expectedTentatives) {
-        console.warn(`Désync tentatives item ${itemId}: attendu ${expectedTentatives}, reçu ${serverItem.tentatives}`);
-        return false;
-      }
-    }
-    
-    return true;
-  }
-  
-  // Gérer une désynchronisation
-  async handleDesync(serverState) {
-    console.log('🔧 Tentative de réconciliation...');
-    
-    // Recalculer le delta entre état serveur et local
-    const delta = this.calculateDelta(serverState);
-    
-    if (delta.length === 0) {
-      // Plus rien à synchroniser
-      this.sessionUpdates = [];
-      LocalStorage.remove(LocalStorage.KEYS.SESSION_UPDATES);
-      return { success: true, message: 'Réconciliation réussie' };
-    }
-    
-    // Remplacer la queue par le delta
-    this.sessionUpdates = delta;
-    LocalStorage.set(LocalStorage.KEYS.SESSION_UPDATES, delta);
-    
-    // Réessayer
-    this.isSyncing = false;
-    return await this.syncNow();
-  }
-  
-  calculateDelta(serverState) {
-    // Filtrer les mises à jour déjà appliquées côté serveur
-    return this.sessionUpdates.filter(update => {
-      const itemId = update.id.toString();
-      const serverItem = serverState.items?.[itemId];
-      
-      if (!serverItem) return true; // Item pas encore créé
-      
-      // Comparer les timestamps si disponibles
-      if (update.timestamp && serverItem.lastUpdate) {
-        return update.timestamp > serverItem.lastUpdate;
-      }
-      
-      return true; // Par défaut, garder la mise à jour
-    });
-  }
-  
   // Gérer les erreurs de sync
-  async handleSyncError(errorMessage) {
-    // Incrémenter le compteur de retry
-    this.sessionUpdates.forEach(u => u.retries = (u.retries || 0) + 1);
+  async handleSyncError(errorMessage, failedUpdates) {
+    // Incrémenter le compteur de retry pour les updates qui ont échoué
+    failedUpdates.forEach(failed => {
+      const update = this.sessionUpdates.find(u => 
+        u.id === failed.id && u.timestamp === failed.timestamp
+      );
+      if (update) {
+        update.retries = (update.retries || 0) + 1;
+      }
+    });
     
     // Supprimer les updates qui ont trop échoué (> 5 tentatives)
     const maxRetries = 5;
-    const failed = this.sessionUpdates.filter(u => u.retries >= maxRetries);
+    const stillPending = this.sessionUpdates.filter(u => (u.retries || 0) < maxRetries);
+    const abandoned = this.sessionUpdates.length - stillPending.length;
     
-    if (failed.length > 0) {
-      console.error(`⚠️ ${failed.length} mises à jour abandonnées après ${maxRetries} tentatives`);
-      this.sessionUpdates = this.sessionUpdates.filter(u => u.retries < maxRetries);
+    if (abandoned > 0) {
+      console.error(`⚠️ ${abandoned} mises à jour abandonnées après ${maxRetries} tentatives`);
     }
     
-    // Sauvegarder pour retry ultérieur
-    LocalStorage.set(LocalStorage.KEYS.PENDING_UPDATES, this.sessionUpdates);
+    this.sessionUpdates = stillPending;
+    LocalStorage.set(LocalStorage.KEYS.SESSION_UPDATES, this.sessionUpdates);
     
     return { 
       success: false, 
       error: errorMessage,
       pendingCount: this.sessionUpdates.length,
-      failedCount: failed.length
+      failedCount: abandoned
     };
   }
   
@@ -4363,7 +4299,7 @@ const response = await fetch(url, {
     }
     
     // Mise à jour statsCache
-    if (statsCache && serverState.items) {
+    if (typeof statsCache !== 'undefined' && serverState.items) {
       statsCache.items = serverState.items;
     }
   }
@@ -4371,21 +4307,25 @@ const response = await fetch(url, {
   handleLevelUp(previousLevel, newLevel) {
     console.log(`🎊 Level up confirmé: ${previousLevel} → ${newLevel}`);
     
-    if (newLevel > previousLevel) {
+    if (newLevel > previousLevel && typeof triggerLevelUpAnimation !== 'undefined') {
       triggerLevelUpAnimation(document.body);
     }
     
-    if (newLevel === 4 && !hasShownLevel4Menu) {
+    if (newLevel === 4 && typeof hasShownLevel4Menu !== 'undefined' && !hasShownLevel4Menu) {
       hasShownLevel4Menu = true;
       setTimeout(() => {
-        showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
+        if (typeof showUnlockFlashcard !== 'undefined' && typeof t !== 'undefined') {
+          showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
+        }
       }, 100);
     }
     
-    if (newLevel === 5 && !hasShownLevel5Garden) {
+    if (newLevel === 5 && typeof hasShownLevel5Garden !== 'undefined' && !hasShownLevel5Garden) {
       hasShownLevel5Garden = true;
       setTimeout(() => {
-        showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
+        if (typeof showUnlockFlashcard !== 'undefined' && typeof t !== 'undefined') {
+          showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
+        }
       }, 100);
     }
   }
@@ -4423,8 +4363,7 @@ const response = await fetch(url, {
   getStatus() {
     return {
       pending: this.sessionUpdates.length,
-      isSyncing: this.isSyncing,
-      lastSync: this.lastServerState.timestamp || null
+      isSyncing: this.isSyncing
     };
   }
 }
@@ -4438,7 +4377,7 @@ const syncManager = new SyncManager();
 // 📤 NOUVELLE API SIMPLIFIÉE
 // ====================================
 
-// Remplace recordAnswer()
+// Remplace queueUpdateStats()
 function recordAnswer(params) {
   // Extraire les données nécessaires
   const update = {
@@ -4479,16 +4418,20 @@ function applyLocalUpdate(update) {
     item.Tentatives = (item.Tentatives || 0) + 1;
     item['Réussites'] = (item['Réussites'] || 0) + update.scorePoints;
     
-    validationCache[update.id] = item.Validation;
+    if (typeof validationCache !== 'undefined') {
+      validationCache[update.id] = item.Validation;
+    }
     
     // Mise à jour statsCache
-    const itemStats = statsCache.items[update.id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-    itemStats.tentatives += 1;
-    itemStats.reussites += update.scorePoints;
-    itemStats.pourcentage = itemStats.tentatives > 0
-      ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
-      : 0;
-    statsCache.items[update.id] = itemStats;
+    if (typeof statsCache !== 'undefined') {
+      const itemStats = statsCache.items[update.id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+      itemStats.tentatives += 1;
+      itemStats.reussites += update.scorePoints;
+      itemStats.pourcentage = itemStats.tentatives > 0
+        ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
+        : 0;
+      statsCache.items[update.id] = itemStats;
+    }
   }
 }
 
@@ -8429,6 +8372,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
