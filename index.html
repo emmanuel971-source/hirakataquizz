@@ -4073,8 +4073,8 @@ async function callAPI(action, data = null) {
     return { error: error.message };
   }
 }
-let pendingUpdates = [];
-let isProcessing = false;
+
+
 
 async function queueUpdateStats(params) {
   pendingUpdates.push(params);
@@ -8078,6 +8078,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
