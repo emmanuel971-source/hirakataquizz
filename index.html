@@ -4036,12 +4036,36 @@ function smartSegmentRomaji(romaji) {
 }
 
 // ============================================================================
-// 🌐 SECTION : API & SYNCHRONISATION ROBUSTE (OFFLINE-FIRST)
+// 🌐 SECTION 4 : API & SYNCHRONISATION ROBUSTE (OFFLINE-FIRST)
 // ============================================================================
 
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxHsNdvq8B_djd_cuIBnFmxJ8-FW8qAZux_SpnT6dpb1R4lbZovqYb-VDk23tvd3rtwfQ/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxlGKkcx12KGbQRHePsFhjDOfKAtdRi3NQCspmcyxdP7tnPQyF_F6-vLI9EBS_fZZQkZQ/exec';
 const QUEUE_KEY = 'quiz_pending_updates_v2';
 
+async function syncSnapshotNow(reason = '') {
+  if (!navigator.onLine) return;
+
+  const payload = {
+    token,
+    statsJson: JSON.stringify(statsCache.items),
+    niveauLocal: niveauActif,
+    lastPlayedAt: Date.now(),
+    sessionId: crypto.randomUUID()
+  };
+
+  const result = await callAPI('syncSnapshot', payload);
+
+  if (result?.success) {
+    statsCache.items = result.statsJson;
+    niveauActif = result.niveauAtteint;
+
+    console.log('✅ Snapshot sync OK', reason);
+  } else {
+    console.warn('❌ Snapshot sync failed', result);
+  }
+}
+  
+  
 function loadQueue() {
   try {
     return JSON.parse(localStorage.getItem(QUEUE_KEY)) || [];
@@ -4203,6 +4227,9 @@ async function processQueue() {
 // ---------------------------------------------------------------------------
 // Relances automatiques intelligentes
 // ---------------------------------------------------------------------------
+window.addEventListener('online', () => syncSnapshotNow('online'));
+
+  
 window.addEventListener('online', processQueue);
 window.addEventListener('focus', processQueue);
 setInterval(processQueue, 15000);
@@ -8106,6 +8133,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 </script>
 
 </html>
+
 
 
 
