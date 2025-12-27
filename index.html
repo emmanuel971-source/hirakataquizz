@@ -4084,392 +4084,265 @@ async function callAPI(action, data = null) {
   }
 }
 // ====================================
-// 📦 SYSTÈME DE PERSISTANCE LOCALE
+// 🔄 SYSTÈME SIMPLE DE SYNCHRONISATION
 // ====================================
-const LocalStorage = {
-  KEYS: {
-    SESSION_UPDATES: 'quiz_session_updates'
-  },
-  
-  get(key) {
-    try {
-      const data = localStorage.getItem(key);
-      return data ? JSON.parse(data) : null;
-    } catch (e) {
-      console.error(`Erreur lecture localStorage ${key}:`, e);
-      return null;
-    }
-  },
-  
-  set(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-      return true;
-    } catch (e) {
-      console.error(`Erreur écriture localStorage ${key}:`, e);
-      return false;
-    }
-  },
-  
-  remove(key) {
-    try {
-      localStorage.removeItem(key);
-    } catch (e) {
-      console.error(`Erreur suppression localStorage ${key}:`, e);
-    }
-  }
-};
+let syncQueue = [];
+let isSyncing = false;
 
-// ====================================
-// 🔄 GESTIONNAIRE DE SYNCHRONISATION
-// ====================================
-class SyncManager {
-  constructor() {
-    this.isSyncing = false;
-    this.syncInterval = null;
-    this.sessionUpdates = this.loadSessionUpdates();
-    
-    // Auto-sync toutes les 30 secondes si des données en attente
-    this.startAutoSync();
-    
-    // Sync avant fermeture de page
-    window.addEventListener('beforeunload', () => {
-      if (this.sessionUpdates.length > 0) {
-        this.syncNow();
-      }
-    });
-  }
-  
-  loadSessionUpdates() {
-    const saved = LocalStorage.get(LocalStorage.KEYS.SESSION_UPDATES) || [];
-    return saved;
-  }
-  
-  // Ajouter une mise à jour à la session en cours
-  addUpdate(update) {
-    this.sessionUpdates.push({
-      ...update,
-      timestamp: Date.now(),
-      retries: 0
-    });
-    
-    LocalStorage.set(LocalStorage.KEYS.SESSION_UPDATES, this.sessionUpdates);
-    console.log(`📝 Mise à jour ajoutée (total: ${this.sessionUpdates.length})`);
-    
-    // Déclencher une sync si pas déjà en cours et au moins 5 items
-    if (!this.isSyncing && this.sessionUpdates.length >= 5) {
-      this.syncNow(); // Sync automatique tous les 5 items
-    }
-  }
-  
-  // Synchronisation immédiate
-  async syncNow() {
-    if (this.isSyncing || this.sessionUpdates.length === 0) {
-      return { success: true, message: 'Rien à synchroniser' };
-    }
-    
-    this.isSyncing = true;
-    console.log(`🔄 Début synchronisation de ${this.sessionUpdates.length} mises à jour`);
-    
-    // Sauvegarder les updates à envoyer
-    const updatesToSend = [...this.sessionUpdates];
-    
-    try {
-      const result = await this.sendBatchUpdate(updatesToSend);
+// Charger la queue au démarrage (si des données n'ont pas été envoyées)
+function loadQueue() {
+  try {
+    const saved = localStorage.getItem('quiz_sync_queue');
+    if (saved) {
+      syncQueue = JSON.parse(saved);
+      console.log(`📦 Queue chargée: ${syncQueue.length} items en attente`);
       
-      if (result.success) {
-        console.log('✅ Synchronisation réussie');
-        
-        // Vider la queue (uniquement les updates envoyés)
-        this.sessionUpdates = this.sessionUpdates.filter(u => 
-          !updatesToSend.find(sent => 
-            sent.id === u.id && sent.timestamp === u.timestamp
-          )
-        );
-        
-        LocalStorage.set(LocalStorage.KEYS.SESSION_UPDATES, this.sessionUpdates);
-        
-        // Mettre à jour l'UI avec les données serveur
-        if (result.serverState) {
-          this.updateLocalState(result.serverState);
-        }
-        
-        return { success: true, syncedCount: result.processedCount };
-        
-      } else {
-        console.error('❌ Échec synchronisation:', result.error);
-        return await this.handleSyncError(result.error, updatesToSend);
-      }
-      
-    } catch (error) {
-      console.error('❌ Erreur réseau:', error);
-      return await this.handleSyncError(error.message, updatesToSend);
-      
-    } finally {
-      this.isSyncing = false;
-    }
-  }
-  
-  async sendBatchUpdate(updates) {
-    const token = getUserToken(); // Fonction à adapter selon votre système
-    
-    const payload = {
-      action: 'batchUpdateStats',
-      token: token,
-      updates: JSON.stringify(updates),
-      clientTimestamp: Date.now()
-    };
-    
-    try {
-      const params = new URLSearchParams(payload);
-      const url = `${WEB_APP_URL}?${params.toString()}`;
-      
-      const response = await fetch(url, {
-        method: 'GET'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return await response.json();
-      
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
-  
-  // Gérer les erreurs de sync
-  async handleSyncError(errorMessage, failedUpdates) {
-    // Incrémenter le compteur de retry pour les updates qui ont échoué
-    failedUpdates.forEach(failed => {
-      const update = this.sessionUpdates.find(u => 
-        u.id === failed.id && u.timestamp === failed.timestamp
-      );
-      if (update) {
-        update.retries = (update.retries || 0) + 1;
-      }
-    });
-    
-    // Supprimer les updates qui ont trop échoué (> 5 tentatives)
-    const maxRetries = 5;
-    const stillPending = this.sessionUpdates.filter(u => (u.retries || 0) < maxRetries);
-    const abandoned = this.sessionUpdates.length - stillPending.length;
-    
-    if (abandoned > 0) {
-      console.error(`⚠️ ${abandoned} mises à jour abandonnées après ${maxRetries} tentatives`);
-    }
-    
-    this.sessionUpdates = stillPending;
-    LocalStorage.set(LocalStorage.KEYS.SESSION_UPDATES, this.sessionUpdates);
-    
-    return { 
-      success: false, 
-      error: errorMessage,
-      pendingCount: this.sessionUpdates.length,
-      failedCount: abandoned
-    };
-  }
-  
-  // Mettre à jour l'état local avec les données serveur
-  updateLocalState(serverState) {
-    if (!serverState || !serverState.items) return;
-    
-    // Mise à jour de HiraganaList
-    Object.entries(serverState.items).forEach(([itemId, stats]) => {
-      const index = HiraganaList.findIndex(h => h.ID == itemId);
-      
-      if (index !== -1) {
-        HiraganaList[index].Validation = stats.validation;
-        HiraganaList[index].Tentatives = stats.tentatives;
-        HiraganaList[index]['Réussites'] = stats.reussites;
-        validationCache[itemId] = stats.validation;
-      }
-    });
-    
-    // Mise à jour du niveau
-    if (serverState.niveau_atteint !== undefined) {
-      const previousLevel = niveauActif;
-      niveauActif = serverState.niveau_atteint;
-      
-      // Gérer les level ups
-      if (serverState.niveau_atteint > previousLevel) {
-        this.handleLevelUp(previousLevel, serverState.niveau_atteint);
+      // Lancer la sync si nécessaire
+      if (syncQueue.length > 0) {
+        processQueue();
       }
     }
-    
-    // Mise à jour statsCache
-    if (typeof statsCache !== 'undefined' && serverState.items) {
-      statsCache.items = serverState.items;
-    }
-  }
-  
-  handleLevelUp(previousLevel, newLevel) {
-    console.log(`🎊 Level up confirmé: ${previousLevel} → ${newLevel}`);
-    
-    if (newLevel > previousLevel && typeof triggerLevelUpAnimation !== 'undefined') {
-      triggerLevelUpAnimation(document.body);
-    }
-    
-    if (newLevel === 4 && typeof hasShownLevel4Menu !== 'undefined' && !hasShownLevel4Menu) {
-      hasShownLevel4Menu = true;
-      setTimeout(() => {
-        if (typeof showUnlockFlashcard !== 'undefined' && typeof t !== 'undefined') {
-          showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
-        }
-      }, 100);
-    }
-    
-    if (newLevel === 5 && typeof hasShownLevel5Garden !== 'undefined' && !hasShownLevel5Garden) {
-      hasShownLevel5Garden = true;
-      setTimeout(() => {
-        if (typeof showUnlockFlashcard !== 'undefined' && typeof t !== 'undefined') {
-          showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
-        }
-      }, 100);
-    }
-  }
-  
-  // Auto-sync périodique
-  startAutoSync() {
-    this.syncInterval = setInterval(() => {
-      if (this.sessionUpdates.length > 0 && !this.isSyncing) {
-        console.log('⏰ Auto-sync déclenché');
-        this.syncNow();
-      }
-    }, 30000); // 30 secondes
-  }
-  
-  stopAutoSync() {
-    if (this.syncInterval) {
-      clearInterval(this.syncInterval);
-    }
-  }
-  
-  // Forcer une sync manuelle (bouton UI par exemple)
-  async forceSyncWithFeedback() {
-    const result = await this.syncNow();
-    
-    if (result.success) {
-      showNotification('✅ Synchronisation réussie', 'success');
-    } else {
-      showNotification(`❌ Erreur: ${result.error}`, 'error');
-    }
-    
-    return result;
-  }
-  
-  // Obtenir le statut de la sync
-  getStatus() {
-    return {
-      pending: this.sessionUpdates.length,
-      isSyncing: this.isSyncing
-    };
+  } catch (e) {
+    console.error('Erreur chargement queue:', e);
+    syncQueue = [];
   }
 }
 
-// ====================================
-// 🎯 INSTANCE GLOBALE
-// ====================================
-const syncManager = new SyncManager();
+// Sauvegarder la queue
+function saveQueue() {
+  try {
+    localStorage.setItem('quiz_sync_queue', JSON.stringify(syncQueue));
+  } catch (e) {
+    console.error('Erreur sauvegarde queue:', e);
+  }
+}
 
-// ====================================
-// 📤 NOUVELLE API SIMPLIFIÉE
-// ====================================
-
-// Remplace queueUpdateStats()
+// Ajouter une réponse à la queue
 function recordAnswer(params) {
-  // Extraire les données nécessaires
-  const update = {
+  // Mise à jour locale immédiate
+  updateLocalStats(params);
+  
+  // Ajouter à la queue
+  syncQueue.push({
     id: params.id,
     scorePoints: params.scorePoints,
     isRevisionMode: params.isRevisionMode || false,
-    previousLevel: params.previousLevel,
-    hasLeveledUp: params.hasLeveledUp,
-    targetLevel: params.targetLevel
-  };
+    timestamp: Date.now(),
+    retries: 0
+  });
   
-  // Mise à jour locale immédiate (optimistic update)
-  applyLocalUpdate(update);
+  saveQueue();
+  console.log(`📝 Réponse ajoutée à la queue (${syncQueue.length} en attente)`);
   
-  // Ajouter à la queue
-  syncManager.addUpdate(update);
-  
-  console.log(`📊 Réponse enregistrée: item ${update.id}, score ${update.scorePoints}`);
+  // Déclencher le traitement
+  processQueue();
 }
 
-// Mise à jour locale immédiate (pour feedback instantané)
-function applyLocalUpdate(update) {
-  const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
+// Mise à jour locale (comme votre code d'origine)
+function updateLocalStats(params) {
+  const hiraganaIndex = HiraganaList.findIndex(h => h.ID == params.id);
   
   if (hiraganaIndex !== -1) {
     const item = HiraganaList[hiraganaIndex];
     
-    // Calculer la nouvelle validation localement (même logique que serveur)
+    // Calculer la nouvelle validation
     let validationChange;
-    if (update.isRevisionMode) {
-      validationChange = update.scorePoints === 1 ? 1 : -2;
+    if (params.isRevisionMode) {
+      validationChange = params.scorePoints === 1 ? 1 : -2;
       item.Validation = Math.max(5, (item.Validation || 0) + validationChange);
     } else {
-      validationChange = update.scorePoints === 1 ? 1 : (update.scorePoints === 0.5 ? -1 : -2);
+      validationChange = params.scorePoints === 1 ? 1 : (params.scorePoints === 0.5 ? -1 : -2);
       item.Validation = Math.max(0, (item.Validation || 0) + validationChange);
     }
     
     item.Tentatives = (item.Tentatives || 0) + 1;
-    item['Réussites'] = (item['Réussites'] || 0) + update.scorePoints;
+    item['Réussites'] = (item['Réussites'] || 0) + params.scorePoints;
     
     if (typeof validationCache !== 'undefined') {
-      validationCache[update.id] = item.Validation;
+      validationCache[params.id] = item.Validation;
     }
     
     // Mise à jour statsCache
     if (typeof statsCache !== 'undefined') {
-      const itemStats = statsCache.items[update.id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+      const itemStats = statsCache.items[params.id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
       itemStats.tentatives += 1;
-      itemStats.reussites += update.scorePoints;
+      itemStats.reussites += params.scorePoints;
       itemStats.pourcentage = itemStats.tentatives > 0
         ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
         : 0;
-      statsCache.items[update.id] = itemStats;
+      statsCache.items[params.id] = itemStats;
     }
+  }
+  
+  // Gérer les level ups
+  if (params.hasLeveledUp && params.targetLevel > params.previousLevel) {
+    handleLevelUp(params.previousLevel, params.targetLevel);
   }
 }
 
-// ====================================
-// 🔌 FONCTIONS UTILITAIRES
-// ====================================
-
-function getUserToken() {
-  // À adapter selon votre système d'authentification
-  return localStorage.getItem('userToken') || '';
-}
-
-function showNotification(message, type = 'info') {
-  // À adapter selon votre système de notifications
-  console.log(`[${type.toUpperCase()}] ${message}`);
-}
-
-// Indicateur visuel de sync dans l'UI
-function updateSyncIndicator() {
-  const status = syncManager.getStatus();
-  const indicator = document.getElementById('sync-indicator');
+// Traiter la queue
+async function processQueue() {
+  if (isSyncing || syncQueue.length === 0) {
+    return;
+  }
   
+  isSyncing = true;
+  updateSyncIndicator();
+  
+  // Regrouper par batch de 10 maximum
+  const batchSize = Math.min(10, syncQueue.length);
+  const batch = syncQueue.slice(0, batchSize);
+  
+  console.log(`🔄 Envoi batch de ${batch.length} mises à jour`);
+  
+  try {
+    const result = await sendBatch(batch);
+    
+    if (result.success) {
+      console.log(`✅ Batch envoyé avec succès (${result.processedCount} items)`);
+      
+      // Retirer les items envoyés
+      syncQueue.splice(0, batchSize);
+      saveQueue();
+      
+      // Continuer si il reste des items
+      if (syncQueue.length > 0) {
+        setTimeout(() => {
+          isSyncing = false;
+          processQueue();
+        }, 500);
+      } else {
+        isSyncing = false;
+      }
+      
+    } else {
+      console.error(`❌ Erreur batch: ${result.error}`);
+      
+      // Incrémenter les retries
+      batch.forEach((item, index) => {
+        if (syncQueue[index]) {
+          syncQueue[index].retries = (syncQueue[index].retries || 0) + 1;
+        }
+      });
+      
+      // Supprimer les items qui ont trop échoué (>5 tentatives)
+      syncQueue = syncQueue.filter(item => (item.retries || 0) < 5);
+      saveQueue();
+      
+      // Réessayer dans 5 secondes
+      setTimeout(() => {
+        isSyncing = false;
+        processQueue();
+      }, 5000);
+    }
+    
+  } catch (error) {
+    console.error('❌ Erreur réseau:', error);
+    
+    // Réessayer dans 5 secondes
+    setTimeout(() => {
+      isSyncing = false;
+      processQueue();
+    }, 5000);
+  }
+  
+  updateSyncIndicator();
+}
+
+// Envoyer un batch au serveur
+async function sendBatch(batch) {
+  const token = getUserToken();
+  
+  const params = new URLSearchParams({
+    action: 'batchUpdateStats',
+    token: token,
+    updates: JSON.stringify(batch)
+  });
+  
+  const url = `${WEB_APP_URL}?${params.toString()}`;
+  
+  const response = await fetch(url, { method: 'GET' });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+  
+  return await response.json();
+}
+
+// Gérer les level ups
+function handleLevelUp(previousLevel, newLevel) {
+  console.log(`🎊 Level up: ${previousLevel} → ${newLevel}`);
+  
+  if (typeof triggerLevelUpAnimation !== 'undefined') {
+    triggerLevelUpAnimation(document.body);
+  }
+  
+  if (newLevel === 4 && typeof hasShownLevel4Menu !== 'undefined' && !hasShownLevel4Menu) {
+    hasShownLevel4Menu = true;
+    setTimeout(() => {
+      if (typeof showUnlockFlashcard !== 'undefined' && typeof t !== 'undefined') {
+        showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
+      }
+    }, 100);
+  }
+  
+  if (newLevel === 5 && typeof hasShownLevel5Garden !== 'undefined' && !hasShownLevel5Garden) {
+    hasShownLevel5Garden = true;
+    setTimeout(() => {
+      if (typeof showUnlockFlashcard !== 'undefined' && typeof t !== 'undefined') {
+        showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
+      }
+    }, 100);
+  }
+}
+
+// Indicateur visuel
+function updateSyncIndicator() {
+  const indicator = document.getElementById('sync-indicator');
   if (!indicator) return;
   
-  if (status.isSyncing) {
-    indicator.textContent = '🔄 Synchronisation...';
+  if (isSyncing) {
+    indicator.textContent = '🔄 Synchro...';
     indicator.className = 'syncing';
-  } else if (status.pending > 0) {
-    indicator.textContent = `📤 ${status.pending} en attente`;
+  } else if (syncQueue.length > 0) {
+    indicator.textContent = `📤 ${syncQueue.length}`;
     indicator.className = 'pending';
   } else {
-    indicator.textContent = '✅ Synchronisé';
+    indicator.textContent = '✅';
     indicator.className = 'synced';
   }
 }
 
-// Mettre à jour l'indicateur toutes les secondes
-setInterval(updateSyncIndicator, 1000);
+// Auto-sync toutes les 30 secondes
+setInterval(() => {
+  if (!isSyncing && syncQueue.length > 0) {
+    console.log('⏰ Auto-sync');
+    processQueue();
+  }
+  updateSyncIndicator();
+}, 30000);
+
+// Sync avant fermeture
+window.addEventListener('beforeunload', () => {
+  if (syncQueue.length > 0) {
+    // Tentative de sync synchrone (limité par les navigateurs)
+    navigator.sendBeacon && navigator.sendBeacon(
+      `${WEB_APP_URL}?action=batchUpdateStats&token=${getUserToken()}&updates=${JSON.stringify(syncQueue)}`
+    );
+  }
+});
+
+// Charger au démarrage
+loadQueue();
+
+// ====================================
+// 🔌 FONCTIONS UTILITAIRES
+// ====================================
+function getUserToken() {
+  return localStorage.getItem('userToken') || '';
+}
+
 
 
 // ============================================================================
@@ -8372,6 +8245,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
