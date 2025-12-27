@@ -1407,7 +1407,18 @@ img.emoji {
 .insect-card {
   background: linear-gradient(180deg, #f7fff5, #ffffff);
 }
-    
+  .sync-status {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  background: #f0f0f0;
+}
+.syncing { background: #ffeaa7; }
+.pending { background: #fab1a0; }
+.synced { background: #55efc4; }  
   </style>
 </head>
 <body>
@@ -1469,7 +1480,7 @@ img.emoji {
 
 <!-- Section Quiz -->
 <div id="quiz" class="section">
-<!--   <h1 data-i18n="quiz_title">🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>  -->
+<div id="sync-indicator" class="sync-status"></div>
   <div id="progressBarContainer"></div>
   <div class="level" id="levelDisplay"><span data-i18n="quiz_level_display">Niveau actuel :</span> <span id="levelNumber">1</span></div>
     <div class="level-hiraganas">
@@ -4040,9 +4051,9 @@ function smartSegmentRomaji(romaji) {
 // 🌐 SECTION 4 : API & COMMUNICATION SERVEUR
 // ============================================================================
 
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzDABwSzrw9MDUsVhaQDwUjrMzMiS-laTFlho_BGdk_wddyF33CSjc_FAjKOsyIH4WdWg/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzwXLDn_i0XnJdQTyeZm5n609Xpi0TTKMqnqRb8XZ9MVKA6XecpRMz8edW_D0Ncwc7LxA/exec';
 
-let pendingUpdates = [];
+
 
 // --- Fonctions API ---
 async function callAPI(action, data = null) {
@@ -4072,92 +4083,493 @@ async function callAPI(action, data = null) {
     return { error: error.message };
   }
 }
-async function queueUpdateStats(params) {
-  pendingUpdates.push(params);
-
-  // Lancer le traitement uniquement si c'était vide avant
-  if (pendingUpdates.length === 1) {
-    // Boucle de traitement
-    while (pendingUpdates.length > 0) {
-      // ⚠️ On retire l'élément DÈS LE DÉBUT pour éviter toute référence persistante
-      const update = pendingUpdates.shift();
-
-      // On extrait TOUT ce dont on a besoin immédiatement
-      const id = update.id;
-      const previousLevel = update.previousLevel;
-      const hasLeveledUp = update.hasLeveledUp;
-      const targetLevel = update.targetLevel;
-      const scorePoints = update.scorePoints;
-      const isRevisionMode = update.isRevisionMode || false;
-      const token = update.token;
-
-      try {
-        const apiParams = {
-          token,
-          id,
-          scorePoints,
-          isRevisionMode
-        };
-
-        const result = await callAPI('updateStats', apiParams);
-
-        if (result.success) {
-          console.log(`File: Stats synchronisées pour item ${id}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
-
-          // Mise à jour locale (inchangée)
-          const hiraganaIndex = HiraganaList.findIndex(h => h.ID == id);
-          if (hiraganaIndex !== -1) {
-            HiraganaList[hiraganaIndex].Validation = result.newValidation;
-            HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
-            HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + scorePoints;
-            validationCache[id] = result.newValidation;
-
-            // Mise à jour statsCache (inchangée)
-            const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-            itemStats.tentatives += 1;
-            itemStats.reussites += scorePoints;
-            itemStats.pourcentage = itemStats.tentatives > 0
-              ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
-              : 0;
-            statsCache.items[id] = itemStats;
-          }
-
-          // Gestion du level up – maintenant avec les bonnes valeurs
-          if (hasLeveledUp && targetLevel > previousLevel) {
-            console.log(`🎊 Level up confirmé: ${previousLevel} → ${targetLevel}`);
-
-            if (targetLevel > niveauActif) {
-              triggerLevelUpAnimation(document.body);
-            }
-
-            if (targetLevel === 4 && !hasShownLevel4Menu) {
-              hasShownLevel4Menu = true;
-              setTimeout(() => {
-                showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
-              }, 1);
-            }
-
-            if (targetLevel === 5 && !hasShownLevel5Garden) {
-              hasShownLevel5Garden = true;
-              setTimeout(() => {
-                showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
-              }, 1);
-            }
-          }
-        } else {
-          console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
-          // Optionnel : remettre en file d'attente en cas d'échec ?
-          // pendingUpdates.unshift(update); // si tu veux retenter
-        }
-      } catch (error) {
-        console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
-        // Même chose : éventuellement retenter plus tard
-      }
-      // Pas de finally avec shift() → déjà fait au début
+// ====================================
+// 📦 SYSTÈME DE PERSISTANCE LOCALE
+// ====================================
+const LocalStorage = {
+  KEYS: {
+    PENDING_UPDATES: 'quiz_pending_updates',
+    LAST_SYNC: 'quiz_last_sync',
+    SESSION_UPDATES: 'quiz_session_updates'
+  },
+  
+  get(key) {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      console.error(`Erreur lecture localStorage ${key}:`, e);
+      return null;
     }
+  },
+  
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (e) {
+      console.error(`Erreur écriture localStorage ${key}:`, e);
+      return false;
+    }
+  },
+  
+  remove(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.error(`Erreur suppression localStorage ${key}:`, e);
+    }
+  }
+};
+
+// ====================================
+// 🔄 GESTIONNAIRE DE SYNCHRONISATION
+// ====================================
+class SyncManager {
+  constructor() {
+    this.isSyncing = false;
+    this.syncInterval = null;
+    this.sessionUpdates = this.loadSessionUpdates();
+    this.lastServerState = LocalStorage.get(LocalStorage.KEYS.LAST_SYNC) || {};
+    
+    // Auto-sync toutes les 30 secondes si des données en attente
+    this.startAutoSync();
+    
+    // Sync avant fermeture de page
+    window.addEventListener('beforeunload', () => this.syncNow());
+  }
+  
+  loadSessionUpdates() {
+    const saved = LocalStorage.get(LocalStorage.KEYS.SESSION_UPDATES) || [];
+    const pending = LocalStorage.get(LocalStorage.KEYS.PENDING_UPDATES) || [];
+    return [...saved, ...pending];
+  }
+  
+  // Ajouter une mise à jour à la session en cours
+  addUpdate(update) {
+    this.sessionUpdates.push({
+      ...update,
+      timestamp: Date.now(),
+      retries: 0
+    });
+    
+    LocalStorage.set(LocalStorage.KEYS.SESSION_UPDATES, this.sessionUpdates);
+    console.log(`📝 Mise à jour ajoutée (total: ${this.sessionUpdates.length})`);
+    
+    // Déclencher une sync si pas déjà en cours
+    if (!this.isSyncing && this.sessionUpdates.length >= 5) {
+      this.syncNow(); // Sync automatique tous les 5 items
+    }
+  }
+  
+  // Synchronisation immédiate
+  async syncNow() {
+    if (this.isSyncing || this.sessionUpdates.length === 0) {
+      return { success: true, message: 'Rien à synchroniser' };
+    }
+    
+    this.isSyncing = true;
+    console.log(`🔄 Début synchronisation de ${this.sessionUpdates.length} mises à jour`);
+    
+    try {
+      const result = await this.sendBatchUpdate();
+      
+      if (result.success) {
+        console.log('✅ Synchronisation réussie');
+        
+        // Vérifier la cohérence des données
+        const isConsistent = this.verifyConsistency(result.serverState);
+        
+        if (isConsistent) {
+          // Tout est OK, on vide la queue
+          this.sessionUpdates = [];
+          LocalStorage.remove(LocalStorage.KEYS.SESSION_UPDATES);
+          LocalStorage.remove(LocalStorage.KEYS.PENDING_UPDATES);
+          
+          // Sauvegarder l'état serveur
+          this.lastServerState = result.serverState;
+          LocalStorage.set(LocalStorage.KEYS.LAST_SYNC, result.serverState);
+          
+          // Mettre à jour l'UI avec les données serveur
+          this.updateLocalState(result.serverState);
+          
+          return { success: true, syncedCount: result.processedCount };
+        } else {
+          console.warn('⚠️ Désynchronisation détectée, nouvelle tentative...');
+          return await this.handleDesync(result.serverState);
+        }
+      } else {
+        console.error('❌ Échec synchronisation:', result.error);
+        return await this.handleSyncError(result.error);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur réseau:', error);
+      return await this.handleSyncError(error.message);
+      
+    } finally {
+      this.isSyncing = false;
+    }
+  }
+  
+  async sendBatchUpdate() {
+    const token = getUserToken(); // Fonction à adapter selon votre système
+    
+    const payload = {
+      action: 'batchUpdateStats',
+      token: token,
+      updates: JSON.stringify(this.sessionUpdates),
+      clientTimestamp: Date.now()
+    };
+    
+    try {
+      const params = new URLSearchParams(payload);
+      const url = `${WEB_APP_URL}?${params.toString()}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return await response.json();
+      
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+  
+  // Vérifier que les données client correspondent au serveur
+  verifyConsistency(serverState) {
+    if (!serverState || !serverState.items) {
+      return false;
+    }
+    
+    // Vérifier quelques items clés
+    for (const update of this.sessionUpdates.slice(-5)) { // Vérifier les 5 derniers
+      const itemId = update.id.toString();
+      const serverItem = serverState.items[itemId];
+      
+      if (!serverItem) {
+        console.warn(`Item ${itemId} absent du serveur`);
+        return false;
+      }
+      
+      // Vérifier que le nombre de tentatives correspond
+      const expectedTentatives = (this.lastServerState.items?.[itemId]?.tentatives || 0) + 
+                                  this.sessionUpdates.filter(u => u.id == itemId).length;
+      
+      if (serverItem.tentatives < expectedTentatives) {
+        console.warn(`Désync tentatives item ${itemId}: attendu ${expectedTentatives}, reçu ${serverItem.tentatives}`);
+        return false;
+      }
+    }
+    
+    return true;
+  }
+  
+  // Gérer une désynchronisation
+  async handleDesync(serverState) {
+    console.log('🔧 Tentative de réconciliation...');
+    
+    // Recalculer le delta entre état serveur et local
+    const delta = this.calculateDelta(serverState);
+    
+    if (delta.length === 0) {
+      // Plus rien à synchroniser
+      this.sessionUpdates = [];
+      LocalStorage.remove(LocalStorage.KEYS.SESSION_UPDATES);
+      return { success: true, message: 'Réconciliation réussie' };
+    }
+    
+    // Remplacer la queue par le delta
+    this.sessionUpdates = delta;
+    LocalStorage.set(LocalStorage.KEYS.SESSION_UPDATES, delta);
+    
+    // Réessayer
+    this.isSyncing = false;
+    return await this.syncNow();
+  }
+  
+  calculateDelta(serverState) {
+    // Filtrer les mises à jour déjà appliquées côté serveur
+    return this.sessionUpdates.filter(update => {
+      const itemId = update.id.toString();
+      const serverItem = serverState.items?.[itemId];
+      
+      if (!serverItem) return true; // Item pas encore créé
+      
+      // Comparer les timestamps si disponibles
+      if (update.timestamp && serverItem.lastUpdate) {
+        return update.timestamp > serverItem.lastUpdate;
+      }
+      
+      return true; // Par défaut, garder la mise à jour
+    });
+  }
+  
+  // Gérer les erreurs de sync
+  async handleSyncError(errorMessage) {
+    // Incrémenter le compteur de retry
+    this.sessionUpdates.forEach(u => u.retries = (u.retries || 0) + 1);
+    
+    // Supprimer les updates qui ont trop échoué (> 5 tentatives)
+    const maxRetries = 5;
+    const failed = this.sessionUpdates.filter(u => u.retries >= maxRetries);
+    
+    if (failed.length > 0) {
+      console.error(`⚠️ ${failed.length} mises à jour abandonnées après ${maxRetries} tentatives`);
+      this.sessionUpdates = this.sessionUpdates.filter(u => u.retries < maxRetries);
+    }
+    
+    // Sauvegarder pour retry ultérieur
+    LocalStorage.set(LocalStorage.KEYS.PENDING_UPDATES, this.sessionUpdates);
+    
+    return { 
+      success: false, 
+      error: errorMessage,
+      pendingCount: this.sessionUpdates.length,
+      failedCount: failed.length
+    };
+  }
+  
+  // Mettre à jour l'état local avec les données serveur
+  updateLocalState(serverState) {
+    if (!serverState || !serverState.items) return;
+    
+    // Mise à jour de HiraganaList
+    Object.entries(serverState.items).forEach(([itemId, stats]) => {
+      const index = HiraganaList.findIndex(h => h.ID == itemId);
+      
+      if (index !== -1) {
+        HiraganaList[index].Validation = stats.validation;
+        HiraganaList[index].Tentatives = stats.tentatives;
+        HiraganaList[index]['Réussites'] = stats.reussites;
+        validationCache[itemId] = stats.validation;
+      }
+    });
+    
+    // Mise à jour du niveau
+    if (serverState.niveau_atteint !== undefined) {
+      const previousLevel = niveauActif;
+      niveauActif = serverState.niveau_atteint;
+      
+      // Gérer les level ups
+      if (serverState.niveau_atteint > previousLevel) {
+        this.handleLevelUp(previousLevel, serverState.niveau_atteint);
+      }
+    }
+    
+    // Mise à jour statsCache
+    if (statsCache && serverState.items) {
+      statsCache.items = serverState.items;
+    }
+  }
+  
+  handleLevelUp(previousLevel, newLevel) {
+    console.log(`🎊 Level up confirmé: ${previousLevel} → ${newLevel}`);
+    
+    if (newLevel > previousLevel) {
+      triggerLevelUpAnimation(document.body);
+    }
+    
+    if (newLevel === 4 && !hasShownLevel4Menu) {
+      hasShownLevel4Menu = true;
+      setTimeout(() => {
+        showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
+      }, 100);
+    }
+    
+    if (newLevel === 5 && !hasShownLevel5Garden) {
+      hasShownLevel5Garden = true;
+      setTimeout(() => {
+        showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
+      }, 100);
+    }
+  }
+  
+  // Auto-sync périodique
+  startAutoSync() {
+    this.syncInterval = setInterval(() => {
+      if (this.sessionUpdates.length > 0 && !this.isSyncing) {
+        console.log('⏰ Auto-sync déclenché');
+        this.syncNow();
+      }
+    }, 30000); // 30 secondes
+  }
+  
+  stopAutoSync() {
+    if (this.syncInterval) {
+      clearInterval(this.syncInterval);
+    }
+  }
+  
+  // Forcer une sync manuelle (bouton UI par exemple)
+  async forceSyncWithFeedback() {
+    const result = await this.syncNow();
+    
+    if (result.success) {
+      showNotification('✅ Synchronisation réussie', 'success');
+    } else {
+      showNotification(`❌ Erreur: ${result.error}`, 'error');
+    }
+    
+    return result;
+  }
+  
+  // Obtenir le statut de la sync
+  getStatus() {
+    return {
+      pending: this.sessionUpdates.length,
+      isSyncing: this.isSyncing,
+      lastSync: this.lastServerState.timestamp || null
+    };
   }
 }
 
+// ====================================
+// 🎯 INSTANCE GLOBALE
+// ====================================
+const syncManager = new SyncManager();
+
+// ====================================
+// 📤 NOUVELLE API SIMPLIFIÉE
+// ====================================
+
+// Remplace recordAnswer()
+function recordAnswer(params) {
+  // Extraire les données nécessaires
+  const update = {
+    id: params.id,
+    scorePoints: params.scorePoints,
+    isRevisionMode: params.isRevisionMode || false,
+    previousLevel: params.previousLevel,
+    hasLeveledUp: params.hasLeveledUp,
+    targetLevel: params.targetLevel
+  };
+  
+  // Mise à jour locale immédiate (optimistic update)
+  applyLocalUpdate(update);
+  
+  // Ajouter à la queue
+  syncManager.addUpdate(update);
+  
+  console.log(`📊 Réponse enregistrée: item ${update.id}, score ${update.scorePoints}`);
+}
+
+// Mise à jour locale immédiate (pour feedback instantané)
+function applyLocalUpdate(update) {
+  const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
+  
+  if (hiraganaIndex !== -1) {
+    const item = HiraganaList[hiraganaIndex];
+    
+    // Calculer la nouvelle validation localement (même logique que serveur)
+    let validationChange;
+    if (update.isRevisionMode) {
+      validationChange = update.scorePoints === 1 ? 1 : -2;
+      item.Validation = Math.max(5, (item.Validation || 0) + validationChange);
+    } else {
+      validationChange = update.scorePoints === 1 ? 1 : (update.scorePoints === 0.5 ? -1 : -2);
+      item.Validation = Math.max(0, (item.Validation || 0) + validationChange);
+    }
+    
+    item.Tentatives = (item.Tentatives || 0) + 1;
+    item['Réussites'] = (item['Réussites'] || 0) + update.scorePoints;
+    
+    validationCache[update.id] = item.Validation;
+    
+    // Mise à jour statsCache
+    const itemStats = statsCache.items[update.id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+    itemStats.tentatives += 1;
+    itemStats.reussites += update.scorePoints;
+    itemStats.pourcentage = itemStats.tentatives > 0
+      ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
+      : 0;
+    statsCache.items[update.id] = itemStats;
+  }
+}
+
+// ====================================
+// 🔌 FONCTIONS UTILITAIRES
+// ====================================
+
+function getUserToken() {
+  // À adapter selon votre système d'authentification
+  return localStorage.getItem('userToken') || '';
+}
+
+function showNotification(message, type = 'info') {
+  // À adapter selon votre système de notifications
+  console.log(`[${type.toUpperCase()}] ${message}`);
+}
+
+// Indicateur visuel de sync dans l'UI
+function updateSyncIndicator() {
+  const status = syncManager.getStatus();
+  const indicator = document.getElementById('sync-indicator');
+  
+  if (!indicator) return;
+  
+  if (status.isSyncing) {
+    indicator.textContent = '🔄 Synchronisation...';
+    indicator.className = 'syncing';
+  } else if (status.pending > 0) {
+    indicator.textContent = `📤 ${status.pending} en attente`;
+    indicator.className = 'pending';
+  } else {
+    indicator.textContent = '✅ Synchronisé';
+    indicator.className = 'synced';
+  }
+}
+
+// Mettre à jour l'indicateur toutes les secondes
+setInterval(updateSyncIndicator, 1000);
+
+// ====================================
+// 📱 COMPATIBILITÉ AVEC L'ANCIEN CODE
+// ====================================
+
+// Pour remplacer l'ancien queueUpdateStats sans tout casser
+async function recordAnswer(params) {
+  recordAnswer(params);
+  
+  // Retourner une promesse qui se résout immédiatement
+  // (l'ancien code attend peut-être une réponse)
+  return Promise.resolve({ success: true, queued: true });
+}
+
+// API d'origine (si besoin de fallback)
+async function callAPI(action, data = null) {
+  try {
+    let params = new URLSearchParams({ action });
+
+    if (data) {
+      Object.entries(data).forEach(([key, value]) => {
+        params.append(key, value);
+      });
+    }
+
+    const url = `${WEB_APP_URL}?${params.toString()}`;
+    console.log(`🔍 Appel API: ${action}`);
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    console.log(`✅ Réponse API ${action}:`, result);
+    return result;
+    
+  } catch (error) {
+    console.error(`❌ Erreur API (${action}):`, error);
+    return { error: error.message };
+  }
+}
 
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
@@ -5110,7 +5522,7 @@ niveauActif = calculatedNiveau;
       triggerLevelUpAnimation(document.body);
     }
 
-    queueUpdateStats({
+    recordAnswer({
   token: userToken,
   id: currentItemId,
   scorePoints: score,
@@ -5542,7 +5954,7 @@ openRevisionFlashcard(
         }
 
         // === Envoi stats en arrière-plan ===
-        queueUpdateStats({ token: userToken, id: itemId, scorePoints: isCorrect ? 1 : 0, isRevisionMode: true });
+        recordAnswer({ token: userToken, id: itemId, scorePoints: isCorrect ? 1 : 0, isRevisionMode: true });
 
         // === Rafraîchissement stats si page ouverte ===
         if (document.getElementById('stats').classList.contains('active')) {
@@ -8059,6 +8471,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
