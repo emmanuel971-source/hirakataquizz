@@ -4529,40 +4529,6 @@ function updateSyncIndicator() {
 // Mettre à jour l'indicateur toutes les secondes
 setInterval(updateSyncIndicator, 1000);
 
-// ====================================
-// 📱 COMPATIBILITÉ AVEC L'ANCIEN CODE
-// ====================================
-
-
-
-// API d'origine (si besoin de fallback)
-async function callAPI(action, data = null) {
-  try {
-    let params = new URLSearchParams({ action });
-
-    if (data) {
-      Object.entries(data).forEach(([key, value]) => {
-        params.append(key, value);
-      });
-    }
-
-    const url = `${WEB_APP_URL}?${params.toString()}`;
-    console.log(`🔍 Appel API: ${action}`);
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const result = await response.json();
-    console.log(`✅ Réponse API ${action}:`, result);
-    return result;
-    
-  } catch (error) {
-    console.error(`❌ Erreur API (${action}):`, error);
-    return { error: error.message };
-  }
-}
 
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
@@ -8464,6 +8430,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
