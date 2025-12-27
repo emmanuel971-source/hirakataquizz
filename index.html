@@ -4162,45 +4162,39 @@ async function queueUpdateStats(params) {
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
 // ============================================================================
+// =============================================================================
+// AUDIO MANAGER OPTIMISÉ
+// =============================================================================
 
-// --- Variables audio ---
+// --- Configuration globale ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let audioContext;
-let audioInitialized = false;
 let soundEnabled = true;
 let voiceEnabled = true;
 
-// --- Fonctions audio utilitaires ---
+// --- Initialisation ---
 function initAudio() {
-try {
-if (!audioInitialized) {
-audioContext = new (window.AudioContext || window.webkitAudioContext)();
-audioInitialized = true;
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(err => console.error('Audio resume failed:', err));
+  }
 }
-} catch (error) {
-console.error("Erreur lors de l'initialisation audio:", error.message);
-}
-}
+
 function loadSoundSettings() {
   const savedSound = localStorage.getItem('soundEnabled');
   const savedVoice = localStorage.getItem('voiceEnabled');
-  
   soundEnabled = savedSound !== null ? savedSound === 'true' : true;
   voiceEnabled = savedVoice !== null ? savedVoice === 'true' : true;
-  
-  console.log('Sons chargés:', { soundEnabled, voiceEnabled });
 }
+
 function toggleSound(enabled) {
   soundEnabled = enabled;
   localStorage.setItem('soundEnabled', enabled);
   updateSoundUI();
-  console.log('Sons du jeu:', enabled ? 'activés' : 'désactivés');
 }
+
 function toggleVoice(enabled) {
   voiceEnabled = enabled;
   localStorage.setItem('voiceEnabled', enabled);
   updateSoundUI();
-  console.log('Synthèses vocales:', enabled ? 'activées' : 'désactivées');
 }
 
 function updateSoundUI() {
@@ -4215,525 +4209,354 @@ function updateSoundUI() {
   if (voiceStatus) voiceStatus.textContent = voiceEnabled ? '🔊' : '🔇';
 }
 
-// --- Effets sonores simples ---
-function playPopSound() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-        const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    osc.type = 'sine';
-    osc.frequency.value = 1000; // Son aigu pour "pop"
-    gain.gain.setValueAtTime(0.05, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-    osc.start();
-    osc.stop(audioContext.currentTime + 0.1);
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
-}
-    function playTwinkle() {
-        if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-     
-       const notes = [1046.50, 1318.51, 1567.98]; // Do, Mi, Sol (aigus)
-    
-    notes.forEach((freq, i) => {
-      setTimeout(() => {
-        const osc = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        osc.connect(gain);
-        gain.connect(audioContext.destination);
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        
-        // Très bref et doux
-        gain.gain.setValueAtTime(0.02, audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
-        
-        osc.start();
-        osc.stop(audioContext.currentTime + 0.15);
-      }, i * 60);
-    });
-      } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
-    }  
-     function playJapaneseChime() {
+// --- Fonctions utilitaires centralisées ---
+function playSound(callback) {
   if (!soundEnabled) return;
   initAudio();
   try {
-    // Gamme pentatonique japonaise (sons traditionnels)
-    const notes = [293.66, 329.63, 392.00, 440.00, 523.25]; // Ré, Mi, Sol, La, Do
-    
-    notes.forEach((freq, i) => {
-      setTimeout(() => {
-        const osc = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        osc.connect(gain);
-        gain.connect(audioContext.destination);
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        
-        // Son très doux qui s'estompe lentement
-        gain.gain.setValueAtTime(0.02, audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
-        
-        osc.start();
-        osc.stop(audioContext.currentTime + 0.8);
-      }, i * 120);
-    });
+    callback();
   } catch (error) {
-    logError('Erreur son carillon: ' + error.message);
+    console.error('Audio error:', error.message);
   }
 }
+
+function createOsc(type, freq, duration, gainValue = 0.05) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  osc.type = type;
+  osc.frequency.value = freq;
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  
+  gain.gain.setValueAtTime(0, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(gainValue, audioCtx.currentTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+  
+  return { osc, gain };
+}
+
+function playSequence(frequencies, duration = 0.2, gainValue = 0.035, delay = 100) {
+  frequencies.forEach((freq, i) => {
+    setTimeout(() => createOsc('sine', freq, duration, gainValue), i * delay);
+  });
+}
+
+function playNotes(notes, delays, type = 'sine', gainValue = 0.05) {
+  notes.forEach((freq, i) => {
+    setTimeout(() => createOsc(type, freq, delays[i] || 0.2, gainValue), i * 100);
+  });
+}
+
+// --- Effets sonores simples ---
+function playPopSound() {
+  playSound(() => createOsc('sine', 1000, 0.1, 0.05));
+}
+
+function playTwinkle() {
+  playSound(() => playSequence([1046.50, 1318.51, 1567.98], 0.15, 0.02, 60));
+}
+
+function playJapaneseChime() {
+  playSound(() => playSequence([293.66, 329.63, 392.00, 440.00, 523.25], 0.8, 0.02, 120));
+}
+
 function playZenBell() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-   const oscillator = audioCtx.createOscillator();
-  const gainNode = audioCtx.createGain();
-  
-  oscillator.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
-  
-  // Fréquences cristallines
-  const frequencies = [1047, 1319, 1568, 1760]; // C6, E6, G6, A6
-  oscillator.frequency.setValueAtTime(
-    frequencies[Math.floor(Math.random() * frequencies.length)], 
-    audioCtx.currentTime
-  );
-  oscillator.type = 'sine';
-  
-  // Enveloppe rapide comme une goutte
-  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-  gainNode.gain.linearRampToValueAtTime((typeof globalVolume !== 'undefined' ? globalVolume : 1) * 0.3, audioCtx.currentTime + 0.01);
-  gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-  
-  oscillator.start(audioCtx.currentTime);
-  oscillator.stop(audioCtx.currentTime + 0.3);
-  console.log('🎶 Son joué : Goutte cristalline (fréquence aléatoire, 0.3s)');
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
+  playSound(() => {
+    const frequencies = [1047, 1319, 1568, 1760];
+    const freq = frequencies[Math.floor(Math.random() * frequencies.length)];
+    createOsc('sine', freq, 0.3, 0.3);
+  });
 }
-  
+
 function playSoftError() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-     const oscillator = audioCtx.createOscillator();
-  const gainNode = audioCtx.createGain();
-  oscillator.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
-
-  oscillator.type = 'triangle';
-  oscillator.frequency.setValueAtTime(220, audioCtx.currentTime);
-  gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-
-  oscillator.start();
-  oscillator.stop(audioCtx.currentTime + 0.4);
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
+  playSound(() => createOsc('triangle', 220, 0.4, 0.4));
 }
 
 // --- Effets sonores complexes ---
 function bambooHit() {
- if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {   const osc = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  const filter = audioContext.createBiquadFilter();
+  playSound(() => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
 
-  osc.type = "triangle";
-  osc.frequency.value = 220;
+    osc.type = "triangle";
+    osc.frequency.value = 220;
+    filter.type = "bandpass";
+    filter.frequency.value = 500;
+    filter.Q.value = 6;
 
-  filter.type = "bandpass";
-  filter.frequency.value = 500;
-  filter.Q.value = 6;
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
 
-  osc.connect(filter);
-  filter.connect(gain);
-  gain.connect(audioContext.destination);
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
 
-  gain.gain.setValueAtTime(0, audioContext.currentTime);
-  gain.gain.linearRampToValueAtTime(0.08, audioContext.currentTime + 0.005);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.25);
-
-  osc.start();
-  osc.stop(audioContext.currentTime + 0.25);
-  }
-  catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.25);
+  });
 }
 
 function bambooDrop() {
- if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-  const osc = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  const filter = audioContext.createBiquadFilter();
+  playSound(() => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
 
-  osc.type = "sine";
-  osc.frequency.value = 180;
+    osc.type = "sine";
+    osc.frequency.value = 180;
+    filter.type = "lowpass";
+    filter.frequency.value = 600;
+    filter.Q.value = 8;
 
-  filter.type = "lowpass";
-  filter.frequency.value = 600;
-  filter.Q.value = 8;
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
 
-  osc.connect(filter);
-  filter.connect(gain);
-  gain.connect(audioContext.destination);
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
 
-  gain.gain.setValueAtTime(0, audioContext.currentTime);
-  gain.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.6);
-
-  osc.start();
-  osc.stop(audioContext.currentTime + 0.6);
-    } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }  
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.6);
+  });
 }
-function deepWoodHit(){ 
-   if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try { 
-const osc = audioContext.createOscillator();
-  const gain = audioContext.createGain();
 
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(90, audioContext.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+function deepWoodHit() {
+  playSound(() => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
 
-  osc.connect(gain);
-  gain.connect(audioContext.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(90, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
 
-  gain.gain.setValueAtTime(0.08, audioContext.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
 
-  osc.start();
-  osc.stop(audioContext.currentTime + 0.5);
-  }
-  catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.5);
+  });
 }
+
+// --- Sons de jeu ---
 function playMarioCoin() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-  const notes = [659.25, 1046.50];
-const durations = [0.1, 0.2];
-notes.forEach((freq, i) => {
-setTimeout(() => {
-const osc = audioContext.createOscillator();
-const gain = audioContext.createGain();
-osc.connect(gain);
-gain.connect(audioContext.destination);
-osc.type = 'sine';
-osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.05, audioContext.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + durations[i]);
-osc.start();
-osc.stop(audioContext.currentTime + durations[i]);
-}, i * 100);
-});
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
+  playSound(() => playNotes([659.25, 1046.50], [0.1, 0.2]));
 }
 
 function playSuccess90s() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-const baseFreq = 587.33;
-const osc1 = audioContext.createOscillator();
-const gain1 = audioContext.createGain();
-const osc2 = audioContext.createOscillator();
-const gain2 = audioContext.createGain();
-osc1.connect(gain1);
-osc2.connect(gain2);
-gain1.connect(audioContext.destination);
-gain2.connect(audioContext.destination);
-osc1.type = 'sine';
-osc2.type = 'sine';
-osc1.frequency.value = baseFreq;
-osc2.frequency.setValueAtTime(baseFreq * 1.5, audioContext.currentTime);
-osc2.frequency.exponentialRampToValueAtTime(baseFreq * 3, audioContext.currentTime + 0.3);
-gain1.gain.setValueAtTime(0.03, audioContext.currentTime);
-gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-gain2.gain.setValueAtTime(0.01, audioContext.currentTime);
-gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-osc1.start();
-osc2.start();
-osc1.stop(audioContext.currentTime + 0.4);
-osc2.stop(audioContext.currentTime + 0.3);
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
-}  
+  playSound(() => {
+    const baseFreq = 587.33;
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
 
-function playFail() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-  const oscillator = audioContext.createOscillator();
-const gainNode = audioContext.createGain();
-oscillator.connect(gainNode);
-gainNode.connect(audioContext.destination);
-oscillator.type = 'sine';
-gainNode.gain.setValueAtTime(0.04, audioContext.currentTime);
-gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
-oscillator.frequency.exponentialRampToValueAtTime(110, audioContext.currentTime + 0.4);
-oscillator.start(audioContext.currentTime);
-oscillator.stop(audioContext.currentTime + 0.4);
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
+    osc1.connect(gain1);
+    osc2.connect(gain2);
+    gain1.connect(audioCtx.destination);
+    gain2.connect(audioCtx.destination);
+
+    osc1.type = 'sine';
+    osc2.type = 'sine';
+    osc1.frequency.value = baseFreq;
+    osc2.frequency.setValueAtTime(baseFreq * 1.5, audioCtx.currentTime);
+    osc2.frequency.exponentialRampToValueAtTime(baseFreq * 3, audioCtx.currentTime + 0.3);
+
+    gain1.gain.setValueAtTime(0.03, audioCtx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    gain2.gain.setValueAtTime(0.01, audioCtx.currentTime);
+    gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+    osc1.start();
+    osc2.start();
+    osc1.stop(audioCtx.currentTime + 0.4);
+    osc2.stop(audioCtx.currentTime + 0.3);
+  });
 }
 
-// --- Effets sonores spéciaux ---
+function playFail() {
+  playSound(() => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    
+    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.4);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.4);
+  });
+}
+
+// --- Sons de feux d'artifice (refactorisés) ---
 function playFireworkSound() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-   const frequencies = [329.63, 415.30, 523.25, 659.25];
-frequencies.forEach((freq, i) => {
-setTimeout(() => {
-const osc = audioContext.createOscillator();
-const gain = audioContext.createGain();
-const filter = audioContext.createBiquadFilter();
-osc.connect(filter);
-filter.connect(gain);
-gain.connect(audioContext.destination);
-osc.type = 'triangle';
-osc.frequency.value = freq;
-filter.type = 'lowpass';
-filter.frequency.value = freq * 2;
-gain.gain.setValueAtTime(0.03, audioContext.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-osc.start();
-osc.stop(audioContext.currentTime + 0.4);
-}, i * 150);
-});
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
+  playSound(() => {
+    const frequencies = [329.63, 415.30, 523.25, 659.25];
+    frequencies.forEach((freq, i) => {
+      setTimeout(() => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+        filter.type = 'lowpass';
+        filter.frequency.value = freq * 2;
+
+        gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+      }, i * 150);
+    });
+  });
 }
 
 function playfireworksound2() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-   const sequence = [554.37, 659.25, 830.61, 987.77];
-sequence.forEach((freq, i) => {
-setTimeout(() => {
-const osc = audioContext.createOscillator();
-const gain = audioContext.createGain();
-osc.connect(gain);
-gain.connect(audioContext.destination);
-osc.type = 'sine';
-osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.035, audioContext.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-osc.start();
-osc.stop(audioContext.currentTime + 0.2);
-}, i * 100);
-});
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
+  playSound(() => playSequence([554.37, 659.25, 830.61, 987.77], 0.2, 0.035, 100));
 }
 
 function playfireworksound3() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-    const sequence = [659.25, 783.99, 987.77, 1174.66];
-sequence.forEach((freq, i) => {
-setTimeout(() => {
-const osc = audioContext.createOscillator();
-const gain = audioContext.createGain();
-osc.connect(gain);
-gain.connect(audioContext.destination);
-osc.type = 'sine';
-osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.035, audioContext.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-osc.start();
-osc.stop(audioContext.currentTime + 0.2);
-}, i * 100);
-});
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
+  playSound(() => playSequence([659.25, 783.99, 987.77, 1174.66], 0.2, 0.035, 100));
 }
 
 function playfireworksound4() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-   const sequence = [783.99, 987.77, 1174.66, 1396.91];
-sequence.forEach((freq, i) => {
-setTimeout(() => {
-const osc = audioContext.createOscillator();
-const gain = audioContext.createGain();
-osc.connect(gain);
-gain.connect(audioContext.destination);
-osc.type = 'sine';
-osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.035, audioContext.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-osc.start();
-osc.stop(audioContext.currentTime + 0.2);
-}, i * 100);
-});
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
-}  
+  playSound(() => playSequence([783.99, 987.77, 1174.66, 1396.91], 0.2, 0.035, 100));
+}
 
 function playLevelUp() {
-  if (!soundEnabled) return; // ✅ AJOUT
-  initAudio();
-  try {
-  const sequence = [523.25, 659.25, 783.99, 1046.50];
-const flourish = [783.99, 1046.50, 1318.51];
-sequence.forEach((freq, i) => {
-setTimeout(() => {
-const osc = audioContext.createOscillator();
-const gain = audioContext.createGain();
-osc.connect(gain);
-gain.connect(audioContext.destination);
-osc.type = 'sine';
-osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.04, audioContext.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.12);
-osc.start();
-osc.stop(audioContext.currentTime + 0.12);
-}, i * 120);
-});
-flourish.forEach((freq, i) => {
-setTimeout(() => {
-const osc = audioContext.createOscillator();
-const gain = audioContext.createGain();
-osc.connect(gain);
-gain.connect(audioContext.destination);
-osc.type = 'sine';
-osc.frequency.value = freq;
-gain.gain.setValueAtTime(0.04, audioContext.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-osc.start();
-osc.stop(audioContext.currentTime + 0.1);
-}, 480 + i * 100);
-});
-setTimeout(() => {
-const osc = audioContext.createOscillator();
-const gain = audioContext.createGain();
-const mod = audioContext.createOscillator();
-const modGain = audioContext.createGain();
-mod.connect(modGain);
-modGain.connect(osc.frequency);
-osc.connect(gain);
-gain.connect(audioContext.destination);
-osc.type = 'sine';
-mod.type = 'sine';
-osc.frequency.value = 1318.51;
-mod.frequency.value = 5;
-modGain.gain.value = 10;
-gain.gain.setValueAtTime(0.04, audioContext.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2.0);
-osc.start();
-mod.start();
-osc.stop(audioContext.currentTime + 2.0);
-mod.stop(audioContext.currentTime + 2.0);
-}, 780);
-  } catch (error) {
-    logError('Erreur son pop: ' + error.message);
-  }
-}  
+  playSound(() => {
+    const sequence = [523.25, 659.25, 783.99, 1046.50];
+    const flourish = [783.99, 1046.50, 1318.51];
 
+    sequence.forEach((freq, i) => {
+      setTimeout(() => createOsc('sine', freq, 0.12, 0.04), i * 120);
+    });
 
-// --- Sons flashcard révision ---
+    flourish.forEach((freq, i) => {
+      setTimeout(() => createOsc('sine', freq, 0.1, 0.04), 480 + i * 100);
+    });
+
+    setTimeout(() => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const mod = audioCtx.createOscillator();
+      const modGain = audioCtx.createGain();
+
+      mod.connect(modGain);
+      modGain.connect(osc.frequency);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.type = 'sine';
+      mod.type = 'sine';
+      osc.frequency.value = 1318.51;
+      mod.frequency.value = 5;
+      modGain.gain.value = 10;
+
+      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.0);
+
+      osc.start();
+      mod.start();
+      osc.stop(audioCtx.currentTime + 2.0);
+      mod.stop(audioCtx.currentTime + 2.0);
+    }, 780);
+  });
+}
+
+// --- Sons flashcard (refactorisés avec vérifications) ---
 function happySoundFlashcard() {
-  const ctx = audioCtx; // Utiliser le contexte global
-  
-  function pluck(freq, duration = 0.15, gain = 0.15) {
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = "triangle";
-    osc.frequency.value = freq;
-    g.gain.setValueAtTime(gain, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    osc.connect(g).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
-  }
-  
-  function noisePop() {
-    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) {
-      data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+  playSound(() => {
+    function pluck(freq, duration = 0.15, gainValue = 0.15) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(gainValue, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
     }
-    const src = ctx.createBufferSource();
-    const g = ctx.createGain();
-    g.gain.value = 0.18;
-    src.buffer = buffer;
-    src.connect(g).connect(ctx.destination);
-    src.start();
-  }
-  
-  noisePop();
-  [880, 1175, 1568].forEach((f, i) =>
-    setTimeout(() => pluck(f, 0.16, 0.18), i * 90)
-  );
+
+    function noisePop() {
+      const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.08, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+      }
+      const src = audioCtx.createBufferSource();
+      const gain = audioCtx.createGain();
+      gain.gain.value = 0.18;
+      src.buffer = buffer;
+      src.connect(gain).connect(audioCtx.destination);
+      src.start();
+    }
+
+    noisePop();
+    [880, 1175, 1568].forEach((f, i) =>
+      setTimeout(() => pluck(f, 0.16, 0.18), i * 90)
+    );
+  });
 }
 
 function sadSoundFlashcard() {
-  const ctx = audioCtx; // Utiliser le contexte global
-  
-  function pluck(freq, duration = 0.28, gain = 0.12) {
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = "triangle";
-    osc.frequency.value = freq;
-    g.gain.setValueAtTime(gain, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    osc.connect(g).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
-  }
-  
-  function noisePop() {
-    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) {
-      data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+  playSound(() => {
+    function pluck(freq, duration = 0.28, gainValue = 0.12) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(gainValue, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
     }
-    const src = ctx.createBufferSource();
-    const g = ctx.createGain();
-    g.gain.value = 0.18;
-    src.buffer = buffer;
-    src.connect(g).connect(ctx.destination);
-    src.start();
-  }
-  
-  noisePop();
-  [740, 587, 440].forEach((f, i) =>
-    setTimeout(() => pluck(f, 0.28, 0.12), i * 120)
-  );
+
+    function noisePop() {
+      const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.08, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+      }
+      const src = audioCtx.createBufferSource();
+      const gain = audioCtx.createGain();
+      gain.gain.value = 0.18;
+      src.buffer = buffer;
+      src.connect(gain).connect(audioCtx.destination);
+      src.start();
+    }
+
+    noisePop();
+    [740, 587, 440].forEach((f, i) =>
+      setTimeout(() => pluck(f, 0.28, 0.12), i * 120)
+    );
+  });
 }
+
+// --- Initialisation au chargement ---
+loadSoundSettings();
+updateSoundUI();
 
 
 // ============================================================================
@@ -8241,4 +8064,5 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
