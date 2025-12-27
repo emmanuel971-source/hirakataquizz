@@ -4533,14 +4533,7 @@ setInterval(updateSyncIndicator, 1000);
 // 📱 COMPATIBILITÉ AVEC L'ANCIEN CODE
 // ====================================
 
-// Pour remplacer l'ancien queueUpdateStats sans tout casser
-async function recordAnswer(params) {
-  recordAnswer(params);
-  
-  // Retourner une promesse qui se résout immédiatement
-  // (l'ancien code attend peut-être une réponse)
-  return Promise.resolve({ success: true, queued: true });
-}
+
 
 // API d'origine (si besoin de fallback)
 async function callAPI(action, data = null) {
@@ -8471,6 +8464,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
