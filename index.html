@@ -4043,7 +4043,12 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxlGKkcx12KGbQRHePs
 const QUEUE_KEY = 'quiz_pending_updates_v2';
 
 async function syncSnapshotNow(reason = '') {
-  if (!navigator.onLine) return;
+  console.warn('🧪 syncSnapshotNow CALLED', reason);
+
+  if (!navigator.onLine) {
+    console.warn('🧪 offline → abort snapshot');
+    return;
+  }
 
   const payload = {
     token,
@@ -4053,18 +4058,13 @@ async function syncSnapshotNow(reason = '') {
     sessionId: crypto.randomUUID()
   };
 
+  console.warn('🧪 sending snapshot', payload);
+
   const result = await callAPI('syncSnapshot', payload);
 
-  if (result?.success) {
-    statsCache.items = result.statsJson;
-    niveauActif = result.niveauAtteint;
-
-    console.log('✅ Snapshot sync OK', reason);
-  } else {
-    console.warn('❌ Snapshot sync failed', result);
-  }
+  console.warn('🧪 snapshot result', result);
 }
-  
+
   
 function loadQueue() {
   try {
@@ -4227,7 +4227,11 @@ async function processQueue() {
 // ---------------------------------------------------------------------------
 // Relances automatiques intelligentes
 // ---------------------------------------------------------------------------
-window.addEventListener('online', () => syncSnapshotNow('online'));
+window.addEventListener('online', () => {
+  console.warn('🧪 online event fired');
+  syncSnapshotNow('online');
+});
+
 
   
 window.addEventListener('online', processQueue);
@@ -6058,6 +6062,7 @@ setTimeout(() => sakura.remove(), 4000);
 }
 }
 function triggerLevelUpAnimation(container) {
+  syncSnapshotNow('level-up');
   const toHide = ['#question', '#choices1', '#choices2'];
   toHide.forEach(id => {
     const el = document.querySelector(id);
@@ -7764,6 +7769,8 @@ renderProgressBar(niveauActif, totalLevels);
     document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
   }
+  syncSnapshotNow('app-start');
+
 }
 
 async function loadRemainingDataInBackground(profile) {
@@ -8133,6 +8140,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 </script>
 
 </html>
+
 
 
 
