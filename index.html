@@ -4041,6 +4041,34 @@ function smartSegmentRomaji(romaji) {
 
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxlGKkcx12KGbQRHePsFhjDOfKAtdRi3NQCspmcyxdP7tnPQyF_F6-vLI9EBS_fZZQkZQ/exec';
 const QUEUE_KEY = 'quiz_pending_updates_v2';
+async function forceSync() {
+  console.group('🚨 FORCE SYNC');
+
+  try {
+    const payload = {
+      token: window.token,
+      snapshot: JSON.stringify(statsCache.items),
+      niveauLocal: niveauActif,
+      clientTime: Date.now()
+    };
+
+    console.log('📤 sending snapshot', payload);
+
+    const res = await fetch(`${WEB_APP_URL}?action=forceSync`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const result = await res.json();
+    console.log('📥 server response', result);
+
+  } catch (e) {
+    console.error('❌ forceSync failed', e);
+  }
+
+  console.groupEnd();
+}
 
 async function syncSnapshotNow(reason = '') {
   console.warn('🧪 syncSnapshotNow CALLED', reason);
@@ -4227,7 +4255,8 @@ async function processQueue() {
 // ---------------------------------------------------------------------------
 // Relances automatiques intelligentes
 // ---------------------------------------------------------------------------
-window.addEventListener('online', () => {
+
+  window.addEventListener('online', () => {
   console.warn('🧪 online event fired');
   syncSnapshotNow('online');
 });
@@ -4238,7 +4267,7 @@ window.addEventListener('online', processQueue);
 window.addEventListener('focus', processQueue);
 setInterval(processQueue, 15000);
 
-
+window.forceSync = forceSync;
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
 // ============================================================================
@@ -8139,6 +8168,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 </script>
 
 </html>
+
 
 
 
