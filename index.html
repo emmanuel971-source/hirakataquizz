@@ -1407,18 +1407,7 @@ img.emoji {
 .insect-card {
   background: linear-gradient(180deg, #f7fff5, #ffffff);
 }
-  .sync-status {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  background: #f0f0f0;
-}
-.syncing { background: #ffeaa7; }
-.pending { background: #fab1a0; }
-.synced { background: #55efc4; }  
+    
   </style>
 </head>
 <body>
@@ -1480,7 +1469,7 @@ img.emoji {
 
 <!-- Section Quiz -->
 <div id="quiz" class="section">
-<div id="sync-indicator" class="sync-status"></div>
+<!--   <h1 data-i18n="quiz_title">🎌⛩️ Apprenez les Kanas ⛩️🎌</h1>  -->
   <div id="progressBarContainer"></div>
   <div class="level" id="levelDisplay"><span data-i18n="quiz_level_display">Niveau actuel :</span> <span id="levelNumber">1</span></div>
     <div class="level-hiraganas">
@@ -4046,128 +4035,177 @@ function smartSegmentRomaji(romaji) {
   return segments.length > 0 ? segments : [romaji];
 }
 
-
 // ============================================================================
-// 🌐 SECTION 4 : API & COMMUNICATION SERVEUR
+// 🌐 SECTION : API & SYNCHRONISATION ROBUSTE (OFFLINE-FIRST)
 // ============================================================================
 
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIb90KrrrJ7QbfqnjuIE1trPVVyhyfNyRHNeLiinQXzJHrft3ENVwtVP_MDBcIU3xjAg/exec';
+const QUEUE_KEY = 'quiz_pending_updates_v2';
 
-let pendingUpdates = [];
-
-// --- Fonctions API ---
-async function callAPI(action, data = null) {
+function loadQueue() {
   try {
-    let params = new URLSearchParams({ action });
-
-    if (data) {
-      Object.entries(data).forEach(([key, value]) => {
-        params.append(key, value);
-      });
-    }
-
-    const url = `${WEB_APP_URL}?${params.toString()}`;
-    console.log(`🔍 Appel API: ${action}`);
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    const result = await response.json();
-    console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
-    return result;
-    
-  } catch (error) {
-    logError(`Erreur API (${action}): ${error.message}`);
-    console.error(`⚠️ Détails erreur:`, error);
-    return { error: error.message };
+    return JSON.parse(localStorage.getItem(QUEUE_KEY)) || [];
+  } catch {
+    return [];
   }
 }
-async function queueUpdateStats(params) {
-  pendingUpdates.push(params);
 
-  // Lancer le traitement uniquement si c'était vide avant
-  if (pendingUpdates.length === 1) {
-    // Boucle de traitement
+function saveQueue(queue) {
+  localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+}
+
+let pendingUpdates = loadQueue();
+let isProcessingQueue = false;
+
+// ---------------------------------------------------------------------------
+// Appel API sécurisé
+// ---------------------------------------------------------------------------
+async function callAPI(action, data = null) {
+  const params = new URLSearchParams({ action });
+
+  if (data) {
+    Object.entries(data).forEach(([key, value]) => {
+      params.append(key, value);
+    });
+  }
+
+  const response = await fetch(`${WEB_APP_URL}?${params.toString()}`, {
+    cache: 'no-store'
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  return await response.json();
+}
+
+// ---------------------------------------------------------------------------
+// Point d’entrée UNIQUE : ajout dans la file
+// ---------------------------------------------------------------------------
+function queueUpdateStats({
+  id,
+  scorePoints,
+  isRevisionMode = false,
+  token,
+  previousLevel,
+  hasLeveledUp,
+  targetLevel
+}) {
+  const update = {
+    eventId: crypto.randomUUID(),
+    id,
+    scorePoints,
+    isRevisionMode,
+    token,
+    previousLevel,
+    hasLeveledUp,
+    targetLevel,
+    timestamp: Date.now(),
+    retry: 0
+  };
+
+  pendingUpdates.push(update);
+  saveQueue(pendingUpdates);
+
+  processQueue();
+}
+
+// ---------------------------------------------------------------------------
+// Traitement séquentiel sécurisé de la queue
+// ---------------------------------------------------------------------------
+async function processQueue() {
+  if (isProcessingQueue) return;
+  if (!navigator.onLine) return;
+  if (pendingUpdates.length === 0) return;
+
+  isProcessingQueue = true;
+
+  try {
     while (pendingUpdates.length > 0) {
-      // ⚠️ On retire l'élément DÈS LE DÉBUT pour éviter toute référence persistante
-      const update = pendingUpdates.shift();
+      const update = pendingUpdates[0]; // ⚠️ on ne retire PAS encore
 
-      // On extrait TOUT ce dont on a besoin immédiatement
-      const id = update.id;
-      const previousLevel = update.previousLevel;
-      const hasLeveledUp = update.hasLeveledUp;
-      const targetLevel = update.targetLevel;
-      const scorePoints = update.scorePoints;
-      const isRevisionMode = update.isRevisionMode || false;
-      const token = update.token;
+      const apiParams = {
+        token: update.token,
+        id: update.id,
+        scorePoints: update.scorePoints,
+        isRevisionMode: update.isRevisionMode,
+        eventId: update.eventId
+      };
+
+      let result;
 
       try {
-        const apiParams = {
-          token,
-          id,
-          scorePoints,
-          isRevisionMode
-        };
-
-        const result = await callAPI('updateStats', apiParams);
-
-        if (result.success) {
-          console.log(`File: Stats synchronisées pour item ${id}: Validation=${result.newValidation}, NewLevel=${result.newLevel}`);
-
-          // Mise à jour locale (inchangée)
-          const hiraganaIndex = HiraganaList.findIndex(h => h.ID == id);
-          if (hiraganaIndex !== -1) {
-            HiraganaList[hiraganaIndex].Validation = result.newValidation;
-            HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
-            HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + scorePoints;
-            validationCache[id] = result.newValidation;
-
-            // Mise à jour statsCache (inchangée)
-            const itemStats = statsCache.items[id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-            itemStats.tentatives += 1;
-            itemStats.reussites += scorePoints;
-            itemStats.pourcentage = itemStats.tentatives > 0
-              ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
-              : 0;
-            statsCache.items[id] = itemStats;
-          }
-
-          // Gestion du level up – maintenant avec les bonnes valeurs
-          if (hasLeveledUp && targetLevel > previousLevel) {
-            console.log(`🎊 Level up confirmé: ${previousLevel} → ${targetLevel}`);
-
-            if (targetLevel > niveauActif) {
-              triggerLevelUpAnimation(document.body);
-            }
-
-            if (targetLevel === 4 && !hasShownLevel4Menu) {
-              hasShownLevel4Menu = true;
-              setTimeout(() => {
-                showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message'));
-              }, 1);
-            }
-
-            if (targetLevel === 5 && !hasShownLevel5Garden) {
-              hasShownLevel5Garden = true;
-              setTimeout(() => {
-                showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message'));
-              }, 1);
-            }
-          }
-        } else {
-          console.error(`File: Erreur API updateStats pour item ${id}: ${result.error || 'Erreur inconnue'}`);
-          // Optionnel : remettre en file d'attente en cas d'échec ?
-          // pendingUpdates.unshift(update); // si tu veux retenter
-        }
+        result = await callAPI('updateStats', apiParams);
       } catch (error) {
-        console.error(`File: Erreur réseau updateStats pour item ${id}: ${error.message}`);
-        // Même chose : éventuellement retenter plus tard
+        console.warn('🌐 Réseau/API indisponible, retry plus tard');
+        break;
       }
-      // Pas de finally avec shift() → déjà fait au début
+
+      // -------------------------------------------------------------------
+      // Validation serveur ferme
+      // -------------------------------------------------------------------
+      if (result.success && result.eventId === update.eventId) {
+
+        // 🔄 Mise à jour locale APRÈS preuve serveur
+        const idx = HiraganaList.findIndex(h => h.ID == update.id);
+        if (idx !== -1) {
+          HiraganaList[idx].Validation = result.newValidation;
+          HiraganaList[idx].Tentatives =
+            (HiraganaList[idx].Tentatives || 0) + 1;
+          HiraganaList[idx]['Réussites'] =
+            (HiraganaList[idx]['Réussites'] || 0) + update.scorePoints;
+        }
+
+        validationCache[update.id] = result.newValidation;
+
+        // 🎊 Gestion level up (inchangée)
+        if (update.hasLeveledUp && update.targetLevel > update.previousLevel) {
+
+          if (update.targetLevel > niveauActif) {
+            triggerLevelUpAnimation(document.body);
+          }
+
+          if (update.targetLevel === 4 && !hasShownLevel4Menu) {
+            hasShownLevel4Menu = true;
+            showUnlockFlashcard(
+              t('unlock_revision_title'),
+              '📓',
+              t('unlock_revision_message')
+            );
+          }
+
+          if (update.targetLevel === 5 && !hasShownLevel5Garden) {
+            hasShownLevel5Garden = true;
+            showUnlockFlashcard(
+              t('unlock_garden_title'),
+              '🎍',
+              t('unlock_garden_message')
+            );
+          }
+        }
+
+        // 🧹 Retrait définitif APRÈS succès validé
+        pendingUpdates.shift();
+        saveQueue(pendingUpdates);
+
+      } else {
+        console.warn('⚠️ Réponse serveur invalide ou non confirmée', result);
+        break;
+      }
     }
+
+  } finally {
+    isProcessingQueue = false;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Relances automatiques intelligentes
+// ---------------------------------------------------------------------------
+window.addEventListener('online', processQueue);
+window.addEventListener('focus', processQueue);
+setInterval(processQueue, 15000);
 
 
 // ============================================================================
@@ -5121,7 +5159,7 @@ niveauActif = calculatedNiveau;
       triggerLevelUpAnimation(document.body);
     }
 
-    recordAnswer({
+    queueUpdateStats({
   token: userToken,
   id: currentItemId,
   scorePoints: score,
@@ -5553,7 +5591,7 @@ openRevisionFlashcard(
         }
 
         // === Envoi stats en arrière-plan ===
-        recordAnswer({ token: userToken, id: itemId, scorePoints: isCorrect ? 1 : 0, isRevisionMode: true });
+        queueUpdateStats({ token: userToken, id: itemId, scorePoints: isCorrect ? 1 : 0, isRevisionMode: true });
 
         // === Rafraîchissement stats si page ouverte ===
         if (document.getElementById('stats').classList.contains('active')) {
@@ -8067,25 +8105,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 
-
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
