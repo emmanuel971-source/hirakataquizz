@@ -4572,10 +4572,12 @@ function sadSoundFlashcard() {
 loadSoundSettings();
 updateSoundUI();
 
-
 // ============================================================================
 // 📈 SECTION 6 : PROGRESSION & NIVEAUX
 // ============================================================================
+
+// --- Constantes ---
+const SEUIL_VALIDATION = 5;  // Seuil fixe pour validation complète (étoiles pleines, feu d'artifice, etc.)
 
 // --- Variables progression ---
 let hasShownBlockedMenu = false;
@@ -4583,237 +4585,198 @@ let hasShownUnblockedMenu = false;
 let hasShownLevel4Menu = false;
 let hasShownLevel5Garden = false;
 
+// --- Helpers communs ---
+const getItemsByLevel = (list, level) => 
+  (list || []).filter(h => parseInt(h.Niveau, 10) === level);
+
+const getValidatedCount = (items) => 
+  items.filter(h => parseInt(h.Validation || 0, 10) >= SEUIL_VALIDATION).length;
+
 // --- Fonctions progression ---
 function determineNiveauActif(list) {
-  if (!list || list.length === 0) return 1;
-  let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
-
-  // ✅ NOUVEAU : Calculer le niveau actif SANS tenir compte du blocage
+  if (!list?.length) return 1;
+  
+  const maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau, 10) || 1));
+  
   for (let n = 1; n <= maxNiveau; n++) {
-    const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
-    const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5); // ✅ Seuil fixe à 5
-    
-    if (kanjisValides.length < kanjisNiveau.length) {
-      console.log(`📍 Niveau actif déterminé: ${n} (${kanjisValides.length}/${kanjisNiveau.length} items validés à >=5)`);
+    const items = getItemsByLevel(list, n);
+    if (getValidatedCount(items) < items.length) {
       return n;
     }
   }
-  
-  console.log(`📍 Tous les niveaux sont complétés, niveau actif = ${maxNiveau}`);
   return maxNiveau;
 }
+
 function getNiveauGroupe(niveau) {
   for (const [groupeId, groupe] of Object.entries(GROUPES)) {
     if (groupe.niveaux.includes(niveau)) {
-      return parseInt(groupeId);
+      return parseInt(groupeId, 10);
     }
   }
   return 1;
 }
+
 function isGroupeDebloque(groupeId) {
-  if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
+  if (groupeId <= 2) return true;
   
-  // Vérifier TOUS les groupes précédents (1 à groupeId-1)
   for (let g = 1; g < groupeId; g++) {
-    const niveauxGroupe = GROUPES[g].niveaux;
-    
-    for (const niveau of niveauxGroupe) {
-      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-      const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= seuilValidation);
-      
-      if (itemsValides.length < itemsNiveau.length) {
+    const niveaux = GROUPES[g]?.niveaux || [];
+    for (const niveau of niveaux) {
+      const items = getItemsByLevel(HiraganaList, niveau);
+      if (getValidatedCount(items) < items.length) {
         return false;
       }
     }
   }
   return true;
 }
+
 function isApprentissageBloque() {
   const groupeActuel = getNiveauGroupe(niveauActif);
-  // Pour les niveaux ≤ 5 : logique actuelle
+  
   if (niveauActif <= 5) {
     return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
   }
-  // Pour les niveaux > 5 : bloquer si déficit > 2, débloquer SEULEMENT si déficit = 0
-  else {
-    const deficit = calculerDeficitValidation();
-    // Si actuellement bloqué, ne débloquer que si déficit = 0
-    const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
-    
-    if (wasBlocked) {
-      // Déjà bloqué : on ne débloque QUE si déficit = 0
-      const shouldUnblock = deficit === 0;
-      if (shouldUnblock) {
-        localStorage.setItem('apprentissageBloque', 'false');
-      }
-      return !shouldUnblock;
-    } else {
-      // Pas encore bloqué : on bloque si déficit > 2
-      const shouldBlock = deficit > 2;
-      if (shouldBlock) {
-        localStorage.setItem('apprentissageBloque', 'true');
-      }
-      return shouldBlock;
-    }
+  
+  // Niveaux > 5 : blocage basé sur déficit
+  const deficit = calculerDeficitValidation();
+  const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
+  
+  if (wasBlocked) {
+    const shouldUnblock = deficit === 0;
+    if (shouldUnblock) localStorage.setItem('apprentissageBloque', 'false');
+    return !shouldUnblock;
+  } else {
+    const shouldBlock = deficit > 2;
+    if (shouldBlock) localStorage.setItem('apprentissageBloque', 'true');
+    return shouldBlock;
   }
 }
+
 function calculerDeficitValidation() {
   const groupeActuel = getNiveauGroupe(niveauActif);
-  if (groupeActuel < 3) return 0; // Pas de blocage avant le groupe 3
+  if (groupeActuel < 3) return 0;
   
-  let deficitTotal = 0;
-  
-  // Parcourir TOUS les groupes précédents (1 à groupeActuel-1)
+  let deficit = 0;
   for (let g = 1; g < groupeActuel; g++) {
-    const niveauxGroupe = GROUPES[g].niveaux;
-    
-    for (const niveau of niveauxGroupe) {
-      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-      for (const item of itemsNiveau) {
-        const validation = parseInt(item.Validation || 0);
-        if (validation < seuilValidation) {
-  deficitTotal += (seuilValidation - validation);
+    const niveaux = GROUPES[g]?.niveaux || [];
+    for (const niveau of niveaux) {
+      getItemsByLevel(HiraganaList, niveau).forEach(item => {
+        const val = parseInt(item.Validation || 0, 10);
+        if (val < SEUIL_VALIDATION) {
+          deficit += SEUIL_VALIDATION - val;
         }
-      }
+      });
     }
   }
-  
-  return deficitTotal;
+  return deficit;
 }
+
 function calculerDeficitMaximum() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   if (groupeActuel < 3) return 0;
   
   let totalItems = 0;
-  
-  // Parcourir TOUS les groupes précédents (1 à groupeActuel-1)
   for (let g = 1; g < groupeActuel; g++) {
-    const niveauxGroupe = GROUPES[g].niveaux;
-    
-    for (const niveau of niveauxGroupe) {
-      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-      totalItems += itemsNiveau.length;
+    const niveaux = GROUPES[g]?.niveaux || [];
+    for (const niveau of niveaux) {
+      totalItems += getItemsByLevel(HiraganaList, niveau).length;
     }
   }
-  
-  return totalItems * (seuilValidation - 5); // Déficit max = passage de 5 au seuil
+  return totalItems * (SEUIL_VALIDATION - 5);
 }
+
 function getMaxLevel(list) {
-if (!list || list.length === 0) return 1;
-return Math.max(...list.map(k => parseInt(k.Niveau) || 1));
+  if (!list?.length) return 1;
+  return Math.max(...list.map(k => parseInt(k.Niveau, 10) || 1));
 }
+
 function getItemCountForLevel(level) {
- return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Niveau) >= level).length;
-  
+  return getItemsByLevel(HiraganaList, level).length;
 }
+
 function getValidatedCountForLevel(level) {
-return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Validation) >= 5).length;
+  return getValidatedCount(getItemsByLevel(HiraganaList, level));
 }
 
 // --- Fonctions UI progression ---
 function updateLevelProgress(list, niveau) {
-renderHiraganaCards(list, niveau);
+  renderHiraganaCards(list, niveau);
 }
+
 function renderProgressBar(currentLevel, maxLevel) {
-const container = document.getElementById("progressBarContainer");
-if (!container) return;
+  const container = document.getElementById("progressBarContainer");
+  if (!container) return;
 
-container.innerHTML = "";
+  container.innerHTML = `
+    <span class="side-emoji">🌱</span>
+    <div class="progress-bar-track">
+      <div class="progress-marker">🐼</div>
+    </div>
+    <span class="side-emoji">🌳</span>
+  `;
 
-const leftEmoji = document.createElement("span");
-leftEmoji.textContent = "🌱";
-leftEmoji.className = "side-emoji";
-
-const rightEmoji = document.createElement("span");
-rightEmoji.textContent = "🌳";
-rightEmoji.className = "side-emoji";
-
-const barTrack = document.createElement("div");
-barTrack.className = "progress-bar-track";
-
-const marker = document.createElement("div");
-marker.className = "progress-marker";
-marker.innerText = "🐼";  /*  🐼 🐱💩🤡🐶🐯🐱 */
-
+  const marker = container.querySelector(".progress-marker");
   const pct = maxLevel > 1 ? ((currentLevel - 1) / (maxLevel - 1)) * 100 : 0;
   marker.style.left = `${Math.min(100, Math.max(0, pct))}%`;
 
-barTrack.appendChild(marker);
-safeConvertEmojis(marker);
-container.appendChild(leftEmoji);
-container.appendChild(barTrack);
-container.appendChild(rightEmoji);
-  // ✅ AJOUTER CETTE LIGNE
-  safeConvertEmojis(container);  
+  safeConvertEmojis(container);
 }
+
 function renderHiraganaCards(list, niveau) {
-const container = document.getElementById("hiraganaCards");
-if (!container) return;
-const hiraganas = list.filter(h => parseInt(h.Niveau) === niveau);
-container.innerHTML = "";
-hiraganas.forEach(hiragana => {
-const validation = parseInt(hiragana.Validation || 0);
-const isCompleted = validation >= 5;
-const card = document.createElement("div");
-card.className = `hiragana-card ${isCompleted ? 'completed' : ''}`;
-card.innerHTML = `
-<div class="hiragana-char">${hiragana.Hiragana}</div>
-<div class="stars-container">
-${Array.from({length: 5}, (_, i) =>
-`<div class="star ${i < validation ? 'filled' : ''}"></div>`
-).join('')}
-</div>
-`;
-container.appendChild(card);
-previousValidationStates.set(parseInt(hiragana.ID), validation);
-});
+  const container = document.getElementById("hiraganaCards");
+  if (!container) return;
+
+  const items = getItemsByLevel(list, niveau);
+  container.innerHTML = "";
+
+  items.forEach(item => {
+    const validation = parseInt(item.Validation || 0, 10);
+    const card = document.createElement("div");
+    card.className = `hiragana-card ${validation >= SEUIL_VALIDATION ? 'completed' : ''}`;
+    card.innerHTML = `
+      <div class="hiragana-char">${item.Hiragana}</div>
+      <div class="stars-container">
+        ${Array.from({length: 5}, (_, i) => 
+          `<div class="star ${i < validation ? 'filled' : ''}"></div>`
+        ).join('')}
+      </div>
+    `;
+    container.appendChild(card);
+    previousValidationStates.set(parseInt(item.ID, 10), validation);
+  });
 }
+
 function updateStarsForHiragana(hiraganaId, newValidation) {
-const cards = document.querySelectorAll('.hiragana-card');
-cards.forEach(card => {
-const hiraganaChar = card.querySelector('.hiragana-char').textContent;
-const hiragana = HiraganaList.find(h => h.Hiragana === hiraganaChar && h.ID == hiraganaId);
-if (hiragana) {
-const stars = card.querySelectorAll('.star');
-const previousValidation = previousValidationStates.get(hiraganaId) || 0;
+  const cards = document.querySelectorAll('.hiragana-card');
+  const previousValidation = previousValidationStates.get(hiraganaId) || 0;
 
-stars.forEach((star, index) => {
-if (index < newValidation && !star.classList.contains('filled')) {
-star.classList.add('filled', 'new-star');
-setTimeout(() => star.classList.remove('new-star'), 500);
-} else if (index < newValidation) {
-star.classList.add('filled');
-} else {
-star.classList.remove('filled', 'new-star');
-}
-});
+  cards.forEach(card => {
+    const char = card.querySelector('.hiragana-char')?.textContent;
+    const item = HiraganaList.find(h => h.Hiragana === char && parseInt(h.ID, 10) === hiraganaId);
+    if (!item) return;
 
-if (newValidation >= 5 && previousValidation < 5) {
-  console.log('🎇 DEVRAIT DÉCLENCHER FIREWORK:', { 
-    hiraganaId, 
-    newValidation, 
-    previousValidation,
-    isMobile,
-    card 
-  });  
-if (isMobile) {
-triggerLightFirework(card);
-} else {
-triggerAdvancedFirework(card);
-}
-}
+    const stars = card.querySelectorAll('.star');
+    stars.forEach((star, i) => {
+      if (i < newValidation) {
+        star.classList.add('filled');
+        if (i >= previousValidation) star.classList.add('new-star');
+        setTimeout(() => star.classList.remove('new-star'), 500);
+      } else {
+        star.classList.remove('filled', 'new-star');
+      }
+    });
 
-if (newValidation >= 5) {
-card.classList.add('completed');
-} else {
-card.classList.remove('completed');
-}
+    card.classList.toggle('completed', newValidation >= SEUIL_VALIDATION);
 
-previousValidationStates.set(hiraganaId, newValidation);
-}
-});
-}
+    if (newValidation >= SEUIL_VALIDATION && previousValidation < SEUIL_VALIDATION) {
+      if (isMobile) triggerLightFirework(card);
+      else triggerAdvancedFirework(card);
+    }
+  });
 
+  previousValidationStates.set(hiraganaId, newValidation);
+}
 
 // ============================================================================
 // 🎮 SECTION 7 : MODE QUIZ (APPRENTISSAGE)
@@ -4828,360 +4791,254 @@ let previousCharacter = null;
 
 // --- Fonctions quiz ---
 function nextQuestion() {
-  console.log('📞 nextQuestion() appelée');
-document.getElementById("result").innerText = "";
-document.getElementById("continueBtn").style.visibility = "hidden";
-selections = { first: null, second: null };
-isAnswered = false;
+  document.getElementById("result").innerText = "";
+  document.getElementById("continueBtn").style.visibility = "hidden";
+  selections = { first: null, second: null };
+  isAnswered = false;
 
-const kanas = HiraganaList.filter(k =>
-parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
-);
+  // Items non maîtrisés du niveau actif
+  let kanas = HiraganaList.filter(k => 
+    parseInt(k.Niveau, 10) === niveauActif && 
+    parseInt(k.Validation || 0, 10) < SEUIL_VALIDATION
+  );
 
-if (kanas.length === 0) {
-const nouveauNiveau = determineNiveauActif(HiraganaList);
-if (nouveauNiveau !== niveauActif) {
-  console.log('🔍 DEBUT CHANGEMENT NIVEAU');
-  console.log('Ancien niveau:', niveauActif);
-  console.log('Nouveau niveau:', nouveauNiveau);
-  
-  const ancienGroupe = getNiveauGroupe(niveauActif);
-  const nouveauGroupe = getNiveauGroupe(nouveauNiveau);  
-  niveauActif = nouveauNiveau;  
-  
-  console.log('🔍 hasShownLevel4Menu =', hasShownLevel4Menu);
-  console.log('🔍 Test condition niveau 4:', niveauActif === 4, '&&', !hasShownLevel4Menu);
-  
-  localStorage.setItem('unlockedLevel', currentLevel + 1);  
-  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  updateLevelProgress(HiraganaList, niveauActif);
-  updateRevisionButtonState();  
-  updateApprendreButtonState();
- 
- 
-
-nextQuestion();
-return;
-}
-}
-
-const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
-
-const currentWeights = finalKanas.map(k => {
-const validation = parseInt(k.Validation || 0);
-return Math.max(0.1, 5 - validation + 0.5);
-});
-
-let selected;
-do {
-const sum = currentWeights.reduce((a, b) => a + b, 0);
-const rand = Math.random() * sum;
-let acc = 0;
-for (let i = 0; i < finalKanas.length; i++) {
-acc += currentWeights[i];
-if (rand < acc) {
-selected = finalKanas[i];
-break;
-}
-}
-} while (selected === previousCharacter && finalKanas.length > 1); // Repeat if same as previous and more than one option exists
-
-current = selected;
-previousCharacter = current; // Update previous character
-
-const modes = [
-{ question: "Hiragana", options1: "Katakana", options2: "Romaji" },
-{ question: "Katakana", options1: "Hiragana", options2: "Romaji" },
-{ question: "Romaji", options1: "Hiragana", options2: "Katakana" }
-];
-const mode = modes[Math.floor(Math.random() * modes.length)];
-targetFields = [mode.options1, mode.options2];
-
-document.getElementById("question").innerText = (mode.question === 'Katakana') 
-  ? getLocalizedKatakana(current) 
-  : current[mode.question];
-renderChoices("choices1", generateChoices(mode.options1), "first");
-renderChoices("choices2", generateChoices(mode.options2), "second");
-previousCharacter = current; // Met à jour après avoir défini current  
-}
-function generateChoices(field) {
-const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau) === niveauActif);
-    // ✅ NOUVEAU : Gérer les Katakana localisés
-  const getValue = (item, fieldName) => {
-    if (fieldName === 'Katakana') {
-      return getLocalizedKatakana(item);
+  // Si tout est maîtrisé → passage éventuel au niveau suivant
+  if (kanas.length === 0) {
+    const nouveauNiveau = determineNiveauActif(HiraganaList);
+    if (nouveauNiveau !== niveauActif) {
+      niveauActif = nouveauNiveau;
+      localStorage.setItem('unlockedLevel', niveauActif);
+      document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+      renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+      updateLevelProgress(HiraganaList, niveauActif);
+      updateRevisionButtonState();
+      updateApprendreButtonState();
+      triggerLevelUpAnimation(document.body); // Level up détecté
     }
-    return item[fieldName];
-  };
-const values = [
-  getValue(current, field), 
-  ...others.sort(() => 0.5 - Math.random()).slice(0, 3).map(k => getValue(k, field))
-];
-return values.sort(() => 0.5 - Math.random());
+    // On retombe sur les items du niveau (même s’ils sont maîtrisés) pour ne pas bloquer
+    kanas = HiraganaList.filter(k => parseInt(k.Niveau, 10) === niveauActif);
+  }
+
+  // Pondération : plus la validation est basse, plus l'item a de chances d'être tiré
+  const weights = kanas.map(k => Math.max(0.1, 5 - parseInt(k.Validation || 0, 10) + 0.5));
+  const sum = weights.reduce((a, b) => a + b, 0);
+  
+  let selected;
+  do {
+    let rand = Math.random() * sum;
+    let acc = 0;
+    for (let i = 0; i < kanas.length; i++) {
+      acc += weights[i];
+      if (rand < acc) {
+        selected = kanas[i];
+        break;
+      }
+    }
+  } while (selected === previousCharacter && kanas.length > 1);
+
+  current = selected;
+  previousCharacter = current;
+
+  // Choix aléatoire du mode de question
+  const modes = [
+    { question: "Hiragana", options1: "Katakana", options2: "Romaji" },
+    { question: "Katakana", options1: "Hiragana", options2: "Romaji" },
+    { question: "Romaji",   options1: "Hiragana", options2: "Katakana" }
+  ];
+  const mode = modes[Math.floor(Math.random() * modes.length)];
+  targetFields = [mode.options1, mode.options2];
+
+  document.getElementById("question").innerText = 
+    mode.question === 'Katakana' ? getLocalizedKatakana(current) : current[mode.question];
+
+  renderChoices("choices1", generateChoices(mode.options1), "first");
+  renderChoices("choices2", generateChoices(mode.options2), "second");
+}
+
+function generateChoices(field) {
+  const getValue = (item) => field === 'Katakana' ? getLocalizedKatakana(item) : item[field];
+  
+  const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau, 10) === niveauActif);
+  const values = [
+    getValue(current),
+    ...others.sort(() => 0.5 - Math.random()).slice(0, 3).map(getValue)
+  ];
+  return values.sort(() => 0.5 - Math.random());
 }
 
 function renderChoices(id, options, slot) {
-const container = document.getElementById(id);
-container.innerHTML = "";
-options.forEach(text => {
-const btn = document.createElement("button");
-btn.innerText = text;
-btn.className = "arcade-button";
-btn.onclick = () => {
-if (selections[slot] !== null || isAnswered) return;
-selections[slot] = text;
-
-// Ajouter l'effet de halo sans le retirer immédiatement
-btn.classList.add("clicked-glow");
-
-// Garder l'effet d'opacité pour les autres boutons
-container.querySelectorAll("button").forEach(b => {
-b.disabled = true;
-if (b === btn) {
-b.classList.add("clicked");
-}
-});
-checkAnswer();
-};
-container.appendChild(btn);
-});
+  const container = document.getElementById(id);
+  if (!container) return;
+  
+  container.innerHTML = "";
+  options.forEach(text => {
+    const btn = document.createElement("button");
+    btn.innerText = text;
+    btn.className = "arcade-button";
+    btn.onclick = () => {
+      if (selections[slot] || isAnswered) return;
+      
+      selections[slot] = text;
+      btn.classList.add("clicked-glow", "clicked");
+      container.querySelectorAll("button").forEach(b => b.disabled = true);
+      checkAnswer();
+    };
+    container.appendChild(btn);
+  });
 }
 
 async function checkAnswer() {
-  if (selections.first && selections.second && !isAnswered) {
-    isAnswered = true;
+  if (!selections.first || !selections.second || isAnswered) return;
+  isAnswered = true;
 
-    const getValue = (fieldName) => {
-      if (fieldName === 'Katakana') {
-        return getLocalizedKatakana(current);
+  const getValue = (field) => field === 'Katakana' ? getLocalizedKatakana(current) : current[field];
+  const correct = [getValue(targetFields[0]), getValue(targetFields[1])];
+  const user = [selections.first, selections.second];
+
+  let score = 0;
+  ["choices1", "choices2"].forEach((id, idx) => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    
+    container.querySelectorAll("button").forEach(btn => {
+      btn.classList.remove("clicked-glow", "correct", "incorrect");
+      const text = btn.innerText;
+      
+      if (text === correct[idx]) {
+        btn.classList.add("correct");
+        if (text === user[idx]) score += 0.5;
+      } else if (text === user[idx]) {
+        btn.classList.add("incorrect");
       }
-      return current[fieldName];
-    };
-
-    const correct1 = getValue(targetFields[0]);
-    const correct2 = getValue(targetFields[1]);
-    let score = 0;
-    const containers = [document.getElementById("choices1"), document.getElementById("choices2")];
-    const correctAnswers = [correct1, correct2];
-    const userSelections = [selections.first, selections.second];
-
-    containers.forEach(container => {
-      container.querySelectorAll("button").forEach(btn => {
-        btn.classList.remove("clicked-glow", "correct", "incorrect");
-      });
+      btn.disabled = true;
     });
+  });
 
-    containers.forEach((container, index) => {
-      const buttons = container.querySelectorAll("button");
-      buttons.forEach(btn => {
-        if (btn.innerText === correctAnswers[index]) {
-          btn.classList.add("correct");
-          btn.disabled = true;
-          if (btn.innerText === userSelections[index]) {
-            score += 0.5;
-            btn.classList.add("clicked");
-          }
-        } else if (btn.innerText === userSelections[index]) {
-          btn.classList.add("incorrect");
-          btn.disabled = true;
-        } else {
-          btn.disabled = true;
-        }
-      });
-    });
+  // Calcul nouvelle validation
+  const oldValidation = parseInt(current.Validation || 0, 10);
+  let newValidation = oldValidation;
+  if (score === 1) newValidation = Math.min(SEUIL_VALIDATION, oldValidation + 1);
+  else if (score === 0.5) newValidation = Math.max(0, oldValidation - 1);
+  else newValidation = Math.max(0, oldValidation - 2);
 
-    const currentValidation = parseInt(current.Validation || 0);
-    let newValidation = currentValidation;
-    if (score === 1) {
-      newValidation = Math.min(5, currentValidation + 1);
-    } else if (score === 0.5) {
-      newValidation = Math.max(0, currentValidation - 1);
-    } else {
-      newValidation = Math.max(0, currentValidation - 2);
-    }
-    const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
-// ✅ AJOUTE CES LOGS ICI
-console.log('🎆 DEBUG ANIMATIONS:', {
-  score: score,
-  currentValidation: currentValidation,
-  newValidation: newValidation,
-  isFinalValidation: isFinalValidation,
-  condition1: score === 1,
-  condition2: currentValidation < 5,
-  condition3: newValidation >= 5,
-  itemId: current.ID
-});
-    const currentItemId = parseInt(current.ID);
-    console.log(`📝 Réponse pour item ${currentItemId} (score: ${score})`);
+  const itemId = parseInt(current.ID, 10);
+  const isFinalValidation = score === 1 && oldValidation < SEUIL_VALIDATION && newValidation >= SEUIL_VALIDATION;
 
-updateStarsForHiragana(currentItemId, newValidation);
-
-
-
-const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
-    if (hiraganaIndex !== -1) {
-      HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-      HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
-      HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + score;
-      validationCache[currentItemId] = newValidation;
-      console.log(`🔄 HiraganaList[${hiraganaIndex}] mis à jour localement:`, HiraganaList[hiraganaIndex]);
-    }
-
-let emoji = "", resultText = "";
-if (score === 1) {
-  const emojisOK = ["🦋","🐸","🌵","🌴","🍏","🍀","🌳","🌿","🌱","💩","👻","😸","😽","🌈","🐻","🐌","🌞","✅","🧠","🐶","🐵"];
-  emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-  resultText = isFinalValidation ? t('msg_validated') : t('msg_perfect');
-  if (!isFinalValidation) {
-    playTwinkle();
+  // Mise à jour locale
+  updateStarsForHiragana(itemId, newValidation);
+  const index = HiraganaList.findIndex(h => parseInt(h.ID, 10) === itemId);
+  if (index !== -1) {
+    HiraganaList[index].Validation = newValidation.toString();
+    HiraganaList[index].Tentatives = (parseInt(HiraganaList[index].Tentatives || 0, 10) + 1);
+    HiraganaList[index].Réussites = (parseInt(HiraganaList[index].Réussites || 0, 10) + score);
+    validationCache[itemId] = newValidation;
   }
-  const questionDiv = document.getElementById("question");
-  const resultDiv = document.getElementById("result");
-  const container = document.querySelector('.quiz-container');
-  
-  // === POSITIONNER #result exactement sur la question ===
-  const questionRect = questionDiv.getBoundingClientRect();
-  const containerRect = container.getBoundingClientRect();
-  
-  resultDiv.style.position = "absolute";
-  resultDiv.style.top = (questionRect.top - containerRect.top) + "px";
-  resultDiv.style.left = "0";
-  resultDiv.style.right = "0";
-  resultDiv.style.height = questionRect.height + "px";
-  resultDiv.style.zIndex = "10";
-  
-  // === Masquer la question avec visibility au lieu d'opacity ===
-  if (questionDiv) {
-    questionDiv.style.visibility = "hidden"; // ✅ Utilise visibility
-  }
-  
-  resultDiv.innerHTML = '';
-  resultDiv.className = '';
-  
-  // Ajouter l'animation avec un petit délai
-  setTimeout(() => {
-    resultDiv.className = 'anim-combo';
-    resultDiv.innerHTML = `
-      <div class="result-line">
-        <div class="result-text">${resultText}</div>
+
+  // Feedback succès / échec
+  if (score === 1) {
+    const emojisOK = ["🦋","🐸","🌵","🌴","🍏","🍀","🌳","🌿","🌱","👻","😸","😽","🌈","🐻","🐌","🌞","✅","🧠","🐶","🐵"];
+    const emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
+    const text = isFinalValidation ? t('msg_validated') : t('msg_perfect');
+    
+    if (!isFinalValidation) playTwinkle();
+    
+    const questionDiv = document.getElementById("question");
+    const resultDiv = document.getElementById("result");
+    const container = document.querySelector('.quiz-container');
+    
+    const questionRect = questionDiv.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    resultDiv.style.position = "absolute";
+    resultDiv.style.top = (questionRect.top - containerRect.top) + "px";
+    resultDiv.style.left = "0"; resultDiv.style.right = "0";
+    resultDiv.style.height = questionRect.height + "px";
+    resultDiv.style.zIndex = "10";
+    questionDiv.style.visibility = "hidden";
+
+    setTimeout(() => {
+      resultDiv.className = 'anim-combo';
+      resultDiv.innerHTML = `<div class="result-line">
+        <div class="result-text">${text}</div>
         <div class="result-emoji">${emoji}</div>
-      </div>
-    `;
-    resultDiv.style.opacity = "1"; 
-      // ✅ AJOUTER CETTE LIGNE
-  safeConvertEmojis(resultDiv);
-    setTimeout(() => createSparkles(), 100);
-  }, 10);
+      </div>`;
+      safeConvertEmojis(resultDiv);
+      setTimeout(createSparkles, 100);
+    }, 10);
 
-  // === Fin de l'animation ===
-  const animationDuration = 1800;
-  setTimeout(() => {
-    if (questionDiv) {
-      questionDiv.style.visibility = "visible"; // ✅ Réaffiche avec visibility
-    }
-    resultDiv.style.opacity = "0";
     setTimeout(() => {
-      resultDiv.innerHTML = "";
-      resultDiv.style.position = "";
-      resultDiv.style.top = "";
-      resultDiv.style.left = "";
-      resultDiv.style.right = "";
-      resultDiv.style.height = "";
-      resultDiv.style.zIndex = "";
-    }, 500);
-  }, animationDuration);
-} else {
-  playSoftError();
-  
-  // ✅ PAS D'ANIMATION POUR LES ÉCHECS - juste vider le résultat
-  const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = '';
-  resultDiv.className = '';
-}
-
-    if (current && current.Hiragana && voiceEnabled) { // ✅ AJOUT voiceEnabled
-  const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
-  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-  console.log("🎧 Lecture du son :", audioUrl);
-  const audio = new Audio(audioUrl);
-  audio.play().catch(e => console.warn("Erreur audio :", e));
-} else {
-      console.warn("❗ Aucun Hiragana à prononcer.");
-    }
-
-const previousNiveau = niveauActif;
-const calculatedNiveau = determineNiveauActif(HiraganaList);
-
-// ✅ Détecter le level up LOCAL (avant API)
-const hasLeveledUp = calculatedNiveau > previousNiveau;
-const targetLevel = calculatedNiveau;
-
-niveauActif = calculatedNiveau;
-    document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
-    updateLevelProgress(HiraganaList, niveauActif);
-    renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-    renderHiraganaCards(HiraganaList, niveauActif);
-    updateMenuButtonStates();
-
-    // Si level up local, déclencher l'animation
-    if (niveauActif > previousNiveau) {
-      triggerLevelUpAnimation(document.body);
-    }
-
-    queueUpdateStats({
-  token: userToken,
-  id: currentItemId,
-  scorePoints: score,
-  isRevisionMode: revisionMode.isActive,
-  previousLevel: previousNiveau, // ✅ Passer l'ancien niveau
-  hasLeveledUp: hasLeveledUp,    // ✅ Indiquer si level up
-  targetLevel: targetLevel        // ✅ Le niveau cible
-});
-  // ✅ NOUVEAU : Rafraîchir les stats si la page est ouverte
-  if (document.getElementById('stats').classList.contains('active')) {
-    setTimeout(() => {
-      generateStatsPage();
-    }, 100);
+      questionDiv.style.visibility = "visible";
+      resultDiv.style.opacity = "0";
+      setTimeout(() => { resultDiv.innerHTML = ""; resultDiv.style = ""; }, 500);
+    }, 1800);
+  } else {
+    playSoftError();
   }
-    if (!revisionMode.isActive) {
-      if (score === 1) {
-        setTimeout(() => {
-          nextQuestion();
-        }, niveauActif > previousNiveau ? 4000 : 1500); // Attendre plus longtemps si level up
-      } else {
-        document.getElementById("continueBtn").style.visibility = "visible";
-      }
+
+  // Son hiragana
+  if (current.Hiragana && voiceEnabled) {
+    const audio = new Audio(`https://emmanuel971-source.github.io/hirakataquizz/${encodeURIComponent(current.Hiragana)}.mp3`);
+    audio.play().catch(() => {});
+  }
+
+  // Mise à jour niveau et UI
+  const previousNiveau = niveauActif;
+  niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  renderHiraganaCards(HiraganaList, niveauActif);
+  updateMenuButtonStates();
+
+  if (niveauActif > previousNiveau) {
+    triggerLevelUpAnimation(document.body);
+  }
+
+  // Envoi stats
+  queueUpdateStats({
+    token: userToken,
+    id: itemId,
+    scorePoints: score,
+    isRevisionMode: revisionMode.isActive,
+    previousLevel: previousNiveau,
+    hasLeveledUp: niveauActif > previousNiveau,
+    targetLevel: niveauActif
+  });
+
+  // Rafraîchissement stats page si ouverte
+  if (document.getElementById('stats')?.classList.contains('active')) {
+    setTimeout(generateStatsPage, 100);
+  }
+
+  // Suite
+  if (!revisionMode.isActive) {
+    if (score === 1) {
+      setTimeout(nextQuestion, niveauActif > previousNiveau ? 4000 : 1500);
     } else {
       document.getElementById("continueBtn").style.visibility = "visible";
     }
+  } else {
+    document.getElementById("continueBtn").style.visibility = "visible";
   }
 }
+
 function resetGameContext() {
-  // ✅ Réinitialiser les variables de contexte
   current = {};
   selections = { first: null, second: null };
   isAnswered = false;
   previousCharacter = null;
-  
-  // ✅ Vider les choix affichés
-  const choices1 = document.getElementById("choices1");
-  const choices2 = document.getElementById("choices2");
-  if (choices1) choices1.innerHTML = "";
-  if (choices2) choices2.innerHTML = "";
-  
-  // ✅ Vider le résultat
+
+  ["choices1", "choices2"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = "";
+  });
+
   const result = document.getElementById("result");
   if (result) result.innerText = "";
-  
-  // ✅ Masquer le bouton continuer
+
   const continueBtn = document.getElementById("continueBtn");
   if (continueBtn) continueBtn.style.visibility = "hidden";
-  
-  console.log('🔄 Contexte du jeu réinitialisé');
-} 
-
-
+}
 // ============================================================================
 // 🔄 SECTION 8 : MODE RÉVISION
 // ============================================================================
@@ -8075,3 +7932,4 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
