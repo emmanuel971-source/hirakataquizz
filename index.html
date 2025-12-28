@@ -3848,7 +3848,7 @@ async function loadUserProgress() {
     updateAccountDisplay();
     
     console.log('✅ loadUserProgress terminé');
-    
+    initClientTruth(userStats.stats, currentUser.niveau_atteint);
   } else {
     console.error('⚠️ Erreur chargement stats user:', userStats.error);
     niveauActif = 1;
@@ -7459,7 +7459,6 @@ renderProgressBar(niveauActif, totalLevels);
     // PHASE 4 : CHARGEMENT BACKGROUND (80-100%)
     // ==========================================
     gameDataLoaded = true;
-    initClientTruth(userStats.stats, currentUser.niveau_atteint);
     updateLoadingProgress(90, "Finalisation...");
     
     // Afficher le panda et masquer la barre
@@ -7860,6 +7859,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
