@@ -4174,6 +4174,44 @@ function calculateClientNiveauAtteint(statsJson) {
 
   return maxLevel;
 }
+function rebuildClientTruthFromHiraganaList() {
+  if (!Array.isArray(HiraganaList) || HiraganaList.length === 0) {
+    console.warn('[CLIENT TRUTH REBUILD] HiraganaList invalide');
+    return;
+  }
+
+  const rebuiltStats = {};
+
+  HiraganaList.forEach(item => {
+    const id = item.ID.toString();
+
+    rebuiltStats[id] = {
+      tentatives: parseInt(item.Tentatives || 0),
+      reussites: parseFloat(item['Réussites'] || 0),
+      validation: parseInt(item.Validation || 0)
+    };
+  });
+
+  clientTruth.stats_json = rebuiltStats;
+  clientTruth.niveau_atteint = calculateClientNiveauAtteint(rebuiltStats);
+
+  try {
+    localStorage.setItem(
+      getClientTruthStorageKey(),
+      JSON.stringify(clientTruth)
+    );
+  } catch (e) {
+    console.warn('[CLIENT TRUTH REBUILD] localStorage failed', e);
+  }
+
+  console.log(
+    '[CLIENT TRUTH REBUILT]',
+    Object.keys(clientTruth.stats_json).length,
+    'items',
+    'niveau_atteint:',
+    clientTruth.niveau_atteint
+  );
+}
 
   
 //-------------------------------------------------------------------------------------------------------
@@ -4209,7 +4247,7 @@ async function callAPI(action, data = null) {
 
 
 async function queueUpdateStats(params) {
-  updateClientTruthOnAnswer(params);
+  //updateClientTruthOnAnswer(params);
 
   pendingUpdates.push(params);
   
@@ -4221,6 +4259,8 @@ async function queueUpdateStats(params) {
   if (!isProcessing) {
     processUpdates();
   }
+  rebuildClientTruthFromHiraganaList();
+
 }
 
 async function processUpdates() {
@@ -7957,6 +7997,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
