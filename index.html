@@ -4048,6 +4048,13 @@ let isProcessing = false;
 // ===============================
 // CLIENT TRUTH (source client)
 // ===============================
+function getClientTruthStorageKey() {
+  if (!userToken) {
+    console.warn('[CLIENT TRUTH] No userToken, fallback key used');
+    return 'client_truth_unknown';
+  }
+  return `client_truth_${userToken}`;
+}
 
 let clientTruth = {
   stats_json: {},
@@ -4057,31 +4064,32 @@ let clientTruth = {
 function initClientTruth(serverStatsJson, serverNiveauAtteint) {
   console.log('[INIT CLIENT TRUTH] start');
 
-  try {
-    const saved = localStorage.getItem('client_truth');
+  const storageKey = getClientTruthStorageKey();
 
+  try {
+    const saved = localStorage.getItem(storageKey);
     if (saved) {
       clientTruth = JSON.parse(saved);
-      console.log('[INIT CLIENT TRUTH] restored from localStorage', clientTruth);
+      console.log('[INIT CLIENT TRUTH] restored from localStorage', storageKey, clientTruth);
       return;
     }
   } catch (e) {
     console.warn('[INIT CLIENT TRUTH] localStorage restore failed', e);
   }
 
-  // Fallback obligatoire : données serveur de la session
+  // Fallback obligatoire : données serveur
   clientTruth = {
     stats_json: serverStatsJson || {},
     niveau_atteint: serverNiveauAtteint || 1
   };
 
   try {
-    localStorage.setItem('client_truth', JSON.stringify(clientTruth));
+    localStorage.setItem(storageKey, JSON.stringify(clientTruth));
   } catch (e) {}
 
-  console.log('[INIT CLIENT TRUTH] initialized from server data', clientTruth);
+  console.log('[INIT CLIENT TRUTH] initialized from server data', storageKey, clientTruth);
 }
-  
+
 // --- Fonctions API ---
 async function callAPI(action, data = null) {
   try {
@@ -7860,6 +7868,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
