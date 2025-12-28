@@ -4572,380 +4572,546 @@ function sadSoundFlashcard() {
 loadSoundSettings();
 updateSoundUI();
 
-
 // ============================================================================
-// 📈 SECTION 6 : PROGRESSION & NIVEAUX
+// 📈 SECTION 6 : PROGRESSION & NIVEAUX - VERSION REFACTORISÉE
 // ============================================================================
 
-// --- Variables progression ---
-let hasShownBlockedMenu = false;
-let hasShownUnblockedMenu = false;
-let hasShownLevel4Menu = false;
-let hasShownLevel5Garden = false;
-
-// --- Fonctions progression ---
-function determineNiveauActif(list) {
-  if (!list || list.length === 0) return 1;
-  let maxNiveau = Math.max(...list.map(k => parseInt(k.Niveau) || 1));
-
-  // ✅ NOUVEAU : Calculer le niveau actif SANS tenir compte du blocage
-  for (let n = 1; n <= maxNiveau; n++) {
-    const kanjisNiveau = list.filter(k => parseInt(k.Niveau) === n);
-    const kanjisValides = kanjisNiveau.filter(k => parseInt(k.Validation) >= 5); // ✅ Seuil fixe à 5
-    
-    if (kanjisValides.length < kanjisNiveau.length) {
-      console.log(`📍 Niveau actif déterminé: ${n} (${kanjisValides.length}/${kanjisNiveau.length} items validés à >=5)`);
-      return n;
-    }
+// --- CLASSE UTILITAIRE POUR FILTRAGE (remplace lignes répétitives) ---
+class ItemFilters {
+  static byLevel(list, niveau) {
+    return list.filter(item => parseInt(item.Niveau) === niveau);
   }
   
-  console.log(`📍 Tous les niveaux sont complétés, niveau actif = ${maxNiveau}`);
-  return maxNiveau;
-}
-function getNiveauGroupe(niveau) {
-  for (const [groupeId, groupe] of Object.entries(GROUPES)) {
-    if (groupe.niveaux.includes(niveau)) {
-      return parseInt(groupeId);
-    }
+  static byValidation(list, threshold) {
+    return list.filter(item => parseInt(item.Validation || 0) >= threshold);
   }
-  return 1;
-}
-function isGroupeDebloque(groupeId) {
-  if (groupeId <= 2) return true; // Groupes 1 et 2 toujours débloqués
   
-  // Vérifier TOUS les groupes précédents (1 à groupeId-1)
-  for (let g = 1; g < groupeId; g++) {
-    const niveauxGroupe = GROUPES[g].niveaux;
+  static byLevelAndValidation(list, niveau, threshold) {
+    return this.byValidation(this.byLevel(list, niveau), threshold);
+  }
+}
+
+// --- CLASSE CALCULATEUR DE NIVEAU (remplace determineNiveauActif + getters) ---
+class NiveauCalculator {
+  constructor(list, seuilValidation = 5) {
+    this.list = list;
+    this.seuil = seuilValidation;
+    this._statsCache = new Map();
+  }
+
+  getMaxNiveau() {
+    if (!this.list || this.list.length === 0) return 1;
+    return Math.max(...this.list.map(k => parseInt(k.Niveau) || 1));
+  }
+
+  getNiveauActif() {
+    if (!this.list || this.list.length === 0) return 1;
+    const maxNiveau = this.getMaxNiveau();
     
-    for (const niveau of niveauxGroupe) {
-      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-      const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= seuilValidation);
+    for (let n = 1; n <= maxNiveau; n++) {
+      const kanjisNiveau = ItemFilters.byLevel(this.list, n);
+      const kanjisValides = ItemFilters.byValidation(kanjisNiveau, this.seuil);
       
-      if (itemsValides.length < itemsNiveau.length) {
-        return false;
+      if (kanjisValides.length < kanjisNiveau.length) {
+        console.log(`📍 Niveau actif: ${n} (${kanjisValides.length}/${kanjisNiveau.length} validés)`);
+        return n;
       }
     }
+    
+    console.log(`📍 Tous les niveaux complétés, niveau actif = ${maxNiveau}`);
+    return maxNiveau;
   }
-  return true;
+
+  getStatsForLevel(niveau) {
+    const cacheKey = `level_${niveau}`;
+    if (this._statsCache.has(cacheKey)) {
+      return this._statsCache.get(cacheKey);
+    }
+
+    const items = ItemFilters.byLevel(this.list, niveau);
+    const valides = ItemFilters.byValidation(items, 5); // Toujours 5 pour les cartes
+    
+    const stats = {
+      total: items.length,
+      valides: valides.length
+    };
+    
+    this._statsCache.set(cacheKey, stats);
+    return stats;
+  }
+
+  clearCache() {
+    this._statsCache.clear();
+  }
 }
-function isApprentissageBloque() {
-  const groupeActuel = getNiveauGroupe(niveauActif);
-  // Pour les niveaux ≤ 5 : logique actuelle
-  if (niveauActif <= 5) {
-    return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
+
+// --- CLASSE GESTIONNAIRE DE GROUPES (remplace getNiveauGroupe + isGroupeDebloque) ---
+class GroupeManager {
+  constructor(groupes, seuilValidation) {
+    this.groupes = groupes;
+    this.seuil = seuilValidation;
   }
-  // Pour les niveaux > 5 : bloquer si déficit > 2, débloquer SEULEMENT si déficit = 0
-  else {
-    const deficit = calculerDeficitValidation();
-    // Si actuellement bloqué, ne débloquer que si déficit = 0
+
+  getGroupeForNiveau(niveau) {
+    for (const [groupeId, groupe] of Object.entries(this.groupes)) {
+      if (groupe.niveaux.includes(niveau)) {
+        return parseInt(groupeId);
+      }
+    }
+    return 1;
+  }
+
+  isGroupeDebloque(groupeId, list) {
+    if (groupeId <= 2) return true;
+    
+    // Vérifier tous les groupes précédents
+    for (let g = 1; g < groupeId; g++) {
+      const niveauxGroupe = this.groupes[g].niveaux;
+      
+      for (const niveau of niveauxGroupe) {
+        const itemsNiveau = ItemFilters.byLevel(list, niveau);
+        const itemsValides = ItemFilters.byValidation(itemsNiveau, this.seuil);
+        
+        if (itemsValides.length < itemsNiveau.length) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  calculateDeficitForGroupe(groupeId, list) {
+    if (groupeId < 3) return 0;
+    
+    let deficitTotal = 0;
+    
+    for (let g = 1; g < groupeId; g++) {
+      const niveauxGroupe = this.groupes[g].niveaux;
+      
+      for (const niveau of niveauxGroupe) {
+        const itemsNiveau = ItemFilters.byLevel(list, niveau);
+        for (const item of itemsNiveau) {
+          const validation = parseInt(item.Validation || 0);
+          if (validation < this.seuil) {
+            deficitTotal += (this.seuil - validation);
+          }
+        }
+      }
+    }
+    
+    return deficitTotal;
+  }
+
+  calculateMaxDeficitForGroupe(groupeId, list) {
+    if (groupeId < 3) return 0;
+    
+    let totalItems = 0;
+    
+    for (let g = 1; g < groupeId; g++) {
+      const niveauxGroupe = this.groupes[g].niveaux;
+      
+      for (const niveau of niveauxGroupe) {
+        totalItems += ItemFilters.byLevel(list, niveau).length;
+      }
+    }
+    
+    return totalItems * (this.seuil - 5);
+  }
+}
+
+// --- CLASSE GESTIONNAIRE DE BLOCAGE (remplace isApprentissageBloque + calculerDeficit) ---
+class BlockageManager {
+  constructor(groupeManager) {
+    this.groupeManager = groupeManager;
+    this.deficitThreshold = 2;
+  }
+
+  isBlocked(niveauActif, list) {
+    const groupeActuel = this.groupeManager.getGroupeForNiveau(niveauActif);
+    
+    if (niveauActif <= 5) {
+      return groupeActuel >= 3 && !this.groupeManager.isGroupeDebloque(groupeActuel, list);
+    } else {
+      return this._checkDeficitBlocking(groupeActuel, list);
+    }
+  }
+
+  _checkDeficitBlocking(groupeActuel, list) {
+    const deficit = this.groupeManager.calculateDeficitForGroupe(groupeActuel, list);
     const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
     
     if (wasBlocked) {
-      // Déjà bloqué : on ne débloque QUE si déficit = 0
       const shouldUnblock = deficit === 0;
       if (shouldUnblock) {
         localStorage.setItem('apprentissageBloque', 'false');
       }
       return !shouldUnblock;
     } else {
-      // Pas encore bloqué : on bloque si déficit > 2
-      const shouldBlock = deficit > 2;
+      const shouldBlock = deficit > this.deficitThreshold;
       if (shouldBlock) {
         localStorage.setItem('apprentissageBloque', 'true');
       }
       return shouldBlock;
     }
   }
+
+  getDeficit(niveauActif, list) {
+    const groupeActuel = this.groupeManager.getGroupeForNiveau(niveauActif);
+    return this.groupeManager.calculateDeficitForGroupe(groupeActuel, list);
+  }
+
+  getMaxDeficit(niveauActif, list) {
+    const groupeActuel = this.groupeManager.getGroupeForNiveau(niveauActif);
+    return this.groupeManager.calculateMaxDeficitForGroupe(groupeActuel, list);
+  }
 }
+
+// --- Variables globales (conservées pour compatibilité) ---
+let hasShownBlockedMenu = false;
+let hasShownUnblockedMenu = false;
+let hasShownLevel4Menu = false;
+let hasShownLevel5Garden = false;
+
+// --- INSTANCES GLOBALES (à initialiser au démarrage) ---
+let niveauCalculator;
+let groupeManager;
+let blockageManager;
+
+// --- FONCTION D'INITIALISATION (à appeler au démarrage de l'app) ---
+function initProgressionManagers() {
+  niveauCalculator = new NiveauCalculator(HiraganaList, seuilValidation);
+  groupeManager = new GroupeManager(GROUPES, seuilValidation);
+  blockageManager = new BlockageManager(groupeManager);
+  console.log('✅ Gestionnaires de progression initialisés');
+}
+
+// --- FONCTIONS COMPATIBLES (remplacent les anciennes) ---
+function determineNiveauActif(list) {
+  return niveauCalculator.getNiveauActif();
+}
+
+function getNiveauGroupe(niveau) {
+  return groupeManager.getGroupeForNiveau(niveau);
+}
+
+function isGroupeDebloque(groupeId) {
+  return groupeManager.isGroupeDebloque(groupeId, HiraganaList);
+}
+
+function isApprentissageBloque() {
+  return blockageManager.isBlocked(niveauActif, HiraganaList);
+}
+
 function calculerDeficitValidation() {
-  const groupeActuel = getNiveauGroupe(niveauActif);
-  if (groupeActuel < 3) return 0; // Pas de blocage avant le groupe 3
-  
-  let deficitTotal = 0;
-  
-  // Parcourir TOUS les groupes précédents (1 à groupeActuel-1)
-  for (let g = 1; g < groupeActuel; g++) {
-    const niveauxGroupe = GROUPES[g].niveaux;
-    
-    for (const niveau of niveauxGroupe) {
-      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-      for (const item of itemsNiveau) {
-        const validation = parseInt(item.Validation || 0);
-        if (validation < seuilValidation) {
-  deficitTotal += (seuilValidation - validation);
-        }
-      }
-    }
-  }
-  
-  return deficitTotal;
+  return blockageManager.getDeficit(niveauActif, HiraganaList);
 }
+
 function calculerDeficitMaximum() {
-  const groupeActuel = getNiveauGroupe(niveauActif);
-  if (groupeActuel < 3) return 0;
-  
-  let totalItems = 0;
-  
-  // Parcourir TOUS les groupes précédents (1 à groupeActuel-1)
-  for (let g = 1; g < groupeActuel; g++) {
-    const niveauxGroupe = GROUPES[g].niveaux;
-    
-    for (const niveau of niveauxGroupe) {
-      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
-      totalItems += itemsNiveau.length;
-    }
-  }
-  
-  return totalItems * (seuilValidation - 5); // Déficit max = passage de 5 au seuil
+  return blockageManager.getMaxDeficit(niveauActif, HiraganaList);
 }
+
 function getMaxLevel(list) {
-if (!list || list.length === 0) return 1;
-return Math.max(...list.map(k => parseInt(k.Niveau) || 1));
+  if (!list || list.length === 0) return 1;
+  return Math.max(...list.map(k => parseInt(k.Niveau) || 1));
 }
+
 function getItemCountForLevel(level) {
- return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Niveau) >= level).length;
-  
+  return ItemFilters.byLevel(HiraganaList, level).length;
 }
+
 function getValidatedCountForLevel(level) {
-return HiraganaList.filter(h => parseInt(h.Niveau) === level && parseInt(h.Validation) >= 5).length;
+  return niveauCalculator.getStatsForLevel(level).valides;
 }
 
-// --- Fonctions UI progression ---
+// --- Fonctions UI progression (INCHANGÉES) ---
 function updateLevelProgress(list, niveau) {
-renderHiraganaCards(list, niveau);
+  renderHiraganaCards(list, niveau);
 }
+
 function renderProgressBar(currentLevel, maxLevel) {
-const container = document.getElementById("progressBarContainer");
-if (!container) return;
+  const container = document.getElementById("progressBarContainer");
+  if (!container) return;
 
-container.innerHTML = "";
+  container.innerHTML = "";
 
-const leftEmoji = document.createElement("span");
-leftEmoji.textContent = "🌱";
-leftEmoji.className = "side-emoji";
+  const leftEmoji = document.createElement("span");
+  leftEmoji.textContent = "🌱";
+  leftEmoji.className = "side-emoji";
 
-const rightEmoji = document.createElement("span");
-rightEmoji.textContent = "🌳";
-rightEmoji.className = "side-emoji";
+  const rightEmoji = document.createElement("span");
+  rightEmoji.textContent = "🌳";
+  rightEmoji.className = "side-emoji";
 
-const barTrack = document.createElement("div");
-barTrack.className = "progress-bar-track";
+  const barTrack = document.createElement("div");
+  barTrack.className = "progress-bar-track";
 
-const marker = document.createElement("div");
-marker.className = "progress-marker";
-marker.innerText = "🐼";  /*  🐼 🐱💩🤡🐶🐯🐱 */
+  const marker = document.createElement("div");
+  marker.className = "progress-marker";
+  marker.innerText = "🐼";
 
   const pct = maxLevel > 1 ? ((currentLevel - 1) / (maxLevel - 1)) * 100 : 0;
   marker.style.left = `${Math.min(100, Math.max(0, pct))}%`;
 
-barTrack.appendChild(marker);
-safeConvertEmojis(marker);
-container.appendChild(leftEmoji);
-container.appendChild(barTrack);
-container.appendChild(rightEmoji);
-  // ✅ AJOUTER CETTE LIGNE
+  barTrack.appendChild(marker);
+  safeConvertEmojis(marker);
+  container.appendChild(leftEmoji);
+  container.appendChild(barTrack);
+  container.appendChild(rightEmoji);
   safeConvertEmojis(container);  
 }
+
 function renderHiraganaCards(list, niveau) {
-const container = document.getElementById("hiraganaCards");
-if (!container) return;
-const hiraganas = list.filter(h => parseInt(h.Niveau) === niveau);
-container.innerHTML = "";
-hiraganas.forEach(hiragana => {
-const validation = parseInt(hiragana.Validation || 0);
-const isCompleted = validation >= 5;
-const card = document.createElement("div");
-card.className = `hiragana-card ${isCompleted ? 'completed' : ''}`;
-card.innerHTML = `
-<div class="hiragana-char">${hiragana.Hiragana}</div>
-<div class="stars-container">
-${Array.from({length: 5}, (_, i) =>
-`<div class="star ${i < validation ? 'filled' : ''}"></div>`
-).join('')}
-</div>
-`;
-container.appendChild(card);
-previousValidationStates.set(parseInt(hiragana.ID), validation);
-});
+  const container = document.getElementById("hiraganaCards");
+  if (!container) return;
+  const hiraganas = ItemFilters.byLevel(list, niveau); // ✅ Utilise la classe
+  container.innerHTML = "";
+  hiraganas.forEach(hiragana => {
+    const validation = parseInt(hiragana.Validation || 0);
+    const isCompleted = validation >= 5;
+    const card = document.createElement("div");
+    card.className = `hiragana-card ${isCompleted ? 'completed' : ''}`;
+    card.innerHTML = `
+      <div class="hiragana-char">${hiragana.Hiragana}</div>
+      <div class="stars-container">
+        ${Array.from({length: 5}, (_, i) =>
+          `<div class="star ${i < validation ? 'filled' : ''}"></div>`
+        ).join('')}
+      </div>
+    `;
+    container.appendChild(card);
+    previousValidationStates.set(parseInt(hiragana.ID), validation);
+  });
 }
+
 function updateStarsForHiragana(hiraganaId, newValidation) {
-const cards = document.querySelectorAll('.hiragana-card');
-cards.forEach(card => {
-const hiraganaChar = card.querySelector('.hiragana-char').textContent;
-const hiragana = HiraganaList.find(h => h.Hiragana === hiraganaChar && h.ID == hiraganaId);
-if (hiragana) {
-const stars = card.querySelectorAll('.star');
-const previousValidation = previousValidationStates.get(hiraganaId) || 0;
+  const cards = document.querySelectorAll('.hiragana-card');
+  cards.forEach(card => {
+    const hiraganaChar = card.querySelector('.hiragana-char').textContent;
+    const hiragana = HiraganaList.find(h => h.Hiragana === hiraganaChar && h.ID == hiraganaId);
+    if (hiragana) {
+      const stars = card.querySelectorAll('.star');
+      const previousValidation = previousValidationStates.get(hiraganaId) || 0;
 
-stars.forEach((star, index) => {
-if (index < newValidation && !star.classList.contains('filled')) {
-star.classList.add('filled', 'new-star');
-setTimeout(() => star.classList.remove('new-star'), 500);
-} else if (index < newValidation) {
-star.classList.add('filled');
-} else {
-star.classList.remove('filled', 'new-star');
-}
-});
+      stars.forEach((star, index) => {
+        if (index < newValidation && !star.classList.contains('filled')) {
+          star.classList.add('filled', 'new-star');
+          setTimeout(() => star.classList.remove('new-star'), 500);
+        } else if (index < newValidation) {
+          star.classList.add('filled');
+        } else {
+          star.classList.remove('filled', 'new-star');
+        }
+      });
 
-if (newValidation >= 5 && previousValidation < 5) {
-  console.log('🎇 DEVRAIT DÉCLENCHER FIREWORK:', { 
-    hiraganaId, 
-    newValidation, 
-    previousValidation,
-    isMobile,
-    card 
-  });  
-if (isMobile) {
-triggerLightFirework(card);
-} else {
-triggerAdvancedFirework(card);
-}
-}
+      if (newValidation >= 5 && previousValidation < 5) {
+        console.log('🎇 Déclenche firework:', { 
+          hiraganaId, 
+          newValidation, 
+          previousValidation,
+          isMobile,
+          card 
+        });  
+        if (isMobile) {
+          triggerLightFirework(card);
+        } else {
+          triggerAdvancedFirework(card);
+        }
+      }
 
-if (newValidation >= 5) {
-card.classList.add('completed');
-} else {
-card.classList.remove('completed');
-}
+      if (newValidation >= 5) {
+        card.classList.add('completed');
+      } else {
+        card.classList.remove('completed');
+      }
 
-previousValidationStates.set(hiraganaId, newValidation);
-}
-});
+      previousValidationStates.set(hiraganaId, newValidation);
+    }
+  });
 }
 
 
 // ============================================================================
-// 🎮 SECTION 7 : MODE QUIZ (APPRENTISSAGE)
+// 🎮 SECTION 7 : MODE QUIZ (APPRENTISSAGE) - VERSION REFACTORISÉE
 // ============================================================================
 
-// --- Variables quiz ---
+// --- Variables quiz (INCHANGÉES) ---
 let current = {};
 let selections = { first: null, second: null };
 let targetFields = [];
 let isAnswered = false;
 let previousCharacter = null;
 
-// --- Fonctions quiz ---
+// --- CLASSE GESTIONNAIRE DE QUIZ ---
+class QuizManager {
+  constructor(list, calculator) {
+    this.list = list;
+    this.calculator = calculator;
+  }
+
+  getAvailableKanas(niveau) {
+    const kanas = this.list.filter(k =>
+      parseInt(k.Niveau) === niveau && parseInt(k.Validation || 0) < 5
+    );
+
+    if (kanas.length === 0) {
+      return this.list.filter(k => parseInt(k.Niveau) === niveau);
+    }
+
+    return kanas;
+  }
+
+  selectWeightedKana(kanas, previousChar) {
+    const weights = kanas.map(k => {
+      const validation = parseInt(k.Validation || 0);
+      return Math.max(0.1, 5 - validation + 0.5);
+    });
+
+    let selected;
+    do {
+      const sum = weights.reduce((a, b) => a + b, 0);
+      const rand = Math.random() * sum;
+      let acc = 0;
+      for (let i = 0; i < kanas.length; i++) {
+        acc += weights[i];
+        if (rand < acc) {
+          selected = kanas[i];
+          break;
+        }
+      }
+    } while (selected === previousChar && kanas.length > 1);
+
+    return selected;
+  }
+
+  updateItemValidation(itemId, score) {
+    const index = this.list.findIndex(h => h.ID == itemId);
+    if (index === -1) return null;
+
+    const currentValidation = parseInt(this.list[index].Validation || 0);
+    let newValidation = currentValidation;
+
+    if (score === 1) {
+      newValidation = Math.min(5, currentValidation + 1);
+    } else if (score === 0.5) {
+      newValidation = Math.max(0, currentValidation - 1);
+    } else {
+      newValidation = Math.max(0, currentValidation - 2);
+    }
+
+    this.list[index].Validation = newValidation.toString();
+    this.list[index].Tentatives = (this.list[index].Tentatives || 0) + 1;
+    this.list[index]['Réussites'] = (this.list[index]['Réussites'] || 0) + score;
+    validationCache[itemId] = newValidation;
+
+    // Invalider le cache du calculateur
+    this.calculator.clearCache();
+
+    console.log(`🔄 Item ${itemId} mis à jour: ${currentValidation} → ${newValidation}`);
+
+    return {
+      previous: currentValidation,
+      current: newValidation,
+      isFinalValidation: score === 1 && currentValidation < 5 && newValidation >= 5
+    };
+  }
+}
+
+// --- Instance globale ---
+let quizManager;
+
+// --- Fonction d'initialisation ---
+function initQuizManager() {
+  quizManager = new QuizManager(HiraganaList, niveauCalculator);
+  console.log('✅ Gestionnaire de quiz initialisé');
+}
+
+// --- Fonctions quiz (REFACTORISÉES) ---
 function nextQuestion() {
   console.log('📞 nextQuestion() appelée');
-document.getElementById("result").innerText = "";
-document.getElementById("continueBtn").style.visibility = "hidden";
-selections = { first: null, second: null };
-isAnswered = false;
+  document.getElementById("result").innerText = "";
+  document.getElementById("continueBtn").style.visibility = "hidden";
+  selections = { first: null, second: null };
+  isAnswered = false;
 
-const kanas = HiraganaList.filter(k =>
-parseInt(k.Niveau) === niveauActif && parseInt(k.Validation || 0) < 5
-);
+  const kanas = quizManager.getAvailableKanas(niveauActif);
 
-if (kanas.length === 0) {
-const nouveauNiveau = determineNiveauActif(HiraganaList);
-if (nouveauNiveau !== niveauActif) {
-  console.log('🔍 DEBUT CHANGEMENT NIVEAU');
-  console.log('Ancien niveau:', niveauActif);
-  console.log('Nouveau niveau:', nouveauNiveau);
-  
-  const ancienGroupe = getNiveauGroupe(niveauActif);
-  const nouveauGroupe = getNiveauGroupe(nouveauNiveau);  
-  niveauActif = nouveauNiveau;  
-  
-  console.log('🔍 hasShownLevel4Menu =', hasShownLevel4Menu);
-  console.log('🔍 Test condition niveau 4:', niveauActif === 4, '&&', !hasShownLevel4Menu);
-  
-  localStorage.setItem('unlockedLevel', currentLevel + 1);  
-  document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
-  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  updateLevelProgress(HiraganaList, niveauActif);
-  updateRevisionButtonState();  
-  updateApprendreButtonState();
- 
- 
+  if (kanas.length === 0) {
+    const nouveauNiveau = determineNiveauActif(HiraganaList);
+    if (nouveauNiveau !== niveauActif) {
+      console.log('🔍 Changement de niveau:', niveauActif, '→', nouveauNiveau);
+      
+      niveauActif = nouveauNiveau;  
+      localStorage.setItem('unlockedLevel', currentLevel + 1);  
+      document.getElementById("levelDisplay").innerText = `Niveau actuel : ${niveauActif}`;
+      renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+      updateLevelProgress(HiraganaList, niveauActif);
+      updateRevisionButtonState();  
+      updateApprendreButtonState();
 
-nextQuestion();
-return;
+      nextQuestion();
+      return;
+    }
+  }
+
+  // Sélection pondérée du kana
+  current = quizManager.selectWeightedKana(kanas, previousCharacter);
+  previousCharacter = current;
+
+  const modes = [
+    { question: "Hiragana", options1: "Katakana", options2: "Romaji" },
+    { question: "Katakana", options1: "Hiragana", options2: "Romaji" },
+    { question: "Romaji", options1: "Hiragana", options2: "Katakana" }
+  ];
+  const mode = modes[Math.floor(Math.random() * modes.length)];
+  targetFields = [mode.options1, mode.options2];
+
+  document.getElementById("question").innerText = (mode.question === 'Katakana') 
+    ? getLocalizedKatakana(current) 
+    : current[mode.question];
+  renderChoices("choices1", generateChoices(mode.options1), "first");
+  renderChoices("choices2", generateChoices(mode.options2), "second");
 }
-}
 
-const finalKanas = kanas.length > 0 ? kanas : HiraganaList.filter(k => parseInt(k.Niveau) === niveauActif);
-
-const currentWeights = finalKanas.map(k => {
-const validation = parseInt(k.Validation || 0);
-return Math.max(0.1, 5 - validation + 0.5);
-});
-
-let selected;
-do {
-const sum = currentWeights.reduce((a, b) => a + b, 0);
-const rand = Math.random() * sum;
-let acc = 0;
-for (let i = 0; i < finalKanas.length; i++) {
-acc += currentWeights[i];
-if (rand < acc) {
-selected = finalKanas[i];
-break;
-}
-}
-} while (selected === previousCharacter && finalKanas.length > 1); // Repeat if same as previous and more than one option exists
-
-current = selected;
-previousCharacter = current; // Update previous character
-
-const modes = [
-{ question: "Hiragana", options1: "Katakana", options2: "Romaji" },
-{ question: "Katakana", options1: "Hiragana", options2: "Romaji" },
-{ question: "Romaji", options1: "Hiragana", options2: "Katakana" }
-];
-const mode = modes[Math.floor(Math.random() * modes.length)];
-targetFields = [mode.options1, mode.options2];
-
-document.getElementById("question").innerText = (mode.question === 'Katakana') 
-  ? getLocalizedKatakana(current) 
-  : current[mode.question];
-renderChoices("choices1", generateChoices(mode.options1), "first");
-renderChoices("choices2", generateChoices(mode.options2), "second");
-previousCharacter = current; // Met à jour après avoir défini current  
-}
 function generateChoices(field) {
-const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau) === niveauActif);
-    // ✅ NOUVEAU : Gérer les Katakana localisés
+  const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau) === niveauActif);
+  
   const getValue = (item, fieldName) => {
     if (fieldName === 'Katakana') {
       return getLocalizedKatakana(item);
     }
     return item[fieldName];
   };
-const values = [
-  getValue(current, field), 
-  ...others.sort(() => 0.5 - Math.random()).slice(0, 3).map(k => getValue(k, field))
-];
-return values.sort(() => 0.5 - Math.random());
+
+  const values = [
+    getValue(current, field), 
+    ...others.sort(() => 0.5 - Math.random()).slice(0, 3).map(k => getValue(k, field))
+  ];
+  return values.sort(() => 0.5 - Math.random());
 }
 
 function renderChoices(id, options, slot) {
-const container = document.getElementById(id);
-container.innerHTML = "";
-options.forEach(text => {
-const btn = document.createElement("button");
-btn.innerText = text;
-btn.className = "arcade-button";
-btn.onclick = () => {
-if (selections[slot] !== null || isAnswered) return;
-selections[slot] = text;
+  const container = document.getElementById(id);
+  container.innerHTML = "";
+  options.forEach(text => {
+    const btn = document.createElement("button");
+    btn.innerText = text;
+    btn.className = "arcade-button";
+    btn.onclick = () => {
+      if (selections[slot] !== null || isAnswered) return;
+      selections[slot] = text;
 
-// Ajouter l'effet de halo sans le retirer immédiatement
-btn.classList.add("clicked-glow");
+      btn.classList.add("clicked-glow");
 
-// Garder l'effet d'opacité pour les autres boutons
-container.querySelectorAll("button").forEach(b => {
-b.disabled = true;
-if (b === btn) {
-b.classList.add("clicked");
-}
-});
-checkAnswer();
-};
-container.appendChild(btn);
-});
+      container.querySelectorAll("button").forEach(b => {
+        b.disabled = true;
+        if (b === btn) {
+          b.classList.add("clicked");
+        }
+      });
+      checkAnswer();
+    };
+    container.appendChild(btn);
+  });
 }
 
 async function checkAnswer() {
@@ -4991,164 +5157,132 @@ async function checkAnswer() {
       });
     });
 
-    const currentValidation = parseInt(current.Validation || 0);
-    let newValidation = currentValidation;
-    if (score === 1) {
-      newValidation = Math.min(5, currentValidation + 1);
-    } else if (score === 0.5) {
-      newValidation = Math.max(0, currentValidation - 1);
-    } else {
-      newValidation = Math.max(0, currentValidation - 2);
-    }
-    const isFinalValidation = score === 1 && currentValidation < 5 && newValidation >= 5;
-// ✅ AJOUTE CES LOGS ICI
-console.log('🎆 DEBUG ANIMATIONS:', {
-  score: score,
-  currentValidation: currentValidation,
-  newValidation: newValidation,
-  isFinalValidation: isFinalValidation,
-  condition1: score === 1,
-  condition2: currentValidation < 5,
-  condition3: newValidation >= 5,
-  itemId: current.ID
-});
     const currentItemId = parseInt(current.ID);
-    console.log(`📝 Réponse pour item ${currentItemId} (score: ${score})`);
+    const result = quizManager.updateItemValidation(currentItemId, score);
 
-updateStarsForHiragana(currentItemId, newValidation);
+    if (result) {
+      console.log('🎆 DEBUG ANIMATIONS:', {
+        score: score,
+        currentValidation: result.previous,
+        newValidation: result.current,
+        isFinalValidation: result.isFinalValidation,
+        itemId: currentItemId
+      });
 
-
-
-const hiraganaIndex = HiraganaList.findIndex(h => h.ID == currentItemId);
-    if (hiraganaIndex !== -1) {
-      HiraganaList[hiraganaIndex].Validation = newValidation.toString();
-      HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
-      HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + score;
-      validationCache[currentItemId] = newValidation;
-      console.log(`🔄 HiraganaList[${hiraganaIndex}] mis à jour localement:`, HiraganaList[hiraganaIndex]);
+      updateStarsForHiragana(currentItemId, result.current);
     }
 
-let emoji = "", resultText = "";
-if (score === 1) {
-  const emojisOK = ["🦋","🐸","🌵","🌴","🍏","🍀","🌳","🌿","🌱","💩","👻","😸","😽","🌈","🐻","🐌","🌞","✅","🧠","🐶","🐵"];
-  emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-  resultText = isFinalValidation ? t('msg_validated') : t('msg_perfect');
-  if (!isFinalValidation) {
-    playTwinkle();
-  }
-  const questionDiv = document.getElementById("question");
-  const resultDiv = document.getElementById("result");
-  const container = document.querySelector('.quiz-container');
-  
-  // === POSITIONNER #result exactement sur la question ===
-  const questionRect = questionDiv.getBoundingClientRect();
-  const containerRect = container.getBoundingClientRect();
-  
-  resultDiv.style.position = "absolute";
-  resultDiv.style.top = (questionRect.top - containerRect.top) + "px";
-  resultDiv.style.left = "0";
-  resultDiv.style.right = "0";
-  resultDiv.style.height = questionRect.height + "px";
-  resultDiv.style.zIndex = "10";
-  
-  // === Masquer la question avec visibility au lieu d'opacity ===
-  if (questionDiv) {
-    questionDiv.style.visibility = "hidden"; // ✅ Utilise visibility
-  }
-  
-  resultDiv.innerHTML = '';
-  resultDiv.className = '';
-  
-  // Ajouter l'animation avec un petit délai
-  setTimeout(() => {
-    resultDiv.className = 'anim-combo';
-    resultDiv.innerHTML = `
-      <div class="result-line">
-        <div class="result-text">${resultText}</div>
-        <div class="result-emoji">${emoji}</div>
-      </div>
-    `;
-    resultDiv.style.opacity = "1"; 
-      // ✅ AJOUTER CETTE LIGNE
-  safeConvertEmojis(resultDiv);
-    setTimeout(() => createSparkles(), 100);
-  }, 10);
+    let emoji = "", resultText = "";
+    if (score === 1) {
+      const emojisOK = ["🦋","🐸","🌵","🌴","🍏","🍀","🌳","🌿","🌱","💩","👻","😸","😽","🌈","🐻","🐌","🌞","✅","🧠","🐶","🐵"];
+      emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
+      resultText = result.isFinalValidation ? t('msg_validated') : t('msg_perfect');
+      if (!result.isFinalValidation) {
+        playTwinkle();
+      }
+      const questionDiv = document.getElementById("question");
+      const resultDiv = document.getElementById("result");
+      const container = document.querySelector('.quiz-container');
+      
+      const questionRect = questionDiv.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      
+      resultDiv.style.position = "absolute";
+      resultDiv.style.top = (questionRect.top - containerRect.top) + "px";
+      resultDiv.style.left = "0";
+      resultDiv.style.right = "0";
+      resultDiv.style.height = questionRect.height + "px";
+      resultDiv.style.zIndex = "10";
+      
+      if (questionDiv) {
+        questionDiv.style.visibility = "hidden";
+      }
+      
+      resultDiv.innerHTML = '';
+      resultDiv.className = '';
+      
+      setTimeout(() => {
+        resultDiv.className = 'anim-combo';
+        resultDiv.innerHTML = `
+          <div class="result-line">
+            <div class="result-text">${resultText}</div>
+            <div class="result-emoji">${emoji}</div>
+          </div>
+        `;
+        resultDiv.style.opacity = "1"; 
+        safeConvertEmojis(resultDiv);
+        setTimeout(() => createSparkles(), 100);
+      }, 10);
 
-  // === Fin de l'animation ===
-  const animationDuration = 1800;
-  setTimeout(() => {
-    if (questionDiv) {
-      questionDiv.style.visibility = "visible"; // ✅ Réaffiche avec visibility
-    }
-    resultDiv.style.opacity = "0";
-    setTimeout(() => {
-      resultDiv.innerHTML = "";
-      resultDiv.style.position = "";
-      resultDiv.style.top = "";
-      resultDiv.style.left = "";
-      resultDiv.style.right = "";
-      resultDiv.style.height = "";
-      resultDiv.style.zIndex = "";
-    }, 500);
-  }, animationDuration);
-} else {
-  playSoftError();
-  
-  // ✅ PAS D'ANIMATION POUR LES ÉCHECS - juste vider le résultat
-  const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = '';
-  resultDiv.className = '';
-}
-
-    if (current && current.Hiragana && voiceEnabled) { // ✅ AJOUT voiceEnabled
-  const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
-  const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
-  console.log("🎧 Lecture du son :", audioUrl);
-  const audio = new Audio(audioUrl);
-  audio.play().catch(e => console.warn("Erreur audio :", e));
-} else {
-      console.warn("❗ Aucun Hiragana à prononcer.");
+      const animationDuration = 1800;
+      setTimeout(() => {
+        if (questionDiv) {
+          questionDiv.style.visibility = "visible";
+        }
+        resultDiv.style.opacity = "0";
+        setTimeout(() => {
+          resultDiv.innerHTML = "";
+          resultDiv.style.position = "";
+          resultDiv.style.top = "";
+          resultDiv.style.left = "";
+          resultDiv.style.right = "";
+          resultDiv.style.height = "";
+          resultDiv.style.zIndex = "";
+        }, 500);
+      }, animationDuration);
+    } else {
+      playSoftError();
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = '';
+      resultDiv.className = '';
     }
 
-const previousNiveau = niveauActif;
-const calculatedNiveau = determineNiveauActif(HiraganaList);
+    if (current && current.Hiragana && voiceEnabled) {
+      const audioFile = `${encodeURIComponent(current.Hiragana)}.mp3`;
+      const audioUrl = `https://emmanuel971-source.github.io/hirakataquizz/${audioFile}`;
+      console.log("🎧 Lecture du son :", audioUrl);
+      const audio = new Audio(audioUrl);
+      audio.play().catch(e => console.warn("Erreur audio :", e));
+    }
 
-// ✅ Détecter le level up LOCAL (avant API)
-const hasLeveledUp = calculatedNiveau > previousNiveau;
-const targetLevel = calculatedNiveau;
+    const previousNiveau = niveauActif;
+    const calculatedNiveau = determineNiveauActif(HiraganaList);
 
-niveauActif = calculatedNiveau;
+    const hasLeveledUp = calculatedNiveau > previousNiveau;
+    const targetLevel = calculatedNiveau;
+
+    niveauActif = calculatedNiveau;
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
     updateLevelProgress(HiraganaList, niveauActif);
     renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
     renderHiraganaCards(HiraganaList, niveauActif);
     updateMenuButtonStates();
 
-    // Si level up local, déclencher l'animation
     if (niveauActif > previousNiveau) {
       triggerLevelUpAnimation(document.body);
     }
 
     queueUpdateStats({
-  token: userToken,
-  id: currentItemId,
-  scorePoints: score,
-  isRevisionMode: revisionMode.isActive,
-  previousLevel: previousNiveau, // ✅ Passer l'ancien niveau
-  hasLeveledUp: hasLeveledUp,    // ✅ Indiquer si level up
-  targetLevel: targetLevel        // ✅ Le niveau cible
-});
-  // ✅ NOUVEAU : Rafraîchir les stats si la page est ouverte
-  if (document.getElementById('stats').classList.contains('active')) {
-    setTimeout(() => {
-      generateStatsPage();
-    }, 100);
-  }
+      token: userToken,
+      id: currentItemId,
+      scorePoints: score,
+      isRevisionMode: revisionMode.isActive,
+      previousLevel: previousNiveau,
+      hasLeveledUp: hasLeveledUp,
+      targetLevel: targetLevel
+    });
+
+    if (document.getElementById('stats').classList.contains('active')) {
+      setTimeout(() => {
+        generateStatsPage();
+      }, 100);
+    }
+
     if (!revisionMode.isActive) {
       if (score === 1) {
         setTimeout(() => {
           nextQuestion();
-        }, niveauActif > previousNiveau ? 4000 : 1500); // Attendre plus longtemps si level up
+        }, niveauActif > previousNiveau ? 4000 : 1500);
       } else {
         document.getElementById("continueBtn").style.visibility = "visible";
       }
@@ -5157,36 +5291,33 @@ niveauActif = calculatedNiveau;
     }
   }
 }
+
 function resetGameContext() {
-  // ✅ Réinitialiser les variables de contexte
   current = {};
   selections = { first: null, second: null };
   isAnswered = false;
   previousCharacter = null;
   
-  // ✅ Vider les choix affichés
   const choices1 = document.getElementById("choices1");
   const choices2 = document.getElementById("choices2");
   if (choices1) choices1.innerHTML = "";
   if (choices2) choices2.innerHTML = "";
   
-  // ✅ Vider le résultat
   const result = document.getElementById("result");
   if (result) result.innerText = "";
   
-  // ✅ Masquer le bouton continuer
   const continueBtn = document.getElementById("continueBtn");
   if (continueBtn) continueBtn.style.visibility = "hidden";
   
   console.log('🔄 Contexte du jeu réinitialisé');
-} 
+}
 
 
 // ============================================================================
-// 🔄 SECTION 8 : MODE RÉVISION
+// 🔄 SECTION 8 : MODE RÉVISION - VERSION REFACTORISÉE
 // ============================================================================
 
-// --- Variables révision ---
+// --- Variables révision (INCHANGÉES) ---
 let revisionMode = {
   currentQuestion: "",
   input: "",
@@ -5204,112 +5335,131 @@ let deficitInitialRevision = 0;
 let pointsGagnesEnRevision = 0;
 let hasUnlockedInRevision = false;
 
-// --- Fonctions révision ---
-function startRevisionQuestion() {
+// --- CLASSE GESTIONNAIRE DE RÉVISION ---
+class RevisionManager {
+  constructor(list, calculator) {
+    this.list = list;
+    this.calculator = calculator;
+    this.recentBuffer = this._loadBuffer();
+    this.bufferSize = 3;
+  }
 
+  _loadBuffer() {
+    const stored = localStorage.getItem('recentRevisionItems');
+    return stored ? JSON.parse(stored).map(id => parseInt(id)) : [];
+  }
 
-  const niveauActif = determineNiveauActif(HiraganaList);
-  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];
-  const hiraganaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) < niveauActif && 
-    revisionRomajiTable[h.Hiragana] &&
-    h.Hiragana && h.Romaji
-  );
-  const katakanaItems = HiraganaList.filter(h => 
-    parseInt(h.Niveau || 1) < niveauActif && 
-    !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
-    revisionKatakanaTable[h.Katakana] &&
-    h.Katakana && h.Romaji
-  );
-  const availableItems = [
-    ...hiraganaItems.map(item => ({ ...item, type: 'hiragana', key: item.Hiragana })), 
-    ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: getLocalizedKatakana(item) }))
-  ];
+  _saveBuffer() {
+    localStorage.setItem('recentRevisionItems', JSON.stringify(this.recentBuffer));
+  }
 
-  console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
+  _addToBuffer(itemId) {
+    this.recentBuffer.push(parseInt(itemId));
+    if (this.recentBuffer.length > this.bufferSize) {
+      this.recentBuffer.shift();
+    }
+    this._saveBuffer();
+  }
 
-
-
-  // Tampon des 3 derniers tirages - convertir en numbers
-  const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]').map(id => parseInt(id));
-
-  let selectedItem;
-  const apprendreBloque = isApprentissageBloque();
-  if (!apprendreBloque) {
-    // 🎲 TIRAGE ALÉATOIRE PUR (20%) - Filtré seulement par le tampon
-    const randomItems = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
-    const finalRandomItems = randomItems.length >= 4 ? randomItems : availableItems;
+  getAvailableItems(excludedKatakanaLevels = []) {
+    const niveauActif = this.calculator.getNiveauActif();
     
-    selectedItem = finalRandomItems[Math.floor(Math.random() * finalRandomItems.length)];
+    const hiraganaItems = this.list.filter(h => 
+      parseInt(h.Niveau || 1) < niveauActif && 
+      revisionRomajiTable[h.Hiragana] &&
+      h.Hiragana && h.Romaji
+    );
     
-    console.log(`🎲 TIRAGE ALÉATOIRE (20%)`);
-    console.log(`📋 Items disponibles pour tirage aléatoire: ${finalRandomItems.length}/${availableItems.length}`);
-    console.log(`🔍 Items filtrés par tampon:`, finalRandomItems.map(item => `${item.key}(ID:${item.ID})`).join(', '));
+    const katakanaItems = this.list.filter(h => 
+      parseInt(h.Niveau || 1) < niveauActif && 
+      !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
+      revisionKatakanaTable[h.Katakana] &&
+      h.Katakana && h.Romaji
+    );
     
-  } else {
-    // ⚖️ TIRAGE PONDÉRÉ (80%) - Filtré par Validation ≤ 10 + tampon
-    const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) < seuilValidation);
-    const weightedItems = validationFilteredItems.filter(item => !recentItems.includes(parseInt(item.ID)));
+    return [
+      ...hiraganaItems.map(item => ({ ...item, type: 'hiragana', key: item.Hiragana })), 
+      ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: getLocalizedKatakana(item) }))
+    ];
+  }
+
+  selectRandomItem(items) {
+    const filtered = items.filter(item => !this.recentBuffer.includes(parseInt(item.ID)));
+    const finalItems = filtered.length >= 4 ? filtered : items;
+    const selected = finalItems[Math.floor(Math.random() * finalItems.length)];
+    this._addToBuffer(selected.ID);
+    return selected;
+  }
+
+  selectWeightedItem(items, statsCache, isBlocked) {
+    const validationFiltered = isBlocked 
+      ? items.filter(item => (validationCache[parseInt(item.ID)] || 0) < seuilValidation)
+      : items;
     
-    let finalWeightedItems;
+    const withoutRecent = validationFiltered.filter(item => !this.recentBuffer.includes(parseInt(item.ID)));
     
-    if (weightedItems.length >= 4) {
-      // Cas idéal : assez d'items respectant validation ≤ 10 ET hors tampon
-      finalWeightedItems = weightedItems;
-    } else if (weightedItems.length > 0) {
-      // Peu d'items mais au moins quelques-uns : on les garde
-      finalWeightedItems = weightedItems;
+    let finalItems;
+    if (withoutRecent.length >= 4) {
+      finalItems = withoutRecent;
+    } else if (withoutRecent.length > 0) {
+      finalItems = withoutRecent;
     } else {
-      // Aucun item respectant les deux contraintes
-      // PRIORITÉ : éviter le tampon (libérer contrainte validation ≤ 10)
-      const itemsHorsTampon = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
-      if (itemsHorsTampon.length > 0) {
-        finalWeightedItems = itemsHorsTampon;
-        console.log(`⚠️ FALLBACK 1 - Libération contrainte Validation ≤ 10 pour éviter tampon`);
-      } else {
-        // Dernier recours : prendre tous les items (même dans le tampon)
-        finalWeightedItems = availableItems;
-        console.log(`⚠️ FALLBACK 2 - Tous les items utilisés (tampon ignoré)`);
-      }
+      const itemsHorsTampon = items.filter(item => !this.recentBuffer.includes(parseInt(item.ID)));
+      finalItems = itemsHorsTampon.length > 0 ? itemsHorsTampon : items;
     }
 
-    // Tirage pondéré sur les items finaux
-    const weights = finalWeightedItems.map(item => {
+    const weights = finalItems.map(item => {
       const stats = statsCache.items[parseInt(item.ID)] || { pourcentage: 0 };
       const pourcentage = stats.pourcentage;
       return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
     });
+
     const totalWeight = weights.reduce((a, b) => a + b, 0);
     let random = Math.random() * totalWeight;
-    for (let i = 0; i < finalWeightedItems.length; i++) {
+    
+    for (let i = 0; i < finalItems.length; i++) {
       random -= weights[i];
       if (random <= 0) {
-        selectedItem = finalWeightedItems[i];
-        break;
+        this._addToBuffer(finalItems[i].ID);
+        return finalItems[i];
       }
     }
     
-    console.log(`⚖️ TIRAGE PONDÉRÉ (80%)`);
-    console.log(`📋 Items disponibles (Validation ≤ 10 + tampon): ${finalWeightedItems.length}/${availableItems.length}`);
-    console.log(`🔍 Items respectant Validation ≤ 10:`, 
-      validationFilteredItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0})`)
-        .join(', '));
-    console.log(`🚫 Items exclus par tampon:`, recentItems.join(', '));
-    console.log(`✅ Items finaux pour pondération:`, 
-      finalWeightedItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0},${(statsCache.items[parseInt(item.ID)]?.pourcentage || 0).toFixed(1)}%)`)
-        .join(', '));
+    const selected = finalItems[finalItems.length - 1];
+    this._addToBuffer(selected.ID);
+    return selected;
+  }
+}
+
+// --- Instance globale ---
+let revisionManager;
+
+// --- Fonction d'initialisation ---
+function initRevisionManager() {
+  revisionManager = new RevisionManager(HiraganaList, niveauCalculator);
+  console.log('✅ Gestionnaire de révision initialisé');
+}
+
+// --- Fonctions révision (REFACTORISÉES) ---
+function startRevisionQuestion() {
+  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];
+  const availableItems = revisionManager.getAvailableItems(excludedKatakanaLevels);
+
+  console.log(`🎯 Items disponibles pour révision: ${availableItems.length}`);
+
+  const apprendreBloque = isApprentissageBloque();
+  let selectedItem;
+
+  if (!apprendreBloque) {
+    selectedItem = revisionManager.selectRandomItem(availableItems);
+    console.log(`🎲 TIRAGE ALÉATOIRE`);
+  } else {
+    selectedItem = revisionManager.selectWeightedItem(availableItems, statsCache, true);
+    console.log(`⚖️ TIRAGE PONDÉRÉ`);
   }
 
-  // Mettre à jour le tampon - s'assurer que c'est un number
-  recentItems.push(parseInt(selectedItem.ID));
-  if (recentItems.length > 3) recentItems.shift(); // Garder seulement les 3 derniers
-  localStorage.setItem('recentRevisionItems', JSON.stringify(recentItems));
+  console.log(`🎯 Question: "${selectedItem.key}" (ID: ${selectedItem.ID})`);
 
-  // Log pour vérification
-  console.log(`🎯 Question sélectionnée: "${selectedItem.key}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
-  console.log(`🔍 Tampon récent:`, recentItems);
-
-  // Configurer la question
   revisionMode.currentQuestion = selectedItem.key;
   const table = selectedItem.type === 'hiragana' ? revisionRomajiTable : revisionKatakanaTable;
   const tableEntry = table[selectedItem.key];
@@ -5337,29 +5487,23 @@ function startRevisionQuestion() {
       </div>`
     ).join("");
   document.getElementById("revision-input-display").textContent = "";
- 
 
-  // 💬 Affiche l’infobulle du déficit/avance de Validation sur la première carte
-const firstCard = document.getElementById(`revision-card-0`);
-if (firstCard && revisionMode.currentItem) {
-  const currentValidation = parseInt(revisionMode.currentItem.Validation || validationCache[revisionMode.currentItem.ID] || 0);
-  showValidationBubble(firstCard, currentValidation, seuilValidation);
-}
-
-
-  
+  const firstCard = document.getElementById(`revision-card-0`);
+  if (firstCard && revisionMode.currentItem) {
+    const currentValidation = parseInt(revisionMode.currentItem.Validation || validationCache[revisionMode.currentItem.ID] || 0);
+    showValidationBubble(firstCard, currentValidation, seuilValidation);
+  }
 
   if (firstCard) firstCard.classList.add("pulsing");
 
-  console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
-  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
-// ✅ FORCER l'affichage de la barre à chaque nouvelle question
-setTimeout(() => {
-  updateUnlockProgress();
-}, 200);
-} 
+  console.log(`📝 Question: "${revisionMode.currentQuestion}" → "${revisionMode.fullCorrect}"`);
+
+  setTimeout(() => {
+    updateUnlockProgress();
+  }, 200);
+}
+
 function updateRevisionFeedback() {
-  // Reset toutes les classes
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
     const cardElement = document.getElementById(`revision-card-${i}`);
     const charElement = document.getElementById(`revision-char-${i}`);
@@ -5378,7 +5522,6 @@ function updateRevisionFeedback() {
   let currentSegment = -1;
   const inputLength = revisionMode.input.length;
 
-  // Parcourir chaque segment
   for (let seg = 0; seg < revisionMode.romajiSegments.length; seg++) {
     const romStart = seg > 0 ? revisionMode.cumulativeRomaji[seg - 1] : 0;
     const romEnd = revisionMode.cumulativeRomaji[seg];
@@ -5390,9 +5533,6 @@ function updateRevisionFeedback() {
     const expected = revisionMode.romajiSegments[seg];
     let className = "";
 
-    console.log(`Segment ${seg}: romStart=${romStart}, romEnd=${romEnd}, typedLen=${typedLen}, typedSegment="${typedSegment}", expected="${expected}"`);
-
-    // Gradation basée sur la progression dans le segment
     if (typedLen > 0) {
       if (expected.startsWith(typedSegment)) {
         const level = Math.min(4, typedLen);
@@ -5403,13 +5543,10 @@ function updateRevisionFeedback() {
       }
     }
 
-    // Appliquer la gradation aux cartes du segment
     for (let c = charStart; c < charEnd; c++) {
       const card = document.getElementById(`revision-card-${c}`);
-      const span = document.getElementById(`revision-char-${c}`);
       if (card) {
-        card.className = `char-card ${className || ""}`; // Appliquer la gradation
-        // Ajouter animation "pop" et son si on valide un nouveau caractère
+        card.className = `char-card ${className || ""}`;
         if (inputLength > romStart && c === charStart && !card.classList.contains("pop-animation")) {
           card.classList.add("pop-animation");
           playPopSound();
@@ -5418,7 +5555,6 @@ function updateRevisionFeedback() {
       }
     }
 
-    // Validation finale uniquement pour le segment courant si entièrement saisi
     if (inputLength >= romEnd) {
       const fullSegment = revisionMode.input.substring(romStart, romEnd);
       if (fullSegment === expected) {
@@ -5429,7 +5565,7 @@ function updateRevisionFeedback() {
             card.className = `char-card char-correct-4`;
           }
         }
-      } else if (romStart < inputLength) { // Saisie incorrecte partielle
+      } else if (romStart < inputLength) {
         for (let c = charStart; c < charEnd; c++) {
           const card = document.getElementById(`revision-card-${c}`);
           if (card) {
@@ -5440,13 +5576,11 @@ function updateRevisionFeedback() {
       }
     }
 
-    // Déterminer le segment en cours pour la pulsation
     if (romStart <= inputLength && inputLength < romEnd) {
       currentSegment = seg;
     }
   }
 
-  // Ajouter la pulsation à la carte en cours
   if (currentSegment >= 0) {
     const charStart = currentSegment > 0 ? revisionMode.cumulativeChars[currentSegment - 1] : 0;
     const charEnd = revisionMode.cumulativeChars[currentSegment];
@@ -5457,9 +5591,8 @@ function updateRevisionFeedback() {
       }
     }
   }
-
 }
-  
+
 function initRevisionKeyboard() {
   const revisionKeys = document.querySelectorAll('.revision-key');
   revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true)));
@@ -5469,7 +5602,6 @@ function initRevisionKeyboard() {
     key.addEventListener("click", async () => {
       if (!revisionMode.isActive) return;
 
-      // Saisie ou effacement
       if (key.id === "revision-back") {
         revisionMode.input = revisionMode.input.slice(0, -1);
       } else {
@@ -5481,12 +5613,10 @@ function initRevisionKeyboard() {
 
       const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1] || 1;
 
-      // Réponse complète → on valide
       if (revisionMode.input.length >= totalLength) {
         const isCorrect = revisionMode.input === revisionMode.fullCorrect;
         const itemId = parseInt(revisionMode.currentItem.ID);
 
-        // === Stats (inchangé) ===
         statsCache.items[itemId] = statsCache.items[itemId] || { tentatives: 0, reussites: 0, pourcentage: 0 };
         statsCache.items[itemId].tentatives += 1;
         statsCache.items[itemId].reussites += isCorrect ? 1 : 0;
@@ -5498,7 +5628,6 @@ function initRevisionKeyboard() {
         const totalReussites = Object.values(statsCache.items).reduce((s, i) => s + i.reussites, 0);
         statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
-        // === Validation + points (inchangé) ===
         const hiraganaIndex = HiraganaList.findIndex(h => h.ID == itemId);
         const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
         let newValidation;
@@ -5522,53 +5651,36 @@ function initRevisionKeyboard() {
           updateUnlockProgress();
         }
 
-        // === Calcul pour les animations ===
         const oldEmoji = getPlantEmoji(currentValidation);
         const newEmoji = getPlantEmoji(newValidation);
-        const statusChanged = oldEmoji !== newEmoji; // surtout vrai lors du passage 🌿 ↔ 🌸
+        const statusChanged = oldEmoji !== newEmoji;
 
-        // === AFFICHAGE DE LA FLASHCARD   ===
- // === AFFICHAGE DE LA FLASHCARD PENDANT 3 SECONDES ===
-openRevisionFlashcard(
-  revisionMode.currentItem,   // l'item
-  newEmoji,                   // emoji à jour
-  isCorrect,                  // ✅ bonne ou mauvaise réponse
-  currentValidation,          // ✅ ancien score (AVANT la validation)
-  newValidation,              // ✅ nouveau score (APRÈS la validation)
-  statusChanged,              // animation plante si changement de statut
-  true                        // toujours scintillement du score
-);
-
-
-        // === Feedback texte + couleur ===
-        const niveau = parseInt(revisionMode.currentItem.Niveau || 1);
-        const isHighLevel = niveau > 38;
-        const isMultiChar = revisionMode.romajiSegments.length >= 2;
-        const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
+        openRevisionFlashcard(
+          revisionMode.currentItem,
+          newEmoji,
+          isCorrect,
+          currentValidation,
+          newValidation,
+          statusChanged,
+          true
+        );
 
         if (isCorrect) {
-         
           playZenBell();
         } else {
-        
           playSoftError();
         }
 
-        // === Mise à jour bulle de validation sur la carte (optionnel mais joli) ===
         const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
         if (currentCard) {
           showValidationBubble(currentCard, newValidation, seuilValidation);
         }
 
-        // === Envoi stats en arrière-plan ===
         queueUpdateStats({ token: userToken, id: itemId, scorePoints: isCorrect ? 1 : 0, isRevisionMode: true });
 
-        // === Rafraîchissement stats si page ouverte ===
         if (document.getElementById('stats').classList.contains('active')) {
           setTimeout(generateGarden, 100);
         }
-
-       
       }
     });
   });
@@ -5576,14 +5688,16 @@ openRevisionFlashcard(
 
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
-}  
+}
+
 function updateUnlockProgress() {
-  console.log('🔍 updateUnlockProgress appelée:', {
-  isActive: revisionMode.isActive,
-  wasBlocked: wasBlockedWhenEnteringRevision,
-  hasUnlocked: hasUnlockedInRevision,
-  deficit: deficitInitialRevision
-});
+  console.log('🔍 updateUnlockProgress:', {
+    isActive: revisionMode.isActive,
+    wasBlocked: wasBlockedWhenEnteringRevision,
+    hasUnlocked: hasUnlockedInRevision,
+    deficit: deficitInitialRevision
+  });
+  
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
 
@@ -5601,12 +5715,10 @@ function updateUnlockProgress() {
 
   fill.style.width = `${pourcentage}%`;
 
-  console.log(`📊 Progress: ${deficitRestant}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%) | Points: ${pointsGagnesEnRevision}`);
+  console.log(`📊 Progress: ${deficitRestant}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%)`);
 
-if (pointsGagnesEnRevision >= deficitInitialRevision) {
+  if (pointsGagnesEnRevision >= deficitInitialRevision) {
     container.style.display = 'none';
-    
-    // ✅ Vérifier si c'était vraiment bloqué avant d'afficher la carte
     const wasBlocked = hasUnlockedInRevision === false;
     
     hasUnlockedInRevision = true;
@@ -5614,16 +5726,15 @@ if (pointsGagnesEnRevision >= deficitInitialRevision) {
     updateApprendreButtonState();
     console.log('🎉 Déblocage atteint');
     
-    // ✅ Afficher la carte seulement si on vient de débloquer
-if (wasBlocked) {
-  setTimeout(() => {
-    showUnlockFlashcard(
-      t('unlock_learning_title'),
-      '🌱',
-      t('unlock_learning_message')
-    );
-  }, 500);
-}
+    if (wasBlocked) {
+      setTimeout(() => {
+        showUnlockFlashcard(
+          t('unlock_learning_title'),
+          '🌱',
+          t('unlock_learning_message')
+        );
+      }, 500);
+    }
   }
 
   if (pourcentage < 10 && pourcentage > 0) {
@@ -7676,7 +7787,9 @@ renderProgressBar(niveauActif, totalLevels);
     // ==========================================
     gameDataLoaded = true;
     updateLoadingProgress(90, "Finalisation...");
-    
+    initProgressionManagers();
+    initQuizManager();
+    initRevisionManager();
     // Afficher le panda et masquer la barre
     const panda = document.querySelector(".panda-logo");
     const loadingText = document.getElementById("loadingText");
@@ -8078,6 +8191,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
