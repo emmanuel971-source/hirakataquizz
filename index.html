@@ -4148,6 +4148,12 @@ function updateClientTruthOnAnswer(params) {
     item,
     niveau_atteint: clientTruth.niveau_atteint
   });
+  console.log(
+  '[CLIENT TRUTH FULL SNAPSHOT]',
+  Object.keys(clientTruth.stats_json).length,
+  clientTruth.stats_json
+);
+
 }
 function calculateClientNiveauAtteint(statsJson) {
   const maxLevel = getMaxLevel(HiraganaList);
@@ -7951,6 +7957,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
