@@ -7629,6 +7629,9 @@ function preloadEmojis() { /* ... */ }
 // --- Fonctions initialisation ---
 async function initGame() {
   try {
+    initProgressionManagers();
+    initQuizManager();
+    initRevisionManager();
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
 // Récupération du token (déjà existant dans ton code, on le garde ici)
@@ -7787,9 +7790,7 @@ renderProgressBar(niveauActif, totalLevels);
     // ==========================================
     gameDataLoaded = true;
     updateLoadingProgress(90, "Finalisation...");
-    initProgressionManagers();
-    initQuizManager();
-    initRevisionManager();
+    
     // Afficher le panda et masquer la barre
     const panda = document.querySelector(".panda-logo");
     const loadingText = document.getElementById("loadingText");
@@ -8191,6 +8192,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
