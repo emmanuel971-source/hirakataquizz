@@ -4044,6 +4044,42 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIb90KrrrJ7Qbfqnju
 
 let pendingUpdates = [];
 let isProcessing = false;
+// ===============================
+// CLIENT TRUTH (source client)
+// ===============================
+
+let clientTruth = {
+  stats_json: {},
+  niveau_atteint: 1
+};
+
+function initClientTruth(serverStatsJson, serverNiveauAtteint) {
+  console.log('[INIT CLIENT TRUTH] start');
+
+  try {
+    const saved = localStorage.getItem('client_truth');
+
+    if (saved) {
+      clientTruth = JSON.parse(saved);
+      console.log('[INIT CLIENT TRUTH] restored from localStorage', clientTruth);
+      return;
+    }
+  } catch (e) {
+    console.warn('[INIT CLIENT TRUTH] localStorage restore failed', e);
+  }
+
+  // Fallback obligatoire : données serveur de la session
+  clientTruth = {
+    stats_json: serverStatsJson || {},
+    niveau_atteint: serverNiveauAtteint || 1
+  };
+
+  try {
+    localStorage.setItem('client_truth', JSON.stringify(clientTruth));
+  } catch (e) {}
+
+  console.log('[INIT CLIENT TRUTH] initialized from server data', clientTruth);
+}
   
 // --- Fonctions API ---
 async function callAPI(action, data = null) {
@@ -7423,6 +7459,7 @@ renderProgressBar(niveauActif, totalLevels);
     // PHASE 4 : CHARGEMENT BACKGROUND (80-100%)
     // ==========================================
     gameDataLoaded = true;
+    initClientTruth(result.stats, result.niveau_atteint);
     updateLoadingProgress(90, "Finalisation...");
     
     // Afficher le panda et masquer la barre
@@ -7823,5 +7860,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
