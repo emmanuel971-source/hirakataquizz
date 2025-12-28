@@ -4060,6 +4060,7 @@ let clientTruth = {
   niveau_atteint: 1
 };
 const SyncMonitor = {
+ syncCheckRequested: false, // ✅ ICI
   state: 'SYNCED',
 
   pendingUpdates: 0,
@@ -4394,6 +4395,16 @@ SyncMonitor.evaluate();
         // Retirer de la queue uniquement si succès
         pendingUpdates.shift();
         localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
+
+        if (
+  SyncMonitor.syncCheckRequested &&
+  SyncMonitor.pendingUpdates === 0 &&
+  navigator.onLine
+) {
+  SyncMonitor.syncCheckRequested = false;
+  performSyncCheck('post-level-up');
+}
+
         
         // Votre code de mise à jour locale (inchangé)
         const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
@@ -5278,7 +5289,8 @@ async function checkAnswer() {
   updateMenuButtonStates();
 
   if (niveauActif > previousNiveau) {
-    performSyncCheck('level-up');
+    SyncMonitor.syncCheckRequested = true;
+    console.log('[SYNC CHECK] requested (level-up)');
     triggerLevelUpAnimation(document.body);
   }
 
@@ -7913,6 +7925,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
