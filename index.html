@@ -4059,6 +4059,40 @@ let clientTruth = {
   stats_json: {},
   niveau_atteint: 1
 };
+const SyncMonitor = {
+  state: 'SYNCED',
+
+  pendingUpdates: 0,
+  failedUpdates: 0,
+
+  lastClientSnapshotHash: null,
+  lastServerSnapshotHash: null,
+
+  serverReachable: true,
+
+  log(reason) {
+    console.log(
+      `%c[SYNC MONITOR] ${this.state}`,
+      'color:#0aa;font-weight:bold',
+      reason || ''
+    );
+  },
+
+  evaluate() {
+    let newState = 'SYNCED';
+
+    if (this.pendingUpdates > 0 || this.failedUpdates > 0) {
+      newState = 'DESYNC_PENDING';
+    }
+
+    // ⚠️ DESYNC_CONFIRMED viendra plus tard (normal)
+
+    if (newState !== this.state) {
+      this.state = newState;
+      this.log('state transition');
+    }
+  }
+};
 
 function initClientTruth(serverStatsJson, serverNiveauAtteint) {
   console.log('[INIT CLIENT TRUTH] start');
@@ -4211,6 +4245,12 @@ function rebuildClientTruthFromHiraganaList() {
     'niveau_atteint:',
     clientTruth.niveau_atteint
   );
+  SyncMonitor.lastClientSnapshotHash =
+  JSON.stringify(clientTruth.stats_json).length;
+
+SyncMonitor.log('client snapshot updated');
+SyncMonitor.evaluate();
+
 }
 
   
@@ -4247,7 +4287,11 @@ async function callAPI(action, data = null) {
 
 
 async function queueUpdateStats(params) {
-  //updateClientTruthOnAnswer(params);
+  
+  SyncMonitor.pendingUpdates++;
+  SyncMonitor.log('pendingUpdates++');
+  SyncMonitor.evaluate();
+
 
   pendingUpdates.push(params);
   
@@ -4282,6 +4326,16 @@ async function processUpdates() {
       const result = await callAPI('updateStats', apiParams);
 
       if (result.success) {
+SyncMonitor.pendingUpdates = Math.max(
+  0,
+  SyncMonitor.pendingUpdates - 1
+);
+SyncMonitor.failedUpdates = 0;
+
+SyncMonitor.log('server update success');
+SyncMonitor.evaluate();
+
+        
         // Retirer de la queue uniquement si succès
         pendingUpdates.shift();
         localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
@@ -4319,6 +4373,10 @@ async function processUpdates() {
         }
         
       } else {
+        SyncMonitor.failedUpdates++;
+        SyncMonitor.log('server update failed');
+        SyncMonitor.evaluate();
+
         console.error(`Erreur API: ${result.error}`);
         // Attendre 2 secondes avant de réessayer
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -7997,6 +8055,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
