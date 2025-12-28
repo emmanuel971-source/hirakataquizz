@@ -4049,11 +4049,10 @@ let isProcessing = false;
 // CLIENT TRUTH (source client)
 // ===============================
 function getClientTruthStorageKey() {
-  if (!userToken) {
-    console.warn('[CLIENT TRUTH] No userToken, fallback key used');
-    return 'client_truth_unknown';
+  if (currentUser && currentUser.pseudo) {
+    return `client_truth_user_${currentUser.pseudo}`;
   }
-  return `client_truth_${userToken}`;
+  return 'client_truth_unknown';
 }
 
 let clientTruth = {
@@ -7868,6 +7867,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
