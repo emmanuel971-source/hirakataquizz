@@ -4252,6 +4252,61 @@ SyncMonitor.log('client snapshot updated');
 SyncMonitor.evaluate();
 
 }
+async function performSyncCheck(trigger = 'level-up') {
+  console.log(
+    `%c[SYNC CHECK] triggered (${trigger})`,
+    'color:#09c;font-weight:bold'
+  );
+
+  // 🛑 Conditions strictes
+  if (!navigator.onLine) {
+    console.log('[SYNC CHECK] aborted: offline');
+    return;
+  }
+
+  if (SyncMonitor.pendingUpdates > 0) {
+    console.log('[SYNC CHECK] aborted: pendingUpdates > 0');
+    return;
+  }
+
+  try {
+    // 🔍 Lecture serveur
+    const serverStats = await callAPI('getUserStats', {
+      token: userToken
+    });
+
+    if (!serverStats.success) {
+      console.log('[SYNC CHECK] aborted: server error');
+      return;
+    }
+
+    const serverJson = serverStats.stats || {};
+
+    // 🧮 Hash serveur
+    const serverHash = JSON.stringify(serverJson).length;
+    const clientHash = SyncMonitor.lastClientSnapshotHash;
+
+    SyncMonitor.lastServerSnapshotHash = serverHash;
+
+    console.log(
+      `[SYNC CHECK] hashes → client=${clientHash} / server=${serverHash}`
+    );
+
+    // 🔴 Comparaison factuelle
+    if (clientHash !== serverHash) {
+      SyncMonitor.state = 'DESYNC_CONFIRMED';
+      console.warn(
+        '%c[SYNC CHECK] DESYNC_CONFIRMED',
+        'color:#c00;font-weight:bold'
+      );
+    } else {
+      console.log('[SYNC CHECK] client/server in sync');
+    }
+
+  } catch (err) {
+    console.log('[SYNC CHECK] aborted: exception', err);
+  }
+}
 
   
 //-------------------------------------------------------------------------------------------------------
@@ -5223,6 +5278,7 @@ async function checkAnswer() {
   updateMenuButtonStates();
 
   if (niveauActif > previousNiveau) {
+    performSyncCheck('level-up');
     triggerLevelUpAnimation(document.body);
   }
 
@@ -7857,6 +7913,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
