@@ -5028,6 +5028,13 @@ function initQuizManager() {
 // --- Fonctions quiz (REFACTORISÉES) ---
 function nextQuestion() {
   console.log('📞 nextQuestion() appelée');
+  
+  // ✅ Vérifier que le gestionnaire existe
+  if (!quizManager) {
+    console.error('❌ quizManager non initialisé');
+    return;
+  }
+  
   document.getElementById("result").innerText = "";
   document.getElementById("continueBtn").style.visibility = "hidden";
   selections = { first: null, second: null };
@@ -5055,6 +5062,13 @@ function nextQuestion() {
 
   // Sélection pondérée du kana
   current = quizManager.selectWeightedKana(kanas, previousCharacter);
+  
+  // ✅ Vérifier que current est valide
+  if (!current) {
+    console.error('❌ Aucun kana sélectionné');
+    return;
+  }
+  
   previousCharacter = current;
 
   const modes = [
@@ -5071,24 +5085,41 @@ function nextQuestion() {
   renderChoices("choices1", generateChoices(mode.options1), "first");
   renderChoices("choices2", generateChoices(mode.options2), "second");
 }
-
 function generateChoices(field) {
-  const others = HiraganaList.filter(k => k !== current && parseInt(k.Niveau) === niveauActif);
+  // ✅ Vérifier que current existe
+  if (!current || !current[field]) {
+    console.error('❌ generateChoices: current invalide', current);
+    return [];
+  }
+  
+  const others = HiraganaList.filter(k => 
+    k !== current && 
+    parseInt(k.Niveau) === niveauActif &&
+    k[field] // ✅ S'assurer que le champ existe
+  );
   
   const getValue = (item, fieldName) => {
+    if (!item) return '';
     if (fieldName === 'Katakana') {
       return getLocalizedKatakana(item);
     }
-    return item[fieldName];
+    return item[fieldName] || '';
   };
+
+  // ✅ S'assurer qu'on a au moins 3 autres items
+  const selectedOthers = others
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 3)
+    .map(k => getValue(k, field))
+    .filter(v => v); // Enlever les valeurs vides
 
   const values = [
     getValue(current, field), 
-    ...others.sort(() => 0.5 - Math.random()).slice(0, 3).map(k => getValue(k, field))
+    ...selectedOthers
   ];
+  
   return values.sort(() => 0.5 - Math.random());
 }
-
 function renderChoices(id, options, slot) {
   const container = document.getElementById(id);
   container.innerHTML = "";
@@ -8192,6 +8223,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 
 </html>
+
 
 
 
