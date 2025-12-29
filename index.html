@@ -4060,15 +4060,13 @@ let clientTruth = {
   niveau_atteint: 1
 };
 const SyncMonitor = {
- syncCheckRequested: false, // ✅ ICI
+  syncCheckRequested: false,
+  syncCheckInProgress: false, // ✅ NOUVEAU
   state: 'SYNCED',
-
   pendingUpdates: 0,
   failedUpdates: 0,
-
   lastClientSnapshotHash: null,
   lastServerSnapshotHash: null,
-
   serverReachable: true,
 
   log(reason) {
@@ -4085,8 +4083,6 @@ const SyncMonitor = {
     if (this.pendingUpdates > 0 || this.failedUpdates > 0) {
       newState = 'DESYNC_PENDING';
     }
-
-    // ⚠️ DESYNC_CONFIRMED viendra plus tard (normal)
 
     if (newState !== this.state) {
       this.state = newState;
@@ -4299,7 +4295,22 @@ async function performSyncCheck(trigger = 'level-up') {
     return;
   }
 
+  // ✅ VERROUILLER le sync check
+  if (SyncMonitor.syncCheckInProgress) {
+    console.log('[SYNC CHECK] aborted: already in progress');
+    return;
+  }
+
+  SyncMonitor.syncCheckInProgress = true;
+  console.log('[SYNC CHECK] LOCK activé');
+
   try {
+    // ✅ CAPTURER un snapshot AVANT la requête HTTP
+    const clientSnapshot = normalizeStats(clientTruth.stats_json || {});
+    const clientHash = await hashJSON(clientSnapshot);
+
+    console.log('[SYNC CHECK] Client snapshot capturé:', clientSnapshot);
+
     // 🔍 Lecture serveur
     const serverStats = await callAPI('getUserStats', {
       token: userToken
@@ -4310,20 +4321,16 @@ async function performSyncCheck(trigger = 'level-up') {
       return;
     }
 
-    
-const serverJson = normalizeStats(serverStats.stats || {});
-const clientJson = normalizeStats(clientTruth.stats_json || {});
-
-   // 🔍 LOGS VISUELS (CLEF DE CETTE ÉTAPE)
-    console.group('[SYNC CHECK] NORMALIZED INPUTS');
-    console.log('CLIENT (normalized):', clientJson);
-    console.log('SERVER (normalized):', serverJson);
-    console.groupEnd();
-    
-const clientHash = await hashJSON(clientJson);
-const serverHash = await hashJSON(serverJson);
+    const serverJson = normalizeStats(serverStats.stats || {});
+    const serverHash = await hashJSON(serverJson);
 
     SyncMonitor.lastServerSnapshotHash = serverHash;
+
+    // 🔍 LOGS VISUELS
+    console.group('[SYNC CHECK] NORMALIZED INPUTS');
+    console.log('CLIENT (snapshot):', clientSnapshot);
+    console.log('SERVER (normalized):', serverJson);
+    console.groupEnd();
 
     console.log(
       `[SYNC CHECK] hashes → client=${clientHash} / server=${serverHash}`
@@ -4342,6 +4349,10 @@ const serverHash = await hashJSON(serverJson);
 
   } catch (err) {
     console.log('[SYNC CHECK] aborted: exception', err);
+  } finally {
+    // ✅ DÉVERROUILLER
+    SyncMonitor.syncCheckInProgress = false;
+    console.log('[SYNC CHECK] LOCK libéré');
   }
 }
 
@@ -4378,11 +4389,24 @@ async function callAPI(action, data = null) {
 
 async function queueUpdateStats(params) {
   
+  // ✅ BLOQUER les mises à jour pendant un sync check
+  if (SyncMonitor.syncCheckInProgress) {
+    console.log('[QUEUE UPDATE] sync check en cours, mise en attente');
+    // Attendre que le sync check soit terminé
+    await new Promise(resolve => {
+      const checkInterval = setInterval(() => {
+        if (!SyncMonitor.syncCheckInProgress) {
+          clearInterval(checkInterval);
+          resolve();
+        }
+      }, 50);
+    });
+  }
+  
   SyncMonitor.pendingUpdates++;
   SyncMonitor.log('pendingUpdates++');
   SyncMonitor.evaluate();
   
-  // ✅ Mise à jour optimiste locale
   updateClientTruthOnAnswer(params);
 
   pendingUpdates.push(params);
@@ -4395,6 +4419,7 @@ async function queueUpdateStats(params) {
     processUpdates();
   }
 }
+
 
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
@@ -8356,4 +8381,5 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
