@@ -4275,7 +4275,13 @@ function normalizeStats(stats) {
 
   return normalized;
 }
-  
+async function hashJSON(obj) {
+  const str = JSON.stringify(obj);
+  const buffer = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}  
 async function performSyncCheck(trigger = 'level-up') {
   console.log(
     `%c[SYNC CHECK] triggered (${trigger})`,
@@ -4314,8 +4320,8 @@ const clientJson = normalizeStats(clientTruth.stats_json || {});
     console.log('SERVER (normalized):', serverJson);
     console.groupEnd();
     
-const serverHash = JSON.stringify(serverJson).length;
-const clientHash = JSON.stringify(clientJson).length;
+const clientHash = await hashJSON(clientJson);
+const serverHash = await hashJSON(serverJson);
 
     SyncMonitor.lastServerSnapshotHash = serverHash;
 
@@ -8124,6 +8130,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
