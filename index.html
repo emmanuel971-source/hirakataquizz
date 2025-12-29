@@ -4227,7 +4227,7 @@ function rebuildClientTruthFromHiraganaList() {
     };
   });
 
-//  clientTruth.stats_json = rebuiltStats;
+  clientTruth.stats_json = rebuiltStats;
   clientTruth.niveau_atteint = calculateClientNiveauAtteint(rebuiltStats);
 
   try {
@@ -4383,7 +4383,12 @@ async function queueUpdateStats(params) {
   SyncMonitor.pendingUpdates++;
   SyncMonitor.log('pendingUpdates++');
   SyncMonitor.evaluate();
-
+  
+  // ✅ Remplacer cette ligne :
+  // rebuildClientTruthFromHiraganaList();
+  
+  // ✅ Par celle-ci :
+  updateClientTruthOnAnswer(params);
 
   pendingUpdates.push(params);
   
@@ -4395,7 +4400,7 @@ async function queueUpdateStats(params) {
   if (!isProcessing) {
     processUpdates();
   }
-  rebuildClientTruthFromHiraganaList();
+  
 
 }
 
@@ -8130,6 +8135,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
