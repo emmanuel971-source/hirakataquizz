@@ -4377,7 +4377,7 @@ async function callAPI(action, data = null) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     const result = await response.json();
-    console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
+//    console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
     return result;
     
   } catch (error) {
@@ -8381,5 +8381,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
