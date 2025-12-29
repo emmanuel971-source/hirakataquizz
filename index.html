@@ -4062,6 +4062,7 @@ let clientTruth = {
 const SyncMonitor = {
  syncCheckRequested: false, // ✅ ICI
   state: 'SYNCED',
+clientAhead: false, // 🔒 client a muté, serveur pas encore confirmé
 
   pendingUpdates: 0,
   failedUpdates: 0,
@@ -4075,7 +4076,11 @@ const SyncMonitor = {
     console.log(
       `%c[SYNC MONITOR] ${this.state}`,
       'color:#0aa;font-weight:bold',
-      reason || ''
+      {
+      reason,
+      pendingUpdates: this.pendingUpdates,
+      clientAhead: this.clientAhead
+    }
     );
   },
 
@@ -4293,6 +4298,10 @@ async function performSyncCheck(trigger = 'level-up') {
     console.log('[SYNC CHECK] aborted: offline');
     return;
   }
+if (SyncMonitor.clientAhead) {
+  console.log('[SYNC CHECK] aborted: client ahead of server');
+  return;
+}
 
   if (SyncMonitor.pendingUpdates > 0) {
     console.log('[SYNC CHECK] aborted: pendingUpdates > 0');
@@ -4379,7 +4388,7 @@ async function callAPI(action, data = null) {
 
 
 async function queueUpdateStats(params) {
-  
+  SyncMonitor.clientAhead = true;
   SyncMonitor.pendingUpdates++;
   SyncMonitor.log('pendingUpdates++');
   SyncMonitor.evaluate();
@@ -4426,6 +4435,12 @@ async function processUpdates() {
 SyncMonitor.pendingUpdates = Math.max(
   0,
   SyncMonitor.pendingUpdates - 1
+  // ✅ Serveur à jour → client redevient comparable
+if (SyncMonitor.pendingUpdates === 0) {
+  SyncMonitor.clientAhead = false;
+  console.log('[SYNC MONITOR] clientAhead = false');
+}
+
 );
 SyncMonitor.failedUpdates = 0;
 
@@ -8383,6 +8398,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
