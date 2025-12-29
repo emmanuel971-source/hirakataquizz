@@ -4435,13 +4435,12 @@ async function processUpdates() {
 SyncMonitor.pendingUpdates = Math.max(
   0,
   SyncMonitor.pendingUpdates - 1
+);
   // ✅ Serveur à jour → client redevient comparable
 if (SyncMonitor.pendingUpdates === 0) {
   SyncMonitor.clientAhead = false;
   console.log('[SYNC MONITOR] clientAhead = false');
-}
-
-);
+}        
 SyncMonitor.failedUpdates = 0;
 
 SyncMonitor.log('server update success');
@@ -8398,6 +8397,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
