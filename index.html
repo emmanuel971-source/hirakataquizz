@@ -4041,7 +4041,7 @@ function smartSegmentRomaji(romaji) {
 // 🌐 SECTION 4 : API & COMMUNICATION SERVEUR
 // ============================================================================
 
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIb90KrrrJ7QbfqnjuIE1trPVVyhyfNyRHNeLiinQXzJHrft3ENVwtVP_MDBcIU3xjAg/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw1NjQaPYNwSnl8W0CjVrUPnTlMtf34XhQj4E-tLl__034Cb8by-GsRAgChfQpy129DtQ/exec';
 
 let pendingUpdates = [];
 let isProcessing = false;
@@ -4284,7 +4284,6 @@ async function performSyncCheck(trigger = 'level-up') {
     'color:#09c;font-weight:bold'
   );
 
-  // 🛑 Conditions strictes
   if (!navigator.onLine) {
     console.log('[SYNC CHECK] aborted: offline');
     return;
@@ -4295,7 +4294,6 @@ async function performSyncCheck(trigger = 'level-up') {
     return;
   }
 
-  // ✅ VERROUILLER le sync check
   if (SyncMonitor.syncCheckInProgress) {
     console.log('[SYNC CHECK] aborted: already in progress');
     return;
@@ -4305,13 +4303,11 @@ async function performSyncCheck(trigger = 'level-up') {
   console.log('[SYNC CHECK] LOCK activé');
 
   try {
-    // ✅ CAPTURER un snapshot AVANT la requête HTTP
     const clientSnapshot = normalizeStats(clientTruth.stats_json || {});
     const clientHash = await hashJSON(clientSnapshot);
 
     console.log('[SYNC CHECK] Client snapshot capturé:', clientSnapshot);
 
-    // 🔍 Lecture serveur
     const serverStats = await callAPI('getUserStats', {
       token: userToken
     });
@@ -4326,7 +4322,6 @@ async function performSyncCheck(trigger = 'level-up') {
 
     SyncMonitor.lastServerSnapshotHash = serverHash;
 
-    // 🔍 LOGS VISUELS
     console.group('[SYNC CHECK] NORMALIZED INPUTS');
     console.log('CLIENT (snapshot):', clientSnapshot);
     console.log('SERVER (normalized):', serverJson);
@@ -4336,13 +4331,29 @@ async function performSyncCheck(trigger = 'level-up') {
       `[SYNC CHECK] hashes → client=${clientHash} / server=${serverHash}`
     );
 
-    // 🔴 Comparaison factuelle
     if (clientHash !== serverHash) {
       SyncMonitor.state = 'DESYNC_CONFIRMED';
       console.warn(
         '%c[SYNC CHECK] DESYNC_CONFIRMED',
         'color:#c00;font-weight:bold'
       );
+      
+      // ✅ NOUVEAU : Auto-resync
+      console.log('[SYNC CHECK] Déclenchement auto-resync...');
+      
+      const resyncResult = await forceSyncClientToServer();
+      
+      if (resyncResult.success) {
+        console.log(
+          '%c[SYNC CHECK] Resync automatique réussie',
+          'color:#0a0;font-weight:bold'
+        );
+      } else {
+        console.error('[SYNC CHECK] Resync automatique échouée:', resyncResult.error);
+        // ⚠️ Optionnel : afficher un message à l'utilisateur
+        // showSyncErrorNotification();
+      }
+      
     } else {
       console.log('[SYNC CHECK] client/server in sync');
     }
@@ -4350,12 +4361,106 @@ async function performSyncCheck(trigger = 'level-up') {
   } catch (err) {
     console.log('[SYNC CHECK] aborted: exception', err);
   } finally {
-    // ✅ DÉVERROUILLER
     SyncMonitor.syncCheckInProgress = false;
     console.log('[SYNC CHECK] LOCK libéré');
   }
 }
+// Fonction de resynchronisation forcée
+async function forceSyncClientToServer() {
+  console.log(
+    '%c[FORCE SYNC] Début écrasement serveur par client',
+    'color:#f80;font-weight:bold'
+  );
 
+  // ✅ Vérifier qu'on a bien un token
+  if (!userToken) {
+    console.error('[FORCE SYNC] Pas de token utilisateur');
+    return { success: false, error: 'No user token' };
+  }
+
+  // ✅ LOCK déjà actif normalement (appelé depuis performSyncCheck)
+  // Mais on s'assure qu'il l'est
+  if (!SyncMonitor.syncCheckInProgress) {
+    SyncMonitor.syncCheckInProgress = true;
+    console.log('[FORCE SYNC] LOCK activé');
+  }
+
+  try {
+    // ✅ Nettoyer les stats avant envoi (enlever items jamais joués)
+    const cleanedStats = normalizeStats(clientTruth.stats_json);
+    
+    console.log('[FORCE SYNC] Envoi au serveur:', {
+      itemsCount: Object.keys(cleanedStats).length,
+      niveau_atteint: clientTruth.niveau_atteint,
+      preview: cleanedStats
+    });
+
+    // ✅ Appel API pour écraser
+    const result = await callAPI('overwriteUserStats', {
+      token: userToken,
+      stats_json: JSON.stringify(cleanedStats)
+    });
+
+    if (result.success) {
+      console.log(
+        '%c[FORCE SYNC] ✅ Succès',
+        'color:#0a0;font-weight:bold',
+        result
+      );
+
+      // ✅ Mettre à jour les hashes pour marquer la sync
+      const newHash = await hashJSON(cleanedStats);
+      SyncMonitor.lastClientSnapshotHash = newHash;
+      SyncMonitor.lastServerSnapshotHash = newHash;
+      
+      // ✅ Retour à l'état SYNCED
+      SyncMonitor.state = 'SYNCED';
+      SyncMonitor.log('force sync completed');
+      
+      // ✅ Optionnel : rebuild HiraganaList depuis le serveur
+      // pour s'assurer que l'affichage est à jour
+      await refreshUserData();
+      
+      return { success: true, result };
+      
+    } else {
+      console.error('[FORCE SYNC] Échec:', result.error);
+      return { success: false, error: result.error };
+    }
+
+  } catch (error) {
+    console.error('[FORCE SYNC] Exception:', error);
+    return { success: false, error: error.message };
+    
+  } finally {
+    // ✅ UNLOCK
+    SyncMonitor.syncCheckInProgress = false;
+    console.log('[FORCE SYNC] LOCK libéré');
+  }
+}
+
+// Fonction helper pour recharger les données depuis le serveur
+async function refreshUserData() {
+  try {
+    console.log('[REFRESH] Rechargement données serveur...');
+    
+    const serverStats = await callAPI('getUserStats', { token: userToken });
+    
+    if (serverStats.success) {
+      // Reconstruire HiraganaList avec les nouvelles stats
+      rebuildClientTruthFromHiraganaList();
+      
+      console.log('[REFRESH] Données rechargées');
+      return true;
+    }
+    
+    return false;
+    
+  } catch (error) {
+    console.error('[REFRESH] Erreur:', error);
+    return false;
+  }
+}
   
 //-------------------------------------------------------------------------------------------------------
 // --- Fonctions API ---
@@ -8381,6 +8486,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
