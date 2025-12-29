@@ -4304,9 +4304,16 @@ async function performSyncCheck(trigger = 'level-up') {
       return;
     }
 
+    
 const serverJson = normalizeStats(serverStats.stats || {});
 const clientJson = normalizeStats(clientTruth.stats_json || {});
 
+   // 🔍 LOGS VISUELS (CLEF DE CETTE ÉTAPE)
+    console.group('[SYNC CHECK] NORMALIZED INPUTS');
+    console.log('CLIENT (normalized):', clientJson);
+    console.log('SERVER (normalized):', serverJson);
+    console.groupEnd();
+    
 const serverHash = JSON.stringify(serverJson).length;
 const clientHash = JSON.stringify(clientJson).length;
 
@@ -8117,6 +8124,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
