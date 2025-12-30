@@ -4113,6 +4113,9 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
     console.warn('[INIT CLIENT TRUTH] localStorage restore failed', e);
   }
 
+  // ✅ Variables pour le log final
+  let chosenSource = 'SERVER';
+
   // 🎯 DÉCISION : Quelle vérité est la plus avancée ?
   if (!localTruth) {
     // Pas de données locales → utiliser serveur
@@ -4130,12 +4133,14 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
     console.log('[INIT CLIENT TRUTH] Comparaison tentatives:', {
       local: localTotal,
       server: serverTotal,
-      diff: localTotal - serverTotal
+      diff: localTotal - serverTotal,
+      winner: localTotal > serverTotal ? '🏆 LOCAL' : localTotal < serverTotal ? '🏆 SERVER' : '⚖️ ÉGALITÉ'
     });
     
     if (localTotal > serverTotal) {
       console.log('[INIT CLIENT TRUTH] ✅ LOCAL plus avancé → SYNC CLIENT→SERVEUR');
       clientTruth = localTruth;
+      chosenSource = 'LOCAL';
       
       // 🔄 Déclencher une sync forcée pour mettre à jour le serveur
       setTimeout(() => {
@@ -4161,14 +4166,13 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
     console.warn('[INIT CLIENT TRUTH] localStorage save failed', e);
   }
 
-console.log('[INIT CLIENT TRUTH] Comparaison tentatives:', {
-  local: localTotal,
-  server: serverTotal,
-  diff: localTotal - serverTotal,
-  winner: localTotal > serverTotal ? '🏆 LOCAL' : localTotal < serverTotal ? '🏆 SERVER' : '⚖️ ÉGALITÉ'
-});
+  console.log('[INIT CLIENT TRUTH] initialized', {
+    source: chosenSource,
+    items: Object.keys(clientTruth.stats_json).length,
+    niveau_atteint: clientTruth.niveau_atteint
+  });
 }
-function updateClientTruthOnAnswer(params) {
+  function updateClientTruthOnAnswer(params) {
   console.log('[CLIENT TRUTH INPUT]', params);
 
   if (!params || params.id == null) {
@@ -8534,6 +8538,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
