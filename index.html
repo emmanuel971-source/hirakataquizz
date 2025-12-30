@@ -6590,210 +6590,194 @@ function drawStar(ctx, x, y, radius, rotation = 0) {
 }
 
 function triggerAdvancedFirework(container) {
-  console.log('🎆 triggerAdvancedFirework APPELÉE', {
-    container,
+  console.log('🎆 triggerAdvancedFirework APPELÉE', { 
+    container, 
     activeSparks: activeSparks.length,
-    MAX: MAX_ACTIVE_PARTICLES
-  });
+    MAX: MAX_ACTIVE_PARTICLES 
+  });  
+initAudio();
+const validatedCount = getValidatedCountForLevel(niveauActif);
+const canvas = document.createElement('canvas');
+canvas.style.position = 'absolute';
+canvas.style.left = '50%';
+canvas.style.top = '50%';
+canvas.style.transform = 'translate(-50%, -50%)';
+canvas.style.pointerEvents = 'none';
+canvas.style.zIndex = '20';
+canvas.width = 400;
+canvas.height = 400;
+document.body.appendChild(canvas);  // ✅ Ajouter au body au lieu du container
 
-  initAudio();
-  const validatedCount = getValidatedCountForLevel(niveauActif);
-  playValidationSound(validatedCount);
+// Et ajuste la position
+const rect = container.getBoundingClientRect();
+canvas.style.position = 'fixed';  // ✅ fixed au lieu de absolute
+canvas.style.left = rect.left + rect.width / 2 + 'px';
+canvas.style.top = rect.top + rect.height / 2 + 'px';
+const ctx = canvas.getContext('2d');
 
-  // On nettoie les anciennes particules pour libérer de la place
-  cleanupOldParticles();
+const colorPalettes = [
+['#6B8E23', '#9ACD32', '#32CD32', '#228B22', '#008000', '#006400'], // Palette verte
+['#A8D5BA', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
+['#FDC1C5', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
+];
+const colors = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
 
-  // ✅ PLUS DE RETURN PRÉCOCE ICI : on veut toujours au moins tenter l'effet
+const maxLifeBase = isMobile ? 30 : 50;
+const numParticles = isMobile ? 9 : 12;
+const numSalvos = isMobile ? 3 : 3;
+const gravity = 0.1;
+const salvoDelay = 150;
+const dispersionBase = 3;
+const itemCount = getItemCountForLevel(niveauActif);
+const particles = [];
+const trails = [];
 
-  const rect = container.getBoundingClientRect();
-  const canvas = document.createElement('canvas');
-  canvas.style.position = 'fixed';
-  canvas.style.left = `${rect.left + rect.width / 2}px`;
-  canvas.style.top = `${rect.top + rect.height / 2}px`;
-  canvas.style.transform = 'translate(-50%, -50%)';
-  canvas.style.pointerEvents = 'none';
-  canvas.style.zIndex = '20';
-  canvas.width = 400;
-  canvas.height = 400;
-  document.body.appendChild(canvas);
+const halo = document.createElement('div');
+halo.style.position = 'absolute';
+halo.style.left = '50%';
+halo.style.top = '50%';
+halo.style.width = '20px';
+halo.style.height = '20px';
+halo.style.borderRadius = '50%';
+halo.style.background = 'radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.05))';
+halo.style.transform = 'translate(-50%, -50%) scale(1)';
+halo.style.opacity = '1';
+halo.style.zIndex = '0';
+halo.style.pointerEvents = 'none';
+document.body.appendChild(halo);
+halo.style.position = 'fixed';
+halo.style.left = `${rect.left + rect.width / 2}px`;
+halo.style.top = `${rect.top + rect.height / 2}px`;
+halo.animate([
+{ transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+{ transform: 'translate(-50%, -50%) scale(6)', opacity: 0 }
+], {
+duration: 700,
+easing: 'ease-out'
+}).onfinish = () => halo.remove();
 
-  createHalo(rect);
-
-  const ctx = canvas.getContext('2d');
-  const colorPalettes = [
-    ['#6B8E23', '#9ACD32', '#32CD32', '#228B22', '#008000', '#006400'],
-    ['#A8D5BA', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
-    ['#FDC1C5', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB']
-  ];
-  const colors = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
-
-  const maxLifeBase = isMobile ? 30 : 50;
-  const numParticles = isMobile ? 9 : 12;
-  const numSalvos = isMobile ? 3 : 3;
-  const gravity = 0.1;
-  const salvoDelay = 150;
-  const dispersionBase = 3;
-
-  const particles = [];
-  const trails = [];
-
-  // On garde les checks à l'intérieur des boucles pour limiter finement
-  for (let salvo = 0; salvo < numSalvos; salvo++) {
-    setTimeout(() => {
-      // Si on est vraiment saturé, on skip ce salvo (mais pas tout l'effet)
-      if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-        console.warn(`⚠️ Salvo ${salvo} annulée - limite atteinte`);
-        return;
-      }
-
-      const biasDirection = Math.random() < 0.5 ? -1 : 1;
-      const biasMagnitude = (Math.random() * 0.2 - 0.1) * biasDirection;
-
-      for (let i = 0; i < numParticles; i++) {
-        if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-          console.warn(`🛑 Particule supplémentaire ignorée - limite atteinte`);
-          break; // On arrête d'ajouter dans ce salvo, mais les précédentes existent
-        }
-
-        const angleOffset = (Math.random() * 10 - 5) * (Math.PI / 180);
-        const angle = angleOffset + (i * (360 / numParticles)) * (Math.PI / 180);
-        const isUpward = (angle >= 3 * Math.PI / 2 || angle <= Math.PI / 2);
-        let speed = dispersionBase + Math.random() * 3;
-        if (isUpward) {
-          speed = Math.max(7, speed);
-          if ((angle >= 3 * Math.PI / 2 && biasDirection === -1) || (angle <= Math.PI / 2 && biasDirection === 1)) {
-            speed *= (1 + biasMagnitude);
-          }
-        }
-
-        const v0x = speed * Math.cos(angle);
-        const v0y = speed * Math.sin(angle) * -1;
-        const color = colors[Math.floor(Math.random() * colors.length)];
-
-        particles.push({
-          x: canvas.width / 2,
-          y: canvas.height / 2,
-          vx: v0x,
-          vy: v0y,
-          life: maxLifeBase + Math.random() * 20,
-          maxLife: maxLifeBase + Math.random() * 20,
-          color,
-          rotation: Math.random() * Math.PI * 2
-        });
-        activeSparks.push({ canvas });
-        globalParticleCount++;
-      }
-    }, salvo * salvoDelay);
-  }
-
-  // Le reste (animate) est inchangé
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (!isMobile) {
-      particles.forEach(p => {
-        if (Math.random() < 0.2) {
-          trails.push({ x: p.x, y: p.y, color: p.color, life: 10 });
-        }
-      });
-    }
-
-    trails.forEach((t, i) => {
-      t.life--;
-      if (t.life <= 0) {
-        trails.splice(i, 1);
-        return;
-      }
-      ctx.fillStyle = t.color;
-      ctx.globalAlpha = t.life / 10 * 0.3;
-      ctx.beginPath();
-      ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
-      ctx.fill();
-    });
-
-    particles.forEach((p, i) => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += gravity;
-      p.life--;
-      p.rotation += 0.05;
-      if (p.life <= 0) {
-        particles.splice(i, 1);
-        activeSparks.splice(i, 1);
-        globalParticleCount--;
-        return;
-      }
-      ctx.fillStyle = p.color;
-      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
-      ctx.restore();
-    });
-
-    if (particles.length > 0 || trails.length > 0) {
-      requestAnimationFrame(animate);
-    } else {
-      canvas.remove();
-      cleanupOldParticles();
-    }
-  }
-
-  requestAnimationFrame(animate);
+console.log("🎯 nbre d'items dans le niveau =", itemCount, "niveau =", niveauActif);
+console.log("🎯 nbre d'items validés =", validatedCount, "niveau =", niveauActif);  
+if (validatedCount === itemCount-1) {
+  playLevelUp();
+  triggerLevelUpAnimation(document.body);
+} else if (validatedCount === 3) {
+playfireworksound4();
+} else if (validatedCount === 2) {
+playfireworksound3();
+} else if (validatedCount === 1) {
+playfireworksound2();
+} else if (validatedCount === 0) {
+playFireworkSound();
 }
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (!isMobile) {
-      particles.forEach(p => {
-        if (Math.random() < 0.2) {
-          trails.push({ x: p.x, y: p.y, color: p.color, life: 10 });
-        }
-      });
-    }
+for (let salvo = 0; salvo < numSalvos; salvo++) {
+setTimeout(() => {
+if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
+console.warn(`⚠️ Salvo ${salvo} annulée - limite atteinte`);
+return;
+}
 
-    trails.forEach((t, i) => {
-      t.life--;
-      if (t.life <= 0) {
-        trails.splice(i, 1);
-        return;
-      }
-      ctx.fillStyle = t.color;
-      ctx.globalAlpha = t.life / 10 * 0.3;
-      ctx.beginPath();
-      ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
-      ctx.fill();
-    });
+const biasDirection = Math.random() < 0.5 ? -1 : 1;
+const biasMagnitude = (Math.random() * 0.2 - 0.1) * biasDirection;
 
-    particles.forEach((p, i) => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += gravity;
-      p.life--;
-      p.rotation += 0.05;
-      if (p.life <= 0) {
-        particles.splice(i, 1);
-        activeSparks.splice(i, 1);
-        globalParticleCount--;
-        return;
-      }
-      ctx.fillStyle = p.color;
-      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
-      ctx.restore();
-    });
+for (let i = 0; i < numParticles; i++) {
+if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
+console.warn(`🛑 Particule ${i} du salvo ${salvo} ignorée - limite atteinte`);
+break;
+}
 
-    if (particles.length > 0 || trails.length > 0) {
-      requestAnimationFrame(animate);
-    } else {
-      canvas.remove();
-      cleanupOldParticles();
-    }
-  }
+const angleOffset = (Math.random() * 10 - 5) * (Math.PI / 180);
+const angle = angleOffset + (i * (360 / numParticles)) * (Math.PI / 180);
+const isUpward = (angle >= 3 * Math.PI / 2 || angle <= Math.PI / 2);
+let speed = dispersionBase + Math.random() * 3;
+if (isUpward) {
+speed = Math.max(7, speed);
+if ((angle >= 3 * Math.PI / 2 && biasDirection === -1) || (angle <= Math.PI / 2 && biasDirection === 1)) {
+speed *= (1 + biasMagnitude);
+}
+}
 
-  requestAnimationFrame(animate);
+const v0x = speed * Math.cos(angle);
+const v0y = speed * Math.sin(angle) * -1;
+const color = colors[Math.floor(Math.random() * colors.length)];
+
+particles.push({
+x: canvas.width / 2,
+y: canvas.height / 2,
+vx: v0x,
+vy: v0y,
+life: maxLifeBase + Math.random() * 20,
+maxLife: maxLifeBase + Math.random() * 20,
+color: color,
+rotation: Math.random() * Math.PI * 2
+});
+activeSparks.push({ canvas });
+globalParticleCount++;
+
+}
+}, salvo * salvoDelay);
+}
+
+function animate() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+if (!isMobile) {
+particles.forEach(p => {
+if (Math.random() < 0.2) {
+trails.push({
+x: p.x,
+y: p.y,
+color: p.color,
+life: 10
+});
+}
+});
+}
+
+trails.forEach((t, i) => {
+t.life--;
+if (t.life <= 0) {
+trails.splice(i, 1);
+return;
+}
+ctx.fillStyle = t.color;
+ctx.globalAlpha = t.life / 10 * 0.3;
+ctx.beginPath();
+ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
+ctx.fill();
+});
+
+particles.forEach((p, i) => {
+p.x += p.vx;
+p.y += p.vy;
+p.vy += gravity;
+p.life--;
+p.rotation += 0.05;
+if (p.life <= 0) {
+particles.splice(i, 1);
+activeSparks.splice(i, 1);
+globalParticleCount--;
+return;
+}
+ctx.fillStyle = p.color;
+ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+ctx.save();
+ctx.translate(p.x, p.y);
+drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
+ctx.restore();
+});
+
+if (particles.length > 0 || Date.now() < Date.now() + numSalvos * salvoDelay) {
+requestAnimationFrame(animate);
+} else {
+canvas.remove();
+activeSparks = activeSparks.filter(spark => spark.canvas !== canvas);
+globalParticleCount = Math.max(0, globalParticleCount - particles.length);
+console.log('Animation terminée');
+}
+}
+requestAnimationFrame(animate);
 }
 
 function triggerLightFirework(card) {
@@ -8536,6 +8520,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
