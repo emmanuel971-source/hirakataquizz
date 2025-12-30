@@ -6340,161 +6340,165 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 }
 // ============================================================================
-// 🎨 SECTION 10 : ANIMATIONS & EFFETS VISUELS (REFACTOR)
+// 🎨 SECTION 10 : ANIMATIONS & EFFETS VISUELS
 // ============================================================================
 
-// ------------------------------------------------------------------
-// 🌍 ENV / LIMITES
-// ------------------------------------------------------------------
-const isMobile =
-  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-  window.innerWidth < 768;
-
+// --- Variables globales ---
+let activeSparks = [];
+let globalParticleCount = 0;
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30;
-let activeCanvases = [];
 
-// ------------------------------------------------------------------
-// 🧹 PARTICLE REGISTRY
-// ------------------------------------------------------------------
-function registerCanvas(canvas) {
-  activeCanvases.push(canvas);
+// --- Constantes ---
+const SAKURA_COUNT = 30;
+const SAKURA_DURATION_MIN = 2.5;
+const SAKURA_DURATION_VAR = 1.5;
+const SAKURA_DELAY_MAX = 1.5;
+const SAKURA_CLEANUP = 4000;
 
-  while (activeCanvases.length > MAX_ACTIVE_PARTICLES) {
-    const old = activeCanvases.shift();
-    old?.remove();
-  }
-}
+// --- Utilitaires communs ---
 
-function cleanupCanvases() {
-  activeCanvases = activeCanvases.filter(c => c && c.parentNode);
-}
-
-// ------------------------------------------------------------------
-// 🔊 AUDIO / LOGIQUE MÉTIER CENTRALISÉE
-// ------------------------------------------------------------------
-function handleValidationFeedback() {
-  const validatedCount = getValidatedCountForLevel(niveauActif);
+function playValidationSound(validatedCount) {
   const itemCount = getItemCountForLevel(niveauActif);
-
   if (validatedCount === itemCount - 1) {
     playLevelUp();
     triggerLevelUpAnimation(document.body);
-    return;
-  }
-
-  const sounds = [
-    playFireworkSound,
-    playfireworksound2,
-    playfireworksound3,
-    playfireworksound4
-  ];
-
-  sounds[validatedCount]?.();
-}
-
-// ------------------------------------------------------------------
-// ✨ SPARKLES GÉNÉRIQUES
-// ------------------------------------------------------------------
-function spawnSparkles({
-  container,
-  emojis,
-  count,
-  size,
-  opacity,
-  distanceMin,
-  distanceMax,
-  duration
-}) {
-  for (let i = 0; i < count; i++) {
-    const s = document.createElement("div");
-    s.className = "sparkle";
-    s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-    s.style.fontSize = `${size}rem`;
-    s.style.left = "50%";
-    s.style.top = "50%";
-
-    const angle = (Math.PI * 2 * i) / count;
-    const distance = distanceMin + Math.random() * (distanceMax - distanceMin);
-
-    s.style.setProperty("--tx", `${Math.cos(angle) * distance}px`);
-    s.style.setProperty("--ty", `${Math.sin(angle) * distance}px`);
-    s.style.setProperty("--sparkle-opacity", opacity);
-    s.style.animationDelay = `${Math.random() * 0.2}s`;
-
-    container.appendChild(s);
-    setTimeout(() => s.remove(), duration);
+  } else if (validatedCount === 3) {
+    playfireworksound4();
+  } else if (validatedCount === 2) {
+    playfireworksound3();
+  } else if (validatedCount === 1) {
+    playfireworksound2();
+  } else if (validatedCount === 0) {
+    playFireworkSound();
   }
 }
 
-// API publique conservée
-function createSparkles() {
-  spawnSparkles({
-    container: document.getElementById("result"),
-    emojis: ["✨", "⭐", "💫", "🌟", "✦"],
+function createHalo(rect, color = 'rgba(255,255,255,0.9)', scaleTo = 6, duration = 700) {
+  const halo = document.createElement('div');
+  halo.style.position = 'fixed';
+  halo.style.left = `${rect.left + rect.width / 2}px`;
+  halo.style.top = `${rect.top + rect.height / 2}px`;
+  halo.style.width = '20px';
+  halo.style.height = '20px';
+  halo.style.borderRadius = '50%';
+  halo.style.background = `radial-gradient(circle, ${color}, rgba(255,255,255,0.05))`;
+  halo.style.transform = 'translate(-50%, -50%) scale(1)';
+  halo.style.opacity = '1';
+  halo.style.zIndex = '0';
+  halo.style.pointerEvents = 'none';
+  document.body.appendChild(halo);
+
+  halo.animate([
+    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+    { transform: `translate(-50%, -50%) scale(${scaleTo})`, opacity: 0 }
+  ], { duration, easing: 'ease-out' }).onfinish = () => halo.remove();
+}
+
+// --- Sparkles générique ---
+
+function createSparklesGeneric(container, options = {}) {
+  const defaults = {
     count: 12,
-    size: 0.8,
+    size: 0.8, // rem
     opacity: 0.3,
     distanceMin: 80,
-    distanceMax: 120,
-    duration: 1000
-  });
+    distanceVar: 40,
+    emojis: ["✨", "⭐", "💫", "🌟", "✦"],
+    className: 'sparkle',
+    animationDuration: 1000,
+    delayMax: 0.2,
+    isFlashcard: false,
+    type: null // pour flashcard
+  };
+  const opts = { ...defaults, ...options };
+
+  // Ajustements spécifiques
+  if (opts.isFlashcard) {
+    opts.emojis = opts.type === "flower" ? ["✨", "🌸", "💖", "⭐"] : ["🍃", "💨", "✨"];
+    opts.count = 14 + Math.floor(Math.random() * 6);
+    opts.size = 22 / 16; // approx rem
+    opts.distanceMin = 0;
+    opts.distanceVar = 240;
+    opts.className = 'sparkle-flashcard';
+    opts.animationDuration = 1300;
+    opts.delayMax = 0;
+  } else if (options.forPlant) {
+    opts.size = 0.6;
+    opts.opacity = 0.4;
+    opts.distanceMin = 60;
+    opts.distanceVar = 30;
+    opts.delayMax = 0.1;
+    opts.animationDuration = 800;
+  }
+
+  for (let i = 0; i < opts.count; i++) {
+    const sparkle = document.createElement('div');
+    sparkle.className = opts.className;
+    sparkle.style.position = 'absolute';
+    sparkle.style.pointerEvents = 'none';
+    sparkle.style.left = '50%';
+    sparkle.style.top = '50%';
+    sparkle.style.fontSize = `${opts.size}rem`;
+
+    const emoji = opts.emojis[Math.floor(Math.random() * opts.emojis.length)];
+    sparkle.textContent = emoji;
+
+    if (opts.isFlashcard) {
+      sparkle.style.setProperty("--x", `${(Math.random() - 0.5) * opts.distanceVar}px`);
+      sparkle.style.setProperty("--y", `${(Math.random() - 0.8) * opts.distanceVar}px`);
+      sparkle.style.animation = "sparkleFlashcard 1.3s ease-out forwards";
+    } else {
+      const angle = (Math.PI * 2 * i) / opts.count;
+      const distance = opts.distanceMin + Math.random() * opts.distanceVar;
+      const tx = Math.cos(angle) * distance;
+      const ty = Math.sin(angle) * distance;
+      sparkle.style.setProperty('--tx', `${tx}px`);
+      sparkle.style.setProperty('--ty', `${ty}px`);
+      sparkle.style.setProperty('--sparkle-opacity', opts.opacity);
+      sparkle.style.animationDelay = `${Math.random() * opts.delayMax}s`;
+    }
+
+    container.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), opts.animationDuration);
+  }
+}
+
+// Wrappers pour compatibilité
+function createSparkles() {
+  createSparklesGeneric(document.getElementById("result"), {});
 }
 
 function createSparklesForPlant(container) {
-  spawnSparkles({
-    container,
-    emojis: ["✨", "⭐", "💫", "🌟", "✦"],
-    count: 12,
-    size: 0.6,
-    opacity: 0.4,
-    distanceMin: 60,
-    distanceMax: 90,
-    duration: 800
-  });
+  createSparklesGeneric(container, { forPlant: true });
 }
 
 function spawnSparklesInFlashcard(container, type) {
-  const icons = type === "flower"
-    ? ["✨","🌸","💖","⭐"]
-    : ["🍃","💨","✨"];
-
-  spawnSparkles({
-    container,
-    emojis: icons,
-    count: 16,
-    size: 1.4,
-    opacity: 1,
-    distanceMin: 80,
-    distanceMax: 200,
-    duration: 1300
-  });
+  createSparklesGeneric(container, { isFlashcard: true, type });
 }
 
-// ------------------------------------------------------------------
-// 🌸 SAKURA
-// ------------------------------------------------------------------
+// --- Sakura ---
+
 function triggerSakuraFall() {
-  for (let i = 0; i < 30; i++) {
-    const s = document.createElement("div");
-    s.className = "sakura";
-    s.style.left = Math.random() * 100 + "vw";
-    s.style.top = "-10px";
-    s.style.animationDelay = Math.random() * 1.5 + "s";
-    s.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
-    document.body.appendChild(s);
-    setTimeout(() => s.remove(), 4000);
+  for (let i = 0; i < SAKURA_COUNT; i++) {
+    const sakura = document.createElement("div");
+    sakura.className = "sakura";
+    sakura.style.left = `${Math.random() * 100}vw`;
+    sakura.style.top = "-10px";
+    sakura.style.animationDelay = `${Math.random() * SAKURA_DELAY_MAX}s`;
+    sakura.style.animationDuration = `${SAKURA_DURATION_MIN + Math.random() * SAKURA_DURATION_VAR}s`;
+    document.body.appendChild(sakura);
+    setTimeout(() => sakura.remove(), SAKURA_CLEANUP);
   }
 }
 
-// ------------------------------------------------------------------
-// 🆙 LEVEL UP
-// ------------------------------------------------------------------
-function triggerLevelUpAnimation() {
-  const toHide = ['#question', '#choices1', '#choices2'];
+// --- Level Up ---
 
+function triggerLevelUpAnimation(container) {
+  const toHide = ['#question', '#choices1', '#choices2'];
   toHide.forEach(id => {
     const el = document.querySelector(id);
-    el && (el.style.visibility = "hidden");
+    if (el) el.style.visibility = 'hidden';
   });
 
   triggerSakuraFall();
@@ -6502,117 +6506,236 @@ function triggerLevelUpAnimation() {
   setTimeout(() => {
     toHide.forEach(id => {
       const el = document.querySelector(id);
-      if (!el) return;
-
-      el.style.visibility = "visible";
-      el.animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: 600,
-        fill: "forwards"
-      }).onfinish = () => (el.style.opacity = "");
+      if (el) {
+        el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 600, fill: 'forwards' })
+          .onfinish = () => { el.style.opacity = ''; };
+      }
     });
   }, 3000);
 
+  const msgWrapper = document.createElement("div");
+  msgWrapper.style.position = "fixed";
+  msgWrapper.style.top = "40%";
+  msgWrapper.style.left = "0";
+  msgWrapper.style.width = "100vw";
+  msgWrapper.style.textAlign = "center";
+  msgWrapper.style.zIndex = 9999;
+  msgWrapper.style.pointerEvents = "none";
+  document.body.appendChild(msgWrapper);
+
   const msg = document.createElement("div");
-  msg.innerText = t("msg_level_up");
-  msg.className = "level-up-msg";
-  document.body.appendChild(msg);
+  msg.innerText = t('msg_level_up');
+  msg.style.display = "inline-block";
+  msg.style.fontSize = "3em";
+  msg.style.fontWeight = "bold";
+  msg.style.color = "#8B6F47";
+  msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #FDC1C5";
+  msg.style.writingMode = "horizontal-tb";
+  msg.style.whiteSpace = "nowrap";
+  msgWrapper.appendChild(msg);
 
   msg.animate([
     { transform: "translateY(0)", opacity: 1 },
     { transform: "translateY(-40px)", opacity: 0 }
-  ], { duration: 3000, easing: "ease-out" })
-   .onfinish = () => msg.remove();
+  ], {
+    duration: 3000,
+    easing: "ease-out"
+  }).onfinish = () => msgWrapper.remove();
+
+  const marker = document.querySelector(".progress-marker");
+  if (marker) {
+    marker.animate([
+      { transform: "translate(-50%, -50%) rotate(0deg) scale(1)" },
+      { transform: "translate(-50%, -50%) rotate(180deg) scale(4)" },
+      { transform: "translate(-50%, -50%) rotate(360deg) scale(1)" }
+    ], { duration: 1000, easing: "ease-in-out" });
+  }
 }
 
-// ------------------------------------------------------------------
-// 🎆 FIREWORK CANVAS
-// ------------------------------------------------------------------
-function drawStar(ctx, r, rot) {
+// --- Fireworks ---
+
+function drawStar(ctx, x, y, radius, rotation = 0) {
   const points = 5;
+  const outerRadius = radius;
+  const innerRadius = radius / 2;
   ctx.beginPath();
   for (let i = 0; i < points * 2; i++) {
-    const radius = i % 2 === 0 ? r : r / 2;
-    const angle = (i * Math.PI / points) + rot - Math.PI / 2;
-    ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
+    const r = i % 2 === 0 ? outerRadius : innerRadius;
+    const angle = (i * Math.PI / points) + rotation - Math.PI / 2;
+    ctx.lineTo(
+      x + r * Math.cos(angle),
+      y + r * Math.sin(angle)
+    );
   }
   ctx.closePath();
   ctx.fill();
 }
 
 function triggerAdvancedFirework(container) {
-  initAudio();
-  handleValidationFeedback();
+  console.log('🎆 triggerAdvancedFirework APPELÉE', {
+    container,
+    activeSparks: activeSparks.length,
+    MAX: MAX_ACTIVE_PARTICLES
+  });
 
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 400;
-  canvas.style.position = "fixed";
-  canvas.style.pointerEvents = "none";
-  canvas.style.zIndex = 20;
+  initAudio();
+  const validatedCount = getValidatedCountForLevel(niveauActif);
+  playValidationSound(validatedCount);
+
+  cleanupOldParticles();
+  if (activeSparks.length >= MAX_ACTIVE_PARTICLES) return;
 
   const rect = container.getBoundingClientRect();
-  canvas.style.left = rect.left + rect.width / 2 + "px";
-  canvas.style.top = rect.top + rect.height / 2 + "px";
-  canvas.style.transform = "translate(-50%, -50%)";
-
+  const canvas = document.createElement('canvas');
+  canvas.style.position = 'fixed';
+  canvas.style.left = `${rect.left + rect.width / 2}px`;
+  canvas.style.top = `${rect.top + rect.height / 2}px`;
+  canvas.style.transform = 'translate(-50%, -50%)';
+  canvas.style.pointerEvents = 'none';
+  canvas.style.zIndex = '20';
+  canvas.width = 400;
+  canvas.height = 400;
   document.body.appendChild(canvas);
-  registerCanvas(canvas);
 
-  const ctx = canvas.getContext("2d");
-  const gravity = 0.1;
-  const particles = [];
+  createHalo(rect);
 
-  const colors = [
-    "#6B8E23", "#9ACD32", "#32CD32",
-    "#A8D5BA", "#FDC1C5"
+  const ctx = canvas.getContext('2d');
+  const colorPalettes = [
+    ['#6B8E23', '#9ACD32', '#32CD32', '#228B22', '#008000', '#006400'],
+    ['#A8D5BA', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
+    ['#FDC1C5', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB']
   ];
+  const colors = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
 
-  const count = isMobile ? 9 : 12;
-  const maxLife = isMobile ? 30 : 50;
+  const maxLifeBase = isMobile ? 30 : 50;
+  const numParticles = isMobile ? 9 : 12;
+  const numSalvos = isMobile ? 3 : 3;
+  const gravity = 0.1;
+  const salvoDelay = 150;
+  const dispersionBase = 3;
 
-  for (let i = 0; i < count; i++) {
-    const angle = (i * 2 * Math.PI) / count;
-    const speed = 6 + Math.random() * 3;
+  const particles = [];
+  const trails = [];
 
-    particles.push({
-      x: 200,
-      y: 200,
-      vx: Math.cos(angle) * speed,
-      vy: -Math.sin(angle) * speed,
-      life: maxLife,
-      rot: Math.random() * Math.PI * 2,
-      color: colors[Math.floor(Math.random() * colors.length)]
-    });
+  for (let salvo = 0; salvo < numSalvos; salvo++) {
+    setTimeout(() => {
+      if (activeSparks.length >= MAX_ACTIVE_PARTICLES) return;
+
+      const biasDirection = Math.random() < 0.5 ? -1 : 1;
+      const biasMagnitude = (Math.random() * 0.2 - 0.1) * biasDirection;
+
+      for (let i = 0; i < numParticles; i++) {
+        if (activeSparks.length >= MAX_ACTIVE_PARTICLES) break;
+
+        const angleOffset = (Math.random() * 10 - 5) * (Math.PI / 180);
+        const angle = angleOffset + (i * (360 / numParticles)) * (Math.PI / 180);
+        const isUpward = (angle >= 3 * Math.PI / 2 || angle <= Math.PI / 2);
+        let speed = dispersionBase + Math.random() * 3;
+        if (isUpward) {
+          speed = Math.max(7, speed);
+          if ((angle >= 3 * Math.PI / 2 && biasDirection === -1) || (angle <= Math.PI / 2 && biasDirection === 1)) {
+            speed *= (1 + biasMagnitude);
+          }
+        }
+
+        const v0x = speed * Math.cos(angle);
+        const v0y = speed * Math.sin(angle) * -1;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: v0x,
+          vy: v0y,
+          life: maxLifeBase + Math.random() * 20,
+          maxLife: maxLifeBase + Math.random() * 20,
+          color,
+          rotation: Math.random() * Math.PI * 2
+        });
+        activeSparks.push({ canvas });
+        globalParticleCount++;
+      }
+    }, salvo * salvoDelay);
   }
 
   function animate() {
-    ctx.clearRect(0, 0, 400, 400);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!isMobile) {
+      particles.forEach(p => {
+        if (Math.random() < 0.2) {
+          trails.push({ x: p.x, y: p.y, color: p.color, life: 10 });
+        }
+      });
+    }
+
+    trails.forEach((t, i) => {
+      t.life--;
+      if (t.life <= 0) {
+        trails.splice(i, 1);
+        return;
+      }
+      ctx.fillStyle = t.color;
+      ctx.globalAlpha = t.life / 10 * 0.3;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
+      ctx.fill();
+    });
 
     particles.forEach((p, i) => {
       p.x += p.vx;
       p.y += p.vy;
       p.vy += gravity;
       p.life--;
-      p.rot += 0.05;
-
+      p.rotation += 0.05;
       if (p.life <= 0) {
         particles.splice(i, 1);
+        activeSparks.splice(i, 1);
+        globalParticleCount--;
         return;
       }
-
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
       ctx.save();
       ctx.translate(p.x, p.y);
-      ctx.fillStyle = p.color;
-      ctx.globalAlpha = p.life / maxLife;
-      drawStar(ctx, isMobile ? 4 : 6, p.rot);
+      drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
       ctx.restore();
     });
 
-    particles.length ? requestAnimationFrame(animate) : canvas.remove();
+    if (particles.length > 0 || trails.length > 0) {
+      requestAnimationFrame(animate);
+    } else {
+      canvas.remove();
+      cleanupOldParticles();
+    }
   }
 
-  animate();
+  requestAnimationFrame(animate);
 }
 
+function triggerLightFirework(card) {
+  const rect = card.getBoundingClientRect();
+  createHalo(rect, 'rgba(253,193,197,0.9)', 4, 800);
+
+  triggerSakuraFall();
+
+  const validatedCount = getValidatedCountForLevel(niveauActif);
+  playValidationSound(validatedCount);
+}
+
+// --- Gestion des particules ---
+
+function cleanupOldParticles() {
+  while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
+    const oldSpark = activeSparks.shift();
+    if (oldSpark?.canvas?.parentNode) {
+      oldSpark.canvas.remove();
+      globalParticleCount--;
+    }
+  }
+  activeSparks = activeSparks.filter(spark => spark.canvas && spark.canvas.parentNode);
+  console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
+}
 // ============================================================================
 // 💬 SECTION 11 : FLASHCARDS & MODALES
 // ============================================================================
@@ -8330,6 +8453,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
