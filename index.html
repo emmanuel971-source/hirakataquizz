@@ -6496,9 +6496,15 @@ function triggerSakuraFall() {
 
 function triggerLevelUpAnimation(container) {
   const toHide = ['#question', '#choices1', '#choices2'];
+  
+  // 1. On cache tout de suite
   toHide.forEach(id => {
     const el = document.querySelector(id);
-    if (el) el.style.visibility = 'hidden';
+    if (el) {
+      el.style.visibility = 'hidden';
+      // On force l'opacité à 0 pour que le fade-in fonctionne correctement
+      el.style.opacity = '0';
+    }
   });
 
   triggerSakuraFall();
@@ -6507,12 +6513,25 @@ function triggerLevelUpAnimation(container) {
     toHide.forEach(id => {
       const el = document.querySelector(id);
       if (el) {
-        el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 600, fill: 'forwards' })
-          .onfinish = () => { el.style.opacity = ''; };
+        // On remet visible avant l'animation
+        el.style.visibility = 'visible';
+        
+        // Animation de fade-in
+        const anim = el.animate(
+          { opacity: [0, 1] },
+          { duration: 600, fill: 'forwards', easing: 'ease-out' }
+        );
+        
+        anim.onfinish = () => {
+          // Reset complet des styles inline pour éviter les conflits futurs
+          el.style.opacity = '';
+          // visibility reste visible (déjà fait)
+        };
       }
     });
   }, 3000);
 
+  // === Message "Level Up" (inchangé) ===
   const msgWrapper = document.createElement("div");
   msgWrapper.style.position = "fixed";
   msgWrapper.style.top = "40%";
@@ -6530,7 +6549,6 @@ function triggerLevelUpAnimation(container) {
   msg.style.fontWeight = "bold";
   msg.style.color = "#8B6F47";
   msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #FDC1C5";
-  msg.style.writingMode = "horizontal-tb";
   msg.style.whiteSpace = "nowrap";
   msgWrapper.appendChild(msg);
 
@@ -6542,6 +6560,7 @@ function triggerLevelUpAnimation(container) {
     easing: "ease-out"
   }).onfinish = () => msgWrapper.remove();
 
+  // Animation du marqueur de progression
   const marker = document.querySelector(".progress-marker");
   if (marker) {
     marker.animate([
@@ -6551,7 +6570,6 @@ function triggerLevelUpAnimation(container) {
     ], { duration: 1000, easing: "ease-in-out" });
   }
 }
-
 // --- Fireworks ---
 
 function drawStar(ctx, x, y, radius, rotation = 0) {
@@ -8453,6 +8471,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
