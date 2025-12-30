@@ -4091,35 +4091,83 @@ const SyncMonitor = {
   }
 };
 
-function initClientTruth(serverStatsJson, serverNiveauAtteint) {
+async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
   console.log('[INIT CLIENT TRUTH] start');
 
   const storageKey = getClientTruthStorageKey();
+  
+  let localTruth = null;
+  const serverTruth = {
+    stats_json: serverStatsJson || {},
+    niveau_atteint: serverNiveauAtteint || 1
+  };
 
+  // 🔍 Essayer de récupérer la vérité locale
   try {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
-      clientTruth = JSON.parse(saved);
-      console.log('[INIT CLIENT TRUTH] restored from localStorage', storageKey, clientTruth);
-      return;
+      localTruth = JSON.parse(saved);
+      console.log('[INIT CLIENT TRUTH] localStorage trouvé', localTruth);
     }
   } catch (e) {
     console.warn('[INIT CLIENT TRUTH] localStorage restore failed', e);
   }
 
-  // Fallback obligatoire : données serveur
-  clientTruth = {
-    stats_json: serverStatsJson || {},
-    niveau_atteint: serverNiveauAtteint || 1
-  };
+  // 🎯 DÉCISION : Quelle vérité est la plus avancée ?
+  if (!localTruth) {
+    // Pas de données locales → utiliser serveur
+    console.log('[INIT CLIENT TRUTH] ✅ Utilisation SERVEUR (pas de local)');
+    clientTruth = serverTruth;
+    
+  } else {
+    // Comparer par nombre total de tentatives
+    const localTotal = Object.values(localTruth.stats_json || {})
+      .reduce((sum, item) => sum + (Number(item.tentatives) || 0), 0);
+      
+    const serverTotal = Object.values(serverTruth.stats_json || {})
+      .reduce((sum, item) => sum + (Number(item.tentatives) || 0), 0);
+    
+    console.log('[INIT CLIENT TRUTH] Comparaison tentatives:', {
+      local: localTotal,
+      server: serverTotal,
+      diff: localTotal - serverTotal
+    });
+    
+    if (localTotal > serverTotal) {
+      console.log('[INIT CLIENT TRUTH] ✅ LOCAL plus avancé → SYNC CLIENT→SERVEUR');
+      clientTruth = localTruth;
+      
+      // 🔄 Déclencher une sync forcée pour mettre à jour le serveur
+      setTimeout(() => {
+        console.log('[INIT] Sync différée client→serveur (local plus avancé)...');
+        forceSyncClientToServer();
+      }, 1000);
+      
+    } else if (serverTotal > localTotal) {
+      console.log('[INIT CLIENT TRUTH] ✅ SERVEUR plus avancé → Utilisation serveur');
+      clientTruth = serverTruth;
+      
+    } else {
+      // Égalité parfaite (cas rare mais possible au tout début)
+      console.log('[INIT CLIENT TRUTH] ⚖️ Égalité parfaite → Utilisation serveur par défaut');
+      clientTruth = serverTruth;
+    }
+  }
 
+  // 💾 Sauvegarder la vérité choisie en localStorage
   try {
     localStorage.setItem(storageKey, JSON.stringify(clientTruth));
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[INIT CLIENT TRUTH] localStorage save failed', e);
+  }
 
-  console.log('[INIT CLIENT TRUTH] initialized from server data', storageKey, clientTruth);
+console.log('[INIT CLIENT TRUTH] Comparaison tentatives:', {
+  local: localTotal,
+  server: serverTotal,
+  diff: localTotal - serverTotal,
+  winner: localTotal > serverTotal ? '🏆 LOCAL' : localTotal < serverTotal ? '🏆 SERVER' : '⚖️ ÉGALITÉ'
+});
 }
-
 function updateClientTruthOnAnswer(params) {
   console.log('[CLIENT TRUTH INPUT]', params);
 
@@ -8486,6 +8534,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
