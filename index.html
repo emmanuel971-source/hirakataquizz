@@ -5538,7 +5538,7 @@ function resetGameContext() {
 // ============================================================================
 // 🔄 SECTION 8 : MODE RÉVISION
 // ============================================================================
-
+let revisionAnswerCount = 0;
 // --- Variables révision ---
 let revisionMode = {
   currentQuestion: "",
@@ -5812,6 +5812,15 @@ function handleRevisionAnswer() {
   // Envoi stats
   queueUpdateStats({ token: userToken, id: itemId, scorePoints: isCorrect ? 1 : 0, isRevisionMode: true });
 
+  // ✅ NOUVEAU : Compteur de réponses pour sync check périodique
+  revisionAnswerCount++;
+  
+  if (revisionAnswerCount >= 10) {
+    console.log('[REVISION] 10 réponses atteintes → Sync check demandé');
+    SyncMonitor.syncCheckRequested = true;
+    revisionAnswerCount = 0; // Reset du compteur
+  }
+  
   // Rafraîchissement jardin si page stats ouverte
   if (document.getElementById('stats')?.classList.contains('active')) {
     setTimeout(generateGarden, 100);
@@ -8539,6 +8548,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
