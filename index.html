@@ -6340,486 +6340,278 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 }
 // ============================================================================
-// 🎨 SECTION 10 : ANIMATIONS & EFFETS VISUELS
+// 🎨 SECTION 10 : ANIMATIONS & EFFETS VISUELS (REFACTOR)
 // ============================================================================
 
-// --- Variables animations ---
-let activeSparks = [];
-let globalParticleCount = 0;
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+// ------------------------------------------------------------------
+// 🌍 ENV / LIMITES
+// ------------------------------------------------------------------
+const isMobile =
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+  window.innerWidth < 768;
+
 const MAX_ACTIVE_PARTICLES = isMobile ? 15 : 30;
+let activeCanvases = [];
 
-// --- Fonctions animations ---
-function createSparkles() {
-  const sparkleEmojis = ["✨", "⭐", "💫", "🌟", "✦"];
-  const resultDiv = document.getElementById("result");
-  const sparkleCount = 12;      // Nombre de particules
-  const sparkleSize = 0.8;      // Taille en rem
-  const sparkleOpacity = 0.3;   // Opacité (30%)
-  
-  for (let i = 0; i < sparkleCount; i++) {
-    const sparkle = document.createElement('div');
-    sparkle.className = 'sparkle';
-    
-    // Choisir un emoji d'étincelle aléatoire
-    const sparkleChar = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
-    sparkle.textContent = sparkleChar;
-    
-    // Appliquer la taille
-    sparkle.style.fontSize = sparkleSize + 'rem';
-    
-    // Position de départ au centre
-    sparkle.style.left = '50%';
-    sparkle.style.top = '50%';
-    
-    // Direction aléatoire en cercle
-    const angle = (Math.PI * 2 * i) / sparkleCount;
-    const distance = 80 + Math.random() * 40;
-    const tx = Math.cos(angle) * distance;
-    const ty = Math.sin(angle) * distance;
-    
-    sparkle.style.setProperty('--tx', `${tx}px`);
-    sparkle.style.setProperty('--ty', `${ty}px`);
-    sparkle.style.setProperty('--sparkle-opacity', sparkleOpacity);
-    
-    // Délai aléatoire pour effet échelonné
-    sparkle.style.animationDelay = `${Math.random() * 0.2}s`;
-    
-    resultDiv.appendChild(sparkle);
-    
-    // Nettoyer après l'animation
-    setTimeout(() => sparkle.remove(), 1000);
+// ------------------------------------------------------------------
+// 🧹 PARTICLE REGISTRY
+// ------------------------------------------------------------------
+function registerCanvas(canvas) {
+  activeCanvases.push(canvas);
+
+  while (activeCanvases.length > MAX_ACTIVE_PARTICLES) {
+    const old = activeCanvases.shift();
+    old?.remove();
   }
 }
-function createSparklesForPlant(container) {
-  const sparkleEmojis = ["✨", "⭐", "💫", "🌟", "✦"];
-  const sparkleCount = 12;
-  const sparkleSize = 0.6;
-  const sparkleOpacity = 0.4;
-  
-  for (let i = 0; i < sparkleCount; i++) {
-    const sparkle = document.createElement('div');
-    sparkle.className = 'sparkle';
-    sparkle.style.position = 'absolute';
-    sparkle.style.pointerEvents = 'none';
-    
-    const sparkleChar = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
-    sparkle.textContent = sparkleChar;
-    
-    sparkle.style.fontSize = sparkleSize + 'rem';
-    sparkle.style.left = '50%';
-    sparkle.style.top = '50%';
-    
-    const angle = (Math.PI * 2 * i) / sparkleCount;
-    const distance = 60 + Math.random() * 30;
-    const tx = Math.cos(angle) * distance;
-    const ty = Math.sin(angle) * distance;
-    
-    sparkle.style.setProperty('--tx', `${tx}px`);
-    sparkle.style.setProperty('--ty', `${ty}px`);
-    sparkle.style.setProperty('--sparkle-opacity', sparkleOpacity);
-    sparkle.style.animationDelay = `${Math.random() * 0.1}s`;
-    
-    container.appendChild(sparkle);
-    
-    setTimeout(() => sparkle.remove(), 800);
-  }
+
+function cleanupCanvases() {
+  activeCanvases = activeCanvases.filter(c => c && c.parentNode);
 }
-function spawnSparklesInFlashcard(container, type) {
-  const icons =
-    type === "flower"
-      ? ["✨","🌸","💖","⭐"]
-      : ["🍃","💨","✨"];
 
-  const count = 14 + Math.floor(Math.random() * 6);
+// ------------------------------------------------------------------
+// 🔊 AUDIO / LOGIQUE MÉTIER CENTRALISÉE
+// ------------------------------------------------------------------
+function handleValidationFeedback() {
+  const validatedCount = getValidatedCountForLevel(niveauActif);
+  const itemCount = getItemCountForLevel(niveauActif);
 
+  if (validatedCount === itemCount - 1) {
+    playLevelUp();
+    triggerLevelUpAnimation(document.body);
+    return;
+  }
+
+  const sounds = [
+    playFireworkSound,
+    playfireworksound2,
+    playfireworksound3,
+    playfireworksound4
+  ];
+
+  sounds[validatedCount]?.();
+}
+
+// ------------------------------------------------------------------
+// ✨ SPARKLES GÉNÉRIQUES
+// ------------------------------------------------------------------
+function spawnSparkles({
+  container,
+  emojis,
+  count,
+  size,
+  opacity,
+  distanceMin,
+  distanceMax,
+  duration
+}) {
   for (let i = 0; i < count; i++) {
     const s = document.createElement("div");
-    s.className = "sparkle-flashcard";
-    s.textContent = icons[Math.floor(Math.random() * icons.length)];
-    s.style.position = "absolute";
-    s.style.fontSize = "22px";
-    s.style.pointerEvents = "none";
+    s.className = "sparkle";
+    s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    s.style.fontSize = `${size}rem`;
     s.style.left = "50%";
     s.style.top = "50%";
-    s.style.setProperty("--x", `${(Math.random() - .5) * 240}px`);
-    s.style.setProperty("--y", `${(Math.random() - .8) * 240}px`);
-    s.style.animation = "sparkleFlashcard 1.3s ease-out forwards";
-    
+
+    const angle = (Math.PI * 2 * i) / count;
+    const distance = distanceMin + Math.random() * (distanceMax - distanceMin);
+
+    s.style.setProperty("--tx", `${Math.cos(angle) * distance}px`);
+    s.style.setProperty("--ty", `${Math.sin(angle) * distance}px`);
+    s.style.setProperty("--sparkle-opacity", opacity);
+    s.style.animationDelay = `${Math.random() * 0.2}s`;
+
     container.appendChild(s);
-    setTimeout(() => s.remove(), 1300);
+    setTimeout(() => s.remove(), duration);
   }
 }
-function triggerSakuraFall(container) {
-for (let i = 0; i < 30; i++) {
-const sakura = document.createElement("div");
-sakura.className = "sakura";
-sakura.style.left = Math.random() * 100 + "vw";
-sakura.style.top = "-10px";
-sakura.style.animationDelay = Math.random() * 1.5 + "s";
-sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
-document.body.appendChild(sakura);
-setTimeout(() => sakura.remove(), 4000);
+
+// API publique conservée
+function createSparkles() {
+  spawnSparkles({
+    container: document.getElementById("result"),
+    emojis: ["✨", "⭐", "💫", "🌟", "✦"],
+    count: 12,
+    size: 0.8,
+    opacity: 0.3,
+    distanceMin: 80,
+    distanceMax: 120,
+    duration: 1000
+  });
 }
+
+function createSparklesForPlant(container) {
+  spawnSparkles({
+    container,
+    emojis: ["✨", "⭐", "💫", "🌟", "✦"],
+    count: 12,
+    size: 0.6,
+    opacity: 0.4,
+    distanceMin: 60,
+    distanceMax: 90,
+    duration: 800
+  });
 }
-function triggerLevelUpAnimation(container) {
+
+function spawnSparklesInFlashcard(container, type) {
+  const icons = type === "flower"
+    ? ["✨","🌸","💖","⭐"]
+    : ["🍃","💨","✨"];
+
+  spawnSparkles({
+    container,
+    emojis: icons,
+    count: 16,
+    size: 1.4,
+    opacity: 1,
+    distanceMin: 80,
+    distanceMax: 200,
+    duration: 1300
+  });
+}
+
+// ------------------------------------------------------------------
+// 🌸 SAKURA
+// ------------------------------------------------------------------
+function triggerSakuraFall() {
+  for (let i = 0; i < 30; i++) {
+    const s = document.createElement("div");
+    s.className = "sakura";
+    s.style.left = Math.random() * 100 + "vw";
+    s.style.top = "-10px";
+    s.style.animationDelay = Math.random() * 1.5 + "s";
+    s.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 4000);
+  }
+}
+
+// ------------------------------------------------------------------
+// 🆙 LEVEL UP
+// ------------------------------------------------------------------
+function triggerLevelUpAnimation() {
   const toHide = ['#question', '#choices1', '#choices2'];
+
   toHide.forEach(id => {
     const el = document.querySelector(id);
-    if (el) el.style.visibility = 'hidden';
+    el && (el.style.visibility = "hidden");
   });
-  
-  triggerSakuraFall(container);
-  
+
+  triggerSakuraFall();
+
   setTimeout(() => {
     toHide.forEach(id => {
       const el = document.querySelector(id);
-      if (el) {
-        el.style.visibility = 'visible';
-        // ❌ SUPPRIME cette ligne : el.style.opacity = 0;
-        
-        el.animate([
-          { opacity: 0 },
-          { opacity: 1 }
-        ], {
-          duration: 600,
-          fill: 'forwards'
-        }).onfinish = () => {
-          // ✅ AJOUTE ça : reset l'opacity inline après l'animation
-          el.style.opacity = '';
-        };
-      }
+      if (!el) return;
+
+      el.style.visibility = "visible";
+      el.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 600,
+        fill: "forwards"
+      }).onfinish = () => (el.style.opacity = "");
     });
   }, 3000);
-  
-  const msgWrapper = document.createElement("div");
-  msgWrapper.style.position = "fixed";
-  msgWrapper.style.top = "40%";
-  msgWrapper.style.left = "0";
-  msgWrapper.style.width = "100vw";
-  msgWrapper.style.textAlign = "center";
-  msgWrapper.style.zIndex = 9999;
-  msgWrapper.style.pointerEvents = "none";
-  document.body.appendChild(msgWrapper);
-  
+
   const msg = document.createElement("div");
-  msg.innerText = t('msg_level_up');
-  msg.style.display = "inline-block";
-  msg.style.fontSize = "3em";
-  msg.style.fontWeight = "bold";
-  msg.style.color = "#8B6F47";
-  msg.style.textShadow = "0 0 20px #A8D5BA, 0 0 40px #FDC1C5";
-  msg.style.writingMode = "horizontal-tb";
-  msg.style.whiteSpace = "nowrap";
-  msgWrapper.appendChild(msg);
-  
+  msg.innerText = t("msg_level_up");
+  msg.className = "level-up-msg";
+  document.body.appendChild(msg);
+
   msg.animate([
     { transform: "translateY(0)", opacity: 1 },
     { transform: "translateY(-40px)", opacity: 0 }
-  ], {
-    duration: 3000,
-    easing: "ease-out"
-  }).onfinish = () => msgWrapper.remove();
-  
-  const marker = document.querySelector(".progress-marker");
-  if (marker) {
-    marker.animate([
-      { transform: "translate(-50%, -50%) rotate(0deg) scale(1)" },
-      { transform: "translate(-50%, -50%) rotate(180deg) scale(4)" },
-      { transform: "translate(-50%, -50%) rotate(360deg) scale(1)" }
-    ], {
-      duration: 1000,
-      easing: "ease-in-out"
+  ], { duration: 3000, easing: "ease-out" })
+   .onfinish = () => msg.remove();
+}
+
+// ------------------------------------------------------------------
+// 🎆 FIREWORK CANVAS
+// ------------------------------------------------------------------
+function drawStar(ctx, r, rot) {
+  const points = 5;
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i++) {
+    const radius = i % 2 === 0 ? r : r / 2;
+    const angle = (i * Math.PI / points) + rot - Math.PI / 2;
+    ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function triggerAdvancedFirework(container) {
+  initAudio();
+  handleValidationFeedback();
+
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 400;
+  canvas.style.position = "fixed";
+  canvas.style.pointerEvents = "none";
+  canvas.style.zIndex = 20;
+
+  const rect = container.getBoundingClientRect();
+  canvas.style.left = rect.left + rect.width / 2 + "px";
+  canvas.style.top = rect.top + rect.height / 2 + "px";
+  canvas.style.transform = "translate(-50%, -50%)";
+
+  document.body.appendChild(canvas);
+  registerCanvas(canvas);
+
+  const ctx = canvas.getContext("2d");
+  const gravity = 0.1;
+  const particles = [];
+
+  const colors = [
+    "#6B8E23", "#9ACD32", "#32CD32",
+    "#A8D5BA", "#FDC1C5"
+  ];
+
+  const count = isMobile ? 9 : 12;
+  const maxLife = isMobile ? 30 : 50;
+
+  for (let i = 0; i < count; i++) {
+    const angle = (i * 2 * Math.PI) / count;
+    const speed = 6 + Math.random() * 3;
+
+    particles.push({
+      x: 200,
+      y: 200,
+      vx: Math.cos(angle) * speed,
+      vy: -Math.sin(angle) * speed,
+      life: maxLife,
+      rot: Math.random() * Math.PI * 2,
+      color: colors[Math.floor(Math.random() * colors.length)]
     });
   }
+
+  function animate() {
+    ctx.clearRect(0, 0, 400, 400);
+
+    particles.forEach((p, i) => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += gravity;
+      p.life--;
+      p.rot += 0.05;
+
+      if (p.life <= 0) {
+        particles.splice(i, 1);
+        return;
+      }
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.life / maxLife;
+      drawStar(ctx, isMobile ? 4 : 6, p.rot);
+      ctx.restore();
+    });
+
+    particles.length ? requestAnimationFrame(animate) : canvas.remove();
+  }
+
+  animate();
 }
-// --- Fireworks ---
-function drawStar(ctx, x, y, radius, rotation = 0) {
-const points = 5;
-const outerRadius = radius;
-const innerRadius = radius / 2;
-ctx.beginPath();
-for (let i = 0; i < points * 2; i++) {
-const r = i % 2 === 0 ? outerRadius : innerRadius;
-const angle = (i * Math.PI / points) + rotation - Math.PI / 2;
-ctx.lineTo(
-x + r * Math.cos(angle),
-y + r * Math.sin(angle)
-);
-}
-ctx.closePath();
-ctx.fill();
-}
-function triggerAdvancedFirework(container) {
-  console.log('🎆 triggerAdvancedFirework APPELÉE', { 
-    container, 
-    activeSparks: activeSparks.length,
-    MAX: MAX_ACTIVE_PARTICLES 
-  });  
-initAudio();
-const validatedCount = getValidatedCountForLevel(niveauActif);
-const canvas = document.createElement('canvas');
-canvas.style.position = 'absolute';
-canvas.style.left = '50%';
-canvas.style.top = '50%';
-canvas.style.transform = 'translate(-50%, -50%)';
-canvas.style.pointerEvents = 'none';
-canvas.style.zIndex = '20';
-canvas.width = 400;
-canvas.height = 400;
-document.body.appendChild(canvas);  // ✅ Ajouter au body au lieu du container
-
-// Et ajuste la position
-const rect = container.getBoundingClientRect();
-canvas.style.position = 'fixed';  // ✅ fixed au lieu de absolute
-canvas.style.left = rect.left + rect.width / 2 + 'px';
-canvas.style.top = rect.top + rect.height / 2 + 'px';
-const ctx = canvas.getContext('2d');
-
-const colorPalettes = [
-['#6B8E23', '#9ACD32', '#32CD32', '#228B22', '#008000', '#006400'], // Palette verte
-['#A8D5BA', '#76FF03', '#64DD17', '#00C853', '#AEEA00', '#00E676'],
-['#FDC1C5', '#F48FB1', '#EC407A', '#D81B60', '#AD1457', '#FF80AB'],
-];
-const colors = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
-
-const maxLifeBase = isMobile ? 30 : 50;
-const numParticles = isMobile ? 9 : 12;
-const numSalvos = isMobile ? 3 : 3;
-const gravity = 0.1;
-const salvoDelay = 150;
-const dispersionBase = 3;
-const itemCount = getItemCountForLevel(niveauActif);
-const particles = [];
-const trails = [];
-
-const halo = document.createElement('div');
-halo.style.position = 'absolute';
-halo.style.left = '50%';
-halo.style.top = '50%';
-halo.style.width = '20px';
-halo.style.height = '20px';
-halo.style.borderRadius = '50%';
-halo.style.background = 'radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.05))';
-halo.style.transform = 'translate(-50%, -50%) scale(1)';
-halo.style.opacity = '1';
-halo.style.zIndex = '0';
-halo.style.pointerEvents = 'none';
-document.body.appendChild(halo);
-halo.style.position = 'fixed';
-halo.style.left = `${rect.left + rect.width / 2}px`;
-halo.style.top = `${rect.top + rect.height / 2}px`;
-halo.animate([
-{ transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
-{ transform: 'translate(-50%, -50%) scale(6)', opacity: 0 }
-], {
-duration: 700,
-easing: 'ease-out'
-}).onfinish = () => halo.remove();
-
-console.log("🎯 nbre d'items dans le niveau =", itemCount, "niveau =", niveauActif);
-console.log("🎯 nbre d'items validés =", validatedCount, "niveau =", niveauActif);  
-if (validatedCount === itemCount-1) {
-  playLevelUp();
-  triggerLevelUpAnimation(document.body);
-} else if (validatedCount === 3) {
-playfireworksound4();
-} else if (validatedCount === 2) {
-playfireworksound3();
-} else if (validatedCount === 1) {
-playfireworksound2();
-} else if (validatedCount === 0) {
-playFireworkSound();
-}
-
-for (let salvo = 0; salvo < numSalvos; salvo++) {
-setTimeout(() => {
-if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-console.warn(`⚠️ Salvo ${salvo} annulée - limite atteinte`);
-return;
-}
-
-const biasDirection = Math.random() < 0.5 ? -1 : 1;
-const biasMagnitude = (Math.random() * 0.2 - 0.1) * biasDirection;
-
-for (let i = 0; i < numParticles; i++) {
-if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
-console.warn(`🛑 Particule ${i} du salvo ${salvo} ignorée - limite atteinte`);
-break;
-}
-
-const angleOffset = (Math.random() * 10 - 5) * (Math.PI / 180);
-const angle = angleOffset + (i * (360 / numParticles)) * (Math.PI / 180);
-const isUpward = (angle >= 3 * Math.PI / 2 || angle <= Math.PI / 2);
-let speed = dispersionBase + Math.random() * 3;
-if (isUpward) {
-speed = Math.max(7, speed);
-if ((angle >= 3 * Math.PI / 2 && biasDirection === -1) || (angle <= Math.PI / 2 && biasDirection === 1)) {
-speed *= (1 + biasMagnitude);
-}
-}
-
-const v0x = speed * Math.cos(angle);
-const v0y = speed * Math.sin(angle) * -1;
-const color = colors[Math.floor(Math.random() * colors.length)];
-
-particles.push({
-x: canvas.width / 2,
-y: canvas.height / 2,
-vx: v0x,
-vy: v0y,
-life: maxLifeBase + Math.random() * 20,
-maxLife: maxLifeBase + Math.random() * 20,
-color: color,
-rotation: Math.random() * Math.PI * 2
-});
-activeSparks.push({ canvas });
-globalParticleCount++;
-
-}
-}, salvo * salvoDelay);
-}
-
-function animate() {
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-if (!isMobile) {
-particles.forEach(p => {
-if (Math.random() < 0.2) {
-trails.push({
-x: p.x,
-y: p.y,
-color: p.color,
-life: 10
-});
-}
-});
-}
-
-trails.forEach((t, i) => {
-t.life--;
-if (t.life <= 0) {
-trails.splice(i, 1);
-return;
-}
-ctx.fillStyle = t.color;
-ctx.globalAlpha = t.life / 10 * 0.3;
-ctx.beginPath();
-ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
-ctx.fill();
-});
-
-particles.forEach((p, i) => {
-p.x += p.vx;
-p.y += p.vy;
-p.vy += gravity;
-p.life--;
-p.rotation += 0.05;
-if (p.life <= 0) {
-particles.splice(i, 1);
-activeSparks.splice(i, 1);
-globalParticleCount--;
-return;
-}
-ctx.fillStyle = p.color;
-ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
-ctx.save();
-ctx.translate(p.x, p.y);
-drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
-ctx.restore();
-});
-
-if (particles.length > 0 || Date.now() < Date.now() + numSalvos * salvoDelay) {
-requestAnimationFrame(animate);
-} else {
-canvas.remove();
-activeSparks = activeSparks.filter(spark => spark.canvas !== canvas);
-globalParticleCount = Math.max(0, globalParticleCount - particles.length);
-console.log('Animation terminée');
-}
-}
-requestAnimationFrame(animate);
-}
-function triggerLightFirework(card) {
-const halo = document.createElement("div");
-halo.style.position = "absolute";
-halo.style.width = "30px";
-halo.style.height = "30px";
-halo.style.borderRadius = "50%";
-halo.style.background = "radial-gradient(circle, rgba(253,193,197,0.9), rgba(253,193,197,0.1))";
-halo.style.transform = "translate(-50%, -50%) scale(1)";
-halo.style.opacity = "1";
-halo.style.pointerEvents = "none";
-halo.style.zIndex = "10";
-
-const rect = card.getBoundingClientRect();
-const cx = rect.left + rect.width / 2;
-const cy = rect.top + rect.height / 2;
-
-halo.style.left = `${cx}px`;
-halo.style.top = `${cy}px`;
-document.body.appendChild(halo);
-
-halo.animate([
-{ transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
-{ transform: "translate(-50%, -50%) scale(4)", opacity: 0 }
-], {
-duration: 800,
-easing: "ease-out"
-}).onfinish = () => halo.remove();
-
-// Utiliser l'effet de chute de sakura depuis le haut de l'écran
-for (let i = 0; i < 30; i++) {
-const sakura = document.createElement("div");
-sakura.className = "sakura";
-sakura.style.left = Math.random() * 100 + "vw";
-sakura.style.top = "-10px";
-sakura.style.animationDelay = Math.random() * 1.5 + "s";
-sakura.style.animationDuration = 2.5 + Math.random() * 1.5 + "s";
-document.body.appendChild(sakura);
-setTimeout(() => sakura.remove(), 4000);
-}
-const validatedCount = getValidatedCountForLevel(niveauActif);
-const itemCount = getItemCountForLevel(niveauActif);
-console.log("🎯 nbre d'items dans le niveau =", itemCount, "niveau =", niveauActif);
-console.log("🎯 nbre d'items validés =", validatedCount, "niveau =", niveauActif);  
-
-
-if (validatedCount === itemCount-1) {
-  playLevelUp();
-  triggerLevelUpAnimation(document.body);
-} else if (validatedCount === 3) {
-playfireworksound4();
-} else if (validatedCount === 2) {
-playfireworksound3();
-} else if (validatedCount === 1) {
-playfireworksound2();
-} else if (validatedCount === 0) {
-playFireworkSound();
-}
- 
-}
-function cleanupOldParticles() {
-// Supprimer les particules les plus anciennes si on dépasse la limite
-while (activeSparks.length > MAX_ACTIVE_PARTICLES) {
-const oldSpark = activeSparks.shift();
-if (oldSpark && oldSpark.canvas && oldSpark.canvas.parentNode) {
-oldSpark.canvas.remove();
-globalParticleCount--;
-}
-}
-// Nettoyer les particules orphelines
-activeSparks = activeSparks.filter(spark => {
-if (!spark.canvas || !spark.canvas.parentNode) {
-globalParticleCount--;
-return false;
-}
-return true;
-});
-console.log(`🧹 Nettoyage: ${activeSparks.length} particules actives, ${globalParticleCount} compteur global`);
-}
-
-
 
 // ============================================================================
 // 💬 SECTION 11 : FLASHCARDS & MODALES
@@ -8538,6 +8330,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
