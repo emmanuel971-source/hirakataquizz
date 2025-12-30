@@ -6600,8 +6600,10 @@ function triggerAdvancedFirework(container) {
   const validatedCount = getValidatedCountForLevel(niveauActif);
   playValidationSound(validatedCount);
 
+  // On nettoie les anciennes particules pour libérer de la place
   cleanupOldParticles();
-  if (activeSparks.length >= MAX_ACTIVE_PARTICLES) return;
+
+  // ✅ PLUS DE RETURN PRÉCOCE ICI : on veut toujours au moins tenter l'effet
 
   const rect = container.getBoundingClientRect();
   const canvas = document.createElement('canvas');
@@ -6635,15 +6637,23 @@ function triggerAdvancedFirework(container) {
   const particles = [];
   const trails = [];
 
+  // On garde les checks à l'intérieur des boucles pour limiter finement
   for (let salvo = 0; salvo < numSalvos; salvo++) {
     setTimeout(() => {
-      if (activeSparks.length >= MAX_ACTIVE_PARTICLES) return;
+      // Si on est vraiment saturé, on skip ce salvo (mais pas tout l'effet)
+      if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
+        console.warn(`⚠️ Salvo ${salvo} annulée - limite atteinte`);
+        return;
+      }
 
       const biasDirection = Math.random() < 0.5 ? -1 : 1;
       const biasMagnitude = (Math.random() * 0.2 - 0.1) * biasDirection;
 
       for (let i = 0; i < numParticles; i++) {
-        if (activeSparks.length >= MAX_ACTIVE_PARTICLES) break;
+        if (activeSparks.length >= MAX_ACTIVE_PARTICLES) {
+          console.warn(`🛑 Particule supplémentaire ignorée - limite atteinte`);
+          break; // On arrête d'ajouter dans ce salvo, mais les précédentes existent
+        }
 
         const angleOffset = (Math.random() * 10 - 5) * (Math.PI / 180);
         const angle = angleOffset + (i * (360 / numParticles)) * (Math.PI / 180);
@@ -6676,6 +6686,61 @@ function triggerAdvancedFirework(container) {
     }, salvo * salvoDelay);
   }
 
+  // Le reste (animate) est inchangé
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!isMobile) {
+      particles.forEach(p => {
+        if (Math.random() < 0.2) {
+          trails.push({ x: p.x, y: p.y, color: p.color, life: 10 });
+        }
+      });
+    }
+
+    trails.forEach((t, i) => {
+      t.life--;
+      if (t.life <= 0) {
+        trails.splice(i, 1);
+        return;
+      }
+      ctx.fillStyle = t.color;
+      ctx.globalAlpha = t.life / 10 * 0.3;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, isMobile ? 2 : 3, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+
+    particles.forEach((p, i) => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += gravity;
+      p.life--;
+      p.rotation += 0.05;
+      if (p.life <= 0) {
+        particles.splice(i, 1);
+        activeSparks.splice(i, 1);
+        globalParticleCount--;
+        return;
+      }
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      drawStar(ctx, 0, 0, isMobile ? 4 : 6, p.rotation);
+      ctx.restore();
+    });
+
+    if (particles.length > 0 || trails.length > 0) {
+      requestAnimationFrame(animate);
+    } else {
+      canvas.remove();
+      cleanupOldParticles();
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -8471,6 +8536,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
