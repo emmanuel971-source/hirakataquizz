@@ -6870,6 +6870,18 @@ function triggerLightFirework(card) {
   }
 }
 
+// ============================================================================
+// FONCTION DE COMPATIBILITÉ (ancien code)
+// ============================================================================
+
+/**
+ * Fonction pour compatibilité avec l'ancien code
+ * Nettoie les particules excédentaires
+ */
+function cleanupOldParticles() {
+  particleState.cleanup();
+}
+
 
 // ============================================================================
 // 💬 SECTION 11 : FLASHCARDS & MODALES
@@ -8588,6 +8600,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
