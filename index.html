@@ -2921,12 +2921,12 @@ const SyncMonitor = {
   lastServerSnapshotHash: null,
   serverReachable: true,
   
-  // ✅ NOUVEAU : Seuil pour resync forcée
-  RESYNC_THRESHOLD: 5, // Au-delà de 20 updates, on force une resync
+  RESYNC_THRESHOLD: 5, // Pour les tests
+  resyncScheduled: false, // ✅ NOUVEAU FLAG
 
   log(reason) {
     console.log(
-      `%c[SYNC MONITOR] ${this.state}`,
+      `%c[SYNC MONITOR] ${this.state} | pending=${this.pendingUpdates}`,
       'color:#0aa;font-weight:bold',
       reason || ''
     );
@@ -3085,11 +3085,11 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
     item,
     niveau_atteint: clientTruth.niveau_atteint
   });
-  console.log(
-  '[CLIENT TRUTH FULL SNAPSHOT]',
-  Object.keys(clientTruth.stats_json).length,
-  clientTruth.stats_json
-);
+//  console.log(
+//  '[CLIENT TRUTH FULL SNAPSHOT]',
+//  Object.keys(clientTruth.stats_json).length,
+//  clientTruth.stats_json
+//);
 
 }
 function calculateClientNiveauAtteint(statsJson) {
@@ -3400,49 +3400,73 @@ async function callAPI(action, data = null) {
 
 async function queueUpdateStats(params) {
   
-  // ✅ CORRECTION : Détecter le seuil AVANT de vérifier le réseau
-  const queueTooLarge = pendingUpdates.length >= SyncMonitor.RESYNC_THRESHOLD;
+  // ✅ LOG : Afficher la taille de la queue
+  console.log(
+    `%c[QUEUE] Taille actuelle: ${pendingUpdates.length}/${SyncMonitor.RESYNC_THRESHOLD}`,
+    pendingUpdates.length >= SyncMonitor.RESYNC_THRESHOLD ? 'color:#f00;font-weight:bold' : 'color:#999'
+  );
   
-  if (queueTooLarge) {
-    console.warn(
-      `%c[QUEUE] ⚠️ Seuil atteint (${pendingUpdates.length}/${SyncMonitor.RESYNC_THRESHOLD})`,
-      'color:#f80;font-weight:bold'
+  // ✅ DÉTECTION SEUIL
+  if (pendingUpdates.length >= SyncMonitor.RESYNC_THRESHOLD) {
+    console.error(
+      `%c[QUEUE] 🚨 SEUIL ATTEINT (${pendingUpdates.length}/${SyncMonitor.RESYNC_THRESHOLD})`,
+      'color:#f00;font-size:16px;font-weight:bold'
     );
     
-    // Mise à jour locale du clientTruth
+    // Mise à jour locale obligatoire
     updateClientTruthOnAnswer(params);
     
     if (!navigator.onLine) {
-      // Mode hors ligne : on n'ajoute pas à la queue
+      console.warn(
+        '%c[QUEUE] 📴 HORS LIGNE → Attente retour réseau pour RESYNC',
+        'color:#f80;font-size:14px;font-weight:bold'
+      );
       localStorage.setItem('needs_full_resync', 'true');
-      console.log('[QUEUE] Hors ligne : update locale uniquement, resync au retour réseau');
+      SyncMonitor.resyncScheduled = true;
       return;
-      
     } else {
-      // ✅ NOUVEAU : Mode EN LIGNE mais queue trop longue
-      console.warn('[QUEUE] ⚠️ En ligne mais queue trop longue → RESYNC FORCÉE');
+      console.error(
+        '%c[QUEUE] 🔴 EN LIGNE → RESYNC FORCÉE IMMÉDIATE',
+        'color:#f00;font-size:14px;font-weight:bold'
+      );
       
-      // Vider la queue immédiatement
+      // ✅ STOPPER TOUT
+      isProcessing = false; // Arrêter processUpdates si en cours
+      
+      // ✅ VIDER LA QUEUE
+      const queueSize = pendingUpdates.length;
       pendingUpdates = [];
       localStorage.removeItem('pending_updates');
       
-      // Reset compteurs
+      // ✅ RESET COMPTEURS
       SyncMonitor.pendingUpdates = 0;
       SyncMonitor.failedUpdates = 0;
       SyncMonitor.evaluate();
       
-      // Forcer resync immédiate (sans attendre)
-      setTimeout(() => {
-        forceSyncClientToServer();
-      }, 100);
+      console.log(`[QUEUE] ✅ Queue vidée (${queueSize} items ignorés)`);
+      
+      // ✅ FORCER RESYNC IMMÉDIATE
+      SyncMonitor.resyncScheduled = true;
+      setTimeout(async () => {
+        console.error('%c[QUEUE] 🔄 DÉCLENCHEMENT RESYNC FORCÉE', 'color:#f00;font-weight:bold');
+        await forceSyncClientToServer();
+        SyncMonitor.resyncScheduled = false;
+      }, 200);
       
       return;
     }
   }
   
+  // ✅ Bloquer pendant resync
+  if (SyncMonitor.resyncScheduled) {
+    console.warn('[QUEUE] ⏸️ Resync en cours, update locale uniquement');
+    updateClientTruthOnAnswer(params);
+    return;
+  }
+  
   // ✅ Bloquer les mises à jour pendant un sync check
   if (SyncMonitor.syncCheckInProgress) {
-    console.log('[QUEUE UPDATE] sync check en cours, mise en attente');
+    console.log('[QUEUE] sync check en cours, mise en attente');
     await new Promise(resolve => {
       const checkInterval = setInterval(() => {
         if (!SyncMonitor.syncCheckInProgress) {
@@ -3473,16 +3497,17 @@ async function queueUpdateStats(params) {
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
   
-  // ✅ NOUVEAU : Détecter si on doit faire une resync forcée
-  const needsFullResync = localStorage.getItem('needs_full_resync') === 'true';
+  // ✅ VÉRIFIER FLAG RESYNC
+  const needsFullResync = localStorage.getItem('needs_full_resync') === 'true' || SyncMonitor.resyncScheduled;
   
   if (needsFullResync && navigator.onLine) {
-    console.warn(
-      '%c[PROCESS] Resync forcée détectée → Vidage queue et sync complète',
-      'color:#f80;font-weight:bold'
+    console.error(
+      '%c[PROCESS] 🔴 RESYNC DÉTECTÉE → Vidage queue et sync complète',
+      'color:#f00;font-size:14px;font-weight:bold'
     );
     
-    // Vider la queue sans l'envoyer
+    // Vider la queue
+    const queueSize = pendingUpdates.length;
     pendingUpdates = [];
     localStorage.removeItem('pending_updates');
     localStorage.removeItem('needs_full_resync');
@@ -3492,14 +3517,19 @@ async function processUpdates() {
     SyncMonitor.failedUpdates = 0;
     SyncMonitor.evaluate();
     
-    // Forcer la resync immédiate
+    console.log(`[PROCESS] ✅ Queue vidée (${queueSize} items)`);
+    
+    // Forcer la resync
     await forceSyncClientToServer();
     
-    console.log('[PROCESS] Resync forcée terminée, reprise normale');
+    SyncMonitor.resyncScheduled = false;
+    console.log('[PROCESS] ✅ Resync terminée, reprise normale');
     return;
   }
   
   isProcessing = true;
+  
+  console.log(`%c[PROCESS] Traitement de ${pendingUpdates.length} updates`, 'color:#0aa');
   
   while (pendingUpdates.length > 0) {
     const update = pendingUpdates[0];
@@ -3512,6 +3542,8 @@ async function processUpdates() {
         isRevisionMode: update.isRevisionMode
       };
 
+      console.log(`[PROCESS] Update ${update.id} (${pendingUpdates.length} restantes)`);
+      
       const result = await callAPI('updateStats', apiParams);
 
       if (result.success) {
@@ -3523,7 +3555,7 @@ async function processUpdates() {
         pendingUpdates.shift();
         localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
 
-        // Mise à jour HiraganaList (ton code existant)
+        // Mise à jour HiraganaList
         const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
         if (hiraganaIndex !== -1) {
           HiraganaList[hiraganaIndex].Validation = result.newValidation;
@@ -3540,7 +3572,7 @@ async function processUpdates() {
           statsCache.items[update.id] = itemStats;
         }
 
-        // Level up (ton code existant)
+        // Level up
         if (update.hasLeveledUp && update.targetLevel > update.previousLevel) {
           if (update.targetLevel > niveauActif) {
             triggerLevelUpAnimation(document.body);
@@ -3571,6 +3603,8 @@ async function processUpdates() {
   
   isProcessing = false;
   
+  console.log('%c[PROCESS] ✅ Queue complètement vidée', 'color:#0a0;font-weight:bold');
+  
   // Sync check différé
   if (SyncMonitor.syncCheckRequested && navigator.onLine) {
     SyncMonitor.syncCheckRequested = false;
@@ -3579,30 +3613,49 @@ async function processUpdates() {
   }
 }
 
-// ✅ NOUVEAU : Fonction pour détecter le retour réseau
+// ✅ EVENT RÉSEAU
 window.addEventListener('online', async () => {
-  console.log(
-    '%c[NETWORK] Connexion rétablie',
-    'color:#0a0;font-weight:bold'
+  console.error(
+    '%c[NETWORK] 🟢 CONNEXION RÉTABLIE',
+    'color:#0a0;font-size:16px;font-weight:bold'
   );
   
   SyncMonitor.serverReachable = true;
   
-  // Vérifier si une resync forcée est nécessaire
-  const needsFullResync = localStorage.getItem('needs_full_resync') === 'true';
+  const needsResync = localStorage.getItem('needs_full_resync') === 'true' || SyncMonitor.resyncScheduled;
   
-  if (needsFullResync) {
-    console.warn('[NETWORK] Resync forcée nécessaire au retour réseau');
+  if (needsResync) {
+    console.error(
+      '%c[NETWORK] 🔴 RESYNC FORCÉE AU RETOUR RÉSEAU',
+      'color:#f00;font-size:14px;font-weight:bold'
+    );
     
-    // Attendre un peu que la connexion soit stable
+    // ✅ STOPPER TOUT
+    isProcessing = false;
+    
+    // Attendre stabilisation réseau
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Déclencher processUpdates qui détectera le flag
-    if (!isProcessing) {
-      processUpdates();
-    }
+    // ✅ VIDER QUEUE
+    const queueSize = pendingUpdates.length;
+    pendingUpdates = [];
+    localStorage.removeItem('pending_updates');
+    localStorage.removeItem('needs_full_resync');
+    
+    SyncMonitor.pendingUpdates = 0;
+    SyncMonitor.failedUpdates = 0;
+    SyncMonitor.evaluate();
+    
+    console.log(`[NETWORK] Queue vidée (${queueSize} items)`);
+    
+    // ✅ RESYNC IMMÉDIATE
+    await forceSyncClientToServer();
+    
+    SyncMonitor.resyncScheduled = false;
+    console.log('[NETWORK] ✅ Resync terminée');
+    
   } else if (pendingUpdates.length > 0) {
-    console.log('[NETWORK] Reprise du traitement des updates en attente');
+    console.log('[NETWORK] Reprise traitement updates');
     if (!isProcessing) {
       processUpdates();
     }
@@ -3610,9 +3663,9 @@ window.addEventListener('online', async () => {
 });
 
 window.addEventListener('offline', () => {
-  console.warn(
-    '%c[NETWORK] Connexion perdue',
-    'color:#c00;font-weight:bold'
+  console.error(
+    '%c[NETWORK] 🔴 CONNEXION PERDUE',
+    'color:#c00;font-size:16px;font-weight:bold'
   );
   SyncMonitor.serverReachable = false;
 });
@@ -7499,6 +7552,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
