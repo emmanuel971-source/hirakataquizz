@@ -2935,47 +2935,6 @@ startSyncPolling();
 
 // Optionnel : arrêter quand l'utilisateur se déconnecte volontairement ou ferme (mais pas critique)
 // window.addEventListener('beforeunload', stopSyncPolling);
-// ===============================================
-// POLLING DE SYNCHRONISATION (robuste même en mode avion)
-// ===============================================
-let syncPollingInterval = null;
-
-function startSyncPolling() {
-  if (syncPollingInterval) return; // déjà actif
-
-  console.log('🔄 Démarrage du polling de synchronisation (toutes les 8s)');
-
-  syncPollingInterval = setInterval(() => {
-    // Conditions pour lancer le traitement
-    if (
-      navigator.onLine &&                     // on a une connexion
-      pendingUpdates.length > 0 &&            // il y a des updates en attente
-      !isProcessing &&                        // la queue n'est pas déjà en train de tourner
-      !SyncMonitor.syncCheckInProgress         // pas en plein sync check
-    ) {
-      console.log(`🌐 Connexion détectée + ${pendingUpdates.length} updates en attente → lancement sync`);
-      processUpdates();
-    }
-
-    // Optionnel : même si pas d'updates pending, on peut forcer un sync check périodique
-    // si on veut être ultra-parano (toutes les 2-3 minutes par exemple)
-    // Mais pas nécessaire si tu fais déjà des checks après level-up
-  }, 8000); // toutes les 8 secondes → très léger, pas de batterie drain
-}
-
-function stopSyncPolling() {
-  if (syncPollingInterval) {
-    clearInterval(syncPollingInterval);
-    syncPollingInterval = null;
-    console.log('⏹️ Arrêt du polling de synchronisation');
-  }
-}
-
-// Démarrer le polling dès que l'app est chargée
-startSyncPolling();
-
-// Optionnel : arrêter quand l'utilisateur se déconnecte volontairement ou ferme (mais pas critique)
-// window.addEventListener('beforeunload', stopSyncPolling);  
 // ===============================
 // CLIENT TRUTH (source client)
 // ===============================
@@ -7518,6 +7477,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
