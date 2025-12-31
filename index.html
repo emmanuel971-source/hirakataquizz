@@ -2709,6 +2709,7 @@ async function loadUserProgress() {
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} 1`;
     updateAccountDisplay();
   }
+  updateSyncIndicator();
 }
 
 function generateRevisionRomajiTable(hiraganaList) {
@@ -2938,27 +2939,52 @@ startSyncPolling();
 
 function updateSyncIndicator() {
   let indicator = document.getElementById('syncIndicator');
+
+  // Création si n'existe pas encore
   if (!indicator) {
     indicator = document.createElement('div');
     indicator.id = 'syncIndicator';
     indicator.style.position = 'fixed';
     indicator.style.bottom = '20px';
     indicator.style.right = '20px';
-    indicator.style.background = '#ff9800';
+    indicator.style.background = 'rgba(255, 152, 0, 0.95)'; // orange avec légère transparence
     indicator.style.color = 'white';
-    indicator.style.padding = '8px 12px';
-    indicator.style.borderRadius = '20px';
-    indicator.style.fontSize = '12px';
-    indicator.style.zIndex = '9999';
-    indicator.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+    indicator.style.padding = '10px 16px';
+    indicator.style.borderRadius = '30px';
+    indicator.style.fontSize = '14px';
+    indicator.style.fontWeight = 'bold';
+    indicator.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+    indicator.style.zIndex = '999999';           // très très haut
+    indicator.style.transition = 'opacity 0.3s ease';
+    indicator.style.pointerEvents = 'none';       // ne bloque pas les clics dessous
+    indicator.style.maxWidth = '80vw';
+    indicator.style.textAlign = 'center';
+    indicator.style.fontFamily = 'system-ui, sans-serif';
+
     document.body.appendChild(indicator);
   }
 
-  if (pendingUpdates.length > 0 || SyncMonitor.state !== 'SYNCED') {
-    indicator.textContent = `Sync en cours... (${pendingUpdates.length} en attente)`;
+  // Calcul du texte
+  let message = '';
+  if (pendingUpdates.length > 0) {
+    message = `Synchronisation... (${pendingUpdates.length} en attente)`;
+  } else if (SyncMonitor.state !== 'SYNCED') {
+    message = 'Synchronisation en cours...';
+  }
+
+  // Affichage ou masquage
+  if (message) {
+    indicator.textContent = message;
     indicator.style.display = 'block';
+    indicator.style.opacity = '1';
   } else {
-    indicator.style.display = 'none';
+    indicator.style.opacity = '0';
+    // On le cache complètement après la transition
+    setTimeout(() => {
+      if (indicator.style.opacity === '0') {
+        indicator.style.display = 'none';
+      }
+    }, 300);
   }
 }
 
@@ -3007,6 +3033,7 @@ const SyncMonitor = {
       this.state = newState;
       this.log('state transition');
     }
+    updateSyncIndicator();  // ← ici
   }
 };
 
@@ -3614,14 +3641,14 @@ async function processUpdates() {
   renderHiraganaCards(HiraganaList, niveauActif);
   updateMenuButtonStates();
   updateAccountDisplay();
-
+  updateSyncIndicator();  // ← ici
   // Si un level-up avait déclenché une demande de sync check, on l'exécute maintenant
   if (SyncMonitor.syncCheckRequested && navigator.onLine) {
     SyncMonitor.syncCheckRequested = false;
     console.log('[PROCESS UPDATES] Queue vide → lancement sync check différé');
     performSyncCheck('post-queue');
   }
-updateSyncIndicator();  
+
 }
 
 // ============================================================================
@@ -7506,6 +7533,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
