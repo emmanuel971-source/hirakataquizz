@@ -3323,20 +3323,6 @@ async function performSyncCheck(trigger = 'level-up', force = false) {
     console.log('[SYNC CHECK] aborted: pendingUpdates > 0');
     return;
   }
-  console.log(
-    `%c[SYNC CHECK] triggered (${trigger})`,
-    'color:#09c;font-weight:bold'
-  );
-
-  if (!navigator.onLine) {
-    console.log('[SYNC CHECK] aborted: offline');
-    return;
-  }
-
-  if (SyncMonitor.pendingUpdates > 0) {
-    console.log('[SYNC CHECK] aborted: pendingUpdates > 0');
-    return;
-  }
 
   if (SyncMonitor.syncCheckInProgress) {
     console.log('[SYNC CHECK] aborted: already in progress');
@@ -3573,8 +3559,13 @@ async function queueUpdateStats(params) {
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
   
+  // On capture le compteur AU DÉBUT, avant toute modification
+  const initialPendingCount = pendingUpdates.length;
+  
   isProcessing = true;
   
+  let hasDetectedReconnection = false;  // pour ne déclencher qu'une seule fois
+
   while (pendingUpdates.length > 0) {
     const update = pendingUpdates[0];
     
@@ -3599,39 +3590,39 @@ async function processUpdates() {
           localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
         } catch (e) {}
 
-        // Mise à jour du hash client (confirmation que le serveur a bien reçu cet update)
         SyncMonitor.lastClientSnapshotHash = await hashJSON(
           normalizeStats(clientTruth.stats_json)
         );
 
-// === DÉTECTION INFALLIBLE DU RETOUR EN LIGNE + GROS RETARD ===
-  if (previousPendingCount > 5 && pendingUpdates.length < previousPendingCount) {
-    console.log(`🌐 Retour en ligne confirmé ! Queue passe de ${previousPendingCount} à ${pendingUpdates.length}`);
+        // === DÉTECTION DU RETOUR EN LIGNE (premier succès après gros retard) ===
+        if (!hasDetectedReconnection && initialPendingCount > 5 && pendingUpdates.length < initialPendingCount) {
+          hasDetectedReconnection = true;  // on ne le fait qu'une fois
+          
+          console.log(`🌐 Retour en ligne détecté ! Queue passe de ${initialPendingCount} à ${pendingUpdates.length}`);
+          console.log(`🚀 Vidage artificiel des ${pendingUpdates.length} updates restantes pour sync complet immédiat`);
 
-    // On vide la queue restante pour forcer le sync complet immédiat
-    console.log(`🚀 Vidage artificiel des ${pendingUpdates.length} updates restantes pour sync forcé`);
-    pendingUpdates = [];  // on jette le reste des deltas
-    try {
-      localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
-    } catch (e) {}
+          // On vide tout le reste de la queue
+          pendingUpdates = [];
+          try {
+            localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
+          } catch (e) {}
 
-    SyncMonitor.pendingUpdates = 0;
-    SyncMonitor.evaluate();
+          SyncMonitor.pendingUpdates = 0;
+          SyncMonitor.evaluate();
+          updateSyncIndicator();
 
-    // Activation du lock pour protéger pendant le sync check / force sync
-    SyncMonitor.syncCheckInProgress = true;
-    console.log('[SYNC CHECK] LOCK forcé activé pour sync complet');
+          // Activation du lock
+          SyncMonitor.syncCheckInProgress = true;
+          console.log('[SYNC CHECK] LOCK forcé activé pour sync complet');
 
-    // Déclenchement immédiat du sync check
-    setTimeout(async () => {
-     await performSyncCheck('aggressive-reconnection', true);  // force = true → bypass le garde-fou
-      // Le lock sera désactivé dans performSyncCheck ou forceSyncClientToServer
-    }, 500);  // petit délai pour laisser l'UI respirer
-  }
+          // Sync check forcé (avec bypass du garde-fou pendingUpdates)
+          setTimeout(async () => {
+            await performSyncCheck('aggressive-reconnection', true);
+            // Le lock sera désactivé dans performSyncCheck ou forceSyncClientToServer
+          }, 500);
+        }
 
-// === DÉTECTION INFALLIBLE DU RETOUR EN LIGNE + GROS RETARD === FIN
-        
-        // Gestion des animations level-up (basée sur les données locales, pas sur la réponse serveur)
+        // Animations level-up (inchangées)
         if (update.hasLeveledUp && update.targetLevel > update.previousLevel) {
           if (update.targetLevel > niveauActif) {
             triggerLevelUpAnimation(document.body);
@@ -3662,11 +3653,8 @@ async function processUpdates() {
   
   isProcessing = false;
 
-  // Une fois toute la queue traitée : on restaure l'état complet depuis clientTruth
-  // (évite les rollbacks temporaires dus aux réponses serveur "laggées")
+  // Rebuild + refresh UI
   rebuildHiraganaListFromClientTruth();
-
-  // Recalcul du niveau actif et rafraîchissement complet de l'UI
   niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
@@ -3674,14 +3662,13 @@ async function processUpdates() {
   renderHiraganaCards(HiraganaList, niveauActif);
   updateMenuButtonStates();
   updateAccountDisplay();
-  updateSyncIndicator();  // ← ici
-  // Si un level-up avait déclenché une demande de sync check, on l'exécute maintenant
+  updateSyncIndicator();
+
+  // Sync check normal si demandé
   if (SyncMonitor.syncCheckRequested && navigator.onLine) {
     SyncMonitor.syncCheckRequested = false;
-    console.log('[PROCESS UPDATES] Queue vide → lancement sync check différé');
     performSyncCheck('post-queue');
   }
-
 }
 
 // ============================================================================
@@ -7566,6 +7553,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
