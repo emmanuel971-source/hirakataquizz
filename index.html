@@ -3400,22 +3400,44 @@ async function callAPI(action, data = null) {
 
 async function queueUpdateStats(params) {
   
-  // ✅ NOUVEAU : Vérifier si on doit forcer une resync au lieu d'ajouter à la queue
-  if (pendingUpdates.length >= SyncMonitor.RESYNC_THRESHOLD && !navigator.onLine) {
+  // ✅ CORRECTION : Détecter le seuil AVANT de vérifier le réseau
+  const queueTooLarge = pendingUpdates.length >= SyncMonitor.RESYNC_THRESHOLD;
+  
+  if (queueTooLarge) {
     console.warn(
-      `%c[QUEUE] Seuil atteint (${pendingUpdates.length}/${SyncMonitor.RESYNC_THRESHOLD}) en mode hors ligne`,
+      `%c[QUEUE] ⚠️ Seuil atteint (${pendingUpdates.length}/${SyncMonitor.RESYNC_THRESHOLD})`,
       'color:#f80;font-weight:bold'
     );
     
-    // On continue à mettre à jour le clientTruth localement
+    // Mise à jour locale du clientTruth
     updateClientTruthOnAnswer(params);
     
-    // Mais on n'ajoute PAS à la queue (elle est déjà pleine)
-    // On marque juste qu'une resync sera nécessaire
-    localStorage.setItem('needs_full_resync', 'true');
-    
-    console.log('[QUEUE] Update locale seulement, resync forcée au retour réseau');
-    return;
+    if (!navigator.onLine) {
+      // Mode hors ligne : on n'ajoute pas à la queue
+      localStorage.setItem('needs_full_resync', 'true');
+      console.log('[QUEUE] Hors ligne : update locale uniquement, resync au retour réseau');
+      return;
+      
+    } else {
+      // ✅ NOUVEAU : Mode EN LIGNE mais queue trop longue
+      console.warn('[QUEUE] ⚠️ En ligne mais queue trop longue → RESYNC FORCÉE');
+      
+      // Vider la queue immédiatement
+      pendingUpdates = [];
+      localStorage.removeItem('pending_updates');
+      
+      // Reset compteurs
+      SyncMonitor.pendingUpdates = 0;
+      SyncMonitor.failedUpdates = 0;
+      SyncMonitor.evaluate();
+      
+      // Forcer resync immédiate (sans attendre)
+      setTimeout(() => {
+        forceSyncClientToServer();
+      }, 100);
+      
+      return;
+    }
   }
   
   // ✅ Bloquer les mises à jour pendant un sync check
@@ -7477,5 +7499,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
