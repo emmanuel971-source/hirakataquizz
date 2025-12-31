@@ -2935,6 +2935,35 @@ startSyncPolling();
 
 // Optionnel : arrêter quand l'utilisateur se déconnecte volontairement ou ferme (mais pas critique)
 // window.addEventListener('beforeunload', stopSyncPolling);
+
+function updateSyncIndicator() {
+  let indicator = document.getElementById('syncIndicator');
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.id = 'syncIndicator';
+    indicator.style.position = 'fixed';
+    indicator.style.bottom = '20px';
+    indicator.style.right = '20px';
+    indicator.style.background = '#ff9800';
+    indicator.style.color = 'white';
+    indicator.style.padding = '8px 12px';
+    indicator.style.borderRadius = '20px';
+    indicator.style.fontSize = '12px';
+    indicator.style.zIndex = '9999';
+    indicator.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+    document.body.appendChild(indicator);
+  }
+
+  if (pendingUpdates.length > 0 || SyncMonitor.state !== 'SYNCED') {
+    indicator.textContent = `Sync en cours... (${pendingUpdates.length} en attente)`;
+    indicator.style.display = 'block';
+  } else {
+    indicator.style.display = 'none';
+  }
+}
+
+// Appeler cette fonction à la fin de processUpdates(), et dans SyncMonitor.evaluate()
+  
 // ===============================
 // CLIENT TRUTH (source client)
 // ===============================
@@ -7477,6 +7506,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
