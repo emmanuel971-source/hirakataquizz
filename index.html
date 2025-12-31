@@ -3150,6 +3150,46 @@ SyncMonitor.log('client snapshot updated');
 SyncMonitor.evaluate();
 
 }
+function rebuildHiraganaListFromClientTruth() {
+  if (!clientTruth || !clientTruth.stats_json || !Array.isArray(HiraganaList)) {
+    console.warn('[REBUILD] clientTruth ou HiraganaList invalide');
+    return;
+  }
+
+  HiraganaList.forEach(item => {
+    const id = item.ID.toString();
+    const stats = clientTruth.stats_json[id] || {
+      validation: 0,
+      tentatives: 0,
+      reussites: 0
+    };
+
+    item.Validation = stats.validation;
+    item.Tentatives = stats.tentatives;
+    item['Réussites'] = stats.reussites;
+
+    // Mise à jour du cache de validation
+    validationCache[parseInt(id)] = stats.validation;
+
+    // Mise à jour statsCache (pourcentage par item)
+    const tentatives = stats.tentatives;
+    const reussites = stats.reussites;
+    const pourcentage = tentatives > 0 ? Math.round((reussites / tentatives) * 100) : 0;
+
+    statsCache.items[parseInt(id)] = {
+      tentatives,
+      reussites,
+      pourcentage
+    };
+  });
+
+  // Recalcul du pourcentage global
+  const totalTentatives = Object.values(statsCache.items).reduce((sum, i) => sum + i.tentatives, 0);
+  const totalReussites = Object.values(statsCache.items).reduce((sum, i) => sum + i.reussites, 0);
+  statsCache.globalPourcentage = totalTentatives > 0 ? Math.round((totalReussites / totalTentatives) * 100) : 0;
+
+  console.log('[REBUILD] HiraganaList et caches mis à jour depuis clientTruth');
+}  
 function normalizeStats(stats) {
   const normalized = {};
 
@@ -3452,31 +3492,16 @@ async function processUpdates() {
         SyncMonitor.evaluate();
 
         pendingUpdates.shift();
-        localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
+        try {
+          localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
+        } catch (e) {}
 
-        // ✅ AJOUT : Mise à jour du hash client après confirmation serveur
+        // Mise à jour du hash client (confirmation que le serveur a bien reçu cet update)
         SyncMonitor.lastClientSnapshotHash = await hashJSON(
           normalizeStats(clientTruth.stats_json)
         );
 
-        // Ton code de mise à jour HiraganaList inchangé...
-        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
-        if (hiraganaIndex !== -1) {
-          HiraganaList[hiraganaIndex].Validation = result.newValidation;
-          HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
-          HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + update.scorePoints;
-          validationCache[update.id] = result.newValidation;
-
-          const itemStats = statsCache.items[update.id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-          itemStats.tentatives += 1;
-          itemStats.reussites += update.scorePoints;
-          itemStats.pourcentage = itemStats.tentatives > 0
-            ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
-            : 0;
-          statsCache.items[update.id] = itemStats;
-        }
-
-        // Level up code inchangé...
+        // Gestion des animations level-up (basée sur les données locales, pas sur la réponse serveur)
         if (update.hasLeveledUp && update.targetLevel > update.previousLevel) {
           if (update.targetLevel > niveauActif) {
             triggerLevelUpAnimation(document.body);
@@ -3495,26 +3520,38 @@ async function processUpdates() {
         SyncMonitor.failedUpdates++;
         SyncMonitor.log('server update failed');
         SyncMonitor.evaluate();
-        console.error(`Erreur API: ${result.error}`);
+        console.error(`Erreur API updateStats: ${result.error}`);
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
       
     } catch (error) {
-      console.error(`Erreur réseau: ${error.message}`);
+      console.error(`Erreur réseau lors de l'update: ${error.message}`);
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
   
   isProcessing = false;
-  
-  // ✅ CRUCIAL : Trigger le sync check APRÈS que toute la queue soit vidée
+
+  // Une fois toute la queue traitée : on restaure l'état complet depuis clientTruth
+  // (évite les rollbacks temporaires dus aux réponses serveur "laggées")
+  rebuildHiraganaListFromClientTruth();
+
+  // Recalcul du niveau actif et rafraîchissement complet de l'UI
+  niveauActif = determineNiveauActif(HiraganaList);
+  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+  updateLevelProgress(HiraganaList, niveauActif);
+  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+  renderHiraganaCards(HiraganaList, niveauActif);
+  updateMenuButtonStates();
+  updateAccountDisplay();
+
+  // Si un level-up avait déclenché une demande de sync check, on l'exécute maintenant
   if (SyncMonitor.syncCheckRequested && navigator.onLine) {
     SyncMonitor.syncCheckRequested = false;
-    console.log('[PROCESS UPDATES] Queue vide, lancement du sync check différé');
-    performSyncCheck('post-level-up');
+    console.log('[PROCESS UPDATES] Queue vide → lancement sync check différé');
+    performSyncCheck('post-queue');
   }
 }
-
 
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
@@ -7029,6 +7066,14 @@ renderProgressBar(niveauActif, totalLevels);
     document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
   }
+  // Détection du retour en ligne pour accélérer la synchronisation
+window.addEventListener('online', () => {
+  console.log('🌐 Retour en ligne détecté');
+  if (pendingUpdates.length > 0) {
+    processUpdates();
+  }
+  performSyncCheck('reconnection');
+});
 }
 
 async function loadRemainingDataInBackground(profile) {
@@ -7397,6 +7442,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
