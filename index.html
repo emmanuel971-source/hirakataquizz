@@ -3555,18 +3555,18 @@ async function queueUpdateStats(params) {
   }
 }
 
-
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
   
-  // On capture le compteur AU DÉBUT, avant toute modification
   const initialPendingCount = pendingUpdates.length;
+  console.log(`[PROCESS UPDATES] Démarrage avec ${initialPendingCount} updates en attente`);
   
   isProcessing = true;
   
-  let hasDetectedReconnection = false;  // pour ne déclencher qu'une seule fois
+  let reconnectionDetected = false;  // pour ne trigger qu'une fois
 
   while (pendingUpdates.length > 0) {
+    const currentCount = pendingUpdates.length;  // avant shift
     const update = pendingUpdates[0];
     
     try {
@@ -3584,6 +3584,7 @@ async function processUpdates() {
         SyncMonitor.failedUpdates = 0;
         SyncMonitor.log('server update success');
         SyncMonitor.evaluate();
+        updateSyncIndicator();
 
         pendingUpdates.shift();
         try {
@@ -3594,32 +3595,35 @@ async function processUpdates() {
           normalizeStats(clientTruth.stats_json)
         );
 
-        // === DÉTECTION DU RETOUR EN LIGNE (premier succès après gros retard) ===
-        if (!hasDetectedReconnection && initialPendingCount > 5 && pendingUpdates.length < initialPendingCount) {
-          hasDetectedReconnection = true;  // on ne le fait qu'une fois
+        // ===== DÉTECTION AGRESSIVE DU RETOUR EN LIGNE =====
+        if (!reconnectionDetected && initialPendingCount > 5 && pendingUpdates.length < currentCount) {
+          reconnectionDetected = true;
           
-          console.log(`🌐 Retour en ligne détecté ! Queue passe de ${initialPendingCount} à ${pendingUpdates.length}`);
-          console.log(`🚀 Vidage artificiel des ${pendingUpdates.length} updates restantes pour sync complet immédiat`);
+          console.log(`%c🌐 RETOUR EN LIGNE DÉTECTÉ ! Queue passe de ${currentCount} à ${pendingUpdates.length} (initial: ${initialPendingCount})`, 'color:#0a0;font-weight:bold');
+          console.log(`%c🚀 VIDAGE ARTIFICIEL DES ${pendingUpdates.length} UPDATES RESTANTES POUR SYNC COMPLET IMMÉDIAT`, 'color:#0a0;font-weight:bold');
 
-          // On vide tout le reste de la queue
+          // Vidage immédiat du reste
           pendingUpdates = [];
           try {
             localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
           } catch (e) {}
-
+          
           SyncMonitor.pendingUpdates = 0;
           SyncMonitor.evaluate();
           updateSyncIndicator();
 
-          // Activation du lock
+          // Lock pour protéger
           SyncMonitor.syncCheckInProgress = true;
-          console.log('[SYNC CHECK] LOCK forcé activé pour sync complet');
+          console.log('%c[SYNC CHECK] LOCK forcé activé', 'color:#0a0;font-weight:bold');
 
-          // Sync check forcé (avec bypass du garde-fou pendingUpdates)
+          // Force sync check avec bypass
           setTimeout(async () => {
+            console.log('%c[FORCE SYNC] Lancement du sync check agressif...', 'color:#0a0;font-weight:bold');
             await performSyncCheck('aggressive-reconnection', true);
-            // Le lock sera désactivé dans performSyncCheck ou forceSyncClientToServer
-          }, 500);
+          }, 300);
+
+          // On sort de la boucle : plus besoin de continuer les updates incrémentaux
+          break;
         }
 
         // Animations level-up (inchangées)
@@ -3653,7 +3657,7 @@ async function processUpdates() {
   
   isProcessing = false;
 
-  // Rebuild + refresh UI
+  // Rebuild UI même si on a break plus tôt
   rebuildHiraganaListFromClientTruth();
   niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
@@ -3663,12 +3667,6 @@ async function processUpdates() {
   updateMenuButtonStates();
   updateAccountDisplay();
   updateSyncIndicator();
-
-  // Sync check normal si demandé
-  if (SyncMonitor.syncCheckRequested && navigator.onLine) {
-    SyncMonitor.syncCheckRequested = false;
-    performSyncCheck('post-queue');
-  }
 }
 
 // ============================================================================
@@ -7553,6 +7551,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
