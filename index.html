@@ -3555,16 +3555,24 @@ async function queueUpdateStats(params) {
   }
 }
 
+let globalInitialPendingCount = 0; // ✅ NOUVEAU : au niveau global avec pendingUpdates
+
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
   
-  const initialPendingCount = pendingUpdates.length;
-  console.log(`[PROCESS UPDATES] Démarrage avec ${initialPendingCount} updates en attente`);
+  // ✅ Capturer la taille initiale SEULEMENT si c'est un nouveau batch
+  if (!isProcessing && globalInitialPendingCount === 0) {
+    globalInitialPendingCount = pendingUpdates.length;
+    console.log(`[PROCESS UPDATES] 🎬 NOUVEAU BATCH détecté : ${globalInitialPendingCount} updates`);
+  }
+  
+  const initialPendingCount = globalInitialPendingCount; // Utiliser la valeur globale
+  console.log(`[PROCESS UPDATES] Démarrage avec ${pendingUpdates.length} updates en attente (batch initial: ${initialPendingCount})`);
   
   isProcessing = true;
   
   let reconnectionDetected = false;
-  let consecutiveSuccesses = 0; // ✅ NOUVEAU : compteur de succès
+  let consecutiveSuccesses = 0;
 
   while (pendingUpdates.length > 0) {
     const currentCount = pendingUpdates.length;
@@ -3581,11 +3589,10 @@ async function processUpdates() {
       const result = await callAPI('updateStats', apiParams);
 
       if (result.success) {
-        consecutiveSuccesses++; // ✅ Incrémenter
-       
-        // ✅ LOG DE DEBUG
-         console.log(`[DEBUG RECONNECTION] consecutiveSuccesses=${consecutiveSuccesses}, initialPendingCount=${initialPendingCount}, reconnectionDetected=${reconnectionDetected}`);
-       
+        consecutiveSuccesses++;
+        
+        console.log(`[DEBUG RECONNECTION] consecutiveSuccesses=${consecutiveSuccesses}, initialPendingCount=${initialPendingCount}, reconnectionDetected=${reconnectionDetected}`);
+        
         SyncMonitor.pendingUpdates = Math.max(0, SyncMonitor.pendingUpdates - 1);
         SyncMonitor.failedUpdates = 0;
         SyncMonitor.log('server update success');
@@ -3601,21 +3608,17 @@ async function processUpdates() {
           normalizeStats(clientTruth.stats_json)
         );
 
-        // ===== DÉTECTION =====
         console.log(`[DEBUG CHECK] Vérification: !${reconnectionDetected} && ${initialPendingCount} > 5 && ${consecutiveSuccesses} >= 3 = ${!reconnectionDetected && initialPendingCount > 5 && consecutiveSuccesses >= 3}`);
-  
-        // ===== DÉTECTION AGRESSIVE DU RETOUR EN LIGNE =====
-        // ✅ Trigger après 3 succès consécutifs avec une grosse queue initiale
+        
         if (!reconnectionDetected && 
             initialPendingCount > 5 && 
             consecutiveSuccesses >= 3) {
           
           reconnectionDetected = true;
           
-          console.log(`%c🌐 RETOUR EN LIGNE DÉTECTÉ ! ${consecutiveSuccesses} succès consécutifs avec queue initiale de ${initialPendingCount}`, 'color:#0a0;font-weight:bold');
+          console.log(`%c🌐 RETOUR EN LIGNE DÉTECTÉ ! ${consecutiveSuccesses} succès consécutifs avec batch initial de ${initialPendingCount}`, 'color:#0a0;font-weight:bold');
           console.log(`%c🚀 VIDAGE ARTIFICIEL DES ${pendingUpdates.length} UPDATES RESTANTES`, 'color:#0a0;font-weight:bold');
 
-          // Vidage immédiat du reste
           pendingUpdates = [];
           try {
             localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
@@ -3625,11 +3628,9 @@ async function processUpdates() {
           SyncMonitor.evaluate();
           updateSyncIndicator();
 
-          // Lock
           SyncMonitor.syncCheckInProgress = true;
           console.log('%c[SYNC CHECK] LOCK forcé activé', 'color:#0a0;font-weight:bold');
 
-          // Force sync
           setTimeout(async () => {
             console.log('%c[FORCE SYNC] Lancement du sync check agressif...', 'color:#0a0;font-weight:bold');
             await performSyncCheck('aggressive-reconnection', true);
@@ -3654,7 +3655,7 @@ async function processUpdates() {
         }
         
       } else {
-        consecutiveSuccesses = 0; // ✅ Reset sur échec
+        consecutiveSuccesses = 0;
         SyncMonitor.failedUpdates++;
         SyncMonitor.log('server update failed');
         SyncMonitor.evaluate();
@@ -3663,13 +3664,15 @@ async function processUpdates() {
       }
       
     } catch (error) {
-      consecutiveSuccesses = 0; // ✅ Reset sur erreur réseau
+      consecutiveSuccesses = 0;
       console.error(`Erreur réseau lors de l'update: ${error.message}`);
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
   
   isProcessing = false;
+  globalInitialPendingCount = 0; // ✅ Reset quand le batch est terminé
+  console.log('[PROCESS UPDATES] ✅ Batch terminé, reset du compteur global');
 
   // Rebuild UI
   rebuildHiraganaListFromClientTruth();
@@ -7564,6 +7567,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
