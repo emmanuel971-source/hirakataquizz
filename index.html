@@ -3316,7 +3316,13 @@ async function hashJSON(obj) {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }  
-async function performSyncCheck(trigger = 'level-up') {
+async function performSyncCheck(trigger = 'level-up', force = false) {
+  console.log(`%c[SYNC CHECK] triggered (${trigger})`, 'color:#09c;font-weight:bold');
+
+  if (!force && SyncMonitor.pendingUpdates > 0) {
+    console.log('[SYNC CHECK] aborted: pendingUpdates > 0');
+    return;
+  }
   console.log(
     `%c[SYNC CHECK] triggered (${trigger})`,
     'color:#09c;font-weight:bold'
@@ -3598,6 +3604,33 @@ async function processUpdates() {
           normalizeStats(clientTruth.stats_json)
         );
 
+// === DÉTECTION INFALLIBLE DU RETOUR EN LIGNE + GROS RETARD ===
+  if (previousPendingCount > 5 && pendingUpdates.length < previousPendingCount) {
+    console.log(`🌐 Retour en ligne confirmé ! Queue passe de ${previousPendingCount} à ${pendingUpdates.length}`);
+
+    // On vide la queue restante pour forcer le sync complet immédiat
+    console.log(`🚀 Vidage artificiel des ${pendingUpdates.length} updates restantes pour sync forcé`);
+    pendingUpdates = [];  // on jette le reste des deltas
+    try {
+      localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
+    } catch (e) {}
+
+    SyncMonitor.pendingUpdates = 0;
+    SyncMonitor.evaluate();
+
+    // Activation du lock pour protéger pendant le sync check / force sync
+    SyncMonitor.syncCheckInProgress = true;
+    console.log('[SYNC CHECK] LOCK forcé activé pour sync complet');
+
+    // Déclenchement immédiat du sync check
+    setTimeout(async () => {
+     await performSyncCheck('aggressive-reconnection', true);  // force = true → bypass le garde-fou
+      // Le lock sera désactivé dans performSyncCheck ou forceSyncClientToServer
+    }, 500);  // petit délai pour laisser l'UI respirer
+  }
+
+// === DÉTECTION INFALLIBLE DU RETOUR EN LIGNE + GROS RETARD === FIN
+        
         // Gestion des animations level-up (basée sur les données locales, pas sur la réponse serveur)
         if (update.hasLeveledUp && update.targetLevel > update.previousLevel) {
           if (update.targetLevel > niveauActif) {
@@ -7533,6 +7566,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
