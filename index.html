@@ -3563,10 +3563,11 @@ async function processUpdates() {
   
   isProcessing = true;
   
-  let reconnectionDetected = false;  // pour ne trigger qu'une fois
+  let reconnectionDetected = false;
+  let consecutiveSuccesses = 0; // ✅ NOUVEAU : compteur de succès
 
   while (pendingUpdates.length > 0) {
-    const currentCount = pendingUpdates.length;  // avant shift
+    const currentCount = pendingUpdates.length;
     const update = pendingUpdates[0];
     
     try {
@@ -3580,6 +3581,8 @@ async function processUpdates() {
       const result = await callAPI('updateStats', apiParams);
 
       if (result.success) {
+        consecutiveSuccesses++; // ✅ Incrémenter
+        
         SyncMonitor.pendingUpdates = Math.max(0, SyncMonitor.pendingUpdates - 1);
         SyncMonitor.failedUpdates = 0;
         SyncMonitor.log('server update success');
@@ -3596,11 +3599,15 @@ async function processUpdates() {
         );
 
         // ===== DÉTECTION AGRESSIVE DU RETOUR EN LIGNE =====
-        if (!reconnectionDetected && initialPendingCount > 5 && pendingUpdates.length < currentCount) {
+        // ✅ Trigger après 3 succès consécutifs avec une grosse queue initiale
+        if (!reconnectionDetected && 
+            initialPendingCount > 5 && 
+            consecutiveSuccesses >= 3) {
+          
           reconnectionDetected = true;
           
-          console.log(`%c🌐 RETOUR EN LIGNE DÉTECTÉ ! Queue passe de ${currentCount} à ${pendingUpdates.length} (initial: ${initialPendingCount})`, 'color:#0a0;font-weight:bold');
-          console.log(`%c🚀 VIDAGE ARTIFICIEL DES ${pendingUpdates.length} UPDATES RESTANTES POUR SYNC COMPLET IMMÉDIAT`, 'color:#0a0;font-weight:bold');
+          console.log(`%c🌐 RETOUR EN LIGNE DÉTECTÉ ! ${consecutiveSuccesses} succès consécutifs avec queue initiale de ${initialPendingCount}`, 'color:#0a0;font-weight:bold');
+          console.log(`%c🚀 VIDAGE ARTIFICIEL DES ${pendingUpdates.length} UPDATES RESTANTES`, 'color:#0a0;font-weight:bold');
 
           // Vidage immédiat du reste
           pendingUpdates = [];
@@ -3612,17 +3619,16 @@ async function processUpdates() {
           SyncMonitor.evaluate();
           updateSyncIndicator();
 
-          // Lock pour protéger
+          // Lock
           SyncMonitor.syncCheckInProgress = true;
           console.log('%c[SYNC CHECK] LOCK forcé activé', 'color:#0a0;font-weight:bold');
 
-          // Force sync check avec bypass
+          // Force sync
           setTimeout(async () => {
             console.log('%c[FORCE SYNC] Lancement du sync check agressif...', 'color:#0a0;font-weight:bold');
             await performSyncCheck('aggressive-reconnection', true);
           }, 300);
 
-          // On sort de la boucle : plus besoin de continuer les updates incrémentaux
           break;
         }
 
@@ -3642,6 +3648,7 @@ async function processUpdates() {
         }
         
       } else {
+        consecutiveSuccesses = 0; // ✅ Reset sur échec
         SyncMonitor.failedUpdates++;
         SyncMonitor.log('server update failed');
         SyncMonitor.evaluate();
@@ -3650,6 +3657,7 @@ async function processUpdates() {
       }
       
     } catch (error) {
+      consecutiveSuccesses = 0; // ✅ Reset sur erreur réseau
       console.error(`Erreur réseau lors de l'update: ${error.message}`);
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
@@ -3657,7 +3665,7 @@ async function processUpdates() {
   
   isProcessing = false;
 
-  // Rebuild UI même si on a break plus tôt
+  // Rebuild UI
   rebuildHiraganaListFromClientTruth();
   niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
@@ -3668,7 +3676,6 @@ async function processUpdates() {
   updateAccountDisplay();
   updateSyncIndicator();
 }
-
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
 // ============================================================================
@@ -7551,6 +7558,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
