@@ -3555,19 +3555,19 @@ async function queueUpdateStats(params) {
   }
 }
 
-let globalInitialPendingCount = 0; // ✅ NOUVEAU : au niveau global avec pendingUpdates
+let globalInitialPendingCount = 0; // ✅ Variable globale
 
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
   
-  // ✅ Capturer la taille initiale SEULEMENT si c'est un nouveau batch
-  if (!isProcessing && globalInitialPendingCount === 0) {
+  // ✅ Capturer AVANT isProcessing = true ET sans condition sur isProcessing
+  if (globalInitialPendingCount === 0) {
     globalInitialPendingCount = pendingUpdates.length;
     console.log(`[PROCESS UPDATES] 🎬 NOUVEAU BATCH détecté : ${globalInitialPendingCount} updates`);
   }
   
-  const initialPendingCount = globalInitialPendingCount; // Utiliser la valeur globale
-  console.log(`[PROCESS UPDATES] Démarrage avec ${pendingUpdates.length} updates en attente (batch initial: ${initialPendingCount})`);
+  const initialPendingCount = globalInitialPendingCount;
+  console.log(`[PROCESS UPDATES] Démarrage avec ${pendingUpdates.length} restantes (batch initial: ${initialPendingCount})`);
   
   isProcessing = true;
   
@@ -3670,9 +3670,9 @@ async function processUpdates() {
     }
   }
   
-  isProcessing = false;
-  globalInitialPendingCount = 0; // ✅ Reset quand le batch est terminé
-  console.log('[PROCESS UPDATES] ✅ Batch terminé, reset du compteur global');
+isProcessing = false;
+  globalInitialPendingCount = 0; // ✅ Reset à la fin
+  console.log('[PROCESS UPDATES] ✅ Batch terminé, reset global counter');
 
   // Rebuild UI
   rebuildHiraganaListFromClientTruth();
@@ -7567,6 +7567,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
