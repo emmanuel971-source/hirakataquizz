@@ -3582,7 +3582,10 @@ async function processUpdates() {
 
       if (result.success) {
         consecutiveSuccesses++; // ✅ Incrémenter
-        
+       
+        // ✅ LOG DE DEBUG
+         console.log(`[DEBUG RECONNECTION] consecutiveSuccesses=${consecutiveSuccesses}, initialPendingCount=${initialPendingCount}, reconnectionDetected=${reconnectionDetected}`);
+       
         SyncMonitor.pendingUpdates = Math.max(0, SyncMonitor.pendingUpdates - 1);
         SyncMonitor.failedUpdates = 0;
         SyncMonitor.log('server update success');
@@ -3598,6 +3601,9 @@ async function processUpdates() {
           normalizeStats(clientTruth.stats_json)
         );
 
+        // ===== DÉTECTION =====
+        console.log(`[DEBUG CHECK] Vérification: !${reconnectionDetected} && ${initialPendingCount} > 5 && ${consecutiveSuccesses} >= 3 = ${!reconnectionDetected && initialPendingCount > 5 && consecutiveSuccesses >= 3}`);
+  
         // ===== DÉTECTION AGRESSIVE DU RETOUR EN LIGNE =====
         // ✅ Trigger après 3 succès consécutifs avec une grosse queue initiale
         if (!reconnectionDetected && 
@@ -7558,6 +7564,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
