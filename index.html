@@ -4317,14 +4317,28 @@ function isGroupeDebloque(groupeId) {
 function isApprentissageBloque() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   
+  // 🔍 LOGS DE DEBUG
+  console.group('🔒 DEBUG BLOCAGE');
+  console.log('niveauActif:', niveauActif);
+  console.log('groupeActuel:', groupeActuel);
+  console.log('HiraganaList.length:', HiraganaList.length);
+  console.log('GROUPES défini:', GROUPES);
+  
   if (niveauActif <= 5) {
-    return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
+    console.log('Branch: niveauActif <= 5');
+    const isBlocked = groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
+    console.log('Résultat blocage:', isBlocked);
+    console.groupEnd();
+    return isBlocked;
   }
   
   // Niveaux > 5 : blocage basé sur déficit
   const deficit = calculerDeficitValidation();
-  const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
+  console.log('Branch: niveauActif > 5, déficit:', deficit);
   
+  const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
+  console.log('wasBlocked (localStorage):', wasBlocked);
+  console.groupEnd();
   if (wasBlocked) {
     const shouldUnblock = deficit === 0;
     if (shouldUnblock) localStorage.setItem('apprentissageBloque', 'false');
@@ -4339,13 +4353,23 @@ function isApprentissageBloque() {
 
 function calculerDeficitValidation() {
   const groupeActuel = getNiveauGroupe(niveauActif);
-  if (groupeActuel < 3) return 0;
+  console.log('📊 calculerDeficitValidation: groupeActuel =', groupeActuel);
+  
+  if (groupeActuel < 3) {
+    console.log('📊 Groupe < 3, return 0');
+    return 0;
+  }
   
   let deficit = 0;
   for (let g = 1; g < groupeActuel; g++) {
     const niveaux = GROUPES[g]?.niveaux || [];
+    console.log(`📊 Groupe ${g}, niveaux:`, niveaux);
+    
     for (const niveau of niveaux) {
-      getItemsByLevel(HiraganaList, niveau).forEach(item => {
+      const items = getItemsByLevel(HiraganaList, niveau);
+      console.log(`📊 Niveau ${niveau}: ${items.length} items`);
+      
+      items.forEach(item => {
         const val = parseInt(item.Validation || 0, 10);
         if (val < SEUIL_VALIDATION) {
           deficit += SEUIL_VALIDATION - val;
@@ -4353,6 +4377,8 @@ function calculerDeficitValidation() {
       });
     }
   }
+  
+  console.log('📊 Déficit total:', deficit);
   return deficit;
 }
 function calculerDeficitMaximum() {
@@ -7750,6 +7776,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
