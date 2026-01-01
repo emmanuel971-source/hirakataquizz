@@ -3316,18 +3316,11 @@ async function hashJSON(obj) {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }  
-async function performSyncCheck(trigger = 'level-up') {
-  console.log(
-    `%c[SYNC CHECK] triggered (${trigger})`,
-    'color:#09c;font-weight:bold'
-  );
 
-  if (!navigator.onLine) {
-    console.log('[SYNC CHECK] aborted: offline');
-    return;
-  }
+  async function performSyncCheck(trigger = 'level-up', force = false) {
+  console.log(`%c[SYNC CHECK] triggered (${trigger})`, 'color:#09c;font-weight:bold');
 
-  if (SyncMonitor.pendingUpdates > 0) {
+  if (!force && SyncMonitor.pendingUpdates > 0) {
     console.log('[SYNC CHECK] aborted: pendingUpdates > 0');
     return;
   }
@@ -3581,9 +3574,15 @@ async function queueUpdateStats(params) {
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
   
+  const initialPendingCount = pendingUpdates.length;
+  console.log(`[PROCESS UPDATES] Démarrage avec ${initialPendingCount} updates en attente`);
+  
   isProcessing = true;
   
+  let reconnectionDetected = false;  // pour ne trigger qu'une fois
+
   while (pendingUpdates.length > 0) {
+    const currentCount = pendingUpdates.length;  // avant shift
     const update = pendingUpdates[0];
     
     try {
@@ -3601,18 +3600,49 @@ async function processUpdates() {
         SyncMonitor.failedUpdates = 0;
         SyncMonitor.log('server update success');
         SyncMonitor.evaluate();
+        updateSyncIndicator();
 
         pendingUpdates.shift();
         try {
           localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
         } catch (e) {}
 
-        // Mise à jour du hash client (confirmation que le serveur a bien reçu cet update)
         SyncMonitor.lastClientSnapshotHash = await hashJSON(
           normalizeStats(clientTruth.stats_json)
         );
 
-        // Gestion des animations level-up (basée sur les données locales, pas sur la réponse serveur)
+        // ===== DÉTECTION AGRESSIVE DU RETOUR EN LIGNE =====
+        if (!reconnectionDetected && initialPendingCount > 5 && pendingUpdates.length < currentCount) {
+          reconnectionDetected = true;
+          
+          console.log(`%c🌐 RETOUR EN LIGNE DÉTECTÉ ! Queue passe de ${currentCount} à ${pendingUpdates.length} (initial: ${initialPendingCount})`, 'color:#0a0;font-weight:bold');
+          console.log(`%c🚀 VIDAGE ARTIFICIEL DES ${pendingUpdates.length} UPDATES RESTANTES POUR SYNC COMPLET IMMÉDIAT`, 'color:#0a0;font-weight:bold');
+
+          // Vidage immédiat du reste
+          pendingUpdates = [];
+          try {
+            localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
+          } catch (e) {}
+          
+          SyncMonitor.pendingUpdates = 0;
+          SyncMonitor.evaluate();
+          updateSyncIndicator();
+
+          // Lock pour protéger
+          SyncMonitor.syncCheckInProgress = true;
+          console.log('%c[SYNC CHECK] LOCK forcé activé', 'color:#0a0;font-weight:bold');
+
+          // Force sync check avec bypass
+          setTimeout(async () => {
+            console.log('%c[FORCE SYNC] Lancement du sync check agressif...', 'color:#0a0;font-weight:bold');
+            await performSyncCheck('aggressive-reconnection', true);
+          }, 300);
+
+          // On sort de la boucle : plus besoin de continuer les updates incrémentaux
+          break;
+        }
+
+        // Animations level-up (inchangées)
         if (update.hasLeveledUp && update.targetLevel > update.previousLevel) {
           if (update.targetLevel > niveauActif) {
             triggerLevelUpAnimation(document.body);
@@ -3643,11 +3673,8 @@ async function processUpdates() {
   
   isProcessing = false;
 
-  // Une fois toute la queue traitée : on restaure l'état complet depuis clientTruth
-  // (évite les rollbacks temporaires dus aux réponses serveur "laggées")
+  // Rebuild UI même si on a break plus tôt
   rebuildHiraganaListFromClientTruth();
-
-  // Recalcul du niveau actif et rafraîchissement complet de l'UI
   niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
@@ -3655,16 +3682,8 @@ async function processUpdates() {
   renderHiraganaCards(HiraganaList, niveauActif);
   updateMenuButtonStates();
   updateAccountDisplay();
-  updateSyncIndicator();  // ← ici
-  // Si un level-up avait déclenché une demande de sync check, on l'exécute maintenant
-  if (SyncMonitor.syncCheckRequested && navigator.onLine) {
-    SyncMonitor.syncCheckRequested = false;
-    console.log('[PROCESS UPDATES] Queue vide → lancement sync check différé');
-    performSyncCheck('post-queue');
-  }
-
+  updateSyncIndicator();
 }
-
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
 // ============================================================================
@@ -7547,6 +7566,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
