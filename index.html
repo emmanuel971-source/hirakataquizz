@@ -7430,7 +7430,8 @@ statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTent
       
     } else {
       // Charger le reste des niveaux + WordLists (cas changement appareil)
-      const currentMax = Math.min(profile.niveau + 2, profile.totalLevels);
+      const trustedNiveau = clientTruth?.niveau_atteint || profile.niveau || 1;
+     const currentMax = Math.min(trustedNiveau + 2, profile.totalLevels || 46);
       
       if (currentMax < profile.totalLevels) {
         console.log(`📥 Background: chargement niveaux ${currentMax + 1}-${profile.totalLevels}...`);
@@ -7749,6 +7750,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
