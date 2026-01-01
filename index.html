@@ -4369,52 +4369,21 @@ function isApprentissageBloque() {
   }
 }
 function calculerDeficitValidation() {
-  // === Garde-fous défensifs : on refuse de pénaliser tant que les données ne sont pas stables ===
-  if (!HiraganaList || HiraganaList.length === 0) {
-    console.log('📊 calculerDeficitValidation : HiraganaList vide → déficit = 0');
-    return 0;
-  }
-
-  if (!gameDataLoaded) {
-    console.log('📊 calculerDeficitValidation : jeu pas fully loaded → déficit = 0');
-    return 0;
-  }
-
-  if (backgroundLoadingInProgress) {
-    console.log('📊 calculerDeficitValidation : background en cours → déficit = 0');
-    return 0;
-  }
-
-  if (!niveauActif || niveauActif < 1) {
-    console.log('📊 calculerDeficitValidation : niveauActif invalide → déficit = 0');
-    return 0;
-  }
-
-  // === Logique originale, intacte ===
   const groupeActuel = getNiveauGroupe(niveauActif);
+  if (groupeActuel < 3) return 0;
   
-  // Groupe trop bas → pas de déficit (comme avant)
-  if (groupeActuel < 3) {
-    return 0;
-  }
-
   let deficit = 0;
-
-  // On parcourt uniquement les GROUPES STRICTEMENT ANTERIEURS au groupe actuel
   for (let g = 1; g < groupeActuel; g++) {
     const niveaux = GROUPES[g]?.niveaux || [];
     for (const niveau of niveaux) {
       getItemsByLevel(HiraganaList, niveau).forEach(item => {
         const val = parseInt(item.Validation || 0, 10);
-
         if (val < SEUIL_VALIDATION) {
           deficit += SEUIL_VALIDATION - val;
         }
       });
     }
   }
-
-  console.log(`📊 Déficit validation calculé : ${deficit} points (groupes 1 à ${groupeActuel - 1}, seuil = ${SEUIL_VALIDATION})`);
   return deficit;
 }
 function calculerDeficitMaximum() {
@@ -7470,20 +7439,55 @@ async function loadRemainingDataInBackground(profile) {
           }));
           
           HiraganaList.push(...newItems);
+          
+          // 🆕 RE-MERGE DES STATS SERVEUR APRÈS AJOUT
+          console.log('📊 Re-merge stats serveur sur items background (new user)...');
+          const userStatsResult = await callAPI('getUserStats', { token: userToken });
+          if (userStatsResult.success) {
+            const stats = userStatsResult.stats || {};
+            
+            HiraganaList.forEach(item => {
+              const itemId = item.ID.toString();
+              const itemStats = stats[itemId] || { validation: 0, tentatives: 0, reussites: 0 };
+              
+              item.Validation = itemStats.validation;
+              item.Tentatives = itemStats.tentatives;
+              item['Réussites'] = itemStats.reussites;
+              
+              const id = parseInt(item.ID);
+              validationCache[id] = parseInt(itemStats.validation);
+              
+              const tentatives = parseInt(itemStats.tentatives || 0);
+              const reussites = parseInt(itemStats.reussites || 0);
+              const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
+              
+              statsCache.items[id] = { tentatives, reussites, pourcentage };
+            });
+            
+            // Recalcul global
+            const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+            const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+            statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+            
+            console.log(`✅ Background re-merge (new user): stats appliquées sur ${HiraganaList.length} items`);
+          }
+          
           newItems.forEach(item => {
-  const id = parseInt(item.ID);
-  validationCache[id] = parseInt(item.Validation || 0);
-  
-  const tentatives = parseInt(item.Tentatives || 0);
-  const reussites = parseInt(item['Réussites'] || 0);
-  const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
-  
-  statsCache.items[id] = { tentatives, reussites, pourcentage };
-});
-// Recalcul global (rapide)
-const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
-const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
-statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+            const id = parseInt(item.ID);
+            validationCache[id] = parseInt(item.Validation || 0);
+            
+            const tentatives = parseInt(item.Tentatives || 0);
+            const reussites = parseInt(item['Réussites'] || 0);
+            const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
+            
+            statsCache.items[id] = { tentatives, reussites, pourcentage };
+          });
+          
+          // Recalcul global
+          const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+          const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+          statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+          
           console.log(`✅ Background: ${newItems.length} items ajoutés (total: ${HiraganaList.length})`);
         }
         
@@ -7512,6 +7516,39 @@ statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTent
           }));
           
           HiraganaList.push(...newItems);
+          
+          // 🆕 RE-MERGE DES STATS SERVEUR APRÈS AJOUT
+          console.log('📊 Re-merge stats serveur sur items background (returning user)...');
+          const userStatsResult = await callAPI('getUserStats', { token: userToken });
+          if (userStatsResult.success) {
+            const stats = userStatsResult.stats || {};
+            
+            HiraganaList.forEach(item => {
+              const itemId = item.ID.toString();
+              const itemStats = stats[itemId] || { validation: 0, tentatives: 0, reussites: 0 };
+              
+              item.Validation = itemStats.validation;
+              item.Tentatives = itemStats.tentatives;
+              item['Réussites'] = itemStats.reussites;
+              
+              const id = parseInt(item.ID);
+              validationCache[id] = parseInt(itemStats.validation);
+              
+              const tentatives = parseInt(itemStats.tentatives || 0);
+              const reussites = parseInt(itemStats.reussites || 0);
+              const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
+              
+              statsCache.items[id] = { tentatives, reussites, pourcentage };
+            });
+            
+            // Recalcul global
+            const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+            const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+            statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+            
+            console.log(`✅ Background re-merge (returning user): stats appliquées sur ${HiraganaList.length} items`);
+          }
+          
           console.log(`✅ Background: ${newItems.length} items ajoutés (total: ${HiraganaList.length})`);
         }
       }
@@ -7811,6 +7848,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
