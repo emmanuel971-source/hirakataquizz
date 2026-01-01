@@ -7275,7 +7275,7 @@ async function initGame() {
       updateLoadingProgress(60, "Prêt à jouer !");
       
 
-        } else {
+    } else {
       // 🔁 RETURNING USER
 
       // Récupération profil et user
@@ -7310,13 +7310,7 @@ async function initGame() {
       }
 
       // Merge stats avec données fraîches (serveur à jour après éventuelle sync)
-      await applyUserProgress();
-
-      updateLoadingProgress(60, "Profil chargé !");
-    }
-
-      // ✅ Maintenant apply (merge + calculs + UI sur chunk complet)
-      updateLoadingProgress(55, "Application de vos statistiques...");
+      updateLoadingProgress(58, "Application de vos statistiques...");
       await applyUserProgress();
 
       updateLoadingProgress(60, "Profil chargé !");
@@ -7752,6 +7746,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
