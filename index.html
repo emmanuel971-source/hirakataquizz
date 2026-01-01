@@ -4369,7 +4369,7 @@ function isApprentissageBloque() {
   }
 }
 function calculerDeficitValidation() {
-  // === Sécurité principale : données pas encore prêtes ===
+  // === Garde-fous défensifs : on refuse de pénaliser tant que les données ne sont pas stables ===
   if (!HiraganaList || HiraganaList.length === 0) {
     console.log('📊 calculerDeficitValidation : HiraganaList vide → déficit = 0');
     return 0;
@@ -4380,34 +4380,41 @@ function calculerDeficitValidation() {
     return 0;
   }
 
-  // Optionnel mais recommandé : si le background loading est encore en cours
   if (backgroundLoadingInProgress) {
-    console.log('📊 calculerDeficitValidation : chargement background en cours → déficit = 0');
+    console.log('📊 calculerDeficitValidation : background en cours → déficit = 0');
     return 0;
   }
 
-  // === Maintenant on peut calculer sérieusement ===
+  if (!niveauActif || niveauActif < 1) {
+    console.log('📊 calculerDeficitValidation : niveauActif invalide → déficit = 0');
+    return 0;
+  }
+
+  // === Logique originale, intacte ===
+  const groupeActuel = getNiveauGroupe(niveauActif);
+  
+  // Groupe trop bas → pas de déficit (comme avant)
+  if (groupeActuel < 3) {
+    return 0;
+  }
+
   let deficit = 0;
 
-  HiraganaList.forEach(item => {
-    const validation = parseInt(item.Validation || 0);
-    const tentatives = parseInt(item.Tentatives || 0);
+  // On parcourt uniquement les GROUPES STRICTEMENT ANTERIEURS au groupe actuel
+  for (let g = 1; g < groupeActuel; g++) {
+    const niveaux = GROUPES[g]?.niveaux || [];
+    for (const niveau of niveaux) {
+      getItemsByLevel(HiraganaList, niveau).forEach(item => {
+        const val = parseInt(item.Validation || 0, 10);
 
-    // Ta logique actuelle (adapte si besoin)
-    // Exemple classique : chaque item non maîtrisé contribue au déficit
-    if (validation < 5) {
-      // Tu peux pondérer selon le niveau de validation, ex. :
-      deficit += (5 - validation);
-
-      // Ou simplement +1 par item non validé :
-      // deficit += 1;
-
-      // Ou ne compter que les items déjà vus (plus indulgent) :
-      // if (tentatives > 0) deficit += (5 - validation);
+        if (val < SEUIL_VALIDATION) {
+          deficit += SEUIL_VALIDATION - val;
+        }
+      });
     }
-  });
+  }
 
-  console.log(`📊 Déficit validation calculé : ${deficit} points (sur ${HiraganaList.length} items)`);
+  console.log(`📊 Déficit validation calculé : ${deficit} points (groupes 1 à ${groupeActuel - 1}, seuil = ${SEUIL_VALIDATION})`);
   return deficit;
 }
 function calculerDeficitMaximum() {
@@ -7804,6 +7811,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
