@@ -8,7 +8,7 @@
   src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js"
   onload="window.twemojiLoaded = true"
 ></script>
-<style>
+  <style>
 :root {--app-height: 100vh;}
 body {height: var(--app-height); min-height: var(--app-height);height: 100dvh; /* Fallback moderne */ min-height: 100dvh;}
 .section.active { height: var(--app-height); min-height: var(--app-height);}    
@@ -255,9 +255,12 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 .garden-card .close-btn { margin-top: 1.5em; padding: 0.8em 2em; font-size: 1.2em; }
 @media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.0em; } .garden-bug { font-size: 0.8em; } .garden-hiragana { font-size: 1.0em; } .garden-level { gap: 0.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 95%; } .garden-item { aspect-ratio: 1; } }
 @media (min-width: 481px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) { .garden-plant { font-size: 2.7em; } .garden-hiragana { white-space: nowrap; font-size: 1.2em; } .garden-level { gap: 3.5em; grid-template-columns: repeat(5, 1fr); padding: 0 0.5em; width: 90%; } .garden-legend { gap: 1em; font-size: 0.9em; } }
+
 /* Animation pour le changement de statut de la plante (bloom/rotation subtile) */
+
 .plant-status-change{animation:plantBloom .5s ease-in-out}@keyframes plantBloom{0%{transform:scale(1) rotate(0deg);opacity:.8}50%{transform:scale(1.2) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}.score-sparkle{animation:sparkle .6s ease-in-out;color:#FFD700}@keyframes sparkle{0%{transform:scale(1);opacity:1;text-shadow:0 0 5px #FFD700}50%{transform:scale(1.1);opacity:.7;text-shadow:0 0 10px #FFD700}100%{transform:scale(1);opacity:1;text-shadow:0 0 5px #FFD700}}#mode2.active #garden-modal,#mode2 #garden-modal.visible{z-index:9999!important;position:fixed!important;top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important}#mode2 .revision-keyboard,#mode2 #revision-input-display,#mode2 #revision-message{z-index:100!important}#modal-portal{position:fixed!important;top:0!important;left:0!important;width:100%!important;height:100%!important;z-index:2147483647!important;display:none;align-items:center;justify-content:center;pointer-events:none}#modal-portal.active{display:flex!important;pointer-events:auto!important}#modal-portal .revision-flashcard{padding:2.8em 3.2em;border-radius:28px;box-shadow:0 30px 60px rgba(0,0,0,.5);text-align:center;max-width:90%;background-color:#fff;animation:popIn .6s ease-out forwards}@media (max-width:480px) and (-webkit-min-device-pixel-ratio:2){#modal-portal .revision-flashcard{padding:2em 2.5em;border-radius:20px;max-width:85%}#modal-portal .revision-flashcard .romaji-display{font-size:3em!important}#modal-portal .revision-flashcard .score-display{font-size:2em!important}#modal-portal .revision-flashcard .plant-display{font-size:3.5em!important}#modal-portal .revision-flashcard .char-display{font-size:1.8em!important}}@media (min-width:481px) and (max-width:1024px) and (-webkit-min-device-pixel-ratio:2){#modal-portal .revision-flashcard{padding:2.5em 3em;max-width:80%}}@keyframes popIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}@keyframes rollUp{from{top:0}to{top:-70px}}@keyframes rollDown{from{top:0}to{top:70px}}@keyframes rollInUp{from{top:70px}to{top:0}}@keyframes rollInDown{from{top:-70px}to{top:0}}.contact-form-container,.contact-inbox-container{max-width:600px;margin:0 auto;padding:1em;overflow-y:auto;overflow-x:hidden;max-height:calc(100vh - 2em);box-sizing:border-box}.contact-subtitle{font-size:1.1em;color:var(--brown-primary);margin-bottom:1.5em;text-align:center}.contact-category{margin-bottom:1.5em}.contact-category label{display:block;font-weight:bold;color:var(--brown-primary);margin-bottom:.5em;font-size:1.1em}.contact-select{width:100%;padding:.8em;font-size:1.1em;border:2px solid var(--brown-primary);border-radius:8px;background:var(--white);color:var(--brown-primary);font-family:inherit;cursor:pointer}.contact-textarea{width:100%;min-height:150px;padding:1em;font-size:1.1em;border:2px solid var(--brown-primary);border-radius:8px;background:var(--white);color:var(--brown-primary);font-family:inherit;resize:vertical;box-sizing:border-box;word-wrap:break-word;overflow-wrap:break-word}.contact-textarea.small{min-height:100px}.contact-textarea:focus,.contact-select:focus,.contact-input:focus{outline:none;border-color:var(--green-primary);box-shadow:0 0 8px var(--overlay-green-30)}.char-counter{text-align:right;font-size:.9em;color:var(--gray-dark);margin-top:.3em;margin-bottom:1em}.contact-field{margin-bottom:1.5em}.contact-field label{display:block;font-weight:bold;color:var(--brown-primary);margin-bottom:.5em;font-size:1.1em}.contact-input{width:100%;padding:.8em;font-size:1.1em;border:2px solid var(--brown-primary);border-radius:8px;background:var(--white);color:var(--brown-primary);font-family:inherit;box-sizing:border-box;word-wrap:break-word;overflow-wrap:break-word}.contact-file-input{width:100%;max-width:100%;padding:.8em;font-size:1em;border:2px dashed var(--brown-primary);border-radius:8px;background:var(--beige-light);cursor:pointer;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file-info{font-size:.9em;color:var(--gray-dark);margin-top:.5em}.error-message{background:var(--pink-pale);border:2px solid var(--pink-primary);color:var(--brown-primary);padding:1em;border-radius:8px;margin:1em 0;text-align:center;font-weight:bold}.success-message{background:var(--green-pale);border:2px solid var(--green-primary);color:var(--green-dark);padding:1em;border-radius:8px;margin:1em 0;text-align:center;font-weight:bold}#contact-inbox-btn{position:relative}#contact-inbox-btn .notification-badge{position:absolute;top:-5px;right:-5px;background:var(--red-progress);color:var(--white);font-size:.8em;font-weight:bold;padding:.2em .5em;border-radius:50%;min-width:20px;text-align:center}.inbox-empty{text-align:center;padding:3em 1em;color:var(--gray-dark);font-size:1.2em}.inbox-messages{display:flex;flex-direction:column;gap:1em;overflow-y:auto;max-height:calc(100vh - 200px);padding-right:.5em}.message-card{background:var(--white);border:2px solid var(--brown-primary);border-radius:12px;padding:1.2em;box-shadow:0 4px 8px var(--shadow-black-medium);transition:all .3s ease}.message-card.unread{background:var(--green-subtle-2);border-color:var(--green-primary)}.message-card:hover{transform:translateY(-2px);box-shadow:0 6px 12px var(--shadow-black-strong)}.message-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8em;padding-bottom:.8em;border-bottom:1px solid var(--gray-light)}.message-type{font-size:.9em;font-weight:bold;color:var(--brown-primary);padding:.3em .8em;background:var(--beige-light);border-radius:20px}.message-date{font-size:.85em;color:var(--gray-dark)}.message-content{color:var(--gray-text);line-height:1.6;margin-bottom:1em;word-wrap:break-word;overflow-wrap:break-word;max-width:100%}.message-response{background:var(--green-subtle-3);border-left:4px solid var(--green-primary);padding:1em;border-radius:8px;margin-top:1em}.response-header{font-weight:bold;color:var(--green-dark);margin-bottom:.5em;display:flex;align-items:center;gap:.5em}.response-text{color:var(--gray-text);line-height:1.6;word-wrap:break-word;overflow-wrap:break-word;max-width:100%}@media (max-width:480px) and (-webkit-min-device-pixel-ratio:2){.contact-form-container,.contact-inbox-container{padding:.5em;max-height:none;min-height:100dvh;overflow-y:auto}.contact-textarea{font-size:1em;min-height:120px}.message-card{padding:1em}.inbox-messages{max-height:calc(100vh - 150px)}}body,html{margin:0;padding:0;height:100%;overflow:hidden;font-family:sans-serif}#rotation-toast{position:fixed;inset:0;background:rgba(0,0,0,.88);color:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9999}.phone{width:84px;height:150px;border:6px solid #fff;border-radius:16px;position:relative;margin-bottom:32px;animation:rot 2.5s infinite ease-in-out}.phone::before{content:"";position:absolute;top:12px;left:50%;transform:translateX(-50%);width:36px;height:6px;background:#fff;border-radius:3px}.phone::after{content:"";position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:44px;height:44px;background:#fff;border-radius:50%;opacity:.15}@keyframes rot{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-90deg)}}.text{font-size:18px;text-align:center}.small{font-size:14px;margin-top:8px;opacity:.8}@media screen and (orientation:landscape) and (max-width:1024px){#rotation-toast{display:flex}}.sound-controls{padding:2em 1em;max-width:400px;margin:0 auto}.sound-control-item{background:var(--overlay-green-05);border-radius:20px;padding:2em 1.5em;margin-bottom:1.5em;display:flex;flex-direction:column;align-items:center;gap:1.2em;transition:all .3s ease}.sound-control-item:hover{background:var(--overlay-green-08);transform:translateY(-2px)}.sound-label{display:flex;flex-direction:column;align-items:center;gap:.5em}.sound-icon{font-size:4em;filter:grayscale(20%);transition:all .3s ease}.sound-control-item:hover .sound-icon{filter:grayscale(0%);transform:scale(1.1)}.sound-label span:last-child{font-size:1.1em;font-weight:600;color:var(--brown-primary);text-shadow:0 1px 2px var(--shadow-brown-light)}.sound-toggle{display:flex;align-items:center;gap:1em}.sound-status{font-size:1.8em;transition:all .3s ease}.switch{position:relative;display:inline-block;width:70px;height:40px}.switch input{opacity:0;width:0;height:0}.slider-round{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,var(--gray-light) 0%,var(--gray-medium) 100%);transition:.4s;border-radius:40px;box-shadow:inset 0 2px 4px var(--shadow-black-light)}.slider-round:before{position:absolute;content:"";height:32px;width:32px;left:4px;bottom:4px;background:linear-gradient(135deg,var(--white) 0%,var(--beige-light) 100%);transition:.4s;border-radius:50%;box-shadow:0 2px 4px var(--shadow-black-medium)}input:checked + .slider-round{background:linear-gradient(135deg,var(--green-gradient-start) 0%,var(--green-gradient-end) 100%)}input:checked + .slider-round:before{transform:translateX(30px);box-shadow:0 2px 6px var(--shadow-black-strong)}input:focus + .slider-round{box-shadow:0 0 8px var(--green-bright)}.difficulty-stars{display:inline-flex;gap:4px;margin-left:8px;vertical-align:middle}.difficulty-star{font-size:.8em;transition:all .3s ease}.difficulty-star.lit{color:#FFD700;text-shadow:0 0 10px #FFD700,0 0 20px #FFA500;filter:brightness(1.5)}.difficulty-star.unlit{color:rgba(139,111,71,.3);filter:grayscale(100%)}.arcade-button.difficulty-selected{background:linear-gradient(135deg,rgba(168,213,186,.3),rgba(253,193,197,.3))!important;border-color:var(--green-primary)!important;box-shadow:0 6px 12px var(--shadow-black-dark),inset 0 0 20px rgba(168,213,186,.2)!important}@keyframes kawaii-bounce{0%,100%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.1) rotate(-5deg)}50%{transform:scale(1.2) rotate(5deg)}75%{transform:scale(1.1) rotate(-3deg)}}@keyframes sparkle{0%,100%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)}}.unlock-flashcard{background:linear-gradient(135deg,#d4edda 0%,#f8f1e9 100%);padding:3em;border-radius:24px;text-align:center;position:relative;overflow:hidden}.unlock-emoji{font-size:5em;animation:kawaii-bounce 1s ease-in-out infinite;display:inline-block;margin-bottom:.3em}.unlock-sparkles{position:absolute;font-size:2em;animation:sparkle 2s ease-in-out infinite}.unlock-sparkles:nth-child(1){top:10%;left:10%;animation-delay:0s}.unlock-sparkles:nth-child(2){top:10%;right:10%;animation-delay:.3s}.unlock-sparkles:nth-child(3){bottom:15%;left:15%;animation-delay:.6s}.unlock-sparkles:nth-child(4){bottom:15%;right:15%;animation-delay:.9s}.unlock-title{font-size:2em;font-weight:bold;color:var(--brown-primary);margin:.5em 0;text-shadow:0 2px 4px rgba(0,0,0,.1)}.unlock-message{font-size:1.3em;color:var(--gray-dark);margin-top:1em}.menu-emoji-header{display:flex;align-items:center;justify-content:center;height:25vh;min-height:90px;pointer-events:none}.menu-emoji-header span{display:inline-block;font-size:6.5rem;line-height:1;opacity:0;transform:scale(.9);transition:opacity .6s ease,transform .6s ease}.menu.active .menu-emoji-header span{opacity:1;transform:scale(1);animation:zen-breath 7s ease-in-out infinite}@keyframes zen-breath{0%{transform:scale(1)}50%{transform:scale(1.035)}100%{transform:scale(1)}}.contact-emoji-buttons{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1.5em;margin:2em 0}.emoji-button{font-size:4.5em;background:none;border:none;cursor:pointer;transition:all .3s ease;padding:.3em;border-radius:20px;position:relative;filter:drop-shadow(0 4px 8px rgba(0,0,0,.15))}.emoji-button:hover{transform:scale(1.15) rotate(-5deg);filter:drop-shadow(0 8px 16px rgba(0,0,0,.25))}.emoji-button:active{transform:scale(.95)}.emoji-button .notification-badge{position:absolute;top:0;right:0;background:#dc3545;color:#fff;font-size:.35em;font-weight:bold;border-radius:50%;width:1.2em;height:1.2em;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,.3)}img.emoji{display:inline-block;height:1em;width:1em;margin:0 .05em 0 .1em;vertical-align:-.1em}.result-emoji img.emoji{width:4rem;height:4rem;vertical-align:middle}.panda-logo img.emoji{width:1em;height:1em}.menu-emoji-header img.emoji{width:6.5rem;height:6.5rem}.emoji-button img.emoji{width:1em;height:1em}.garden-plant img.emoji{width:1em;height:1em}.unlock-emoji img.emoji{width:1em;height:1em}.progress-marker img.emoji{width:1em;height:1em}.side-emoji img.emoji{width:1em;height:1em}@keyframes plantShake{0%,100%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(-3px,0) rotate(-3deg)}50%{transform:translate(3px,0) rotate(3deg)}75%{transform:translate(-3px,0) rotate(-3deg)}}@keyframes plantPop{0%{opacity:0;transform:translate(-50%,-50%) scale(0) rotate(0deg);filter:brightness(.5)}60%{transform:translate(-50%,-50%) scale(1.3) rotate(-5deg);filter:brightness(1.5)}80%{transform:translate(-50%,-50%) scale(.95) rotate(5deg)}100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg);filter:brightness(1)}}@keyframes plantShakeCrescendo{0%{transform:translate(0,0) rotate(0deg)}10%{transform:translate(-1px,0) rotate(-1deg)}20%{transform:translate(1px,0) rotate(1deg)}30%{transform:translate(-2px,0) rotate(-2deg)}40%{transform:translate(2px,0) rotate(2deg)}50%{transform:translate(-3px,0) rotate(-3deg)}60%{transform:translate(3px,0) rotate(3deg)}70%{transform:translate(-5px,0) rotate(-5deg)}80%{transform:translate(5px,0) rotate(5deg)}90%{transform:translate(-7px,0) rotate(-7deg)}100%{transform:translate(7px,0) rotate(7deg)}}@keyframes plantPop{0%{opacity:0;transform:translate(-50%,-50%) scale(0) rotate(0deg);filter:brightness(.5)}60%{transform:translate(-50%,-50%) scale(1.3) rotate(-5deg);filter:brightness(1.5)}80%{transform:translate(-50%,-50%) scale(.95) rotate(5deg)}100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg);filter:brightness(1)}}.wobble{animation:wobbleFlashcard 500ms ease-in forwards}@keyframes wobbleFlashcard{0%{transform:translate(0) rotate(0)}20%{transform:translate(-1px) rotate(-1deg)}40%{transform:translate(1px) rotate(1deg)}60%{transform:translate(-3px) rotate(-3deg)}80%{transform:translate(4px) rotate(4deg)}100%{transform:translate(-6px) rotate(-6deg)}}.explode{transition:transform .12s ease-out,opacity .12s,filter .12s;transform:scale(2) rotate(160deg);opacity:0;filter:blur(14px) brightness(2.5)}.pop{animation:popFlashcard .45s cubic-bezier(.68,-.55,.25,1.55) forwards}@keyframes popFlashcard{0%{opacity:0;transform:scale(0) rotate(0);filter:brightness(.6)}60%{transform:scale(1.3) rotate(-6deg);filter:brightness(1.6)}100%{opacity:1;transform:scale(1) rotate(0);filter:brightness(1)}}.jelly{animation:jellyFlashcard 1.25s cubic-bezier(.25,1.6,.4,1)}@keyframes jellyFlashcard{0%{transform:scale(1,1) rotate(0)}15%{transform:scale(1.45,.6) rotate(-14deg)}35%{transform:scale(.8,1.3) rotate(10deg)}55%{transform:scale(1.25,.9) rotate(-8deg)}75%{transform:scale(.95,1.05) rotate(4deg)}100%{transform:scale(1,1) rotate(0)}}.sparkle-flashcard{position:absolute;font-size:22px;pointer-events:none;animation:sparkleFlashcard 1.3s ease-out forwards}@keyframes sparkleFlashcard{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(var(--x),var(--y)) scale(.2) rotate(360deg)}}.shine-flashcard{position:absolute;inset:-30px;background:linear-gradient(120deg,transparent 100%,rgba(255,255,255,.95) 50%,transparent 60%);animation:shineFlashcard .8s ease-out;pointer-events:none;z-index:1}@keyframes shineFlashcard{from{transform:translateX(-180%)}to{transform:translateX(180%)}}.plant-emoji{display:inline-block}.insect-card{background:linear-gradient(180deg,#f7fff5,#fff)}
-</style>
+    
+  </style>
 </head>
 <body>
     <div id="rotation-toast">
@@ -515,7 +518,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
       
       <div class="onboarding-buttons">
         <button class="arcade-button large-button" onclick="goToStep(2)" data-i18n="onboarding_create">
-          🎋 Créer un compte
+           Créer un compte
         </button>
         <button class="arcade-button secondary-button large-button" onclick="showLoginFromOnboarding()" data-i18n="onboarding_login">
           🔐 J'ai déjà un compte
@@ -692,7 +695,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 
       <div class="onboarding-buttons">
         <button class="arcade-button primary-button" onclick="loginUser()" data-i18n="login_connect">
-          🎋 Me connecter
+           Me connecter
         </button>
       
       </div>
@@ -729,12 +732,12 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
     <!-- Quelques décors fixes (tu peux en ajouter/supprimer) -->
 <!-- Décors zen en vrais émojis (tu peux en ajouter/supprimer à l'infini) -->
 <!-- 
-<div class="garden-decor" style="top:8%;left:4%;font-size:3.8em;transform:rotate(-12deg);">🎋</div>
+<div class="garden-decor" style="top:8%;left:4%;font-size:3.8em;transform:rotate(-12deg);"></div>
 <div class="garden-decor" style="bottom:12%;right:6%;font-size:4.2em;transform:rotate(20deg);">🌾</div>
 <div class="garden-decor" style="top:25%;left:2%;font-size:3em;">🌵</div>
 <div class="garden-decor" style="bottom:30%;right:2%;font-size:3.5em;transform:rotate(8deg);">🌳</div>
 <div class="garden-decor" style="top:45%;right:8%;font-size:2.8em;transform:rotate(-15deg);">🍂</div>
-<div class="garden-decor" style="bottom:5%;left:10%;font-size:4.5em;opacity:0.5;">🎋</div>
+<div class="garden-decor" style="bottom:5%;left:10%;font-size:4.5em;opacity:0.5;"></div>
 <div class="garden-decor" style="top:15%;left:12%;font-size:3.2em;transform:rotate(25deg);">🎍</div>
   </div>
 -->
@@ -975,7 +978,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
     msg_perfect: "Correct !",
     msg_validated: "Validé !",
     msg_correct: "👉 Bonne réponse :",
-    msg_level_up: "🍃LEVEL UP!🎋",
+    msg_level_up: "🍃LEVEL UP!",
     
     // Messages menu
     menu_msg_blocked: "Mode Apprendre bloqué",
@@ -1067,14 +1070,14 @@ insect_msg_05: "Observe ton jardin. Il raconte ton parcours.",
     loader_meditation: "🧘 Méditation en cours...",
     loader_tea: "🍵 Préparation du thé matcha...",
     loader_cherry: "🌸 Plantation des cerisiers...",
-    loader_garden: "🎋 Arrangement du jardin zen...",
+    loader_garden: " Arrangement du jardin zen...",
     loader_ceremony: "🎌 Préparation de la cérémonie...",
     loader_preparing: "Préparation de ton jardin zen...",
     
     // Proverbes (utilisés dans showReturningUserWelcome)
     proverb_1: "Un voyage de mille lieues commence toujours par un premier pas 🌸",
     proverb_2: "La patience est la clé de la joie 🍃",
-    proverb_3: "Chaque jour est une nouvelle chance d'apprendre 🎋",
+    proverb_3: "Chaque jour est une nouvelle chance d'apprendre ",
     proverb_4: "Même un voyage de mille kilomètres commence par un pas 👣",
     proverb_5: "Le vent ne laisse pas de trace, mais il transforme le ciel 🌬️",
     proverb_6: "Le savoir est un trésor qui suit partout celui qui le possède 💎",
@@ -1203,7 +1206,7 @@ insect_msg_05: "Observe ton jardin. Il raconte ton parcours.",
     msg_perfect: "Perfect!",
     msg_validated: "Validated! 🎉",
     msg_correct: "👉 Correct answer:",
-    msg_level_up: "🍃LEVEL UP!🎋",
+    msg_level_up: "🍃LEVEL UP!",
     
     // Menu messages
     menu_msg_blocked: "Learn Mode blocked",
@@ -1251,7 +1254,7 @@ insect_msg_05: "Observe ton jardin. Il raconte ton parcours.",
     login_pseudo_label: "Your nickname",
     login_pseudo_placeholder: "your nickname",
     login_pin_label: "Your Birthdate :",
-    login_connect: "🎋 Connect",
+    login_connect: " Connect",
     
     // My Garden
     stats_title: "🐼 My Garden",
@@ -1294,14 +1297,14 @@ insect_msg_05: "Look at your garden. It tells the story of your journey.",
     loader_meditation: "🧘 Meditating...",
     loader_tea: "🍵 Preparing matcha tea...",
     loader_cherry: "🌸 Planting cherry trees...",
-    loader_garden: "🎋 Arranging zen garden...",
+    loader_garden: " Arranging zen garden...",
     loader_ceremony: "🎌 Preparing ceremony...",
     loader_preparing: "Preparing your zen garden...",
     
     // Proverbs
     proverb_1: "A journey of a thousand miles begins with a single step 🌸",
     proverb_2: "Patience is the key to joy 🍃",
-    proverb_3: "Every day is a new chance to learn 🎋",
+    proverb_3: "Every day is a new chance to learn ",
     proverb_4: "Even a journey of a thousand kilometers begins with one step 👣",
     proverb_5: "The wind leaves no trace, but it transforms the sky 🌬️",
     proverb_6: "Knowledge is a treasure that follows its owner everywhere 💎",
@@ -1430,7 +1433,7 @@ insect_msg_05: "Look at your garden. It tells the story of your journey.",
     msg_perfect: "¡Perfecto!",
     msg_validated: "¡Validado! 🎉",
     msg_correct: "👉 Respuesta correcta:",
-    msg_level_up: "🍃¡SUBIDA DE NIVEL!🎋",
+    msg_level_up: "🍃¡SUBIDA DE NIVEL!",
     
     // Mensajes del menú
     menu_msg_blocked: "Modo Aprender bloqueado",
@@ -1478,7 +1481,7 @@ insect_msg_05: "Look at your garden. It tells the story of your journey.",
     login_pseudo_label: "Tu apodo",
     login_pseudo_placeholder: "tu apodo",
     login_pin_label: "Tu fecha de nacimiento :",
-    login_connect: "🎋 Conectarme",
+    login_connect: " Conectarme",
     
     // Mi Jardin
     stats_title: "🐼 Mi Jardin",
@@ -1520,14 +1523,14 @@ insect_msg_05: "Observa tu jardín. Cuenta la historia de tu recorrido.",
     loader_meditation: "🧘 Meditando...",
     loader_tea: "🍵 Preparando té matcha...",
     loader_cherry: "🌸 Plantando cerezos...",
-    loader_garden: "🎋 Arreglando jardín zen...",
+    loader_garden: " Arreglando jardín zen...",
     loader_ceremony: "🎌 Preparando ceremonia...",
     loader_preparing: "Preparando tu jardín zen...",
 
     // Proverbios
 proverb_1: "Un viaje de mil millas comienza con un solo paso 🌸",
 proverb_2: "La paciencia es la clave de la alegría 🍃",
-proverb_3: "Cada día es una nueva oportunidad para aprender 🎋",
+proverb_3: "Cada día es una nueva oportunidad para aprender ",
 proverb_4: "Incluso un viaje de mil kilómetros comienza con un paso 👣",
 proverb_5: "El viento no deja huella, pero transforma el cielo 🌬️",
 proverb_6: "El conocimiento es un tesoro que sigue a su dueño a todas partes 💎",
@@ -2085,7 +2088,7 @@ function goToStep(stepNumber) {
     }, 400);
   }, 400);
   
-  console.log(`🎋 Navigation vers étape ${stepNumber}`);
+  console.log(` Navigation vers étape ${stepNumber}`);
 }
 function validatePseudoAndContinue() {
   const pseudoInput = document.getElementById('pseudo-input');
@@ -2709,7 +2712,6 @@ async function loadUserProgress() {
     document.getElementById("levelDisplay").innerText = `${t('quiz_level')} 1`;
     updateAccountDisplay();
   }
-  updateSyncIndicator();
 }
 
 function generateRevisionRomajiTable(hiraganaList) {
@@ -2891,105 +2893,10 @@ function smartSegmentRomaji(romaji) {
 // 🌐 SECTION 4 : API & COMMUNICATION SERVEUR
 // ============================================================================
 
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz069ijAs5PDdFefb_Yvj1tZ9xcab52wO4EfnWEyivyN2K8rGEFhIYPGY_tEXG0WIjlRg/exec';
-                     
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw1NjQaPYNwSnl8W0CjVrUPnTlMtf34XhQj4E-tLl__034Cb8by-GsRAgChfQpy129DtQ/exec';
+
 let pendingUpdates = [];
 let isProcessing = false;
-// ===============================================
-// POLLING DE SYNCHRONISATION (robuste même en mode avion)
-// ===============================================
-let syncPollingInterval = null;
-
-function startSyncPolling() {
-  if (syncPollingInterval) return; // déjà actif
-
-  console.log('🔄 Démarrage du polling de synchronisation (toutes les 8s)');
-
-  syncPollingInterval = setInterval(() => {
-    // Conditions pour lancer le traitement
-    if (
-      navigator.onLine &&                     // on a une connexion
-      pendingUpdates.length > 0 &&            // il y a des updates en attente
-      !isProcessing &&                        // la queue n'est pas déjà en train de tourner
-      !SyncMonitor.syncCheckInProgress         // pas en plein sync check
-    ) {
-      console.log(`🌐 Connexion détectée + ${pendingUpdates.length} updates en attente → lancement sync`);
-      processUpdates();
-    }
-
-    // Optionnel : même si pas d'updates pending, on peut forcer un sync check périodique
-    // si on veut être ultra-parano (toutes les 2-3 minutes par exemple)
-    // Mais pas nécessaire si tu fais déjà des checks après level-up
-  }, 8000); // toutes les 8 secondes → très léger, pas de batterie drain
-}
-
-function stopSyncPolling() {
-  if (syncPollingInterval) {
-    clearInterval(syncPollingInterval);
-    syncPollingInterval = null;
-    console.log('⏹️ Arrêt du polling de synchronisation');
-  }
-}
-
-// Démarrer le polling dès que l'app est chargée
-startSyncPolling();
-
-// Optionnel : arrêter quand l'utilisateur se déconnecte volontairement ou ferme (mais pas critique)
-// window.addEventListener('beforeunload', stopSyncPolling);
-
-function updateSyncIndicator() {
-  let indicator = document.getElementById('syncIndicator');
-
-  // Création si n'existe pas encore
-  if (!indicator) {
-    indicator = document.createElement('div');
-    indicator.id = 'syncIndicator';
-    indicator.style.position = 'fixed';
-    indicator.style.bottom = '20px';
-    indicator.style.right = '20px';
-    indicator.style.background = 'rgba(255, 152, 0, 0.95)'; // orange avec légère transparence
-    indicator.style.color = 'white';
-    indicator.style.padding = '10px 16px';
-    indicator.style.borderRadius = '30px';
-    indicator.style.fontSize = '14px';
-    indicator.style.fontWeight = 'bold';
-    indicator.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
-    indicator.style.zIndex = '999999';           // très très haut
-    indicator.style.transition = 'opacity 0.3s ease';
-    indicator.style.pointerEvents = 'none';       // ne bloque pas les clics dessous
-    indicator.style.maxWidth = '80vw';
-    indicator.style.textAlign = 'center';
-    indicator.style.fontFamily = 'system-ui, sans-serif';
-
-    document.body.appendChild(indicator);
-  }
-
-  // Calcul du texte
-  let message = '';
-  if (pendingUpdates.length > 0) {
-    message = `Synchronisation... (${pendingUpdates.length} en attente)`;
-  } else if (SyncMonitor.state !== 'SYNCED') {
-    message = 'Synchronisation en cours...';
-  }
-
-  // Affichage ou masquage
-  if (message) {
-    indicator.textContent = message;
-    indicator.style.display = 'block';
-    indicator.style.opacity = '1';
-  } else {
-    indicator.style.opacity = '0';
-    // On le cache complètement après la transition
-    setTimeout(() => {
-      if (indicator.style.opacity === '0') {
-        indicator.style.display = 'none';
-      }
-    }, 300);
-  }
-}
-
-// Appeler cette fonction à la fin de processUpdates(), et dans SyncMonitor.evaluate()
-  
 // ===============================
 // CLIENT TRUTH (source client)
 // ===============================
@@ -3033,7 +2940,6 @@ const SyncMonitor = {
       this.state = newState;
       this.log('state transition');
     }
-    updateSyncIndicator();  // ← ici
   }
 };
 
@@ -3247,46 +3153,6 @@ SyncMonitor.log('client snapshot updated');
 SyncMonitor.evaluate();
 
 }
-function rebuildHiraganaListFromClientTruth() {
-  if (!clientTruth || !clientTruth.stats_json || !Array.isArray(HiraganaList)) {
-    console.warn('[REBUILD] clientTruth ou HiraganaList invalide');
-    return;
-  }
-
-  HiraganaList.forEach(item => {
-    const id = item.ID.toString();
-    const stats = clientTruth.stats_json[id] || {
-      validation: 0,
-      tentatives: 0,
-      reussites: 0
-    };
-
-    item.Validation = stats.validation;
-    item.Tentatives = stats.tentatives;
-    item['Réussites'] = stats.reussites;
-
-    // Mise à jour du cache de validation
-    validationCache[parseInt(id)] = stats.validation;
-
-    // Mise à jour statsCache (pourcentage par item)
-    const tentatives = stats.tentatives;
-    const reussites = stats.reussites;
-    const pourcentage = tentatives > 0 ? Math.round((reussites / tentatives) * 100) : 0;
-
-    statsCache.items[parseInt(id)] = {
-      tentatives,
-      reussites,
-      pourcentage
-    };
-  });
-
-  // Recalcul du pourcentage global
-  const totalTentatives = Object.values(statsCache.items).reduce((sum, i) => sum + i.tentatives, 0);
-  const totalReussites = Object.values(statsCache.items).reduce((sum, i) => sum + i.reussites, 0);
-  statsCache.globalPourcentage = totalTentatives > 0 ? Math.round((totalReussites / totalTentatives) * 100) : 0;
-
-  console.log('[REBUILD] HiraganaList et caches mis à jour depuis clientTruth');
-}  
 function normalizeStats(stats) {
   const normalized = {};
 
@@ -3589,16 +3455,31 @@ async function processUpdates() {
         SyncMonitor.evaluate();
 
         pendingUpdates.shift();
-        try {
-          localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
-        } catch (e) {}
+        localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
 
-        // Mise à jour du hash client (confirmation que le serveur a bien reçu cet update)
+        // ✅ AJOUT : Mise à jour du hash client après confirmation serveur
         SyncMonitor.lastClientSnapshotHash = await hashJSON(
           normalizeStats(clientTruth.stats_json)
         );
 
-        // Gestion des animations level-up (basée sur les données locales, pas sur la réponse serveur)
+        // Ton code de mise à jour HiraganaList inchangé...
+        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == update.id);
+        if (hiraganaIndex !== -1) {
+          HiraganaList[hiraganaIndex].Validation = result.newValidation;
+          HiraganaList[hiraganaIndex].Tentatives = (HiraganaList[hiraganaIndex].Tentatives || 0) + 1;
+          HiraganaList[hiraganaIndex]['Réussites'] = (HiraganaList[hiraganaIndex]['Réussites'] || 0) + update.scorePoints;
+          validationCache[update.id] = result.newValidation;
+
+          const itemStats = statsCache.items[update.id] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+          itemStats.tentatives += 1;
+          itemStats.reussites += update.scorePoints;
+          itemStats.pourcentage = itemStats.tentatives > 0
+            ? Math.round((itemStats.reussites / itemStats.tentatives) * 100)
+            : 0;
+          statsCache.items[update.id] = itemStats;
+        }
+
+        // Level up code inchangé...
         if (update.hasLeveledUp && update.targetLevel > update.previousLevel) {
           if (update.targetLevel > niveauActif) {
             triggerLevelUpAnimation(document.body);
@@ -3617,39 +3498,26 @@ async function processUpdates() {
         SyncMonitor.failedUpdates++;
         SyncMonitor.log('server update failed');
         SyncMonitor.evaluate();
-        console.error(`Erreur API updateStats: ${result.error}`);
+        console.error(`Erreur API: ${result.error}`);
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
       
     } catch (error) {
-      console.error(`Erreur réseau lors de l'update: ${error.message}`);
+      console.error(`Erreur réseau: ${error.message}`);
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
   
   isProcessing = false;
-
-  // Une fois toute la queue traitée : on restaure l'état complet depuis clientTruth
-  // (évite les rollbacks temporaires dus aux réponses serveur "laggées")
-  rebuildHiraganaListFromClientTruth();
-
-  // Recalcul du niveau actif et rafraîchissement complet de l'UI
-  niveauActif = determineNiveauActif(HiraganaList);
-  document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
-  updateLevelProgress(HiraganaList, niveauActif);
-  renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-  renderHiraganaCards(HiraganaList, niveauActif);
-  updateMenuButtonStates();
-  updateAccountDisplay();
-  updateSyncIndicator();  // ← ici
-  // Si un level-up avait déclenché une demande de sync check, on l'exécute maintenant
+  
+  // ✅ CRUCIAL : Trigger le sync check APRÈS que toute la queue soit vidée
   if (SyncMonitor.syncCheckRequested && navigator.onLine) {
     SyncMonitor.syncCheckRequested = false;
-    console.log('[PROCESS UPDATES] Queue vide → lancement sync check différé');
-    performSyncCheck('post-queue');
+    console.log('[PROCESS UPDATES] Queue vide, lancement du sync check différé');
+    performSyncCheck('post-level-up');
   }
-
 }
+
 
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
@@ -7164,7 +7032,6 @@ renderProgressBar(niveauActif, totalLevels);
     document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
   }
-
 }
 
 async function loadRemainingDataInBackground(profile) {
@@ -7533,21 +7400,4 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
