@@ -4315,27 +4315,59 @@ function isGroupeDebloque(groupeId) {
 }
 
 function isApprentissageBloque() {
-  const groupeActuel = getNiveauGroupe(niveauActif);
-  
-  if (niveauActif <= 5) {
-    return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
+  // === 1. Sécurité de base : données pas prêtes ? On ne bloque PAS ===
+  if (!HiraganaList || HiraganaList.length === 0) {
+    console.log('🔒 isApprentissageBloque : HiraganaList vide → on ne bloque pas (données pas chargées)');
+    return false;
   }
-  
-  // Niveaux > 5 : blocage basé sur déficit
+
+  if (!niveauActif || niveauActif < 1) {
+    console.log('🔒 isApprentissageBloque : niveauActif invalide → on ne bloque pas');
+    return false;
+  }
+
+  // Si on est encore en loading ou background, on refuse de bloquer
+  if (!gameDataLoaded) {
+    console.log('🔒 isApprentissageBloque : jeu pas encore fully loaded → on ne bloque pas');
+    return false;
+  }
+
+  // === 2. Logique pour les premiers niveaux (1 à 5) ===
+  const groupeActuel = getNiveauGroupe(niveauActif);
+
+  if (niveauActif <= 5) {
+    const blocked = groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
+    console.log(`🔒 isApprentissageBloque (niveau ≤5) : groupe ${groupeActuel} → bloqué = ${blocked}`);
+    return blocked;
+  }
+
+  // === 3. Logique pour niveaux > 5 : basé sur déficit ===
   const deficit = calculerDeficitValidation();
+
+  // Si calculerDeficitValidation n'a pas pu calculer proprement (ex. HiraganaList incomplet), on refuse de bloquer
+  if (deficit === null || deficit === undefined || deficit < 0) {
+    console.log('🔒 isApprentissageBloque : déficit invalide → on ne bloque pas');
+    return false;
+  }
+
   const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
-  
+
   if (wasBlocked) {
     const shouldUnblock = deficit === 0;
-    if (shouldUnblock) localStorage.setItem('apprentissageBloque', 'false');
+    if (shouldUnblock) {
+      localStorage.setItem('apprentissageBloque', 'false');
+      console.log('🔓 Apprentissage débloqué (déficit = 0)');
+    }
     return !shouldUnblock;
   } else {
     const shouldBlock = deficit > 2;
-    if (shouldBlock) localStorage.setItem('apprentissageBloque', 'true');
+    if (shouldBlock) {
+      localStorage.setItem('apprentissageBloque', 'true');
+      console.log(`🔒 Apprentissage bloqué (déficit = ${deficit} > 2)`);
+    }
     return shouldBlock;
   }
 }
-
 function calculerDeficitValidation() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   if (groupeActuel < 3) return 0;
@@ -7749,6 +7781,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
