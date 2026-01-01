@@ -3563,9 +3563,9 @@ async function queueUpdateStats(params) {
     localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
   } catch(e) {}
 
-//  if (!isProcessing) {
-//    processUpdates();
-//  }
+ if (!isProcessing) {
+   processUpdates();
+ }
 }
 let globalInitialPendingCount = 0; // ✅ NOUVEAU : au niveau global avec pendingUpdates
 
@@ -7580,6 +7580,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
