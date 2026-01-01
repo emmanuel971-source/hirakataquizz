@@ -7207,44 +7207,50 @@ async function initGame() {
       updateLoadingProgress(60, "Prêt à jouer !");
       
 
- } else {
-  // 🔁 RETURNING USER : Niveaux 1 à (niveau+2)
-  const maxLevel = Math.min(profile.niveau + 2, profile.totalLevels);
-  
-  updateLoadingProgress(25, `Chargement niveaux 1-${maxLevel}...`);
-  const chunkResult = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: maxLevel });
-  
-  if (chunkResult.success) {
-    HiraganaList = chunkResult.data.map(item => ({
-      ...item,
-      Validation: 0,
-      Tentatives: 0,
-      Réussites: 0
-    }));
-    console.log(`📊 Chunk returning user: ${chunkResult.count} items chargés (niveaux ${chunkResult.startLevel}-${chunkResult.endLevel})`);
-  }
-  
-  // ✅ CORRECTION : Initialiser userToken et currentUser AVANT loadUserProgress
-  updateLoadingProgress(40, "Récupération de votre profil...");
-  userToken = token;
-  const userResult = await callAPI('getUserByToken', { token: token });
-  if (userResult.success) {
-    currentUser = userResult.user;
-    console.log('👤 Utilisateur récupéré:', currentUser.pseudo);
-  }
-  
-  // ✅ MAINTENANT loadUserProgress peut merger les stats
+    } else {
+      // 🔁 RETURNING USER
+
+      // ✅ Initialiser HiraganaList vide (on chargera après sync)
+      HiraganaList = [];
+
+      // ✅ Récupération profil et user AVANT sync
+      updateLoadingProgress(40, "Récupération de votre profil...");
+      userToken = token;
+      const userResult = await callAPI('getUserByToken', { token: token });
+      if (userResult.success) {
+        currentUser = userResult.user;
+        console.log('👤 Utilisateur récupéré:', currentUser.pseudo);
+      }
+
+      // ✅ Sync si besoin (met clientTruth à jour)
       updateLoadingProgress(50, "Vérification de vos progrès...");
+      await ensureLatestProgress();
 
-      await ensureLatestProgress();        // ← comparaison + sync immédiate si besoin
+      // 🆕 Calcul maxLevel basé sur clientTruth (synced/local) au lieu de profile.niveau obsolète
+      const syncedNiveau = clientTruth?.niveau_atteint || profile.niveau || 1; // Fallback safe
+      const maxLevel = Math.min(syncedNiveau + 2, profile.totalLevels || 46);
+      console.log(`🆕 MaxLevel calculé post-sync: ${maxLevel} (basé sur syncedNiveau ${syncedNiveau})`);
 
+      // ✅ Charger chunk AVEC le bon maxLevel
+      updateLoadingProgress(25, `Chargement niveaux 1-${maxLevel}...`); // Remonter le % si besoin
+      const chunkResult = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: maxLevel });
+
+      if (chunkResult.success) {
+        HiraganaList = chunkResult.data.map(item => ({
+          ...item,
+          Validation: 0,
+          Tentatives: 0,
+          Réussites: 0
+        }));
+        console.log(`📊 Chunk returning user: ${chunkResult.count} items chargés (niveaux ${chunkResult.startLevel}-${chunkResult.endLevel})`);
+      }
+
+      // ✅ Maintenant apply (merge + calculs + UI sur chunk complet)
       updateLoadingProgress(55, "Application de vos statistiques...");
-
-      await applyUserProgress();           // ← merge avec données garanties à jour
+      await applyUserProgress();
 
       updateLoadingProgress(60, "Profil chargé !");
-}
-    
+    }
     // ==========================================
     // PHASE 3 : INTERFACE JOUABLE (60-80%)
     // ==========================================
@@ -7675,6 +7681,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
