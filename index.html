@@ -7197,7 +7197,7 @@ renderProgressBar(niveauActif, totalLevels);
     document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
   }
-startReconnectionDetector();
+startSyncPolling();
 }
 
 async function loadRemainingDataInBackground(profile) {
@@ -7566,6 +7566,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
