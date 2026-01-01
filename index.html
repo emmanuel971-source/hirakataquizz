@@ -3504,25 +3504,39 @@ async function refreshUserData() {
 // --- Fonctions API ---
 async function callAPI(action, data = null) {
   try {
-    let params = new URLSearchParams({ action });
+    const baseUrl = WEB_APP_URL;
+    let url = baseUrl;
+    let options = {
+      method: 'GET',
+      redirect: 'follow'
+    };
 
+    const params = new URLSearchParams({ action });
     if (data) {
       Object.entries(data).forEach(([key, value]) => {
         params.append(key, value);
       });
     }
 
-    const url = `${WEB_APP_URL}?${params.toString()}`;
-    console.log(`🔍 Appel API: ${action}`);
+    if (data && (action === 'overwriteUserStats' || action === 'updateStats' || params.toString().length > 1500)) {
+      // Passe en POST si données ou URL trop longue
+      options.method = 'POST';
+      options.body = params;
+      options.headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    } else {
+      // GET classique
+      url += `?${params.toString()}`;
+    }
 
-    const response = await fetch(url);
+    console.log(`🔍 Appel API (${options.method}): ${action}`);
+    const response = await fetch(url, options);
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     const result = await response.json();
-//    console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
     return result;
-    
+
   } catch (error) {
     logError(`Erreur API (${action}): ${error.message}`);
     console.error(`⚠️ Détails erreur:`, error);
@@ -7533,6 +7547,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
