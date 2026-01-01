@@ -3291,6 +3291,74 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
 
   // La fonction se termine → await initClientTruth() se résout ici
 }
+ function updateClientTruthOnAnswer(params) {
+  console.log('[CLIENT TRUTH INPUT]', params);
+
+  if (!params || params.id == null) {
+    console.warn('[CLIENT TRUTH] invalid params', params);
+    return;
+  }
+
+  const id = params.id.toString();
+  const scorePoints = parseFloat(params.scorePoints || 0);
+  const isRevisionMode = params.isRevisionMode === true;
+
+  // Initialiser l’item si nécessaire
+  if (!clientTruth.stats_json[id]) {
+    clientTruth.stats_json[id] = {
+      tentatives: 0,
+      reussites: 0,
+      validation: 0
+    };
+  }
+
+  const item = clientTruth.stats_json[id];
+
+  // Mise à jour stats de base
+  item.tentatives += 1;
+  item.reussites += scorePoints;
+
+  // Calcul validation (copie STRICTE de la logique serveur)
+  let newValidation;
+
+  if (isRevisionMode) {
+    if (scorePoints === 1) {
+      newValidation = item.validation + 1;
+    } else {
+      newValidation = Math.max(5, item.validation - 2);
+    }
+  } else {
+    let validationChange =
+      scorePoints === 1 ? 1 :
+      scorePoints === 0.5 ? -1 : -2;
+
+    newValidation = Math.max(0, item.validation + validationChange);
+  }
+
+  item.validation = newValidation;
+
+  // 🔁 Recalcul du niveau atteint (copie logique serveur)
+  clientTruth.niveau_atteint = calculateClientNiveauAtteint(clientTruth.stats_json);
+
+  // Sauvegarde persistante
+  try {
+    localStorage.setItem(getClientTruthStorageKey(), JSON.stringify(clientTruth));
+  } catch (e) {}
+
+  console.log('[CLIENT TRUTH UPDATED]', {
+    id,
+    item,
+    niveau_atteint: clientTruth.niveau_atteint
+  });
+  console.log(
+  '[CLIENT TRUTH FULL SNAPSHOT]',
+  Object.keys(clientTruth.stats_json).length,
+  clientTruth.stats_json
+);
+
+}
+
+  
 function calculateClientNiveauAtteint(statsJson) {
   const maxLevel = getMaxLevel(HiraganaList);
 
@@ -7681,6 +7749,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
