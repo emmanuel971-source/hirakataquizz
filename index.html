@@ -4369,24 +4369,47 @@ function isApprentissageBloque() {
   }
 }
 function calculerDeficitValidation() {
-  const groupeActuel = getNiveauGroupe(niveauActif);
-  if (groupeActuel < 3) return 0;
-  
-  let deficit = 0;
-  for (let g = 1; g < groupeActuel; g++) {
-    const niveaux = GROUPES[g]?.niveaux || [];
-    for (const niveau of niveaux) {
-      getItemsByLevel(HiraganaList, niveau).forEach(item => {
-        const val = parseInt(item.Validation || 0, 10);
-        if (val < SEUIL_VALIDATION) {
-          deficit += SEUIL_VALIDATION - val;
-        }
-      });
-    }
+  // === Sécurité principale : données pas encore prêtes ===
+  if (!HiraganaList || HiraganaList.length === 0) {
+    console.log('📊 calculerDeficitValidation : HiraganaList vide → déficit = 0');
+    return 0;
   }
+
+  if (!gameDataLoaded) {
+    console.log('📊 calculerDeficitValidation : jeu pas fully loaded → déficit = 0');
+    return 0;
+  }
+
+  // Optionnel mais recommandé : si le background loading est encore en cours
+  if (backgroundLoadingInProgress) {
+    console.log('📊 calculerDeficitValidation : chargement background en cours → déficit = 0');
+    return 0;
+  }
+
+  // === Maintenant on peut calculer sérieusement ===
+  let deficit = 0;
+
+  HiraganaList.forEach(item => {
+    const validation = parseInt(item.Validation || 0);
+    const tentatives = parseInt(item.Tentatives || 0);
+
+    // Ta logique actuelle (adapte si besoin)
+    // Exemple classique : chaque item non maîtrisé contribue au déficit
+    if (validation < 5) {
+      // Tu peux pondérer selon le niveau de validation, ex. :
+      deficit += (5 - validation);
+
+      // Ou simplement +1 par item non validé :
+      // deficit += 1;
+
+      // Ou ne compter que les items déjà vus (plus indulgent) :
+      // if (tentatives > 0) deficit += (5 - validation);
+    }
+  });
+
+  console.log(`📊 Déficit validation calculé : ${deficit} points (sur ${HiraganaList.length} items)`);
   return deficit;
 }
-
 function calculerDeficitMaximum() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   if (groupeActuel < 3) return 0;
@@ -7781,6 +7804,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
