@@ -3080,6 +3080,7 @@ const SyncMonitor = {
 };
 
 async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
+  let needsForceSync = false;
   console.log('[INIT CLIENT TRUTH] start');
 
   const storageKey = getClientTruthStorageKey();
@@ -3126,17 +3127,11 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
     });
     
     if (localTotal > serverTotal) {
-      console.log('[INIT CLIENT TRUTH] ✅ LOCAL plus avancé → SYNC CLIENT→SERVEUR');
-      clientTruth = localTruth;
-      chosenSource = 'LOCAL';
-      
-      // 🔄 Déclencher une sync forcée pour mettre à jour le serveur
-      setTimeout(() => {
-        console.log('[INIT] Sync différée client→serveur (local plus avancé)...');
-        forceSyncClientToServer();
-      }, 1000);
-      
-    } else if (serverTotal > localTotal) {
+  console.log('[INIT CLIENT TRUTH] ✅ LOCAL plus avancé → SYNC CLIENT→SERVEUR');
+  clientTruth = localTruth;
+  chosenSource = 'LOCAL';
+  needsForceSync = true;
+} else if (serverTotal > localTotal) {
       console.log('[INIT CLIENT TRUTH] ✅ SERVEUR plus avancé → Utilisation serveur');
       clientTruth = serverTruth;
       
@@ -3159,6 +3154,10 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
     items: Object.keys(clientTruth.stats_json).length,
     niveau_atteint: clientTruth.niveau_atteint
   });
+  return {
+  source: chosenSource,
+  needsForceSync
+};
 }
   function updateClientTruthOnAnswer(params) {
   console.log('[CLIENT TRUTH INPUT]', params);
@@ -3481,65 +3480,66 @@ async function forceSyncClientToServer() {
     return { success: false, error: 'No user token' };
   }
 
-  // ✅ LOCK déjà actif normalement (appelé depuis performSyncCheck)
-  // Mais on s'assure qu'il l'est
+  // ✅ Activer le LOCK si nécessaire
   if (!SyncMonitor.syncCheckInProgress) {
     SyncMonitor.syncCheckInProgress = true;
     console.log('[FORCE SYNC] LOCK activé');
   }
 
   try {
-    // ✅ Nettoyer les stats avant envoi (enlever items jamais joués)
+    // ✅ Nettoyer les stats avant envoi
     const cleanedStats = normalizeStats(clientTruth.stats_json);
-    
+
     console.log('[FORCE SYNC] Envoi au serveur:', {
       itemsCount: Object.keys(cleanedStats).length,
       niveau_atteint: clientTruth.niveau_atteint,
       preview: cleanedStats
     });
 
-    // ✅ Appel API pour écraser
+    // ✅ Appel API pour écraser les stats serveur
     const result = await callAPI('overwriteUserStats', {
       token: userToken,
       stats_json: JSON.stringify(cleanedStats)
     });
 
-    if (result.success) {
-      console.log(
-        '%c[FORCE SYNC] ✅ Succès',
-        'color:#0a0;font-weight:bold',
-        result
-      );
-
-      // ✅ Mettre à jour les hashes pour marquer la sync
-      const newHash = await hashJSON(cleanedStats);
-      SyncMonitor.lastClientSnapshotHash = newHash;
-      SyncMonitor.lastServerSnapshotHash = newHash;
-      
-      // ✅ Retour à l'état SYNCED
-      SyncMonitor.state = 'SYNCED';
-      SyncMonitor.log('force sync completed');
-      
-      // ✅ Optionnel : rebuild HiraganaList depuis le serveur
-      // pour s'assurer que l'affichage est à jour
-      //await refreshUserData();
-      //return { success: true, result };
-      
-    } else {
+    if (!result.success) {
       console.error('[FORCE SYNC] Échec:', result.error);
       return { success: false, error: result.error };
     }
 
+    console.log(
+      '%c[FORCE SYNC] ✅ Succès',
+      'color:#0a0;font-weight:bold',
+      result
+    );
+
+    // ✅ Mettre à jour les hashes (serveur = client)
+    const newHash = await hashJSON(cleanedStats);
+    SyncMonitor.lastClientSnapshotHash = newHash;
+    SyncMonitor.lastServerSnapshotHash = newHash;
+
+    // ✅ Marquer l’état comme SYNCED
+    SyncMonitor.state = 'SYNCED';
+    SyncMonitor.log('force sync completed');
+
+    // ✅ POINT DE SYNCHRONISATION FINAL
+    return {
+      success: true,
+      niveau_atteint: clientTruth.niveau_atteint,
+      itemsCount: Object.keys(cleanedStats).length
+    };
+
   } catch (error) {
     console.error('[FORCE SYNC] Exception:', error);
     return { success: false, error: error.message };
-    
+
   } finally {
-    // ✅ UNLOCK
+    // ✅ Libération du LOCK
     SyncMonitor.syncCheckInProgress = false;
     console.log('[FORCE SYNC] LOCK libéré');
   }
 }
+
 
 // Fonction helper pour recharger les données depuis le serveur
 async function refreshUserData() {
@@ -7170,7 +7170,15 @@ async function initGame() {
   
   // ✅ MAINTENANT loadUserProgress peut merger les stats
   updateLoadingProgress(50, "Chargement de vos statistiques...");
-  await loadUserProgress(); // Merge stats_json dans HiraganaList
+ const truthResult = await initClientTruth(serverStatsJson, serverNiveauAtteint);
+
+if (truthResult.needsForceSync) {
+  updateLoadingProgress(45, "Synchronisation de vos données...");
+  await forceSyncClientToServer();
+}
+
+await loadUserProgress();
+
   
   updateLoadingProgress(60, "Profil chargé !");
 }
