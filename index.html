@@ -3522,9 +3522,8 @@ async function forceSyncClientToServer() {
       
       // ✅ Optionnel : rebuild HiraganaList depuis le serveur
       // pour s'assurer que l'affichage est à jour
-      await refreshUserData();
-      
-      return { success: true, result };
+      //await refreshUserData();
+      //return { success: true, result };
       
     } else {
       console.error('[FORCE SYNC] Échec:', result.error);
@@ -7606,6 +7605,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
