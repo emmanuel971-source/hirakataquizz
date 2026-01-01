@@ -3534,6 +3534,7 @@ async function callAPI(action, data = null) {
     return { error: error.message };
   }
 }
+let globalInitialPendingCount = 0; // ✅ NOUVEAU : au niveau global avec pendingUpdates
 
 async function queueUpdateStats(params) {
   
@@ -3567,7 +3568,6 @@ async function queueUpdateStats(params) {
    processUpdates();
  }
 }
-let globalInitialPendingCount = 0; // ✅ NOUVEAU : au niveau global avec pendingUpdates
 
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
@@ -3623,8 +3623,8 @@ async function processUpdates() {
         console.log(`[DEBUG CHECK] Vérification: !${reconnectionDetected} && ${initialPendingCount} > 5 && ${consecutiveSuccesses} >= 3 = ${!reconnectionDetected && initialPendingCount > 5 && consecutiveSuccesses >= 3}`);
         
         if (!reconnectionDetected && 
-            initialPendingCount > 5 && 
-            consecutiveSuccesses >= 3) {
+            initialPendingCount > 0 && 
+            consecutiveSuccesses >= 1) {
           
           reconnectionDetected = true;
           
@@ -7580,6 +7580,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
