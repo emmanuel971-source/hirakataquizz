@@ -2896,6 +2896,53 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwlzkLGtojwVylpPgHt
 let pendingUpdates = [];
 let isProcessing = false;
 // ===============================================
+// SYNC CHECK TRIGGER - basé sur la descente du compteur
+// ===============================================
+const SyncCheckTrigger = {
+  armed: false,           // Demande armée ?
+  threshold: 5,           // Seuil d'armement
+  lastPendingCount: 0,    // Dernier nombre d'updates pending
+  
+  evaluate() {
+    const current = pendingUpdates.length;
+    
+    // 🎯 ARMEMENT : on dépasse le seuil
+    if (!this.armed && current >= this.threshold) {
+      this.armed = true;
+      console.log(
+        `%c[SYNC TRIGGER] ⚡ ARMÉ (${current} updates en attente)`,
+        'color:#f80;font-weight:bold'
+      );
+    }
+    
+    // 🔥 DÉCLENCHEMENT : armé + compteur qui descend + en ligne
+    if (this.armed && current < this.lastPendingCount && navigator.onLine) {
+      console.log(
+        `%c[SYNC TRIGGER] 🚀 DÉCLENCHÉ (${this.lastPendingCount} → ${current})`,
+        'color:#0c0;font-weight:bold'
+      );
+      
+      this.armed = false; // Désarmer
+      
+      // Lancer le sync check après un petit délai (laisser la queue finir)
+      setTimeout(() => {
+        if (pendingUpdates.length === 0) {
+          performSyncCheck('auto-trigger-on-descent');
+        }
+      }, 500);
+    }
+    
+    // 🔄 Désarmement automatique si la queue est vide
+    if (this.armed && current === 0) {
+      console.log('[SYNC TRIGGER] ⏸️  Désarmé (queue vide)');
+      this.armed = false;
+    }
+    
+    this.lastPendingCount = current;
+  }
+};
+  
+// ===============================================
 // POLLING DE SYNCHRONISATION (robuste même en mode avion)
 // ===============================================
 let syncPollingInterval = null;
@@ -3608,23 +3655,26 @@ async function processUpdates() {
           localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
         } catch (e) {}
 
-        // Mise à jour du hash client (confirmation que le serveur a bien reçu cet update)
+        // ✅ NOUVEAU : Évaluer le trigger après chaque update réussi
+        SyncCheckTrigger.evaluate();
+
+        // Mise à jour du hash client
         SyncMonitor.lastClientSnapshotHash = await hashJSON(
           normalizeStats(clientTruth.stats_json)
         );
 
-        // Gestion des animations level-up (basée sur les données locales, pas sur la réponse serveur)
+        // Gestion des animations level-up
         if (update.hasLeveledUp && update.targetLevel > update.previousLevel) {
           if (update.targetLevel > niveauActif) {
             triggerLevelUpAnimation(document.body);
           }
           if (update.targetLevel === 4 && !hasShownLevel4Menu) {
             hasShownLevel4Menu = true;
-            setTimeout(() => showUnlockFlashcard(t('unlock_revision_title'), '📓', t('unlock_revision_message')), 1);
+            setTimeout(() => showUnlockFlashcard(t('unlock_revision_title'), '🔓', t('unlock_revision_message')), 1);
           }
           if (update.targetLevel === 5 && !hasShownLevel5Garden) {
             hasShownLevel5Garden = true;
-            setTimeout(() => showUnlockFlashcard(t('unlock_garden_title'), '🎍', t('unlock_garden_message')), 1);
+            setTimeout(() => showUnlockFlashcard(t('unlock_garden_title'), '🎁', t('unlock_garden_message')), 1);
           }
         }
         
@@ -3644,11 +3694,8 @@ async function processUpdates() {
   
   isProcessing = false;
 
-  // Une fois toute la queue traitée : on restaure l'état complet depuis clientTruth
-  // (évite les rollbacks temporaires dus aux réponses serveur "laggées")
+  // Rebuild complet depuis clientTruth
   rebuildHiraganaListFromClientTruth();
-
-  // Recalcul du niveau actif et rafraîchissement complet de l'UI
   niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
@@ -3656,14 +3703,7 @@ async function processUpdates() {
   renderHiraganaCards(HiraganaList, niveauActif);
   updateMenuButtonStates();
   updateAccountDisplay();
-  updateSyncIndicator();  // ← ici
-  // Si un level-up avait déclenché une demande de sync check, on l'exécute maintenant
-  if (SyncMonitor.syncCheckRequested && navigator.onLine) {
-    SyncMonitor.syncCheckRequested = false;
-    console.log('[PROCESS UPDATES] Queue vide → lancement sync check différé');
-    performSyncCheck('post-queue');
-  }
-
+  updateSyncIndicator();
 }
 
 // ============================================================================
@@ -7548,6 +7588,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
