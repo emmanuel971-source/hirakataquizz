@@ -2895,54 +2895,47 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwlzkLGtojwVylpPgHt
 
 let pendingUpdates = [];
 let isProcessing = false;
-
 // ===============================================
-// DÉCLENCHEUR UNIQUE ET ROBUSTE DE SYNCHRONISATION
+// POLLING DE SYNCHRONISATION (robuste même en mode avion)
 // ===============================================
-let wasOffline = !navigator.onLine;
-let hasLaunchedReconnectionSync = false;
+let syncPollingInterval = null;
 
-function startReconnectionDetector() {
-  console.log('🔄 Démarrage du détecteur de reconnexion (check toutes les 3s)');
+function startSyncPolling() {
+  if (syncPollingInterval) return; // déjà actif
 
-  setInterval(() => {
-    const currentlyOnline = navigator.onLine;
+  console.log('🔄 Démarrage du polling de synchronisation (toutes les 8s)');
 
-    // Détection du PASSAGE offline → online
-    if (wasOffline && currentlyOnline) {
-      console.log('%c🌐 RECONNEXION DÉTECTÉE !', 'color:#0f0;font-weight:bold');
-
-      // On lance le sync complet UNE SEULE FOIS par reconnexion
-      if (pendingUpdates.length > 0 && !isProcessing && !hasLaunchedReconnectionSync) {
-        console.log(`🚀 Lancement du sync complet avec ${pendingUpdates.length} updates en attente`);
-        hasLaunchedReconnectionSync = true;
-        processUpdates();
-      }
+  syncPollingInterval = setInterval(() => {
+    // Conditions pour lancer le traitement
+    if (
+      navigator.onLine &&                     // on a une connexion
+      pendingUpdates.length > 0 &&            // il y a des updates en attente
+      !isProcessing &&                        // la queue n'est pas déjà en train de tourner
+      !SyncMonitor.syncCheckInProgress         // pas en plein sync check
+    ) {
+      console.log(`🌐 Connexion détectée + ${pendingUpdates.length} updates en attente → lancement sync`);
+      processUpdates();
     }
 
-    // Reset des flags si on repasse offline
-    if (!currentlyOnline) {
-      wasOffline = true;
-      hasLaunchedReconnectionSync = false; // prêt pour la prochaine reconnexion
-    } else {
-      wasOffline = false;
-    }
-
-    // Sécurité bonus : si on est online depuis longtemps et qu'il reste des updates coincées
-    // (cas ultra rare : bug ou réseau instable), on relance toutes les 60s max
-    if (currentlyOnline && pendingUpdates.length > 0 && !isProcessing) {
-      // On utilise un compteur simple basé sur le temps
-      if (!window.lastSafetySync || Date.now() - window.lastSafetySync > 60000) {
-        console.log(`🛟 Sécurité : relance sync (queue coincée : ${pendingUpdates.length})`);
-        window.lastSafetySync = Date.now();
-        processUpdates();
-      }
-    }
-
-  }, 3000); // toutes les 3 secondes → réactif mais léger
+    // Optionnel : même si pas d'updates pending, on peut forcer un sync check périodique
+    // si on veut être ultra-parano (toutes les 2-3 minutes par exemple)
+    // Mais pas nécessaire si tu fais déjà des checks après level-up
+  }, 8000); // toutes les 8 secondes → très léger, pas de batterie drain
 }
 
+function stopSyncPolling() {
+  if (syncPollingInterval) {
+    clearInterval(syncPollingInterval);
+    syncPollingInterval = null;
+    console.log('⏹️ Arrêt du polling de synchronisation');
+  }
+}
 
+// Démarrer le polling dès que l'app est chargée
+startSyncPolling();
+
+// Optionnel : arrêter quand l'utilisateur se déconnecte volontairement ou ferme (mais pas critique)
+// window.addEventListener('beforeunload', stopSyncPolling);
 
 function updateSyncIndicator() {
   let indicator = document.getElementById('syncIndicator');
@@ -3323,8 +3316,7 @@ async function hashJSON(obj) {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }  
-
-  async function performSyncCheck(trigger = 'level-up', force = false) {
+async function performSyncCheck(trigger = 'level-up', force = false) {
   console.log(`%c[SYNC CHECK] triggered (${trigger})`, 'color:#09c;font-weight:bold');
 
   if (!force && SyncMonitor.pendingUpdates > 0) {
@@ -3504,39 +3496,25 @@ async function refreshUserData() {
 // --- Fonctions API ---
 async function callAPI(action, data = null) {
   try {
-    const baseUrl = WEB_APP_URL;
-    let url = baseUrl;
-    let options = {
-      method: 'GET',
-      redirect: 'follow'
-    };
+    let params = new URLSearchParams({ action });
 
-    const params = new URLSearchParams({ action });
     if (data) {
       Object.entries(data).forEach(([key, value]) => {
         params.append(key, value);
       });
     }
 
-    if (data && (action === 'overwriteUserStats' || action === 'updateStats' || params.toString().length > 1500)) {
-      // Passe en POST si données ou URL trop longue
-      options.method = 'POST';
-      options.body = params;
-      options.headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-    } else {
-      // GET classique
-      url += `?${params.toString()}`;
-    }
+    const url = `${WEB_APP_URL}?${params.toString()}`;
+    console.log(`🔍 Appel API: ${action}`);
 
-    console.log(`🔍 Appel API (${options.method}): ${action}`);
-    const response = await fetch(url, options);
-
+    const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     const result = await response.json();
+//    console.log(`🔍 Réponse brute de ${action}:`, JSON.stringify(result, null, 2));
     return result;
-
+    
   } catch (error) {
     logError(`Erreur API (${action}): ${error.message}`);
     console.error(`⚠️ Détails erreur:`, error);
@@ -3576,7 +3554,6 @@ async function queueUpdateStats(params) {
 //    processUpdates();
 //  }
 }
-
 
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
@@ -3625,15 +3602,15 @@ async function processUpdates() {
 
         // ===== DÉTECTION AGRESSIVE DU RETOUR EN LIGNE =====
         // ✅ Trigger après 3 succès consécutifs avec une grosse queue initiale
-       // ===== DÉTECTION =====
-  console.log(`[DEBUG CHECK] Vérification: !${reconnectionDetected} && ${initialPendingCount} > 5 && ${consecutiveSuccesses} >= 3 = ${!reconnectionDetected && initialPendingCount > 5 && consecutiveSuccesses >= 3}`);
+        // ===== DÉTECTION =====
+  console.log(`[DEBUG CHECK] Vérification: !${reconnectionDetected} && ${initialPendingCount} > 5 && ${consecutiveSuccesses} >= 1 = ${!reconnectionDetected && initialPendingCount > 5 && consecutiveSuccesses >= 3}`);
   
-        
         if (!reconnectionDetected && 
-            initialPendingCount >= 1 && 
-            consecutiveSuccesses >= 3) {
-         console.log(`%c🌐 RETOUR EN LIGNE DÉTECTÉ !`, 'color:#0a0;font-weight:bold');
-    
+            initialPendingCount > 5 && 
+            consecutiveSuccesses >= 1) {
+         
+    console.log(`%c🌐 RETOUR EN LIGNE DÉTECTÉ !`, 'color:#0a0;font-weight:bold');
+   
           reconnectionDetected = true;
           
           console.log(`%c🌐 RETOUR EN LIGNE DÉTECTÉ ! ${consecutiveSuccesses} succès consécutifs avec queue initiale de ${initialPendingCount}`, 'color:#0a0;font-weight:bold');
@@ -3706,6 +3683,7 @@ async function processUpdates() {
   updateAccountDisplay();
   updateSyncIndicator();
 }
+  
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
 // ============================================================================
@@ -7588,6 +7566,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
