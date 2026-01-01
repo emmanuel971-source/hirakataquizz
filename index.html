@@ -2899,9 +2899,9 @@ let isProcessing = false;
 // SYNC CHECK TRIGGER - basé sur la descente du compteur
 // ===============================================
 const SyncCheckTrigger = {
-  armed: false,           // Demande armée ?
-  threshold: 5,           // Seuil d'armement
-  lastPendingCount: 0,    // Dernier nombre d'updates pending
+  armed: false,
+  threshold: 5,
+  lastPendingCount: 0,
   
   evaluate() {
     const current = pendingUpdates.length;
@@ -2915,7 +2915,7 @@ const SyncCheckTrigger = {
       );
     }
     
-    // 🔥 DÉCLENCHEMENT : armé + compteur qui descend + en ligne
+    // 🔥 DÉCLENCHEMENT : armé + compteur qui descend
     if (this.armed && current < this.lastPendingCount && navigator.onLine) {
       console.log(
         `%c[SYNC TRIGGER] 🚀 DÉCLENCHÉ (${this.lastPendingCount} → ${current})`,
@@ -2924,18 +2924,13 @@ const SyncCheckTrigger = {
       
       this.armed = false; // Désarmer
       
-      // Lancer le sync check après un petit délai (laisser la queue finir)
+      // ✅ STOPPER la queue immédiatement
+      isProcessing = false;
+      
+      // ✅ Lancer le sync check
       setTimeout(() => {
-        if (pendingUpdates.length === 0) {
-          performSyncCheck('auto-trigger-on-descent');
-        }
-      }, 500);
-    }
-    
-    // 🔄 Désarmement automatique si la queue est vide
-    if (this.armed && current === 0) {
-      console.log('[SYNC TRIGGER] ⏸️  Désarmé (queue vide)');
-      this.armed = false;
+        performSyncCheck('auto-trigger-on-descent');
+      }, 100); // Petit délai pour que isProcessing = false soit bien pris en compte
     }
     
     this.lastPendingCount = current;
@@ -3374,7 +3369,10 @@ async function performSyncCheck(trigger = 'level-up') {
     return;
   }
 
-  if (SyncMonitor.pendingUpdates > 0) {
+  // ✅ BYPASS : Si déclenchement auto, on ignore pendingUpdates
+  const isBypassTrigger = trigger === 'auto-trigger-on-descent';
+  
+  if (!isBypassTrigger && SyncMonitor.pendingUpdates > 0) {
     console.log('[SYNC CHECK] aborted: pendingUpdates > 0');
     return;
   }
@@ -3423,20 +3421,40 @@ async function performSyncCheck(trigger = 'level-up') {
         'color:#c00;font-weight:bold'
       );
       
-      // ✅ NOUVEAU : Auto-resync
       console.log('[SYNC CHECK] Déclenchement auto-resync...');
       
       const resyncResult = await forceSyncClientToServer();
       
       if (resyncResult.success) {
         console.log(
-          '%c[SYNC CHECK] Resync automatique réussie',
+          '%c[SYNC CHECK] Resync automatique réussie - VIDAGE DE LA QUEUE',
           'color:#0a0;font-weight:bold'
         );
+        
+        // ✅ VIDER complètement la queue
+        pendingUpdates = [];
+        SyncMonitor.pendingUpdates = 0;
+        SyncMonitor.failedUpdates = 0;
+        isProcessing = false;
+        
+        try {
+          localStorage.setItem('pending_updates', '[]');
+        } catch(e) {}
+        
+        // ✅ Rebuild UI
+        rebuildHiraganaListFromClientTruth();
+        niveauActif = determineNiveauActif(HiraganaList);
+        document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+        updateLevelProgress(HiraganaList, niveauActif);
+        renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
+        renderHiraganaCards(HiraganaList, niveauActif);
+        updateMenuButtonStates();
+        updateAccountDisplay();
+        updateSyncIndicator();
+        
       } else {
         console.error('[SYNC CHECK] Resync automatique échouée:', resyncResult.error);
-        // ⚠️ Optionnel : afficher un message à l'utilisateur
-        // showSyncErrorNotification();
+        // ⚠️ En cas d'échec, on laisse la queue se vider normalement
       }
       
     } else {
@@ -7588,6 +7606,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
