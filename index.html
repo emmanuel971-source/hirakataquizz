@@ -2895,46 +2895,7 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwlzkLGtojwVylpPgHt
 
 let pendingUpdates = [];
 let isProcessing = false;
-// ===============================================
-// POLLING DE SYNCHRONISATION (robuste même en mode avion)
-// ===============================================
-let syncPollingInterval = null;
 
-function startSyncPolling() {
-  if (syncPollingInterval) return; // déjà actif
-
-  console.log('🔄 Démarrage du polling de synchronisation (toutes les 8s)');
-
-  syncPollingInterval = setInterval(() => {
-    // Conditions pour lancer le traitement
-    if (
-      navigator.onLine &&                     // on a une connexion
-      pendingUpdates.length > 0 &&            // il y a des updates en attente
-      !isProcessing &&                        // la queue n'est pas déjà en train de tourner
-      !SyncMonitor.syncCheckInProgress         // pas en plein sync check
-    ) {
-      console.log(`🌐 Connexion détectée + ${pendingUpdates.length} updates en attente → lancement sync`);
-      processUpdates();
-    }
-
-    // Optionnel : même si pas d'updates pending, on peut forcer un sync check périodique
-    // si on veut être ultra-parano (toutes les 2-3 minutes par exemple)
-    // Mais pas nécessaire si tu fais déjà des checks après level-up
-  }, 8000); // toutes les 8 secondes → très léger, pas de batterie drain
-}
-
-function stopSyncPolling() {
-  if (syncPollingInterval) {
-    clearInterval(syncPollingInterval);
-    syncPollingInterval = null;
-    console.log('⏹️ Arrêt du polling de synchronisation');
-  }
-}
-
-
-
-// Optionnel : arrêter quand l'utilisateur se déconnecte volontairement ou ferme (mais pas critique)
-// window.addEventListener('beforeunload', stopSyncPolling);
 
 function updateSyncIndicator() {
   let indicator = document.getElementById('syncIndicator');
@@ -3534,7 +3495,7 @@ async function callAPI(action, data = null) {
     return { error: error.message };
   }
 }
-let globalInitialPendingCount = 0; // ✅ NOUVEAU : au niveau global avec pendingUpdates
+
 
 async function queueUpdateStats(params) {
   
@@ -3572,11 +3533,7 @@ async function queueUpdateStats(params) {
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
   
-  // ✅ Capturer la taille initiale SEULEMENT si c'est un nouveau batch
-  if (!isProcessing && globalInitialPendingCount === 0) {
-    globalInitialPendingCount = pendingUpdates.length;
-    console.log(`[PROCESS UPDATES] 🎬 NOUVEAU BATCH détecté : ${globalInitialPendingCount} updates`);
-  }
+ 
   
   const initialPendingCount = globalInitialPendingCount; // Utiliser la valeur globale
   console.log(`[PROCESS UPDATES] Démarrage avec ${pendingUpdates.length} updates en attente (batch initial: ${initialPendingCount})`);
@@ -3620,36 +3577,6 @@ async function processUpdates() {
           normalizeStats(clientTruth.stats_json)
         );
 
-        console.log(`[DEBUG CHECK] Vérification: !${reconnectionDetected} && ${initialPendingCount} > 5 && ${consecutiveSuccesses} >= 3 = ${!reconnectionDetected && initialPendingCount > 5 && consecutiveSuccesses >= 3}`);
-        
-        if (!reconnectionDetected && 
-            initialPendingCount > 0 && 
-            consecutiveSuccesses >= 1) {
-          
-          reconnectionDetected = true;
-          
-          console.log(`%c🌐 RETOUR EN LIGNE DÉTECTÉ ! ${consecutiveSuccesses} succès consécutifs avec batch initial de ${initialPendingCount}`, 'color:#0a0;font-weight:bold');
-          console.log(`%c🚀 VIDAGE ARTIFICIEL DES ${pendingUpdates.length} UPDATES RESTANTES`, 'color:#0a0;font-weight:bold');
-
-          pendingUpdates = [];
-          try {
-            localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
-          } catch (e) {}
-          
-          SyncMonitor.pendingUpdates = 0;
-          SyncMonitor.evaluate();
-          updateSyncIndicator();
-
-          SyncMonitor.syncCheckInProgress = true;
-          console.log('%c[SYNC CHECK] LOCK forcé activé', 'color:#0a0;font-weight:bold');
-
-          setTimeout(async () => {
-            console.log('%c[FORCE SYNC] Lancement du sync check agressif...', 'color:#0a0;font-weight:bold');
-            await performSyncCheck('aggressive-reconnection', true);
-          }, 300);
-
-          break;
-        }
 
         // Animations level-up (inchangées)
         if (update.hasLeveledUp && update.targetLevel > update.previousLevel) {
@@ -3682,9 +3609,7 @@ async function processUpdates() {
     }
   }
   
-  isProcessing = false;
-  globalInitialPendingCount = 0; // ✅ Reset quand le batch est terminé
-  console.log('[PROCESS UPDATES] ✅ Batch terminé, reset du compteur global');
+
 
   // Rebuild UI
   rebuildHiraganaListFromClientTruth();
@@ -7211,7 +7136,7 @@ renderProgressBar(niveauActif, totalLevels);
     document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
   }
-//startSyncPolling();
+
 }
 
 async function loadRemainingDataInBackground(profile) {
@@ -7580,6 +7505,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
