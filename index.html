@@ -7275,10 +7275,10 @@ async function initGame() {
       updateLoadingProgress(60, "Prêt à jouer !");
       
 
-    } else {
-      // 🔁 RETURNING USER
+       } else {
+      // 🔁 RETURNING USER – NO CHUNK YET
 
-      // Récupération profil et user
+      // Récupération profil et user (on en a besoin pour totalLevels et pseudo)
       updateLoadingProgress(40, "Récupération de votre profil...");
       userToken = token;
       const userResult = await callAPI('getUserByToken', { token: token });
@@ -7287,14 +7287,15 @@ async function initGame() {
         console.log('👤 Utilisateur récupéré:', currentUser.pseudo);
       }
 
-      // Vérification sync + init clientTruth (sync forcée si local plus avancé)
+      // Résolution définitive : qui est en avance ? Sync si besoin
       updateLoadingProgress(50, "Vérification de vos progrès...");
-      await ensureLatestProgress(); // ← clientTruth est maintenant à jour
+      await ensureLatestProgress(); // ← clientTruth est maintenant la vérité absolue
 
-      // 🆕 UTILISE clientTruth pour déterminer le chunk initial
-      const trustedNiveau = clientTruth?.niveau_atteint || profile.niveau || 1;
+      // Maintenant on sait EXACTEMENT quel niveau utiliser
+      const trustedNiveau = clientTruth.niveau_atteint || 1;
       const maxLevel = Math.min(trustedNiveau + 2, profile.totalLevels || 46);
-      console.log(`🆕 Chunk initial basé sur clientTruth : niveaux 1-${maxLevel} (niveau trusted = ${trustedNiveau})`);
+
+      console.log(`🛠️ Chunk initial décidé APRÈS clientTruth : niveaux 1-${maxLevel} (basé sur niveau ${trustedNiveau})`);
 
       updateLoadingProgress(55, `Chargement niveaux 1-${maxLevel}...`);
       const chunkResult = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: maxLevel });
@@ -7306,10 +7307,12 @@ async function initGame() {
           Tentatives: 0,
           Réussites: 0
         }));
-        console.log(`📊 Chunk initial: ${chunkResult.count} items chargés (niveaux 1-${maxLevel})`);
+        console.log(`📊 Chunk initial chargé : ${chunkResult.count} items (niveaux 1-${maxLevel})`);
+      } else {
+        console.error('Erreur chunk initial');
       }
 
-      // Merge stats avec données fraîches (serveur à jour après éventuelle sync)
+      // Merge des stats (serveur à jour après éventuelle sync)
       updateLoadingProgress(58, "Application de vos statistiques...");
       await applyUserProgress();
 
@@ -7746,6 +7749,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
