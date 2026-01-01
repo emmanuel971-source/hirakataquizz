@@ -2895,47 +2895,54 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwlzkLGtojwVylpPgHt
 
 let pendingUpdates = [];
 let isProcessing = false;
+
 // ===============================================
-// POLLING DE SYNCHRONISATION (robuste même en mode avion)
+// DÉCLENCHEUR UNIQUE ET ROBUSTE DE SYNCHRONISATION
 // ===============================================
-let syncPollingInterval = null;
+let wasOffline = !navigator.onLine;
+let hasLaunchedReconnectionSync = false;
 
-function startSyncPolling() {
-  if (syncPollingInterval) return; // déjà actif
+function startReconnectionDetector() {
+  console.log('🔄 Démarrage du détecteur de reconnexion (check toutes les 3s)');
 
-  console.log('🔄 Démarrage du polling de synchronisation (toutes les 8s)');
+  setInterval(() => {
+    const currentlyOnline = navigator.onLine;
 
-  syncPollingInterval = setInterval(() => {
-    // Conditions pour lancer le traitement
-    if (
-      navigator.onLine &&                     // on a une connexion
-      pendingUpdates.length > 0 &&            // il y a des updates en attente
-      !isProcessing &&                        // la queue n'est pas déjà en train de tourner
-      !SyncMonitor.syncCheckInProgress         // pas en plein sync check
-    ) {
-      console.log(`🌐 Connexion détectée + ${pendingUpdates.length} updates en attente → lancement sync`);
-      processUpdates();
+    // Détection du PASSAGE offline → online
+    if (wasOffline && currentlyOnline) {
+      console.log('%c🌐 RECONNEXION DÉTECTÉE !', 'color:#0f0;font-weight:bold');
+
+      // On lance le sync complet UNE SEULE FOIS par reconnexion
+      if (pendingUpdates.length > 0 && !isProcessing && !hasLaunchedReconnectionSync) {
+        console.log(`🚀 Lancement du sync complet avec ${pendingUpdates.length} updates en attente`);
+        hasLaunchedReconnectionSync = true;
+        processUpdates();
+      }
     }
 
-    // Optionnel : même si pas d'updates pending, on peut forcer un sync check périodique
-    // si on veut être ultra-parano (toutes les 2-3 minutes par exemple)
-    // Mais pas nécessaire si tu fais déjà des checks après level-up
-  }, 8000); // toutes les 8 secondes → très léger, pas de batterie drain
+    // Reset des flags si on repasse offline
+    if (!currentlyOnline) {
+      wasOffline = true;
+      hasLaunchedReconnectionSync = false; // prêt pour la prochaine reconnexion
+    } else {
+      wasOffline = false;
+    }
+
+    // Sécurité bonus : si on est online depuis longtemps et qu'il reste des updates coincées
+    // (cas ultra rare : bug ou réseau instable), on relance toutes les 60s max
+    if (currentlyOnline && pendingUpdates.length > 0 && !isProcessing) {
+      // On utilise un compteur simple basé sur le temps
+      if (!window.lastSafetySync || Date.now() - window.lastSafetySync > 60000) {
+        console.log(`🛟 Sécurité : relance sync (queue coincée : ${pendingUpdates.length})`);
+        window.lastSafetySync = Date.now();
+        processUpdates();
+      }
+    }
+
+  }, 3000); // toutes les 3 secondes → réactif mais léger
 }
 
-function stopSyncPolling() {
-  if (syncPollingInterval) {
-    clearInterval(syncPollingInterval);
-    syncPollingInterval = null;
-    console.log('⏹️ Arrêt du polling de synchronisation');
-  }
-}
 
-// Démarrer le polling dès que l'app est chargée
-startSyncPolling();
-
-// Optionnel : arrêter quand l'utilisateur se déconnecte volontairement ou ferme (mais pas critique)
-// window.addEventListener('beforeunload', stopSyncPolling);
 
 function updateSyncIndicator() {
   let indicator = document.getElementById('syncIndicator');
@@ -3565,9 +3572,9 @@ async function queueUpdateStats(params) {
     localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
   } catch(e) {}
 
-  if (!isProcessing) {
-    processUpdates();
-  }
+//  if (!isProcessing) {
+//    processUpdates();
+//  }
 }
 
 
@@ -7212,7 +7219,7 @@ renderProgressBar(niveauActif, totalLevels);
     document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
   }
-
+startReconnectionDetector();
 }
 
 async function loadRemainingDataInBackground(profile) {
@@ -7581,6 +7588,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
