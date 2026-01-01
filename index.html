@@ -2697,7 +2697,7 @@ async function loadUserProgress() {
     updateAccountDisplay();
     
     console.log('✅ loadUserProgress terminé');
-    initClientTruth(userStats.stats, niveauMaxAtteint);
+ //   initClientTruth(userStats.stats, niveauMaxAtteint);
 
   } else {
     console.error('⚠️ Erreur chargement stats user:', userStats.error);
@@ -2711,7 +2711,103 @@ async function loadUserProgress() {
   }
   updateSyncIndicator();
 }
+async function applyUserProgress() {
+  if (!userToken) {
+    console.warn('⚠️ Pas de token - Stats non chargées');
+    return;
+  }
 
+  const userStats = await callAPI('getUserStats', { token: userToken });
+  if (userStats.success) {
+    const stats = userStats.stats || {};
+    let mergedCount = 0;
+
+    // ✅ Merger les stats dans HiraganaList
+    HiraganaList.forEach(item => {
+      const itemId = item.ID.toString();
+      const itemStats = stats[itemId] || { validation: 0, tentatives: 0, reussites: 0 };
+
+      item.Validation = itemStats.validation;
+      item.Tentatives = itemStats.tentatives;
+      item['Réussites'] = itemStats.reussites;
+      mergedCount++;
+
+      const id = parseInt(item.ID);
+      validationCache[id] = parseInt(itemStats.validation);
+
+      const tentatives = parseInt(itemStats.tentatives || 0);
+      const reussites = parseFloat(itemStats.reussites || 0);
+      const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
+
+      statsCache.items[id] = {
+        tentatives: tentatives,
+        reussites: reussites,
+        pourcentage: pourcentage
+      };
+    });
+
+    const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+    const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+    statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+    console.log(`📊 Progrès user chargé: ${mergedCount} items mergés`);
+
+    // ✅ Calculer le niveau MAX ATTEINT
+    let niveauMaxAtteint = 0;
+    const maxLevel = getMaxLevel(HiraganaList);
+
+    for (let n = 1; n <= maxLevel; n++) {
+      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === n);
+      const itemsValides = itemsNiveau.filter(h => parseInt(h.Validation || 0) >= 5);
+
+      if (itemsValides.length === itemsNiveau.length && itemsNiveau.length > 0) {
+        niveauMaxAtteint = n;
+      } else {
+        break;
+      }
+    }
+
+    // ✅ Calculer le niveau ACTIF
+    niveauActif = determineNiveauActif(HiraganaList);
+
+    console.log(`🏆 Niveau MAX ATTEINT: ${niveauMaxAtteint} (tous les items à >=5)`);
+    console.log(`🎮 Niveau ACTIF: ${niveauActif} (premier niveau incomplet)`);
+    console.log(`🚫 Mode apprentissage bloqué: ${isApprentissageBloque()}`);
+
+    // ✅ Mettre à jour currentUser
+    if (currentUser) {
+      currentUser.niveau_atteint = niveauMaxAtteint;
+      currentUser.niveau_actif = niveauActif;
+    }
+
+    // ✅ Régénérer les tables
+    revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
+    revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
+
+    // ✅ Rafraîchir l'UI (seulement si on est déjà dans le jeu)
+    if (gameDataLoaded || document.getElementById("levelDisplay")) {
+      document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
+      updateLevelProgress(HiraganaList, niveauActif);
+      renderProgressBar(niveauActif, maxLevel);
+      renderHiraganaCards(HiraganaList, niveauActif);
+      updateMenuButtonStates();
+      updateAccountDisplay();
+    }
+
+    console.log('✅ applyUserProgress terminé');
+  } else {
+    console.error('⚠️ Erreur chargement stats user:', userStats.error);
+    niveauActif = 1;
+    if (currentUser) {
+      currentUser.niveau_atteint = 0;
+      currentUser.niveau_actif = 1;
+    }
+    if (document.getElementById("levelDisplay")) {
+      document.getElementById("levelDisplay").innerText = `${t('quiz_level')} 1`;
+      updateAccountDisplay();
+    }
+  }
+  updateSyncIndicator();
+}
 function generateRevisionRomajiTable(hiraganaList) {
   const table = {};
   let validItems = 0;
@@ -2895,7 +2991,36 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwlzkLGtojwVylpPgHt
 
 let pendingUpdates = [];
 let isProcessing = false;
-// ===============================================
+async function ensureLatestProgress() {
+  if (!userToken || !currentUser) {
+    console.warn('⚠️ Pas de token ou currentUser → skip ensureLatestProgress');
+    return;
+  }
+
+  console.log('🔍 Vérification des progrès : comparaison local vs serveur...');
+
+  // Récupérer les stats serveur (sans les merger encore)
+  const userStatsResult = await callAPI('getUserStats', { token: userToken });
+
+  if (!userStatsResult.success) {
+    console.warn('⚠️ Impossible de récupérer les stats serveur → on garde le local tel quel');
+    return;
+  }
+
+  const serverStats = userStatsResult.stats || {};
+  const serverNiveauAtteint = userStatsResult.niveau_atteint || 0;
+
+  // On appelle initClientTruth qui va :
+  // - comparer
+  // - lancer une sync si local plus avancé
+  // - et on l'attend grâce au fait qu'on va le rendre awaitable (voir point 2)
+  await initClientTruth(serverStats, serverNiveauAtteint);
+
+  console.log('✅ Progression synchronisée : les stats serveur sont maintenant à jour');
+}
+  
+  
+  // ===============================================
 // SYNC CHECK TRIGGER - basé sur la descente du compteur
 // ===============================================
 const SyncCheckTrigger = {
@@ -3080,11 +3205,9 @@ const SyncMonitor = {
 };
 
 async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
-  let needsForceSync = false;
   console.log('[INIT CLIENT TRUTH] start');
-
   const storageKey = getClientTruthStorageKey();
-  
+
   let localTruth = null;
   const serverTruth = {
     stats_json: serverStatsJson || {},
@@ -3110,33 +3233,44 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
     // Pas de données locales → utiliser serveur
     console.log('[INIT CLIENT TRUTH] ✅ Utilisation SERVEUR (pas de local)');
     clientTruth = serverTruth;
-    
+   
   } else {
     // Comparer par nombre total de tentatives
     const localTotal = Object.values(localTruth.stats_json || {})
       .reduce((sum, item) => sum + (Number(item.tentatives) || 0), 0);
-      
+     
     const serverTotal = Object.values(serverTruth.stats_json || {})
       .reduce((sum, item) => sum + (Number(item.tentatives) || 0), 0);
-    
+   
     console.log('[INIT CLIENT TRUTH] Comparaison tentatives:', {
       local: localTotal,
       server: serverTotal,
       diff: localTotal - serverTotal,
       winner: localTotal > serverTotal ? '🏆 LOCAL' : localTotal < serverTotal ? '🏆 SERVER' : '⚖️ ÉGALITÉ'
     });
-    
+   
     if (localTotal > serverTotal) {
-  console.log('[INIT CLIENT TRUTH] ✅ LOCAL plus avancé → SYNC CLIENT→SERVEUR');
-  clientTruth = localTruth;
-  chosenSource = 'LOCAL';
-  needsForceSync = true;
-} else if (serverTotal > localTotal) {
+      console.log('[INIT CLIENT TRUTH] ✅ LOCAL plus avancé → SYNC CLIENT→SERVEUR (immédiate)');
+      clientTruth = localTruth;
+      chosenSource = 'LOCAL';
+     
+      // 🔄 SYNC IMMÉDIATE ET ATTENDUE (plus de setTimeout !)
+      try {
+        console.log('[INIT] Sync immédiate client→serveur en cours...');
+        await forceSyncClientToServer();  // ← on await ici !
+        console.log('[SYNC MONITOR] SYNCED force sync completed');
+      } catch (error) {
+        console.error('[INIT CLIENT TRUTH] ❌ Échec de la sync forcée', error);
+        // Option : tu peux choisir de fallback sur serveur ou garder local
+        // Pour l'instant on garde local quand même
+      }
+     
+    } else if (serverTotal > localTotal) {
       console.log('[INIT CLIENT TRUTH] ✅ SERVEUR plus avancé → Utilisation serveur');
       clientTruth = serverTruth;
-      
+     
     } else {
-      // Égalité parfaite (cas rare mais possible au tout début)
+      // Égalité parfaite
       console.log('[INIT CLIENT TRUTH] ⚖️ Égalité parfaite → Utilisation serveur par défaut');
       clientTruth = serverTruth;
     }
@@ -3154,76 +3288,8 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
     items: Object.keys(clientTruth.stats_json).length,
     niveau_atteint: clientTruth.niveau_atteint
   });
-  return {
-  source: chosenSource,
-  needsForceSync
-};
-}
-  function updateClientTruthOnAnswer(params) {
-  console.log('[CLIENT TRUTH INPUT]', params);
 
-  if (!params || params.id == null) {
-    console.warn('[CLIENT TRUTH] invalid params', params);
-    return;
-  }
-
-  const id = params.id.toString();
-  const scorePoints = parseFloat(params.scorePoints || 0);
-  const isRevisionMode = params.isRevisionMode === true;
-
-  // Initialiser l’item si nécessaire
-  if (!clientTruth.stats_json[id]) {
-    clientTruth.stats_json[id] = {
-      tentatives: 0,
-      reussites: 0,
-      validation: 0
-    };
-  }
-
-  const item = clientTruth.stats_json[id];
-
-  // Mise à jour stats de base
-  item.tentatives += 1;
-  item.reussites += scorePoints;
-
-  // Calcul validation (copie STRICTE de la logique serveur)
-  let newValidation;
-
-  if (isRevisionMode) {
-    if (scorePoints === 1) {
-      newValidation = item.validation + 1;
-    } else {
-      newValidation = Math.max(5, item.validation - 2);
-    }
-  } else {
-    let validationChange =
-      scorePoints === 1 ? 1 :
-      scorePoints === 0.5 ? -1 : -2;
-
-    newValidation = Math.max(0, item.validation + validationChange);
-  }
-
-  item.validation = newValidation;
-
-  // 🔁 Recalcul du niveau atteint (copie logique serveur)
-  clientTruth.niveau_atteint = calculateClientNiveauAtteint(clientTruth.stats_json);
-
-  // Sauvegarde persistante
-  try {
-    localStorage.setItem(getClientTruthStorageKey(), JSON.stringify(clientTruth));
-  } catch (e) {}
-
-  console.log('[CLIENT TRUTH UPDATED]', {
-    id,
-    item,
-    niveau_atteint: clientTruth.niveau_atteint
-  });
-  console.log(
-  '[CLIENT TRUTH FULL SNAPSHOT]',
-  Object.keys(clientTruth.stats_json).length,
-  clientTruth.stats_json
-);
-
+  // La fonction se termine → await initClientTruth() se résout ici
 }
 function calculateClientNiveauAtteint(statsJson) {
   const maxLevel = getMaxLevel(HiraganaList);
@@ -3480,66 +3546,65 @@ async function forceSyncClientToServer() {
     return { success: false, error: 'No user token' };
   }
 
-  // ✅ Activer le LOCK si nécessaire
+  // ✅ LOCK déjà actif normalement (appelé depuis performSyncCheck)
+  // Mais on s'assure qu'il l'est
   if (!SyncMonitor.syncCheckInProgress) {
     SyncMonitor.syncCheckInProgress = true;
     console.log('[FORCE SYNC] LOCK activé');
   }
 
   try {
-    // ✅ Nettoyer les stats avant envoi
+    // ✅ Nettoyer les stats avant envoi (enlever items jamais joués)
     const cleanedStats = normalizeStats(clientTruth.stats_json);
-
+    
     console.log('[FORCE SYNC] Envoi au serveur:', {
       itemsCount: Object.keys(cleanedStats).length,
       niveau_atteint: clientTruth.niveau_atteint,
       preview: cleanedStats
     });
 
-    // ✅ Appel API pour écraser les stats serveur
+    // ✅ Appel API pour écraser
     const result = await callAPI('overwriteUserStats', {
       token: userToken,
       stats_json: JSON.stringify(cleanedStats)
     });
 
-    if (!result.success) {
+    if (result.success) {
+      console.log(
+        '%c[FORCE SYNC] ✅ Succès',
+        'color:#0a0;font-weight:bold',
+        result
+      );
+
+      // ✅ Mettre à jour les hashes pour marquer la sync
+      const newHash = await hashJSON(cleanedStats);
+      SyncMonitor.lastClientSnapshotHash = newHash;
+      SyncMonitor.lastServerSnapshotHash = newHash;
+      
+      // ✅ Retour à l'état SYNCED
+      SyncMonitor.state = 'SYNCED';
+      SyncMonitor.log('force sync completed');
+      
+      // ✅ Optionnel : rebuild HiraganaList depuis le serveur
+      // pour s'assurer que l'affichage est à jour
+      //await refreshUserData();
+      //return { success: true, result };
+      
+    } else {
       console.error('[FORCE SYNC] Échec:', result.error);
       return { success: false, error: result.error };
     }
 
-    console.log(
-      '%c[FORCE SYNC] ✅ Succès',
-      'color:#0a0;font-weight:bold',
-      result
-    );
-
-    // ✅ Mettre à jour les hashes (serveur = client)
-    const newHash = await hashJSON(cleanedStats);
-    SyncMonitor.lastClientSnapshotHash = newHash;
-    SyncMonitor.lastServerSnapshotHash = newHash;
-
-    // ✅ Marquer l’état comme SYNCED
-    SyncMonitor.state = 'SYNCED';
-    SyncMonitor.log('force sync completed');
-
-    // ✅ POINT DE SYNCHRONISATION FINAL
-    return {
-      success: true,
-      niveau_atteint: clientTruth.niveau_atteint,
-      itemsCount: Object.keys(cleanedStats).length
-    };
-
   } catch (error) {
     console.error('[FORCE SYNC] Exception:', error);
     return { success: false, error: error.message };
-
+    
   } finally {
-    // ✅ Libération du LOCK
+    // ✅ UNLOCK
     SyncMonitor.syncCheckInProgress = false;
     console.log('[FORCE SYNC] LOCK libéré');
   }
 }
-
 
 // Fonction helper pour recharger les données depuis le serveur
 async function refreshUserData() {
@@ -7163,27 +7228,21 @@ async function initGame() {
   updateLoadingProgress(40, "Récupération de votre profil...");
   userToken = token;
   const userResult = await callAPI('getUserByToken', { token: token });
-  const serverStatsJson = userResult.user.stats_json || {};
-  const serverNiveauAtteint = userResult.user.niveau_atteint || 1;
-    
   if (userResult.success) {
     currentUser = userResult.user;
     console.log('👤 Utilisateur récupéré:', currentUser.pseudo);
   }
   
   // ✅ MAINTENANT loadUserProgress peut merger les stats
-  updateLoadingProgress(50, "Chargement de vos statistiques...");
- const truthResult = await initClientTruth(serverStatsJson, serverNiveauAtteint);
+      updateLoadingProgress(50, "Vérification de vos progrès...");
 
-if (truthResult.needsForceSync) {
-  updateLoadingProgress(45, "Synchronisation de vos données...");
-  await forceSyncClientToServer();
-}
+      await ensureLatestProgress();        // ← comparaison + sync immédiate si besoin
 
-await loadUserProgress();
+      updateLoadingProgress(55, "Application de vos statistiques...");
 
-  
-  updateLoadingProgress(60, "Profil chargé !");
+      await applyUserProgress();           // ← merge avec données garanties à jour
+
+      updateLoadingProgress(60, "Profil chargé !");
 }
     
     // ==========================================
@@ -7243,15 +7302,8 @@ renderProgressBar(niveauActif, totalLevels);
     
   } catch (error) {
     console.error('❌ Erreur dans initGame:', error.message);
-const loadingEl =
-  document.getElementById('loadingText') ||
-  document.getElementById('loading-message');
-
-if (loadingEl) {
-  loadingEl.textContent = 'Erreur : ' + error.message;
-  loadingEl.style.color = '#dc3545';
-}
-
+    document.getElementById('loading-message').textContent = 'Erreur : ' + error.message;
+    document.getElementById('loading-message').style.color = '#dc3545';
     gameDataLoaded = false;
   }
 
@@ -7623,7 +7675,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
-
 
 
 
