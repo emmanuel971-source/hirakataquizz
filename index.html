@@ -3535,9 +3535,7 @@ async function processUpdates() {
   
  
   
-  const initialPendingCount = globalInitialPendingCount; // Utiliser la valeur globale
-  console.log(`[PROCESS UPDATES] Démarrage avec ${pendingUpdates.length} updates en attente (batch initial: ${initialPendingCount})`);
-  
+   
   isProcessing = true;
   
   let reconnectionDetected = false;
@@ -7505,6 +7503,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
