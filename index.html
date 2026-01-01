@@ -2895,7 +2895,47 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwlzkLGtojwVylpPgHt
 
 let pendingUpdates = [];
 let isProcessing = false;
+// ===============================================
+// POLLING DE SYNCHRONISATION (robuste même en mode avion)
+// ===============================================
+let syncPollingInterval = null;
 
+function startSyncPolling() {
+  if (syncPollingInterval) return; // déjà actif
+
+  console.log('🔄 Démarrage du polling de synchronisation (toutes les 8s)');
+
+  syncPollingInterval = setInterval(() => {
+    // Conditions pour lancer le traitement
+    if (
+      navigator.onLine &&                     // on a une connexion
+      pendingUpdates.length > 0 &&            // il y a des updates en attente
+      !isProcessing &&                        // la queue n'est pas déjà en train de tourner
+      !SyncMonitor.syncCheckInProgress         // pas en plein sync check
+    ) {
+      console.log(`🌐 Connexion détectée + ${pendingUpdates.length} updates en attente → lancement sync`);
+      processUpdates();
+    }
+
+    // Optionnel : même si pas d'updates pending, on peut forcer un sync check périodique
+    // si on veut être ultra-parano (toutes les 2-3 minutes par exemple)
+    // Mais pas nécessaire si tu fais déjà des checks après level-up
+  }, 8000); // toutes les 8 secondes → très léger, pas de batterie drain
+}
+
+function stopSyncPolling() {
+  if (syncPollingInterval) {
+    clearInterval(syncPollingInterval);
+    syncPollingInterval = null;
+    console.log('⏹️ Arrêt du polling de synchronisation');
+  }
+}
+
+// Démarrer le polling dès que l'app est chargée
+startSyncPolling();
+
+// Optionnel : arrêter quand l'utilisateur se déconnecte volontairement ou ferme (mais pas critique)
+// window.addEventListener('beforeunload', stopSyncPolling);
 
 function updateSyncIndicator() {
   let indicator = document.getElementById('syncIndicator');
@@ -3276,10 +3316,18 @@ async function hashJSON(obj) {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }  
-async function performSyncCheck(trigger = 'level-up', force = false) {
-  console.log(`%c[SYNC CHECK] triggered (${trigger})`, 'color:#09c;font-weight:bold');
+async function performSyncCheck(trigger = 'level-up') {
+  console.log(
+    `%c[SYNC CHECK] triggered (${trigger})`,
+    'color:#09c;font-weight:bold'
+  );
 
-  if (!force && SyncMonitor.pendingUpdates > 0) {
+  if (!navigator.onLine) {
+    console.log('[SYNC CHECK] aborted: offline');
+    return;
+  }
+
+  if (SyncMonitor.pendingUpdates > 0) {
     console.log('[SYNC CHECK] aborted: pendingUpdates > 0');
     return;
   }
@@ -3525,24 +3573,18 @@ async function queueUpdateStats(params) {
     localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
   } catch(e) {}
 
- if (!isProcessing) {
-   processUpdates();
- }
+  if (!isProcessing) {
+    processUpdates();
+  }
 }
+
 
 async function processUpdates() {
   if (isProcessing || pendingUpdates.length === 0) return;
   
- 
-  
-   
   isProcessing = true;
   
-  let reconnectionDetected = false;
-  let consecutiveSuccesses = 0;
-
   while (pendingUpdates.length > 0) {
-    const currentCount = pendingUpdates.length;
     const update = pendingUpdates[0];
     
     try {
@@ -3556,26 +3598,22 @@ async function processUpdates() {
       const result = await callAPI('updateStats', apiParams);
 
       if (result.success) {
-        consecutiveSuccesses++;
-        
-  
         SyncMonitor.pendingUpdates = Math.max(0, SyncMonitor.pendingUpdates - 1);
         SyncMonitor.failedUpdates = 0;
         SyncMonitor.log('server update success');
         SyncMonitor.evaluate();
-        updateSyncIndicator();
 
         pendingUpdates.shift();
         try {
           localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
         } catch (e) {}
 
+        // Mise à jour du hash client (confirmation que le serveur a bien reçu cet update)
         SyncMonitor.lastClientSnapshotHash = await hashJSON(
           normalizeStats(clientTruth.stats_json)
         );
 
-
-        // Animations level-up (inchangées)
+        // Gestion des animations level-up (basée sur les données locales, pas sur la réponse serveur)
         if (update.hasLeveledUp && update.targetLevel > update.previousLevel) {
           if (update.targetLevel > niveauActif) {
             triggerLevelUpAnimation(document.body);
@@ -3591,7 +3629,6 @@ async function processUpdates() {
         }
         
       } else {
-        consecutiveSuccesses = 0;
         SyncMonitor.failedUpdates++;
         SyncMonitor.log('server update failed');
         SyncMonitor.evaluate();
@@ -3600,16 +3637,18 @@ async function processUpdates() {
       }
       
     } catch (error) {
-      consecutiveSuccesses = 0;
       console.error(`Erreur réseau lors de l'update: ${error.message}`);
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
   
+  isProcessing = false;
 
-
-  // Rebuild UI
+  // Une fois toute la queue traitée : on restaure l'état complet depuis clientTruth
+  // (évite les rollbacks temporaires dus aux réponses serveur "laggées")
   rebuildHiraganaListFromClientTruth();
+
+  // Recalcul du niveau actif et rafraîchissement complet de l'UI
   niveauActif = determineNiveauActif(HiraganaList);
   document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
@@ -3617,9 +3656,16 @@ async function processUpdates() {
   renderHiraganaCards(HiraganaList, niveauActif);
   updateMenuButtonStates();
   updateAccountDisplay();
-  updateSyncIndicator();
+  updateSyncIndicator();  // ← ici
+  // Si un level-up avait déclenché une demande de sync check, on l'exécute maintenant
+  if (SyncMonitor.syncCheckRequested && navigator.onLine) {
+    SyncMonitor.syncCheckRequested = false;
+    console.log('[PROCESS UPDATES] Queue vide → lancement sync check différé');
+    performSyncCheck('post-queue');
+  }
+
 }
-  
+
 // ============================================================================
 // 🎵 SECTION 5 : SYSTÈME AUDIO
 // ============================================================================
@@ -7502,22 +7548,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
