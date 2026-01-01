@@ -7163,6 +7163,9 @@ async function initGame() {
   updateLoadingProgress(40, "Récupération de votre profil...");
   userToken = token;
   const userResult = await callAPI('getUserByToken', { token: token });
+  const serverStatsJson = userResult.user.stats_json || {};
+  const serverNiveauAtteint = userResult.user.niveau_atteint || 1;
+    
   if (userResult.success) {
     currentUser = userResult.user;
     console.log('👤 Utilisateur récupéré:', currentUser.pseudo);
@@ -7240,8 +7243,15 @@ renderProgressBar(niveauActif, totalLevels);
     
   } catch (error) {
     console.error('❌ Erreur dans initGame:', error.message);
-    document.getElementById('loading-message').textContent = 'Erreur : ' + error.message;
-    document.getElementById('loading-message').style.color = '#dc3545';
+const loadingEl =
+  document.getElementById('loadingText') ||
+  document.getElementById('loading-message');
+
+if (loadingEl) {
+  loadingEl.textContent = 'Erreur : ' + error.message;
+  loadingEl.style.color = '#dc3545';
+}
+
     gameDataLoaded = false;
   }
 
@@ -7613,6 +7623,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
