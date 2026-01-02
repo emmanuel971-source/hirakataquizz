@@ -1755,7 +1755,10 @@ function getOrdinalSuffix(day) {
 // ============================================================================
 // 👤 SECTION 2 : AUTHENTIFICATION & UTILISATEUR
 // ============================================================================
-
+let clientTruth = {
+  stats_json: {},
+  niveau_atteint: 1
+};
 // --- Variables globales utilisateur ---
 let currentUser = null;
 let currentPseudoProposal = null;
@@ -3181,10 +3184,7 @@ function getClientTruthStorageKey() {
   return 'client_truth_unknown';
 }
 
-let clientTruth = {
-  stats_json: {},
-  niveau_atteint: 1
-};
+
 const SyncMonitor = {
   syncCheckRequested: false,
   syncCheckInProgress: false, // ✅ NOUVEAU
@@ -7896,6 +7896,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
