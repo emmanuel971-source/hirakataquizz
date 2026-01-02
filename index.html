@@ -4317,28 +4317,21 @@ function isGroupeDebloque(groupeId) {
 function isApprentissageBloque() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   
-  // 🔍 LOGS DE DEBUG
-  console.group('🔒 DEBUG BLOCAGE');
-  console.log('niveauActif:', niveauActif);
-  console.log('groupeActuel:', groupeActuel);
-  console.log('HiraganaList.length:', HiraganaList.length);
-  console.log('GROUPES défini:', GROUPES);
+ 
   
   if (niveauActif <= 5) {
-    console.log('Branch: niveauActif <= 5');
+   
     const isBlocked = groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
-    console.log('Résultat blocage:', isBlocked);
-    console.groupEnd();
+   
     return isBlocked;
   }
   
   // Niveaux > 5 : blocage basé sur déficit
   const deficit = calculerDeficitValidation();
-  console.log('Branch: niveauActif > 5, déficit:', deficit);
+
   
   const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
-  console.log('wasBlocked (localStorage):', wasBlocked);
-  console.groupEnd();
+
   if (wasBlocked) {
     const shouldUnblock = deficit === 0;
     if (shouldUnblock) localStorage.setItem('apprentissageBloque', 'false');
@@ -4353,7 +4346,7 @@ function isApprentissageBloque() {
 
 function calculerDeficitValidation() {
   const groupeActuel = getNiveauGroupe(niveauActif);
-  console.log('📊 calculerDeficitValidation: groupeActuel =', groupeActuel);
+
   
   if (groupeActuel < 3) {
     console.log('📊 Groupe < 3, return 0');
@@ -4367,15 +4360,15 @@ function calculerDeficitValidation() {
   
   for (let g = 1; g < groupeActuel; g++) {
     const niveaux = GROUPES[g]?.niveaux || [];
-    console.log(`📊 Groupe ${g}, niveaux:`, niveaux);
+   
     
     for (const niveau of niveaux) {
       const items = getItemsByLevel(HiraganaList, niveau);
-      console.log(`📊 Niveau ${niveau}: ${items.length} items`);
+    
       
       items.forEach(item => {
         const val = parseInt(item.Validation || 0, 10);
-        console.log(`📊 Item ID=${item.ID}, Validation=${val}, manque=${seuilRequis - val}`);
+     ;
         
         // ✅ COMPARER AVEC seuilValidation, pas SEUIL_VALIDATION
         if (val < seuilRequis) {
@@ -7783,6 +7776,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
