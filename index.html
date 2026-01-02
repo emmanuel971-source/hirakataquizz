@@ -4758,6 +4758,12 @@ function resetGameContext() {
 // ============================================================================
 let revisionAnswerCount = 0;
 // --- Variables révision ---
+
+
+function enterRevisionMode() {
+  deficitInitialRevision = calculerDeficitValidation();
+  updateUnlockProgress();
+}
 let revisionMode = {
   currentQuestion: "",
   input: "",
@@ -4818,10 +4824,12 @@ const selectRevisionItem = (availableItems) => {
     filteredByTampon.length >= 4 ? filteredByTampon : availableItems;
 
   // --- Si apprentissage non bloqué : tirage aléatoire pur ---
-  const apprendreBloque = isApprentissageBloque();
-  if (!apprendreBloque) {
-    return candidates[Math.floor(Math.random() * candidates.length)];
-  }
+  const deficit = calculerDeficitValidation();
+
+if (deficit === 0) {
+  // Plus de dette : révision libre
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
 
   // --- Priorité aux items faibles (validation < seuil difficulté) ---
   const weakItems = candidates.filter(
@@ -5105,40 +5113,27 @@ function isRevisionModeAvailable() {
 }
 
 function updateUnlockProgress() {
-  const container = document.getElementById('unlock-progress-container');
-  const fill = document.getElementById('unlock-progress-fill');
-  if (!container || !fill) return;
+  if (deficitInitialRevision <= 0) return;
 
-  if (!revisionMode.isActive || !wasBlockedWhenEnteringRevision || hasUnlockedInRevision) {
-    container.style.display = 'none';
-    return;
-  }
+  const deficitActuel = calculerDeficitValidation();
+  const progress = Math.max(
+    0,
+    Math.min(
+      1,
+      1 - deficitActuel / deficitInitialRevision
+    )
+  );
 
-  container.style.display = 'block';
+  const bar = document.getElementById('unlockProgressBar');
+  if (!bar) return;
 
-  const restant = Math.max(0, deficitInitialRevision - pointsGagnesEnRevision);
-  const pourcentage = deficitInitialRevision > 0 ? (restant / deficitInitialRevision) * 100 : 0;
-  fill.style.width = `${pourcentage}%`;
+  bar.style.width = `${progress * 100}%`;
 
-  if (pointsGagnesEnRevision >= deficitInitialRevision) {
-    container.style.display = 'none';
-    hasUnlockedInRevision = true;
+  if (deficitActuel === 0) {
     localStorage.setItem('apprentissageBloque', 'false');
-    updateApprendreButtonState();
-
-    if (!hasUnlockedInRevision) { // première fois seulement
-      setTimeout(() => {
-        showUnlockFlashcard(
-          t('unlock_learning_title'),
-          '🌱',
-          t('unlock_learning_message')
-        );
-      }, 500);
-    }
   }
-
-  fill.classList.toggle('proche-deblocage', pourcentage < 10 && pourcentage > 0);
 }
+
 
 // ============================================================================
 // 🌸 SECTION 9 : MON JARDIN (STATISTIQUES) - VERSION OPTIMISÉE
@@ -7803,6 +7798,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
