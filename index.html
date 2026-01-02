@@ -1760,10 +1760,7 @@ function getOrdinalSuffix(day) {
 let currentUser = null;
 let currentPseudoProposal = null;
 let userToken = null;
-  let clientTruth = {
-  stats_json: {},
-  niveau_atteint: 1
-};  
+
 resetClientTruth();
 // --- Variables anti-bot ---
 let stepTimestamps = {};
@@ -1785,7 +1782,10 @@ const MONTH_NAMES = {
 };
 // --- Fonctions authentification ---
 async function initUserSystem() {
-  
+  let clientTruth = {
+  stats_json: {},
+  niveau_atteint: 1
+};  
 
   userToken = localStorage.getItem('userToken');
   
@@ -7898,6 +7898,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
