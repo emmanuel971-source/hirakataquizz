@@ -4738,7 +4738,7 @@ function resetGameContext() {
 // ============================================================================
 // 🔄 SECTION 8 : MODE RÉVISION
 // ============================================================================
-let revisionAnswerCount = 0;
+
 // --- Variables révision ---
 let revisionMode = {
   currentQuestion: "",
@@ -4757,156 +4757,213 @@ let deficitInitialRevision = 0;
 let pointsGagnesEnRevision = 0;
 let hasUnlockedInRevision = false;
 
-// --- Helpers internes ---
-const getRecentRevisionItems = () => 
-  JSON.parse(localStorage.getItem('recentRevisionItems') || '[]').map(id => parseInt(id, 10));
-
-const updateRecentRevisionItems = (itemId) => {
-  const recent = getRecentRevisionItems();
-  recent.push(parseInt(itemId, 10));
-  if (recent.length > 3) recent.shift();
-  localStorage.setItem('recentRevisionItems', JSON.stringify(recent));
-};
-
-const selectRevisionItem = (availableItems) => {
-  const recent = getRecentRevisionItems();
-  const filteredByTampon = availableItems.filter(item => !recent.includes(parseInt(item.ID, 10)));
-  let candidates = filteredByTampon.length >= 4 ? filteredByTampon : availableItems;
-
-  const apprendreBloque = isApprentissageBloque();
-
-  if (!apprendreBloque) {
-    // Tirage aléatoire pur
-    return candidates[Math.floor(Math.random() * candidates.length)];
-  }
-
-  // Tirage pondéré (priorité aux items faibles)
-  const weakItems = candidates.filter(item => 
-    (validationCache[parseInt(item.ID, 10)] || 0) < SEUIL_VALIDATION
-  );
-  if (weakItems.length >= 4) candidates = weakItems;
-
-  const weights = candidates.map(item => {
-    const stats = statsCache.items[parseInt(item.ID, 10)] || { pourcentage: 0 };
-    const p = stats.pourcentage;
-    return p === 0 ? 50 : Math.min(50, Math.pow(100 / (p + 10), 2));
-  });
-
-  const total = weights.reduce((a, b) => a + b, 0);
-  let rand = Math.random() * total;
-  for (let i = 0; i < candidates.length; i++) {
-    rand -= weights[i];
-    if (rand <= 0) return candidates[i];
-  }
-  return candidates[0]; // fallback
-};
-
 // --- Fonctions révision ---
 function startRevisionQuestion() {
+
+
   const niveauActif = determineNiveauActif(HiraganaList);
-
-  const excludedKatakanaLevels = [3,5,7,10,11,12,14,16,17,21,22,24,25,26,27,28,29,30,31,32,34,35,36,37,38];
-
-  const hiraganaItems = HiraganaList.filter(h =>
-    parseInt(h.Niveau || 1, 10) < niveauActif &&
+  const excludedKatakanaLevels = [3, 5, 7, 10, 11, 12, 14, 16, 17, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38];
+  const hiraganaItems = HiraganaList.filter(h => 
+    parseInt(h.Niveau || 1) < niveauActif && 
     revisionRomajiTable[h.Hiragana] &&
     h.Hiragana && h.Romaji
   );
-
-  const katakanaItems = HiraganaList.filter(h =>
-    parseInt(h.Niveau || 1, 10) < niveauActif &&
-    !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1, 10)) &&
+  const katakanaItems = HiraganaList.filter(h => 
+    parseInt(h.Niveau || 1) < niveauActif && 
+    !excludedKatakanaLevels.includes(parseInt(h.Niveau || 1)) && 
     revisionKatakanaTable[h.Katakana] &&
     h.Katakana && h.Romaji
   );
-
   const availableItems = [
-    ...hiraganaItems.map(i => ({ ...i, type: 'hiragana', key: i.Hiragana })),
-    ...katakanaItems.map(i => ({ ...i, type: 'katakana', key: getLocalizedKatakana(i) }))
+    ...hiraganaItems.map(item => ({ ...item, type: 'hiragana', key: item.Hiragana })), 
+    ...katakanaItems.map(item => ({ ...item, type: 'katakana', key: getLocalizedKatakana(item) }))
   ];
 
-  if (availableItems.length === 0) return;
+  console.log(`🎯 Items disponibles pour révision: Hiragana=${hiraganaItems.length}, Katakana=${katakanaItems.length}`);
 
-  const selectedItem = selectRevisionItem(availableItems);
-  updateRecentRevisionItems(selectedItem.ID);
 
-  // Configuration de la question
+
+  // Tampon des 3 derniers tirages - convertir en numbers
+  const recentItems = JSON.parse(localStorage.getItem('recentRevisionItems') || '[]').map(id => parseInt(id));
+
+  let selectedItem;
+  const apprendreBloque = isApprentissageBloque();
+  if (!apprendreBloque) {
+    // 🎲 TIRAGE ALÉATOIRE PUR (20%) - Filtré seulement par le tampon
+    const randomItems = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
+    const finalRandomItems = randomItems.length >= 4 ? randomItems : availableItems;
+    
+    selectedItem = finalRandomItems[Math.floor(Math.random() * finalRandomItems.length)];
+    
+    console.log(`🎲 TIRAGE ALÉATOIRE (20%)`);
+    console.log(`📋 Items disponibles pour tirage aléatoire: ${finalRandomItems.length}/${availableItems.length}`);
+    console.log(`🔍 Items filtrés par tampon:`, finalRandomItems.map(item => `${item.key}(ID:${item.ID})`).join(', '));
+    
+  } else {
+    // ⚖️ TIRAGE PONDÉRÉ (80%) - Filtré par Validation ≤ 10 + tampon
+    const validationFilteredItems = availableItems.filter(item => (validationCache[parseInt(item.ID)] || 0) < seuilValidation);
+    const weightedItems = validationFilteredItems.filter(item => !recentItems.includes(parseInt(item.ID)));
+    
+    let finalWeightedItems;
+    
+    if (weightedItems.length >= 4) {
+      // Cas idéal : assez d'items respectant validation ≤ 10 ET hors tampon
+      finalWeightedItems = weightedItems;
+    } else if (weightedItems.length > 0) {
+      // Peu d'items mais au moins quelques-uns : on les garde
+      finalWeightedItems = weightedItems;
+    } else {
+      // Aucun item respectant les deux contraintes
+      // PRIORITÉ : éviter le tampon (libérer contrainte validation ≤ 10)
+      const itemsHorsTampon = availableItems.filter(item => !recentItems.includes(parseInt(item.ID)));
+      if (itemsHorsTampon.length > 0) {
+        finalWeightedItems = itemsHorsTampon;
+        console.log(`⚠️ FALLBACK 1 - Libération contrainte Validation ≤ 10 pour éviter tampon`);
+      } else {
+        // Dernier recours : prendre tous les items (même dans le tampon)
+        finalWeightedItems = availableItems;
+        console.log(`⚠️ FALLBACK 2 - Tous les items utilisés (tampon ignoré)`);
+      }
+    }
+
+    // Tirage pondéré sur les items finaux
+    const weights = finalWeightedItems.map(item => {
+      const stats = statsCache.items[parseInt(item.ID)] || { pourcentage: 0 };
+      const pourcentage = stats.pourcentage;
+      return pourcentage === 0 ? 50 : Math.min(50, Math.pow(100 / (pourcentage + 10), 2));
+    });
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let random = Math.random() * totalWeight;
+    for (let i = 0; i < finalWeightedItems.length; i++) {
+      random -= weights[i];
+      if (random <= 0) {
+        selectedItem = finalWeightedItems[i];
+        break;
+      }
+    }
+    
+    console.log(`⚖️ TIRAGE PONDÉRÉ (80%)`);
+    console.log(`📋 Items disponibles (Validation ≤ 10 + tampon): ${finalWeightedItems.length}/${availableItems.length}`);
+    console.log(`🔍 Items respectant Validation ≤ 10:`, 
+      validationFilteredItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0})`)
+        .join(', '));
+    console.log(`🚫 Items exclus par tampon:`, recentItems.join(', '));
+    console.log(`✅ Items finaux pour pondération:`, 
+      finalWeightedItems.map(item => `${item.key}(ID:${item.ID},Val:${validationCache[parseInt(item.ID)] || 0},${(statsCache.items[parseInt(item.ID)]?.pourcentage || 0).toFixed(1)}%)`)
+        .join(', '));
+  }
+
+  // Mettre à jour le tampon - s'assurer que c'est un number
+  recentItems.push(parseInt(selectedItem.ID));
+  if (recentItems.length > 3) recentItems.shift(); // Garder seulement les 3 derniers
+  localStorage.setItem('recentRevisionItems', JSON.stringify(recentItems));
+
+  // Log pour vérification
+  console.log(`🎯 Question sélectionnée: "${selectedItem.key}" (ID: ${selectedItem.ID}, Type: ${selectedItem.type})`);
+  console.log(`🔍 Tampon récent:`, recentItems);
+
+  // Configurer la question
   revisionMode.currentQuestion = selectedItem.key;
   const table = selectedItem.type === 'hiragana' ? revisionRomajiTable : revisionKatakanaTable;
-  const entry = table[selectedItem.key];
-
-  revisionMode.romajiSegments = entry.romaji;
-  revisionMode.charCounts = entry.charCounts;
-  revisionMode.fullCorrect = entry.romaji.join("");
+  const tableEntry = table[selectedItem.key];
+  revisionMode.romajiSegments = tableEntry.romaji;
+  revisionMode.charCounts = tableEntry.charCounts;
+  revisionMode.fullCorrect = revisionMode.romajiSegments.join("");
   revisionMode.currentItem = selectedItem;
 
-  // Cumuls pour feedback progressif
-  let cumRom = 0, cumChar = 0;
-  revisionMode.cumulativeRomaji = entry.romaji.map(seg => (cumRom += seg.length));
-  revisionMode.cumulativeChars = entry.charCounts.map(count => (cumChar += count));
+  let cumRom = 0;
+  revisionMode.cumulativeRomaji = revisionMode.romajiSegments.map(segment => {
+    cumRom += segment.length;
+    return cumRom;
+  });
+  let cumChar = 0;
+  revisionMode.cumulativeChars = revisionMode.charCounts.map(count => {
+    cumChar += count;
+    return cumChar;
+  });
 
-  // Reset saisie
   revisionMode.input = "";
+  document.getElementById("revision-question").innerHTML = 
+    revisionMode.currentQuestion.split("").map((char, index) => 
+      `<div class="char-card" id="revision-card-${index}">
+        <span id="revision-char-${index}">${char}</span>
+      </div>`
+    ).join("");
   document.getElementById("revision-input-display").textContent = "";
+ 
 
-  // Affichage des cartes
-  const questionEl = document.getElementById("revision-question");
-  if (questionEl) {
-    questionEl.innerHTML = revisionMode.currentQuestion.split("").map((char, i) => `
-      <div class="char-card" id="revision-card-${i}">
-        <span id="revision-char-${i}">${char}</span>
-      </div>
-    `).join("");
-  }
-
-  // Bulle de validation sur la première carte
-  const firstCard = document.getElementById("revision-card-0");
-  if (firstCard) {
-    const val = parseInt(selectedItem.Validation || validationCache[selectedItem.ID] || 0, 10);
-    showValidationBubble(firstCard, val, SEUIL_VALIDATION);
-    firstCard.classList.add("pulsing");
-  }
-
-  // Barre de déblocage
-  setTimeout(updateUnlockProgress, 200);
+  // 💬 Affiche l’infobulle du déficit/avance de Validation sur la première carte
+const firstCard = document.getElementById(`revision-card-0`);
+if (firstCard && revisionMode.currentItem) {
+  const currentValidation = parseInt(revisionMode.currentItem.Validation || validationCache[revisionMode.currentItem.ID] || 0);
+  showValidationBubble(firstCard, currentValidation, seuilValidation);
 }
 
-function updateRevisionFeedback() {
-  const inputLen = revisionMode.input.length;
 
-  // Reset classes
+  
+
+  if (firstCard) firstCard.classList.add("pulsing");
+
+  console.log(`📝 Question: "${revisionMode.currentQuestion}" (${selectedItem.Romaji}) -> Attendu: "${revisionMode.fullCorrect}"`);
+  console.log(`📊 Pourcentage item (ID ${selectedItem.ID}): ${(statsCache.items[parseInt(selectedItem.ID)]?.pourcentage || 0).toFixed(2)}% | Pourcentage global: ${statsCache.globalPourcentage.toFixed(2)}%`);
+// ✅ FORCER l'affichage de la barre à chaque nouvelle question
+setTimeout(() => {
+  updateUnlockProgress();
+}, 200);
+} 
+function updateRevisionFeedback() {
+  // Reset toutes les classes
   for (let i = 0; i < revisionMode.currentQuestion.length; i++) {
-    const card = document.getElementById(`revision-card-${i}`);
-    if (card) {
-      card.className = "char-card";
-      card.classList.remove("pulsing", "pop-animation");
+    const cardElement = document.getElementById(`revision-card-${i}`);
+    const charElement = document.getElementById(`revision-char-${i}`);
+    if (cardElement) {
+      cardElement.classList.remove(
+        "char-correct-1", "char-correct-2", "char-correct-3", "char-correct-4",
+        "char-incorrect-1", "char-incorrect-2", "char-incorrect-3", "char-incorrect-4",
+        "pulsing", "pop-animation"
+      );
+    }
+    if (charElement) {
+      charElement.classList.remove("pulsing");
     }
   }
 
   let currentSegment = -1;
+  const inputLength = revisionMode.input.length;
 
-  revisionMode.romajiSegments.forEach((expected, segIdx) => {
-    const romStart = segIdx > 0 ? revisionMode.cumulativeRomaji[segIdx - 1] : 0;
-    const romEnd = revisionMode.cumulativeRomaji[segIdx];
-    const charStart = segIdx > 0 ? revisionMode.cumulativeChars[segIdx - 1] : 0;
-    const charEnd = revisionMode.cumulativeChars[segIdx];
-
-    const typedLen = Math.max(0, Math.min(inputLen - romStart, expected.length));
-    const typed = revisionMode.input.substring(romStart, romStart + typedLen);
-
+  // Parcourir chaque segment
+  for (let seg = 0; seg < revisionMode.romajiSegments.length; seg++) {
+    const romStart = seg > 0 ? revisionMode.cumulativeRomaji[seg - 1] : 0;
+    const romEnd = revisionMode.cumulativeRomaji[seg];
+    const charStart = seg > 0 ? revisionMode.cumulativeChars[seg - 1] : 0;
+    const charEnd = revisionMode.cumulativeChars[seg];
+    const segmentLength = romEnd - romStart;
+    const typedLen = Math.max(0, Math.min(inputLength - romStart, segmentLength));
+    const typedSegment = revisionMode.input.substring(romStart, romStart + typedLen);
+    const expected = revisionMode.romajiSegments[seg];
     let className = "";
+
+    console.log(`Segment ${seg}: romStart=${romStart}, romEnd=${romEnd}, typedLen=${typedLen}, typedSegment="${typedSegment}", expected="${expected}"`);
+
+    // Gradation basée sur la progression dans le segment
     if (typedLen > 0) {
-      className = expected.startsWith(typed)
-        ? `char-correct-${Math.min(4, typedLen)}`
-        : `char-incorrect-${Math.min(4, typedLen)}`;
+      if (expected.startsWith(typedSegment)) {
+        const level = Math.min(4, typedLen);
+        className = `char-correct-${level}`;
+      } else {
+        const level = Math.min(4, typedLen);
+        className = `char-incorrect-${level}`;
+      }
     }
 
-    // Appliquer aux cartes du segment
+    // Appliquer la gradation aux cartes du segment
     for (let c = charStart; c < charEnd; c++) {
       const card = document.getElementById(`revision-card-${c}`);
+      const span = document.getElementById(`revision-char-${c}`);
       if (card) {
-        card.className = `char-card ${className}`;
-        if (inputLen > romStart && c === charStart && !card.classList.contains("pop-animation")) {
+        card.className = `char-card ${className || ""}`; // Appliquer la gradation
+        // Ajouter animation "pop" et son si on valide un nouveau caractère
+        if (inputLength > romStart && c === charStart && !card.classList.contains("pop-animation")) {
           card.classList.add("pop-animation");
           playPopSound();
           setTimeout(() => card.classList.remove("pop-animation"), 300);
@@ -4914,128 +4971,58 @@ function updateRevisionFeedback() {
       }
     }
 
-    // Validation complète du segment
-    if (inputLen >= romEnd) {
-      const fullTyped = revisionMode.input.substring(romStart, romEnd);
-      const finalClass = fullTyped === expected ? "char-correct-4" : "char-incorrect-4";
-      for (let c = charStart; c < charEnd; c++) {
-        const card = document.getElementById(`revision-card-${c}`);
-        if (card) card.className = `char-card ${finalClass}`;
+    // Validation finale uniquement pour le segment courant si entièrement saisi
+    if (inputLength >= romEnd) {
+      const fullSegment = revisionMode.input.substring(romStart, romEnd);
+      if (fullSegment === expected) {
+        for (let c = charStart; c < charEnd; c++) {
+          const card = document.getElementById(`revision-card-${c}`);
+          if (card) {
+            card.classList.remove("pulsing");
+            card.className = `char-card char-correct-4`;
+          }
+        }
+      } else if (romStart < inputLength) { // Saisie incorrecte partielle
+        for (let c = charStart; c < charEnd; c++) {
+          const card = document.getElementById(`revision-card-${c}`);
+          if (card) {
+            card.classList.remove("pulsing");
+            card.className = `char-card char-incorrect-4`;
+          }
+        }
       }
     }
 
-    // Segment en cours → pulsation
-    if (romStart <= inputLen && inputLen < romEnd) {
-      currentSegment = segIdx;
+    // Déterminer le segment en cours pour la pulsation
+    if (romStart <= inputLength && inputLength < romEnd) {
+      currentSegment = seg;
     }
-  });
+  }
 
-  // Pulsation sur le segment courant
+  // Ajouter la pulsation à la carte en cours
   if (currentSegment >= 0) {
     const charStart = currentSegment > 0 ? revisionMode.cumulativeChars[currentSegment - 1] : 0;
     const charEnd = revisionMode.cumulativeChars[currentSegment];
     for (let c = charStart; c < charEnd; c++) {
-      document.getElementById(`revision-card-${c}`)?.classList.add("pulsing");
+      const cardElement = document.getElementById(`revision-card-${c}`);
+      if (cardElement) {
+        cardElement.classList.add("pulsing");
+      }
     }
   }
 
-  // Vérification réponse complète
-  if (inputLen >= revisionMode.fullCorrect.length && revisionMode.isActive) {
-    handleRevisionAnswer();
-  }
 }
-
-function handleRevisionAnswer() {
-  const isCorrect = revisionMode.input === revisionMode.fullCorrect;
-  const itemId = parseInt(revisionMode.currentItem.ID, 10);
-  const index = HiraganaList.findIndex(h => parseInt(h.ID, 10) === itemId);
-
-  if (index === -1) return;
-
-  // Stats locales
-  statsCache.items[itemId] = statsCache.items[itemId] || { tentatives: 0, reussites: 0, pourcentage: 0 };
-  statsCache.items[itemId].tentatives += 1;
-  statsCache.items[itemId].reussites += isCorrect ? 1 : 0;
-  statsCache.items[itemId].pourcentage = statsCache.items[itemId].tentatives > 0
-    ? (statsCache.items[itemId].reussites / statsCache.items[itemId].tentatives * 100)
-    : 0;
-
-  const totalTentatives = Object.values(statsCache.items).reduce((s, i) => s + i.tentatives, 0);
-  const totalReussites = Object.values(statsCache.items).reduce((s, i) => s + i.reussites, 0);
-  statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
-
-  // Validation & points
-  const oldValidation = parseInt(HiraganaList[index].Validation || 0, 10);
-  let newValidation = oldValidation;
-  let pointsGagnes = 0;
-
-  if (isCorrect) {
-    newValidation = oldValidation + 1;
-    if (oldValidation < SEUIL_VALIDATION) pointsGagnes = 1;
-    playZenBell();
-  } else {
-    newValidation = Math.max(5, oldValidation - 2);
-    const oldDeficit = Math.max(0, SEUIL_VALIDATION - oldValidation);
-    const newDeficit = Math.max(0, SEUIL_VALIDATION - newValidation);
-    pointsGagnes = oldDeficit - newDeficit;
-    playSoftError();
-  }
-
-  HiraganaList[index].Validation = newValidation.toString();
-  validationCache[itemId] = newValidation;
-
-  // Déblocage en révision
-  if (wasBlockedWhenEnteringRevision) {
-    pointsGagnesEnRevision += pointsGagnes;
-    updateUnlockProgress();
-  }
-
-  // Animation flashcard
-  const oldEmoji = getPlantEmoji(oldValidation);
-  const newEmoji = getPlantEmoji(newValidation);
-  const statusChanged = oldEmoji !== newEmoji;
-
-  openRevisionFlashcard(
-    revisionMode.currentItem,
-    newEmoji,
-    isCorrect,
-    oldValidation,
-    newValidation,
-    statusChanged,
-    true
-  );
-
-  // Mise à jour bulle
-  const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
-  if (currentCard) showValidationBubble(currentCard, newValidation, SEUIL_VALIDATION);
-
-  // Envoi stats
-  queueUpdateStats({ token: userToken, id: itemId, scorePoints: isCorrect ? 1 : 0, isRevisionMode: true });
-
-  // ✅ NOUVEAU : Compteur de réponses pour sync check périodique
-  revisionAnswerCount++;
   
-  if (revisionAnswerCount >= 10) {
-    console.log('[REVISION] 10 réponses atteintes → Sync check demandé');
-    SyncMonitor.syncCheckRequested = true;
-    revisionAnswerCount = 0; // Reset du compteur
-  }
-  
-  // Rafraîchissement jardin si page stats ouverte
-  if (document.getElementById('stats')?.classList.contains('active')) {
-    setTimeout(generateGarden, 100);
-  }
-}
-
 function initRevisionKeyboard() {
-  document.querySelectorAll('.revision-key').forEach(key => {
-    key.replaceWith(key.cloneNode(true));
-  });
+  const revisionKeys = document.querySelectorAll('.revision-key');
+  revisionKeys.forEach(key => key.replaceWith(key.cloneNode(true)));
+  const newRevisionKeys = document.querySelectorAll('.revision-key');
 
-  document.querySelectorAll('.revision-key').forEach(key => {
-    key.addEventListener("click", () => {
+  newRevisionKeys.forEach(key => {
+    key.addEventListener("click", async () => {
       if (!revisionMode.isActive) return;
 
+      // Saisie ou effacement
       if (key.id === "revision-back") {
         revisionMode.input = revisionMode.input.slice(0, -1);
       } else {
@@ -5044,17 +5031,115 @@ function initRevisionKeyboard() {
 
       document.getElementById("revision-input-display").textContent = revisionMode.input;
       updateRevisionFeedback();
+
+      const totalLength = revisionMode.cumulativeRomaji[revisionMode.cumulativeRomaji.length - 1] || 1;
+
+      // Réponse complète → on valide
+      if (revisionMode.input.length >= totalLength) {
+        const isCorrect = revisionMode.input === revisionMode.fullCorrect;
+        const itemId = parseInt(revisionMode.currentItem.ID);
+
+        // === Stats (inchangé) ===
+        statsCache.items[itemId] = statsCache.items[itemId] || { tentatives: 0, reussites: 0, pourcentage: 0 };
+        statsCache.items[itemId].tentatives += 1;
+        statsCache.items[itemId].reussites += isCorrect ? 1 : 0;
+        statsCache.items[itemId].pourcentage = statsCache.items[itemId].tentatives > 0
+          ? (statsCache.items[itemId].reussites / statsCache.items[itemId].tentatives * 100)
+          : 0;
+
+        const totalTentatives = Object.values(statsCache.items).reduce((s, i) => s + i.tentatives, 0);
+        const totalReussites = Object.values(statsCache.items).reduce((s, i) => s + i.reussites, 0);
+        statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+
+        // === Validation + points (inchangé) ===
+        const hiraganaIndex = HiraganaList.findIndex(h => h.ID == itemId);
+        const currentValidation = parseInt(HiraganaList[hiraganaIndex].Validation || 0);
+        let newValidation;
+        let pointsGagnes = 0;
+
+        if (isCorrect) {
+          newValidation = currentValidation + 1;
+          if (currentValidation < seuilValidation) pointsGagnes = 1;
+        } else {
+          newValidation = Math.max(5, currentValidation - 2);
+          const oldDeficit = Math.max(0, seuilValidation - currentValidation);
+          const newDeficit = Math.max(0, seuilValidation - newValidation);
+          pointsGagnes = oldDeficit - newDeficit;
+        }
+
+        HiraganaList[hiraganaIndex].Validation = newValidation.toString();
+        validationCache[itemId] = newValidation;
+
+        if (wasBlockedWhenEnteringRevision) {
+          pointsGagnesEnRevision += pointsGagnes;
+          updateUnlockProgress();
+        }
+
+        // === Calcul pour les animations ===
+        const oldEmoji = getPlantEmoji(currentValidation);
+        const newEmoji = getPlantEmoji(newValidation);
+        const statusChanged = oldEmoji !== newEmoji; // surtout vrai lors du passage 🌿 ↔ 🌸
+
+        // === AFFICHAGE DE LA FLASHCARD   ===
+ // === AFFICHAGE DE LA FLASHCARD PENDANT 3 SECONDES ===
+openRevisionFlashcard(
+  revisionMode.currentItem,   // l'item
+  newEmoji,                   // emoji à jour
+  isCorrect,                  // ✅ bonne ou mauvaise réponse
+  currentValidation,          // ✅ ancien score (AVANT la validation)
+  newValidation,              // ✅ nouveau score (APRÈS la validation)
+  statusChanged,              // animation plante si changement de statut
+  true                        // toujours scintillement du score
+);
+
+
+        // === Feedback texte + couleur ===
+        const niveau = parseInt(revisionMode.currentItem.Niveau || 1);
+        const isHighLevel = niveau > 38;
+        const isMultiChar = revisionMode.romajiSegments.length >= 2;
+        const katakanaDisplay = (!isHighLevel && isMultiChar) ? ` (${getLocalizedKatakana(revisionMode.currentItem)})` : '';
+
+        if (isCorrect) {
+         
+          playZenBell();
+        } else {
+        
+          playSoftError();
+        }
+
+        // === Mise à jour bulle de validation sur la carte (optionnel mais joli) ===
+        const currentCard = document.querySelector('.char-card.pulsing') || document.getElementById('revision-card-0');
+        if (currentCard) {
+          showValidationBubble(currentCard, newValidation, seuilValidation);
+        }
+
+        // === Envoi stats en arrière-plan ===
+        queueUpdateStats({ token: userToken, id: itemId, scorePoints: isCorrect ? 1 : 0, isRevisionMode: true });
+
+        // === Rafraîchissement stats si page ouverte ===
+        if (document.getElementById('stats').classList.contains('active')) {
+          setTimeout(generateGarden, 100);
+        }
+
+       
+      }
     });
   });
 }
 
 function isRevisionModeAvailable() {
   return niveauActif >= 4;
-}
-
+}  
 function updateUnlockProgress() {
+  console.log('🔍 updateUnlockProgress appelée:', {
+  isActive: revisionMode.isActive,
+  wasBlocked: wasBlockedWhenEnteringRevision,
+  hasUnlocked: hasUnlockedInRevision,
+  deficit: deficitInitialRevision
+});
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
+
   if (!container || !fill) return;
 
   if (!revisionMode.isActive || !wasBlockedWhenEnteringRevision || hasUnlockedInRevision) {
@@ -5064,30 +5149,44 @@ function updateUnlockProgress() {
 
   container.style.display = 'block';
 
-  const restant = Math.max(0, deficitInitialRevision - pointsGagnesEnRevision);
-  const pourcentage = deficitInitialRevision > 0 ? (restant / deficitInitialRevision) * 100 : 0;
+  const deficitRestant = Math.max(0, deficitInitialRevision - pointsGagnesEnRevision);
+  const pourcentage = deficitInitialRevision > 0 ? (deficitRestant / deficitInitialRevision * 100) : 0;
+
   fill.style.width = `${pourcentage}%`;
 
-  if (pointsGagnesEnRevision >= deficitInitialRevision) {
+  console.log(`📊 Progress: ${deficitRestant}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%) | Points: ${pointsGagnesEnRevision}`);
+
+if (pointsGagnesEnRevision >= deficitInitialRevision) {
     container.style.display = 'none';
+    
+    // ✅ Vérifier si c'était vraiment bloqué avant d'afficher la carte
+    const wasBlocked = hasUnlockedInRevision === false;
+    
     hasUnlockedInRevision = true;
     localStorage.setItem('apprentissageBloque', 'false');
     updateApprendreButtonState();
-
-    if (!hasUnlockedInRevision) { // première fois seulement
-      setTimeout(() => {
-        showUnlockFlashcard(
-          t('unlock_learning_title'),
-          '🌱',
-          t('unlock_learning_message')
-        );
-      }, 500);
-    }
+    console.log('🎉 Déblocage atteint');
+    
+    // ✅ Afficher la carte seulement si on vient de débloquer
+if (wasBlocked) {
+  setTimeout(() => {
+    showUnlockFlashcard(
+      t('unlock_learning_title'),
+      '🌱',
+      t('unlock_learning_message')
+    );
+  }, 500);
+}
   }
 
-  fill.classList.toggle('proche-deblocage', pourcentage < 10 && pourcentage > 0);
+  if (pourcentage < 10 && pourcentage > 0) {
+    fill.classList.add('proche-deblocage');
+  } else {
+    fill.classList.remove('proche-deblocage');
+  }
 }
 
+  
 // ============================================================================
 // 🌸 SECTION 9 : MON JARDIN (STATISTIQUES) - VERSION OPTIMISÉE
 // ============================================================================
@@ -7778,5 +7877,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
