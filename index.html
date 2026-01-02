@@ -905,6 +905,10 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 ></script>
 
 <script>
+  let clientTruth = {
+  stats_json: {},
+  niveau_atteint: 1
+};
 "use strict";
 // ============================================================================
 // 🌍 SECTION 1 : TRADUCTIONS & INTERNATIONALISATION
@@ -1761,7 +1765,6 @@ let currentUser = null;
 let currentPseudoProposal = null;
 let userToken = null;
 
-resetClientTruth();
 // --- Variables anti-bot ---
 let stepTimestamps = {};
 let sessionStartTime = null;
@@ -1782,10 +1785,7 @@ const MONTH_NAMES = {
 };
 // --- Fonctions authentification ---
 async function initUserSystem() {
-  let clientTruth = {
-  stats_json: {},
-  niveau_atteint: 1
-};  
+  
 
   userToken = localStorage.getItem('userToken');
   
@@ -1794,7 +1794,7 @@ async function initUserSystem() {
     
     if (result.success) {
       currentUser = result.user;
-      resetClientTruth(); // 🔥 AJOUT
+      
       // ✅ RÉINITIALISER LE CONTEXTE
       resetGameContext();
       
@@ -1864,7 +1864,9 @@ if (!authResult.success) {
       userToken = newToken;
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
-      resetClientTruth(); // 🔥 TRÈS IMPORTANT
+      clientTruth = { stats_json: {}, niveau_atteint: 1 };
+if (typeof clientTruth === 'undefined') return;
+
       console.log('✅ Token mis à jour, rechargement des données...');
       
       // ✅ Réinitialiser le contexte du jeu
@@ -2702,10 +2704,6 @@ async function loadUserProgress() {
     
     console.log('✅ loadUserProgress terminé');
  //   initClientTruth(userStats.stats, niveauMaxAtteint);
-rebuildClientTruthFromHiraganaList();
-clientTruthReady = true;
-
-console.log('[CLIENT TRUTH] READY');
 
   } else {
     console.error('⚠️ Erreur chargement stats user:', userStats.error);
@@ -2996,7 +2994,7 @@ function smartSegmentRomaji(romaji) {
 // ============================================================================
 
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwlzkLGtojwVylpPgHtaaGKW0MocwZItPU6iVvaVVDYgG2qhiAeE0q66jrJWXTwiFuEPg/exec';
-let clientTruthReady = false;
+
 let pendingUpdates = [];
 let isProcessing = false;
 async function ensureLatestProgress() {
@@ -3027,16 +3025,6 @@ async function ensureLatestProgress() {
   console.log('✅ Progression synchronisée : les stats serveur sont maintenant à jour');
 }
   
-function resetClientTruth() {
-  console.log('[CLIENT TRUTH] RESET');
-  
-  clientTruth = {
-    stats_json: {},
-    niveau_atteint: 1
-  };
-
-  clientTruthReady = false;
-}
   
   // ===============================================
 // SYNC CHECK TRIGGER - basé sur la descente du compteur
@@ -3307,12 +3295,8 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
   // La fonction se termine → await initClientTruth() se résout ici
 }
  function updateClientTruthOnAnswer(params) {
-   if (!clientTruthReady) {
-  console.warn('[CLIENT TRUTH] Ignored answer: not ready yet');
-  return;
-}
-
   console.log('[CLIENT TRUTH INPUT]', params);
+if (!clientTruth.stats_json || Object.keys(clientTruth.stats_json).length === 0) return;
 
   if (!params || params.id == null) {
     console.warn('[CLIENT TRUTH] invalid params', params);
@@ -7309,7 +7293,6 @@ function preloadEmojis() { /* ... */ }
 
 // --- Fonctions initialisation ---
 async function initGame() {
-
   try {
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
@@ -7898,10 +7881,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
-
-
-
-
 
 
 
