@@ -1755,10 +1755,7 @@ function getOrdinalSuffix(day) {
 // ============================================================================
 // 👤 SECTION 2 : AUTHENTIFICATION & UTILISATEUR
 // ============================================================================
-let clientTruth = {
-  stats_json: {},
-  niveau_atteint: 1
-};
+
 // --- Variables globales utilisateur ---
 let currentUser = null;
 let currentPseudoProposal = null;
@@ -7308,6 +7305,10 @@ function preloadEmojis() { /* ... */ }
 
 // --- Fonctions initialisation ---
 async function initGame() {
+  let clientTruth = {
+  stats_json: {},
+  niveau_atteint: 1
+};
   try {
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
@@ -7896,6 +7897,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
