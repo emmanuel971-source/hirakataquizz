@@ -4367,7 +4367,10 @@ function calculerDeficitValidation() {
     
       
       items.forEach(item => {
-        const val = parseInt(item.Validation || 0, 10);
+        const val =
+  clientTruth?.stats_json?.[item.ID]?.validation ??
+  parseInt(item.Validation || 0, 10);
+
      ;
         
         // ✅ COMPARER AVEC seuilValidation, pas SEUIL_VALIDATION
@@ -4784,36 +4787,70 @@ const updateRecentRevisionItems = (itemId) => {
 };
 
 const selectRevisionItem = (availableItems) => {
+  if (!availableItems || availableItems.length === 0) return null;
+
+  // --- Helper local : validation réelle en révision ---
+  const getValidation = (item) => {
+    const id = parseInt(item.ID, 10);
+    return (
+      clientTruth?.stats_json?.[id]?.validation ??
+      validationCache[id] ??
+      parseInt(item.Validation || 0, 10)
+    );
+  };
+
+  // --- Helper local : pourcentage réel ---
+  const getPourcentage = (item) => {
+    const id = parseInt(item.ID, 10);
+    return (
+      clientTruth?.stats_json?.[id]?.pourcentage ??
+      statsCache?.items?.[id]?.pourcentage ??
+      0
+    );
+  };
+
+  // --- Anti-répétition (tampon) ---
   const recent = getRecentRevisionItems();
-  const filteredByTampon = availableItems.filter(item => !recent.includes(parseInt(item.ID, 10)));
-  let candidates = filteredByTampon.length >= 4 ? filteredByTampon : availableItems;
+  const filteredByTampon = availableItems.filter(
+    item => !recent.includes(parseInt(item.ID, 10))
+  );
+  let candidates =
+    filteredByTampon.length >= 4 ? filteredByTampon : availableItems;
 
+  // --- Si apprentissage non bloqué : tirage aléatoire pur ---
   const apprendreBloque = isApprentissageBloque();
-
   if (!apprendreBloque) {
-    // Tirage aléatoire pur
     return candidates[Math.floor(Math.random() * candidates.length)];
   }
 
-  // Tirage pondéré (priorité aux items faibles)
-  const weakItems = candidates.filter(item => 
-    (validationCache[parseInt(item.ID, 10)] || 0) < SEUIL_VALIDATION
+  // --- Priorité aux items faibles (validation < seuil difficulté) ---
+  const weakItems = candidates.filter(
+    item => getValidation(item) < seuilValidation
   );
-  if (weakItems.length >= 4) candidates = weakItems;
 
+  if (weakItems.length >= 4) {
+    candidates = weakItems;
+  }
+
+  // --- Pondération par performance (plus faible = plus probable) ---
   const weights = candidates.map(item => {
-    const stats = statsCache.items[parseInt(item.ID, 10)] || { pourcentage: 0 };
-    const p = stats.pourcentage;
+    const p = getPourcentage(item);
     return p === 0 ? 50 : Math.min(50, Math.pow(100 / (p + 10), 2));
   });
 
+  // --- Tirage aléatoire pondéré ---
   const total = weights.reduce((a, b) => a + b, 0);
   let rand = Math.random() * total;
+
   for (let i = 0; i < candidates.length; i++) {
     rand -= weights[i];
-    if (rand <= 0) return candidates[i];
+    if (rand <= 0) {
+      return candidates[i];
+    }
   }
-  return candidates[0]; // fallback
+
+  // --- Fallback de sécurité ---
+  return candidates[0];
 };
 
 // --- Fonctions révision ---
@@ -4996,8 +5033,8 @@ function handleRevisionAnswer() {
     playSoftError();
   }
 
-  HiraganaList[index].Validation = newValidation.toString();
-  validationCache[itemId] = newValidation;
+//  HiraganaList[index].Validation = newValidation.toString();
+//  validationCache[itemId] = newValidation;
 
   // Déblocage en révision
   if (wasBlockedWhenEnteringRevision) {
@@ -7766,6 +7803,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
