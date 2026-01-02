@@ -1860,18 +1860,7 @@ if (!authResult.success) {
       userToken = newToken;
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
-      HiraganaList = [];
-validationCache = {};
-statsCache = { items: {}, globalPourcentage: 0 };
-revisionRomajiTable = {};
-revisionKatakanaTable = {};
-previousValidationStates = new Map();
-pendingUpdates = [];
-localStorage.removeItem('pending_updates');
-
-// Reset clientTruth du précédent user
-const oldKey = getClientTruthStorageKey();  // ancien pseudo si encore dispo, sinon ignore
-// Mais comme pseudo changé, le nouveau aura son propre key → pas besoin de remove
+      
       console.log('✅ Token mis à jour, rechargement des données...');
       
       // ✅ Réinitialiser le contexte du jeu
@@ -3856,27 +3845,15 @@ async function processUpdates() {
   isProcessing = false;
 
   // Rebuild complet depuis clientTruth
- rebuildHiraganaListFromClientTruth();
-
-// ✅ NOUVEAU : Ne recalcule le niveauActif QUE si le chargement complet est terminé
-if (!backgroundLoadingInProgress && HiraganaList.length >= 400) {  // ~nombre total d'items attendu, ajuste si besoin (ex: 414)
+  rebuildHiraganaListFromClientTruth();
   niveauActif = determineNiveauActif(HiraganaList);
-  console.log('[PROCESS UPDATES] Chargement complet → recalcul niveauActif:', niveauActif);
-  
   document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
   updateLevelProgress(HiraganaList, niveauActif);
   renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
   renderHiraganaCards(HiraganaList, niveauActif);
   updateMenuButtonStates();
   updateAccountDisplay();
-} else {
-  console.log('[PROCESS UPDATES] Chargement background en cours ou incomplet → niveauActif conservé temporairement:', niveauActif);
-  // Optionnel : rafraîchir juste les cartes du niveau actuel sans toucher au niveau
-  renderHiraganaCards(HiraganaList, niveauActif);
-}
-
-// Toujours mettre à jour l'indicateur de sync
-updateSyncIndicator();
+  updateSyncIndicator();
 }
 
 // ============================================================================
@@ -7625,22 +7602,6 @@ async function loadRemainingDataInBackground(profile) {
     console.error('❌ Erreur chargement background:', error.message);
   } finally {
     backgroundLoadingInProgress = false;
-  
-  // ✅ Une fois TOUT chargé, on force un recalcul propre du niveau actif
-  console.log('✅ Chargement background terminé → recalcul final du niveau actif');
-  rebuildHiraganaListFromClientTruth();  // au cas où des stats locales aient changé
-  niveauActif = determineNiveauActif(HiraganaList);
-  
-  if (document.getElementById("levelDisplay")) {
-    document.getElementById("levelDisplay").innerText = `${t('quiz_level')} ${niveauActif}`;
-    updateLevelProgress(HiraganaList, niveauActif);
-    renderProgressBar(niveauActif, getMaxLevel(HiraganaList));
-    renderHiraganaCards(HiraganaList, niveauActif);
-    updateMenuButtonStates();
-    updateAccountDisplay();
-  }
-  
-  console.log('✅ UI mise à jour après chargement complet');
   }
 }
 function updateLoadingProgress(percent, message) {
@@ -7916,7 +7877,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
-
 
 
 
