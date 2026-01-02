@@ -4369,12 +4369,13 @@ function calculerDeficitValidation() {
       const items = getItemsByLevel(HiraganaList, niveau);
       console.log(`📊 Niveau ${niveau}: ${items.length} items`);
       
-      items.forEach(item => {
-        const val = parseInt(item.Validation || 0, 10);
-        if (val < SEUIL_VALIDATION) {
-          deficit += SEUIL_VALIDATION - val;
-        }
-      });
+items.forEach(item => {
+  const val = parseInt(item.Validation || 0, 10);
+  console.log(`📊 Item ID=${item.ID}, Validation=${val}, manque=${SEUIL_VALIDATION - val}`); // ⬅️ AJOUTE ÇA
+  if (val < SEUIL_VALIDATION) {
+    deficit += (SEUIL_VALIDATION - val);
+  }
+});
     }
   }
   
@@ -7776,6 +7777,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
