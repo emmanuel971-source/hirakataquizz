@@ -4361,6 +4361,10 @@ function calculerDeficitValidation() {
   }
   
   let deficit = 0;
+  
+  // ✅ UTILISER seuilValidation (difficulté) au lieu de SEUIL_VALIDATION (constante)
+  const seuilRequis = seuilValidation || 6;
+  
   for (let g = 1; g < groupeActuel; g++) {
     const niveaux = GROUPES[g]?.niveaux || [];
     console.log(`📊 Groupe ${g}, niveaux:`, niveaux);
@@ -4369,17 +4373,19 @@ function calculerDeficitValidation() {
       const items = getItemsByLevel(HiraganaList, niveau);
       console.log(`📊 Niveau ${niveau}: ${items.length} items`);
       
-items.forEach(item => {
-  const val = parseInt(item.Validation || 0, 10);
-  console.log(`📊 Item ID=${item.ID}, Validation=${val}, manque=${SEUIL_VALIDATION - val}`); // ⬅️ AJOUTE ÇA
-  if (val < SEUIL_VALIDATION) {
-    deficit += (SEUIL_VALIDATION - val);
-  }
-});
+      items.forEach(item => {
+        const val = parseInt(item.Validation || 0, 10);
+        console.log(`📊 Item ID=${item.ID}, Validation=${val}, manque=${seuilRequis - val}`);
+        
+        // ✅ COMPARER AVEC seuilValidation, pas SEUIL_VALIDATION
+        if (val < seuilRequis) {
+          deficit += (seuilRequis - val);
+        }
+      });
     }
   }
   
-  console.log('📊 Déficit total:', deficit);
+  console.log(`📊 Déficit total (seuil=${seuilRequis}):`, deficit);
   return deficit;
 }
 function calculerDeficitMaximum() {
@@ -7777,6 +7783,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
