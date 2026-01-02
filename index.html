@@ -4339,35 +4339,46 @@ function isApprentissageBloque() {
 
 function calculerDeficitValidation() {
   const groupeActuel = getNiveauGroupe(niveauActif);
-  if (groupeActuel < 3) return 0;
+  if (groupeActuel < 3) return 0; // Pas de blocage avant le groupe 3
   
-  let deficit = 0;
+  let deficitTotal = 0;
+  
+  // Parcourir TOUS les groupes précédents (1 à groupeActuel-1)
   for (let g = 1; g < groupeActuel; g++) {
-    const niveaux = GROUPES[g]?.niveaux || [];
-    for (const niveau of niveaux) {
-      getItemsByLevel(HiraganaList, niveau).forEach(item => {
-        const val = parseInt(item.Validation || 0, 10);
-        if (val < SEUIL_VALIDATION) {
-          deficit += SEUIL_VALIDATION - val;
+    const niveauxGroupe = GROUPES[g].niveaux;
+    
+    for (const niveau of niveauxGroupe) {
+      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+      for (const item of itemsNiveau) {
+        const validation = parseInt(item.Validation || 0);
+        if (validation < seuilValidation) {
+  deficitTotal += (seuilValidation - validation);
         }
-      });
+      }
     }
   }
-  return deficit;
+  
+  return deficitTotal;
 }
 function calculerDeficitMaximum() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   if (groupeActuel < 3) return 0;
   
   let totalItems = 0;
+  
+  // Parcourir TOUS les groupes précédents (1 à groupeActuel-1)
   for (let g = 1; g < groupeActuel; g++) {
-    const niveaux = GROUPES[g]?.niveaux || [];
-    for (const niveau of niveaux) {
-      totalItems += getItemsByLevel(HiraganaList, niveau).length;
+    const niveauxGroupe = GROUPES[g].niveaux;
+    
+    for (const niveau of niveauxGroupe) {
+      const itemsNiveau = HiraganaList.filter(h => parseInt(h.Niveau) === niveau);
+      totalItems += itemsNiveau.length;
     }
   }
-  return totalItems * (SEUIL_VALIDATION - 5);
+  
+  return totalItems * (seuilValidation - 5); // Déficit max = passage de 5 au seuil
 }
+
 
 function getMaxLevel(list) {
   if (!list?.length) return 1;
@@ -7750,3 +7761,4 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
