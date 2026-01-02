@@ -3656,7 +3656,7 @@ async function forceSyncClientToServer() {
       // ✅ Optionnel : rebuild HiraganaList depuis le serveur
       // pour s'assurer que l'affichage est à jour
       //await refreshUserData();
-      return { success: true, result };
+      //return { success: true, result };
       
     } else {
       console.error('[FORCE SYNC] Échec:', result.error);
@@ -4317,21 +4317,14 @@ function isGroupeDebloque(groupeId) {
 function isApprentissageBloque() {
   const groupeActuel = getNiveauGroupe(niveauActif);
   
- 
-  
   if (niveauActif <= 5) {
-   
-    const isBlocked = groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
-   
-    return isBlocked;
+    return groupeActuel >= 3 && !isGroupeDebloque(groupeActuel);
   }
   
   // Niveaux > 5 : blocage basé sur déficit
   const deficit = calculerDeficitValidation();
-
-  
   const wasBlocked = localStorage.getItem('apprentissageBloque') === 'true';
-
+  
   if (wasBlocked) {
     const shouldUnblock = deficit === 0;
     if (shouldUnblock) localStorage.setItem('apprentissageBloque', 'false');
@@ -4346,42 +4339,20 @@ function isApprentissageBloque() {
 
 function calculerDeficitValidation() {
   const groupeActuel = getNiveauGroupe(niveauActif);
-
-  
-  if (groupeActuel < 3) {
-    console.log('📊 Groupe < 3, return 0');
-    return 0;
-  }
+  if (groupeActuel < 3) return 0;
   
   let deficit = 0;
-  
-  // ✅ UTILISER seuilValidation (difficulté) au lieu de SEUIL_VALIDATION (constante)
-  const seuilRequis = seuilValidation || 6;
-  
   for (let g = 1; g < groupeActuel; g++) {
     const niveaux = GROUPES[g]?.niveaux || [];
-   
-    
     for (const niveau of niveaux) {
-      const items = getItemsByLevel(HiraganaList, niveau);
-    
-      
-      items.forEach(item => {
-        const val =
-  clientTruth?.stats_json?.[item.ID]?.validation ??
-  parseInt(item.Validation || 0, 10);
-
-     ;
-        
-        // ✅ COMPARER AVEC seuilValidation, pas SEUIL_VALIDATION
-        if (val < seuilRequis) {
-          deficit += (seuilRequis - val);
+      getItemsByLevel(HiraganaList, niveau).forEach(item => {
+        const val = parseInt(item.Validation || 0, 10);
+        if (val < SEUIL_VALIDATION) {
+          deficit += SEUIL_VALIDATION - val;
         }
       });
     }
   }
-  
-  console.log(`📊 Déficit total (seuil=${seuilRequis}):`, deficit);
   return deficit;
 }
 function calculerDeficitMaximum() {
@@ -4758,12 +4729,6 @@ function resetGameContext() {
 // ============================================================================
 let revisionAnswerCount = 0;
 // --- Variables révision ---
-
-
-function enterRevisionMode() {
-  deficitInitialRevision = calculerDeficitValidation();
-  updateUnlockProgress();
-}
 let revisionMode = {
   currentQuestion: "",
   input: "",
@@ -4793,72 +4758,36 @@ const updateRecentRevisionItems = (itemId) => {
 };
 
 const selectRevisionItem = (availableItems) => {
-  if (!availableItems || availableItems.length === 0) return null;
-
-  // --- Helper local : validation réelle en révision ---
-  const getValidation = (item) => {
-    const id = parseInt(item.ID, 10);
-    return (
-      clientTruth?.stats_json?.[id]?.validation ??
-      validationCache[id] ??
-      parseInt(item.Validation || 0, 10)
-    );
-  };
-
-  // --- Helper local : pourcentage réel ---
-  const getPourcentage = (item) => {
-    const id = parseInt(item.ID, 10);
-    return (
-      clientTruth?.stats_json?.[id]?.pourcentage ??
-      statsCache?.items?.[id]?.pourcentage ??
-      0
-    );
-  };
-
-  // --- Anti-répétition (tampon) ---
   const recent = getRecentRevisionItems();
-  const filteredByTampon = availableItems.filter(
-    item => !recent.includes(parseInt(item.ID, 10))
-  );
-  let candidates =
-    filteredByTampon.length >= 4 ? filteredByTampon : availableItems;
+  const filteredByTampon = availableItems.filter(item => !recent.includes(parseInt(item.ID, 10)));
+  let candidates = filteredByTampon.length >= 4 ? filteredByTampon : availableItems;
 
-  // --- Si apprentissage non bloqué : tirage aléatoire pur ---
-  const deficit = calculerDeficitValidation();
+  const apprendreBloque = isApprentissageBloque();
 
-if (deficit === 0) {
-  // Plus de dette : révision libre
-  return candidates[Math.floor(Math.random() * candidates.length)];
-}
-
-  // --- Priorité aux items faibles (validation < seuil difficulté) ---
-  const weakItems = candidates.filter(
-    item => getValidation(item) < seuilValidation
-  );
-
-  if (weakItems.length >= 4) {
-    candidates = weakItems;
+  if (!apprendreBloque) {
+    // Tirage aléatoire pur
+    return candidates[Math.floor(Math.random() * candidates.length)];
   }
 
-  // --- Pondération par performance (plus faible = plus probable) ---
+  // Tirage pondéré (priorité aux items faibles)
+  const weakItems = candidates.filter(item => 
+    (validationCache[parseInt(item.ID, 10)] || 0) < SEUIL_VALIDATION
+  );
+  if (weakItems.length >= 4) candidates = weakItems;
+
   const weights = candidates.map(item => {
-    const p = getPourcentage(item);
+    const stats = statsCache.items[parseInt(item.ID, 10)] || { pourcentage: 0 };
+    const p = stats.pourcentage;
     return p === 0 ? 50 : Math.min(50, Math.pow(100 / (p + 10), 2));
   });
 
-  // --- Tirage aléatoire pondéré ---
   const total = weights.reduce((a, b) => a + b, 0);
   let rand = Math.random() * total;
-
   for (let i = 0; i < candidates.length; i++) {
     rand -= weights[i];
-    if (rand <= 0) {
-      return candidates[i];
-    }
+    if (rand <= 0) return candidates[i];
   }
-
-  // --- Fallback de sécurité ---
-  return candidates[0];
+  return candidates[0]; // fallback
 };
 
 // --- Fonctions révision ---
@@ -5041,8 +4970,8 @@ function handleRevisionAnswer() {
     playSoftError();
   }
 
-//  HiraganaList[index].Validation = newValidation.toString();
-//  validationCache[itemId] = newValidation;
+  HiraganaList[index].Validation = newValidation.toString();
+  validationCache[itemId] = newValidation;
 
   // Déblocage en révision
   if (wasBlockedWhenEnteringRevision) {
@@ -5113,27 +5042,40 @@ function isRevisionModeAvailable() {
 }
 
 function updateUnlockProgress() {
-  if (deficitInitialRevision <= 0) return;
+  const container = document.getElementById('unlock-progress-container');
+  const fill = document.getElementById('unlock-progress-fill');
+  if (!container || !fill) return;
 
-  const deficitActuel = calculerDeficitValidation();
-  const progress = Math.max(
-    0,
-    Math.min(
-      1,
-      1 - deficitActuel / deficitInitialRevision
-    )
-  );
-
-  const bar = document.getElementById('unlockProgressBar');
-  if (!bar) return;
-
-  bar.style.width = `${progress * 100}%`;
-
-  if (deficitActuel === 0) {
-    localStorage.setItem('apprentissageBloque', 'false');
+  if (!revisionMode.isActive || !wasBlockedWhenEnteringRevision || hasUnlockedInRevision) {
+    container.style.display = 'none';
+    return;
   }
-}
 
+  container.style.display = 'block';
+
+  const restant = Math.max(0, deficitInitialRevision - pointsGagnesEnRevision);
+  const pourcentage = deficitInitialRevision > 0 ? (restant / deficitInitialRevision) * 100 : 0;
+  fill.style.width = `${pourcentage}%`;
+
+  if (pointsGagnesEnRevision >= deficitInitialRevision) {
+    container.style.display = 'none';
+    hasUnlockedInRevision = true;
+    localStorage.setItem('apprentissageBloque', 'false');
+    updateApprendreButtonState();
+
+    if (!hasUnlockedInRevision) { // première fois seulement
+      setTimeout(() => {
+        showUnlockFlashcard(
+          t('unlock_learning_title'),
+          '🌱',
+          t('unlock_learning_message')
+        );
+      }, 500);
+    }
+  }
+
+  fill.classList.toggle('proche-deblocage', pourcentage < 10 && pourcentage > 0);
+}
 
 // ============================================================================
 // 🌸 SECTION 9 : MON JARDIN (STATISTIQUES) - VERSION OPTIMISÉE
@@ -7447,72 +7389,81 @@ async function loadRemainingDataInBackground(profile) {
   console.log('🔄 Démarrage chargement background...');
   
   try {
-    const trustedNiveau = clientTruth?.niveau_atteint || profile.niveau || 1;
-    const currentMax = Math.min(trustedNiveau + 2, profile.totalLevels || 46);
-    
-    if (currentMax < profile.totalLevels) {
-      console.log(`📥 Background: chargement niveaux ${currentMax + 1}-${profile.totalLevels}...`);
-      
-      const chunkResult = await callAPI('getHiraganaChunk', { 
-        startLevel: currentMax + 1, 
-        endLevel: profile.totalLevels 
-      });
-      
-      if (chunkResult.success) {
-        const newItems = chunkResult.data.map(item => ({
-          ...item,
-          Validation: 0,
-          Tentatives: 0,
-          Réussites: 0
-        }));
+    if (profile.isNew) {
+      // Charger niveaux 4-46 par paquets de 10
+      for (let start = 4; start <= profile.totalLevels; start += 10) {
+        const end = Math.min(start + 9, profile.totalLevels);
+        console.log(`📥 Background: chargement niveaux ${start}-${end}...`);
         
-        HiraganaList.push(...newItems);
+        const chunkResult = await callAPI('getHiraganaChunk', { startLevel: start, endLevel: end });
         
-        // 🆕 RE-MERGE RÉEL DES STATS SERVEUR (comme applyUserProgress)
-        console.log('📊 Re-merge stats serveur pour items background...');
-        const userStatsResult = await callAPI('getUserStats', { token: userToken });
-        if (userStatsResult.success) {
-          const stats = userStatsResult.stats || {};
+        if (chunkResult.success) {
+          // Merger avec HiraganaList existante
+          const newItems = chunkResult.data.map(item => ({
+            ...item,
+            Validation: 0,
+            Tentatives: 0,
+            Réussites: 0
+          }));
           
-          // On merge sur TOUTE la liste (init + background)
-          HiraganaList.forEach(item => {
-            const itemId = item.ID.toString();
-            const itemStats = stats[itemId] || { validation: 0, tentatives: 0, reussites: 0 };
-            
-            item.Validation = itemStats.validation;
-            item.Tentatives = itemStats.tentatives;
-            item['Réussites'] = itemStats.reussites;
-            
-            const id = parseInt(item.ID);
-            validationCache[id] = parseInt(itemStats.validation);
-            
-            const tentatives = parseInt(itemStats.tentatives || 0);
-            const reussites = parseInt(itemStats.reussites || 0);
-            const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
-            
-            statsCache.items[id] = { tentatives, reussites, pourcentage };
-          });
-          
-          // Recalcul global
-          const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
-          const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
-          statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
-          
-          console.log(`✅ Background re-merge complet : stats à jour sur ${HiraganaList.length} items`);
+          HiraganaList.push(...newItems);
+          newItems.forEach(item => {
+  const id = parseInt(item.ID);
+  validationCache[id] = parseInt(item.Validation || 0);
+  
+  const tentatives = parseInt(item.Tentatives || 0);
+  const reussites = parseInt(item['Réussites'] || 0);
+  const pourcentage = tentatives > 0 ? (reussites / tentatives * 100) : 0;
+  
+  statsCache.items[id] = { tentatives, reussites, pourcentage };
+});
+// Recalcul global (rapide)
+const totalTentatives = Object.values(statsCache.items).reduce((sum, item) => sum + item.tentatives, 0);
+const totalReussites = Object.values(statsCache.items).reduce((sum, item) => sum + item.reussites, 0);
+statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
+          console.log(`✅ Background: ${newItems.length} items ajoutés (total: ${HiraganaList.length})`);
         }
         
-        console.log(`✅ Background: ${newItems.length} items ajoutés (total: ${HiraganaList.length})`);
+        // Petit délai pour ne pas surcharger
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+    } else {
+      // Charger le reste des niveaux + WordLists (cas changement appareil)
+      const trustedNiveau = clientTruth?.niveau_atteint || profile.niveau || 1;
+     const currentMax = Math.min(trustedNiveau + 2, profile.totalLevels || 46);
+      
+      if (currentMax < profile.totalLevels) {
+        console.log(`📥 Background: chargement niveaux ${currentMax + 1}-${profile.totalLevels}...`);
+        
+        const chunkResult = await callAPI('getHiraganaChunk', { 
+          startLevel: currentMax + 1, 
+          endLevel: profile.totalLevels 
+        });
+        
+        if (chunkResult.success) {
+          const newItems = chunkResult.data.map(item => ({
+            ...item,
+            Validation: 0,
+            Tentatives: 0,
+            Réussites: 0
+          }));
+          
+          HiraganaList.push(...newItems);
+          console.log(`✅ Background: ${newItems.length} items ajoutés (total: ${HiraganaList.length})`);
+        }
+      }
+      
+      // Charger WordLists pour futur changement d'appareil
+      console.log('📥 Background: chargement WordLists...');
+      const wordListsResult = await callAPI('getWordLists');
+      if (wordListsResult.success) {
+        localStorage.setItem('wordLists', JSON.stringify(wordListsResult.words));
+        console.log(`✅ Background: ${wordListsResult.count} mots stockés`);
       }
     }
     
-    // WordLists et tables (inchangé)
-    console.log('📥 Background: chargement WordLists...');
-    const wordListsResult = await callAPI('getWordLists');
-    if (wordListsResult.success) {
-      localStorage.setItem('wordLists', JSON.stringify(wordListsResult.words));
-      console.log(`✅ Background: ${wordListsResult.count} mots stockés`);
-    }
-    
+    // Régénérer les tables de révision avec toutes les données
     revisionRomajiTable = generateRevisionRomajiTable(HiraganaList);
     revisionKatakanaTable = generateRevisionKatakanaTable(HiraganaList);
     console.log(`📚 Tables régénérées: Romaji=${Object.keys(revisionRomajiTable).length}, Katakana=${Object.keys(revisionKatakanaTable).length}`);
@@ -7525,6 +7476,7 @@ async function loadRemainingDataInBackground(profile) {
     backgroundLoadingInProgress = false;
   }
 }
+
 function updateLoadingProgress(percent, message) {
   const fill = document.getElementById('loading-progress-fill');
   const msg = document.getElementById('loading-message');
@@ -7798,40 +7750,3 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
