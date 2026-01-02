@@ -1935,7 +1935,17 @@ function showLoginFromOnboarding() {
   }, 100);
   console.log('🔄 Navigation vers connexion depuis onboarding');
 }
-function showChangeDevice()
+function showChangeDevice() {
+  // ✅ NOUVEAU : Nettoyer la session avant de permettre la connexion
+  cleanupUserSession();
+  
+  showSection('login');
+  
+  // Initialiser les sélecteurs de date
+  setTimeout(() => {
+    initLoginBirthdateSelectors();
+  }, 100);
+}
 function updateAccountDisplay() {
   if (currentUser) {
     document.getElementById('account-pseudo').textContent = currentUser.pseudo;
@@ -7863,6 +7873,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
