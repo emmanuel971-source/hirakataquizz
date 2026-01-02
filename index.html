@@ -1798,7 +1798,10 @@ async function initUserSystem() {
       
       // ✅ Réinitialiser le contexte
       resetGameContext();
-      
+      clientTruth = {
+  stats_json: {},
+  niveau_atteint: 1
+};
       await loadUserProgress();
       console.log('✅ Utilisateur connecté:', currentUser.pseudo);
       updateAccountDisplay();
@@ -1890,7 +1893,10 @@ async function loginUser() {
       
       // Réinitialiser le contexte du jeu
       resetGameContext();
-      
+      clientTruth = {
+  stats_json: {},
+  niveau_atteint: 1
+};
       // Recharger les stats
       await loadUserProgress();
       
@@ -7931,6 +7937,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
