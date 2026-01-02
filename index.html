@@ -1760,6 +1760,10 @@ function getOrdinalSuffix(day) {
 let currentUser = null;
 let currentPseudoProposal = null;
 let userToken = null;
+  let clientTruth = {
+  stats_json: {},
+  niveau_atteint: 1
+};  
 resetClientTruth();
 // --- Variables anti-bot ---
 let stepTimestamps = {};
@@ -7305,10 +7309,7 @@ function preloadEmojis() { /* ... */ }
 
 // --- Fonctions initialisation ---
 async function initGame() {
-  let clientTruth = {
-  stats_json: {},
-  niveau_atteint: 1
-};
+
   try {
     gameDataLoaded = false;
     console.log('🛠️ Initialisation du jeu avec chunking...');
@@ -7897,6 +7898,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
