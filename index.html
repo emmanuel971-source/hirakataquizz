@@ -905,10 +905,6 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 ></script>
 
 <script>
-  let clientTruth = {
-  stats_json: {},
-  niveau_atteint: 1
-};
 "use strict";
 // ============================================================================
 // 🌍 SECTION 1 : TRADUCTIONS & INTERNATIONALISATION
@@ -1864,9 +1860,7 @@ if (!authResult.success) {
       userToken = newToken;
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
-      clientTruth = { stats_json: {}, niveau_atteint: 1 };
-if (typeof clientTruth === 'undefined') return;
-
+      
       console.log('✅ Token mis à jour, rechargement des données...');
       
       // ✅ Réinitialiser le contexte du jeu
@@ -3173,7 +3167,10 @@ function getClientTruthStorageKey() {
   return 'client_truth_unknown';
 }
 
-
+let clientTruth = {
+  stats_json: {},
+  niveau_atteint: 1
+};
 const SyncMonitor = {
   syncCheckRequested: false,
   syncCheckInProgress: false, // ✅ NOUVEAU
@@ -3296,7 +3293,6 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
 }
  function updateClientTruthOnAnswer(params) {
   console.log('[CLIENT TRUTH INPUT]', params);
-if (!clientTruth.stats_json || Object.keys(clientTruth.stats_json).length === 0) return;
 
   if (!params || params.id == null) {
     console.warn('[CLIENT TRUTH] invalid params', params);
