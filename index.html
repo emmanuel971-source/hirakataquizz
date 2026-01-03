@@ -4513,6 +4513,7 @@ let selections = { first: null, second: null };
 let targetFields = [];
 let isAnswered = false;
 let previousCharacter = null;
+let wasApprentissageBloque = false;
 
 // --- Fonctions quiz ---
 function nextQuestion() {
@@ -5167,8 +5168,26 @@ function updateUnlockProgress() {
 
   if (!container || !fill) return;
 
-  // Affichée uniquement en mode révision ET si Apprendre est bloqué
-  if (!revisionMode.isActive || !isApprentissageBloque()) {
+  const isBlockedNow = isApprentissageBloque();
+
+  // Détecter la transition bloqué → débloqué
+  if (wasApprentissageBloque && !isBlockedNow) {
+    container.style.display = 'none';
+    updateApprendreButtonState();
+
+    setTimeout(() => {
+      showUnlockFlashcard(
+        t('unlock_learning_title'),
+        '🌱',
+        t('unlock_learning_message')
+      );
+    }, 500);
+  }
+
+  wasApprentissageBloque = isBlockedNow;
+
+  // Affichage de la barre uniquement si bloqué ET en révision
+  if (!revisionMode.isActive || !isBlockedNow) {
     container.style.display = 'none';
     return;
   }
@@ -5176,7 +5195,6 @@ function updateUnlockProgress() {
   const deficitActuel = calculerDeficitValidation();
   const deficitMaximum = calculerDeficitMaximum();
 
-  // Sécurité
   if (deficitMaximum <= 0) {
     container.style.display = 'none';
     return;
@@ -5184,7 +5202,6 @@ function updateUnlockProgress() {
 
   container.style.display = 'block';
 
-  // 100% = totalement bloqué / 0% = débloqué
   const pourcentage = Math.min(
     100,
     Math.max(0, (deficitActuel / deficitMaximum) * 100)
@@ -5192,30 +5209,10 @@ function updateUnlockProgress() {
 
   fill.style.width = `${pourcentage}%`;
 
-  // Effet visuel proche du déblocage
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
   } else {
     fill.classList.remove('proche-deblocage');
-  }
-
-  // Déblocage réel (logique EXISTANTE, non modifiée)
-  if (deficitActuel === 0) {
-    container.style.display = 'none';
-    localStorage.setItem('apprentissageBloque', 'false');
-    updateApprendreButtonState();
-
-    // Flashcard de déblocage (une seule fois)
-    if (!localStorage.getItem('unlockFlashcardShown')) {
-      localStorage.setItem('unlockFlashcardShown', 'true');
-      setTimeout(() => {
-        showUnlockFlashcard(
-          t('unlock_learning_title'),
-          '🌱',
-          t('unlock_learning_message')
-        );
-      }, 500);
-    }
   }
 }
 
@@ -7909,6 +7906,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
