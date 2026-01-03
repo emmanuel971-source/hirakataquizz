@@ -1781,6 +1781,8 @@ const MONTH_NAMES = {
 };
 // --- Fonctions authentification ---
 async function initUserSystem() {
+  
+
   userToken = localStorage.getItem('userToken');
   
   if (userToken) {
@@ -1789,19 +1791,9 @@ async function initUserSystem() {
     if (result.success) {
       currentUser = result.user;
       
-      // ✅ NOUVEAU : Réinitialiser clientTruth AVANT de charger les progrès
-      console.log('🔄 Réinitialisation de clientTruth pour:', currentUser.pseudo);
-      clientTruth = {
-        stats_json: {},
-        niveau_atteint: 1
-      };
-      
-      // ✅ Réinitialiser le contexte
+      // ✅ RÉINITIALISER LE CONTEXTE
       resetGameContext();
-      clientTruth = {
-  stats_json: {},
-  niveau_atteint: 1
-};
+      
       await loadUserProgress();
       console.log('✅ Utilisateur connecté:', currentUser.pseudo);
       updateAccountDisplay();
@@ -1809,22 +1801,9 @@ async function initUserSystem() {
       console.warn('⚠️ Token invalide, création de compte nécessaire');
       localStorage.removeItem('userToken');
       userToken = null;
-      
-      // ✅ NOUVEAU : Réinitialiser clientTruth pour un nouvel utilisateur
-      clientTruth = {
-        stats_json: {},
-        niveau_atteint: 1
-      };
     }
-  } else {
-    // ✅ NOUVEAU : Pas de token = réinitialiser clientTruth
-    clientTruth = {
-      stats_json: {},
-      niveau_atteint: 1
-    };
   }
 }
-
 async function loginUser() {
   const pseudo = document.getElementById('login-pseudo').value.trim();
   const day = document.getElementById('login-birth-day').value;
@@ -1836,37 +1815,37 @@ async function loginUser() {
   successDiv.style.display = 'none';
   
   // Validation
-  if (!pseudo) {
-    errorDiv.textContent = t('error_enter_pseudo');
-    errorDiv.style.display = 'block';
-    return;
-  }
+if (!pseudo) {
+  errorDiv.textContent = t('error_enter_pseudo');
+  errorDiv.style.display = 'block';
+  return;
+}
 
-  if (!day || !month) {
-    errorDiv.textContent = t('error_select_birthdate');
-    errorDiv.style.display = 'block';
-    return;
-  }
+if (!day || !month) {
+  errorDiv.textContent = t('error_select_birthdate');
+  errorDiv.style.display = 'block';
+  return;
+}
   
   const pin = day + month;
   
   try {
     console.log('🔐 Tentative de connexion:', pseudo);
     
-    // Afficher le loader
+    // ✅ AJOUTÉ : Afficher le loader
     document.getElementById('login').classList.remove('active');
     document.getElementById('login-loader').style.display = 'flex';
     
     const authResult = await callAPI('authenticateUser', { pseudo, pin });
     
-    if (!authResult.success) {
-      document.getElementById('login-loader').style.display = 'none';
-      document.getElementById('login').classList.add('active');
-      
-      errorDiv.textContent = authResult.error || t('error_wrong_credentials');
-      errorDiv.style.display = 'block';
-      return;
-    }
+if (!authResult.success) {
+  document.getElementById('login-loader').style.display = 'none';
+  document.getElementById('login').classList.add('active');
+  
+  errorDiv.textContent = authResult.error || t('error_wrong_credentials');
+  errorDiv.style.display = 'block';
+  return;
+}
     
     const newToken = crypto.randomUUID();
     
@@ -1877,27 +1856,21 @@ async function loginUser() {
     });
     
     if (updateResult.success) {
-      // Sauvegarder le token
+      // ✅ Sauvegarder le token
       userToken = newToken;
       localStorage.setItem('userToken', newToken);
       currentUser = authResult.user;
       
       console.log('✅ Token mis à jour, rechargement des données...');
       
-      // ✅ NOUVEAU : Réinitialiser clientTruth pour le nouvel utilisateur
-      console.log('🔄 Réinitialisation de clientTruth pour:', currentUser.pseudo);
-      clientTruth = {
-        stats_json: {},
-        niveau_atteint: 1
-      };
-      
-      // Réinitialiser le contexte du jeu
+      // ✅ Réinitialiser le contexte du jeu
       resetGameContext();
-      clientTruth = {
-  stats_json: {},
-  niveau_atteint: 1
-};
-      // Recharger les stats
+      // 🔍 DEBUG 1 - État de clientTruth avant loadUserProgress
+console.log('🔍 DEBUG 1 - clientTruth avant loadUserProgress:', {
+  itemCount: Object.keys(clientTruth.stats_json).length,
+  niveau_atteint: clientTruth.niveau_atteint
+});
+      // ✅ Recharger les stats
       await loadUserProgress();
       
       currentUser.token = newToken;
@@ -1905,28 +1878,28 @@ async function loginUser() {
       console.log('✅ Connexion réussie:', currentUser.pseudo);
       console.log(`📊 Niveau actif: ${niveauActif}, Niveau atteint: ${currentUser.niveau_atteint}`);
       
-      // Masquer le loader
+      // ✅ MODIFIÉ : Masquer le loader
       document.getElementById('login-loader').style.display = 'none';
       
-      // Afficher le message de bienvenue returning user
+      // ✅ AJOUTÉ : Afficher le message de bienvenue returning user
       showReturningUserWelcome(currentUser.pseudo);
       
-    } else {
-      document.getElementById('login-loader').style.display = 'none';
-      document.getElementById('login').classList.add('active');
-      
-      errorDiv.textContent = t('error_token_update');
-      errorDiv.style.display = 'block';
-    }
+} else {
+  document.getElementById('login-loader').style.display = 'none';
+  document.getElementById('login').classList.add('active');
+  
+  errorDiv.textContent = t('error_token_update');
+  errorDiv.style.display = 'block';
+}
     
-  } catch (error) {
-    document.getElementById('login-loader').style.display = 'none';
-    document.getElementById('login').classList.add('active');
-    
-    errorDiv.textContent = t('error_connection');
-    errorDiv.style.display = 'block';
-    console.error('❌ Erreur connexion:', error);
-  }
+} catch (error) {
+  document.getElementById('login-loader').style.display = 'none';
+  document.getElementById('login').classList.add('active');
+  
+  errorDiv.textContent = t('error_connection');
+  errorDiv.style.display = 'block';
+  console.error('❌ Erreur connexion:', error);
+}
 }
   
 function showLoginFromOnboarding() {
@@ -1944,17 +1917,13 @@ function showLoginFromOnboarding() {
   console.log('🔄 Navigation vers connexion depuis onboarding');
 }
 function showChangeDevice() {
-  // ✅ NOUVEAU : Nettoyer la session avant de permettre la connexion
-  cleanupUserSession();
-  
   showSection('login');
   
-  // Initialiser les sélecteurs de date
+  // ✅ AJOUTÉ : Initialiser les sélecteurs de date
   setTimeout(() => {
     initLoginBirthdateSelectors();
   }, 100);
 }
-
 function updateAccountDisplay() {
   if (currentUser) {
     document.getElementById('account-pseudo').textContent = currentUser.pseudo;
@@ -2690,7 +2659,11 @@ async function loadUserProgress() {
     statsCache.globalPourcentage = totalTentatives > 0 ? (totalReussites / totalTentatives * 100) : 0;
 
     console.log(`📊 Progrès user chargé: ${mergedCount} items mergés`);
-    
+    console.log('🔍 DEBUG 2 - État après merge dans HiraganaList:', {
+  hiraganaListCount: HiraganaList.length,
+  clientTruthCount: Object.keys(clientTruth.stats_json).length,
+  premierItem: HiraganaList[0]
+});
     // ✅ Calculer le niveau MAX ATTEINT (niveaux 100% complétés)
     let niveauMaxAtteint = 0;
     const maxLevel = getMaxLevel(HiraganaList);
@@ -3053,32 +3026,7 @@ async function ensureLatestProgress() {
 
   console.log('✅ Progression synchronisée : les stats serveur sont maintenant à jour');
 }
-function cleanupUserSession() {
-  console.log('🧹 Nettoyage de la session utilisateur');
   
-  // Réinitialiser clientTruth
-  clientTruth = {
-    stats_json: {},
-    niveau_atteint: 1
-  };
-  
-  // Réinitialiser les variables utilisateur
-  currentUser = null;
-  userToken = null;
-  niveauActif = 1;
-  
-  // Vider les caches
-  validationCache = {};
-  statsCache = {
-    items: {},
-    globalPourcentage: 0
-  };
-  
-  // Réinitialiser le contexte de jeu
-  resetGameContext();
-  
-  console.log('✅ Session nettoyée');
-}  
   
   // ===============================================
 // SYNC CHECK TRIGGER - basé sur la descente du compteur
@@ -3342,7 +3290,13 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
   } catch (e) {
     console.warn('[INIT CLIENT TRUTH] localStorage save failed', e);
   }
+// Juste avant le dernier console.log '[INIT CLIENT TRUTH] initialized'
 
+console.log('🔍 DEBUG 3 - clientTruth après initClientTruth:', {
+  itemCount: Object.keys(clientTruth.stats_json).length,
+  niveau_atteint: clientTruth.niveau_atteint,
+  preview: Object.keys(clientTruth.stats_json).slice(0, 5)
+});
   console.log('[INIT CLIENT TRUTH] initialized', {
     source: chosenSource,
     items: Object.keys(clientTruth.stats_json).length,
@@ -3353,7 +3307,12 @@ async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
 }
  function updateClientTruthOnAnswer(params) {
   console.log('[CLIENT TRUTH INPUT]', params);
+// Au tout début de la fonction, après la ligne console.log('[CLIENT TRUTH INPUT]', params);
 
+console.log('🔍 DEBUG 4 - clientTruth AVANT update:', {
+  itemCount: Object.keys(clientTruth.stats_json).length,
+  niveau_atteint: clientTruth.niveau_atteint
+});
   if (!params || params.id == null) {
     console.warn('[CLIENT TRUTH] invalid params', params);
     return;
@@ -3483,6 +3442,13 @@ SyncMonitor.evaluate();
 
 }
 function rebuildHiraganaListFromClientTruth() {
+  // Au tout début de la fonction
+
+console.log('🔍 DEBUG 5 - REBUILD appelé:', {
+  clientTruthCount: Object.keys(clientTruth.stats_json || {}).length,
+  hiraganaListCountAvant: HiraganaList.length,
+  niveau_atteint: clientTruth.niveau_atteint
+});
   if (!clientTruth || !clientTruth.stats_json || !Array.isArray(HiraganaList)) {
     console.warn('[REBUILD] clientTruth ou HiraganaList invalide');
     return;
@@ -7937,8 +7903,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
-
-
 
 
 
