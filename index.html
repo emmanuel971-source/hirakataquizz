@@ -1872,7 +1872,12 @@ console.log('🔍 DEBUG 1 - clientTruth avant loadUserProgress:', {
 });
       // ✅ Recharger les stats
       await loadUserProgress();
-      
+      // ✅ SOLUTION : Reconstruire clientTruth depuis HiraganaList
+rebuildClientTruthFromHiraganaList();
+console.log('🔧 clientTruth reconstruit:', {
+  itemCount: Object.keys(clientTruth.stats_json).length,
+  niveau_atteint: clientTruth.niveau_atteint
+});
       currentUser.token = newToken;
       
       console.log('✅ Connexion réussie:', currentUser.pseudo);
@@ -7903,6 +7908,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
