@@ -4783,7 +4783,10 @@ let revisionMode = {
   currentItem: null
 };
 
-
+let wasBlockedWhenEnteringRevision = false;
+let deficitInitialRevision = 0;
+let pointsGagnesEnRevision = 0;
+let hasUnlockedInRevision = false;
 
 // --- Fonctions révision ---
 function startRevisionQuestion() {
@@ -5098,8 +5101,10 @@ function initRevisionKeyboard() {
         HiraganaList[hiraganaIndex].Validation = newValidation.toString();
         validationCache[itemId] = newValidation;
 
-   updateUnlockProgress();
-
+        if (wasBlockedWhenEnteringRevision) {
+          pointsGagnesEnRevision += pointsGagnes;
+          updateUnlockProgress();
+        }
 
         // === Calcul pour les animations ===
         const oldEmoji = getPlantEmoji(currentValidation);
@@ -5157,60 +5162,58 @@ function isRevisionModeAvailable() {
   return niveauActif >= 4;
 }  
 function updateUnlockProgress() {
+  console.log('🔍 updateUnlockProgress appelée:', {
+  isActive: revisionMode.isActive,
+  wasBlocked: wasBlockedWhenEnteringRevision,
+  hasUnlocked: hasUnlockedInRevision,
+  deficit: deficitInitialRevision
+});
   const container = document.getElementById('unlock-progress-container');
   const fill = document.getElementById('unlock-progress-fill');
 
   if (!container || !fill) return;
 
-  // Visible UNIQUEMENT si on est en révision ET si Apprendre est bloqué
-  if (!revisionMode.isActive || !isApprentissageBloque()) {
-    container.style.display = 'none';
-    return;
-  }
-
-  const deficitActuel = calculerDeficitValidation();
-  const deficitMaximum = calculerDeficitMaximum();
-
-  // Sécurité
-  if (deficitMaximum <= 0) {
+  if (!revisionMode.isActive || !wasBlockedWhenEnteringRevision || hasUnlockedInRevision) {
     container.style.display = 'none';
     return;
   }
 
   container.style.display = 'block';
 
-  // 100% = bloqué / 0% = débloqué
-  const pourcentage = Math.min(
-    100,
-    Math.max(0, (deficitActuel / deficitMaximum) * 100)
-  );
+  const deficitRestant = Math.max(0, deficitInitialRevision - pointsGagnesEnRevision);
+  const pourcentage = deficitInitialRevision > 0 ? (deficitRestant / deficitInitialRevision * 100) : 0;
 
   fill.style.width = `${pourcentage}%`;
 
-  // Effet visuel "presque débloqué"
+  console.log(`📊 Progress: ${deficitRestant}/${deficitInitialRevision} (${pourcentage.toFixed(1)}%) | Points: ${pointsGagnesEnRevision}`);
+
+if (pointsGagnesEnRevision >= deficitInitialRevision) {
+    container.style.display = 'none';
+    
+    // ✅ Vérifier si c'était vraiment bloqué avant d'afficher la carte
+    const wasBlocked = hasUnlockedInRevision === false;
+    
+    hasUnlockedInRevision = true;
+    localStorage.setItem('apprentissageBloque', 'false');
+    updateApprendreButtonState();
+    console.log('🎉 Déblocage atteint');
+    
+    // ✅ Afficher la carte seulement si on vient de débloquer
+if (wasBlocked) {
+  setTimeout(() => {
+    showUnlockFlashcard(
+      t('unlock_learning_title'),
+      '🌱',
+      t('unlock_learning_message')
+    );
+  }, 500);
+}
+  }
+
   if (pourcentage < 10 && pourcentage > 0) {
     fill.classList.add('proche-deblocage');
   } else {
     fill.classList.remove('proche-deblocage');
-  }
-
-  // Déblocage réel
-  if (deficitActuel === 0) {
-    container.style.display = 'none';
-    localStorage.setItem('apprentissageBloque', 'false');
-    updateApprendreButtonState();
-
-    // Flashcard UNE SEULE FOIS (persistante)
-    if (!localStorage.getItem('unlockShown')) {
-      localStorage.setItem('unlockShown', 'true');
-      setTimeout(() => {
-        showUnlockFlashcard(
-          t('unlock_learning_title'),
-          '🌱',
-          t('unlock_learning_message')
-        );
-      }, 500);
-    }
   }
 }
 
@@ -6620,14 +6623,13 @@ if (sectionId === 'options') {
   
   // Démarrer le mode révisions si c'est le mode sélectionné
   if (sectionId === 'mode2') {
- revisionMode.isActive = true;
-
-setTimeout(() => {
-  initRevisionKeyboard();
-  startRevisionQuestion();
-  updateUnlockProgress(); // 🔥 état global, pas session
-}, 100);
-
+    wasBlockedWhenEnteringRevision = isApprentissageBloque();
+    if (wasBlockedWhenEnteringRevision) {
+      deficitInitialRevision = calculerDeficitValidation();
+      pointsGagnesEnRevision = 0;
+      console.log(`🎯 Déficit initial capturé: ${deficitInitialRevision} points`);
+    }
+    hasUnlockedInRevision = false;
     revisionMode.isActive = true;
     setTimeout(() => {
       initRevisionKeyboard();
@@ -7906,7 +7908,6 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
-
 
 
 
