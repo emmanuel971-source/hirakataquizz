@@ -2329,10 +2329,10 @@ if (userInteractions.clicks < 3 || userInteractions.keystrokes < 0) {
 }
   
   // 4. Vérifier que le pseudo a des mots source (protection supplémentaire)
-  //if (!currentPseudoProposal.jpnWord && !currentPseudoProposal.engWord) {
-  //  console.warn('🤖 Pseudo sans origine - suspecté');
-  //  return;
- // }
+  if (!currentPseudoProposal.jpnWord && !currentPseudoProposal.engWord) {
+    console.warn('🤖 Pseudo sans origine - suspecté');
+    return;
+  }
   
   console.log('✅ Vérifications anti-bot passées:', {
     totalTime: totalTime + 'ms',
@@ -3001,7 +3001,6 @@ function smartSegmentRomaji(romaji) {
 // ============================================================================
 
 const WEB_APP_URL = 'https://kanaszengarden.emmanuel-pierre.workers.dev/api';
-
 let pendingUpdates = [];
 let isProcessing = false;
 async function ensureLatestProgress() {
@@ -3756,7 +3755,7 @@ async function callAPI(action, data = null) {
       url += `?${params.toString()}`;
     }
 
-console.log(`🔍 Appel API (${options.method}): ${action}`);
+console.log(`🔍 Appel API (${options.method}): ${action}`);  // ✅ Bon
     const response = await fetch(url, options);
 
     if (!response.ok) {
