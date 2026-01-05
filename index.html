@@ -3290,7 +3290,6 @@ function showSyncAlert(type = 'warning') {
     }, 2000);
   }
 
-
   // Ajouter les animations CSS
   const style = document.createElement('style');
   style.textContent = `
@@ -3380,7 +3379,7 @@ function updateSyncIndicator() {
     indicator.innerHTML = `
       <span style="position: relative; display: inline-block;">
         📶
-        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 24px; color: white;">╱</span>
+        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50()) rotate(-45deg); font-size: 24px; color: white;">╱</span>
       </span>
     `;
     indicator.style.display = 'block';
@@ -3394,10 +3393,8 @@ function updateSyncIndicator() {
       }
     }, 300);
     
-    // Réinitialiser le flag pour le prochain cycle
-    if (syncAlertShown && pendingUpdates.length === 0) {
-      syncAlertShown = false;
-    }
+    // ❌ NE PAS réinitialiser syncAlertShown ici
+    // Il sera réinitialisé dans showSyncSuccessAlert()
   }
 }
 
@@ -3405,12 +3402,16 @@ function updateSyncIndicator() {
 function showSyncSuccessAlert() {
   // Ne montrer que si on avait eu l'alerte de warning avant
   if (syncAlertShown) {
-    showSyncAlert('success');
-    syncAlertShown = false; // Réinitialiser pour le prochain cycle
+    console.log('🎉 Affichage alerte de succès');
+    // Petit délai pour que l'indicateur disparaisse d'abord
+    setTimeout(() => {
+      showSyncAlert('success');
+      syncAlertShown = false; // Réinitialiser pour le prochain cycle
+    }, 300);
+  } else {
+    console.log('⚠️ syncAlertShown est false, pas d\'alerte de succès');
   }
 }
-
-
 
 
   
@@ -3447,18 +3448,18 @@ const SyncMonitor = {
   },
 
   evaluate() {
-    let newState = 'SYNCED';
+  let newState = 'SYNCED';
 
-    if (this.pendingUpdates > 0 || this.failedUpdates > 0) {
-      newState = 'DESYNC_PENDING';
-    }
-
-    if (newState !== this.state) {
-      this.state = newState;
-      this.log('state transition');
-    }
-    updateSyncIndicator();  // ← ici
+  if (this.pendingUpdates > 0 || this.failedUpdates > 0) {
+    newState = 'DESYNC_PENDING';
   }
+
+  if (newState !== this.state) {
+    this.state = newState;
+    this.log('state transition');
+  }
+  updateSyncIndicator();  // ← déjà présent, juste s'assurer qu'il est là
+}
 };
 
 async function initClientTruth(serverStatsJson, serverNiveauAtteint) {
@@ -4044,7 +4045,8 @@ async function queueUpdateStats(params) {
   try {
     localStorage.setItem('pending_updates', JSON.stringify(pendingUpdates));
   } catch(e) {}
-
+// ✅ NOUVEAU : Vérifier si on doit montrer l'alerte
+  updateSyncIndicator();
   if (!isProcessing) {
     processUpdates();
   }
@@ -4117,7 +4119,7 @@ async function processUpdates() {
     }
   }
   
-  isProcessing = false;
+    isProcessing = false;
 
   // Rebuild complet depuis clientTruth
   rebuildHiraganaListFromClientTruth();
@@ -4128,16 +4130,12 @@ async function processUpdates() {
   renderHiraganaCards(HiraganaList, niveauActif);
   updateMenuButtonStates();
   updateAccountDisplay();
-  
-  // ✅ D'ABORD mettre à jour l'indicateur
   updateSyncIndicator();
   
-  // ✅ PUIS montrer l'alerte de succès (avec un petit délai)
-  setTimeout(() => {
-    if (pendingUpdates.length === 0 && syncAlertShown) {
-      showSyncSuccessAlert();
-    }
-  }, 500);
+  // ✅ NOUVEAU : Montrer l'alerte de succès si tout est vidé
+  if (pendingUpdates.length === 0) {
+    showSyncSuccessAlert();
+  }
 }
 
 // ============================================================================
@@ -8159,6 +8157,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
