@@ -3238,7 +3238,7 @@ function showSyncAlert(type = 'warning') {
   // Contenu selon le type
   if (type === 'warning') {
     card.innerHTML = `
-      <div style="font-size: 70px; margin-bottom: 20px;">
+      <div style="font-size: 100px; margin-bottom: 20px;">
         ⌔
       </div>
       <h2 style="color: #333; margin: 0 0 15px 0; font-size: 22px; font-weight: 600;">Perte de signal détectée</h2>
@@ -3352,13 +3352,13 @@ function updateSyncIndicator() {
     indicator.id = 'syncIndicator';
     indicator.style.cssText = `
       position: fixed;
-      bottom: 20px;
+      bottom: 30px;
       right: 20px;
       background: rgba(255, 152, 0, 0.95);
       color: white;
-      padding: 10px 14px;
+      padding: 5px 5px;
       border-radius: 25px;
-      font-size: 22px;
+      font-size: 36px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       z-index: 999998;
       transition: all 0.3s ease;
@@ -8144,6 +8144,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
