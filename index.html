@@ -4128,12 +4128,16 @@ async function processUpdates() {
   renderHiraganaCards(HiraganaList, niveauActif);
   updateMenuButtonStates();
   updateAccountDisplay();
+  
+  // ✅ D'ABORD mettre à jour l'indicateur
   updateSyncIndicator();
   
-  // ✅ NOUVEAU : Montrer l'alerte de succès si tout est vidé
-  if (pendingUpdates.length === 0) {
-    showSyncSuccessAlert();
-  }
+  // ✅ PUIS montrer l'alerte de succès (avec un petit délai)
+  setTimeout(() => {
+    if (pendingUpdates.length === 0 && syncAlertShown) {
+      showSyncSuccessAlert();
+    }
+  }, 500);
 }
 
 // ============================================================================
@@ -8155,6 +8159,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
