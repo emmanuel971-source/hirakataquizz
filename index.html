@@ -3001,12 +3001,6 @@ function smartSegmentRomaji(romaji) {
 // ============================================================================
 
 const WEB_APP_URL = 'https://kanaszengarden.emmanuel-pierre.workers.dev/api';
-const SyncUIState = {
-  bigCardShown: false,
-  bigCardDismissed: false,
-  lastWasDesynced: false
-};
-
 let pendingUpdates = [];
 let isProcessing = false;
 async function ensureLatestProgress() {
@@ -3079,42 +3073,14 @@ const SyncCheckTrigger = {
     this.lastPendingCount = current;
   }
 };
-function getOrCreateSyncIndicator() {
-  let indicator = document.getElementById('syncIndicator');
-
-  if (!indicator) {
-    indicator = document.createElement('div');
-    indicator.id = 'syncIndicator';
-
-    Object.assign(indicator.style, {
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      padding: '10px 14px',
-      borderRadius: '24px',
-      fontSize: '14px',
-      fontWeight: 'bold',
-      color: 'white',
-      background: 'rgba(0,0,0,0.7)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-      zIndex: '999999',
-      transition: 'opacity 0.3s ease',
-      opacity: '0',
-      display: 'none',
-      pointerEvents: 'none',
-      fontFamily: 'system-ui, sans-serif'
-    });
-
-    document.body.appendChild(indicator);
-  }
-
-  return indicator;
-}
   
 // ===============================================
 // POLLING DE SYNCHRONISATION (robuste même en mode avion)
 // ===============================================
 let syncPollingInterval = null;
+
+
+
 
 function startSyncPolling() {
   if (syncPollingInterval) return; // déjà actif
@@ -3153,122 +3119,300 @@ startSyncPolling();
 // Optionnel : arrêter quand l'utilisateur se déconnecte volontairement ou ferme (mais pas critique)
 // window.addEventListener('beforeunload', stopSyncPolling);
 
+// Fonction pour créer/mettre à jour le petit indicateur en bas
 function updateSyncIndicator() {
-  // 🟥 1. GROSSE CARTE
-  if (
-    pendingUpdates.length >= SyncCheckTrigger.threshold &&
-    !SyncUIState.bigCardShown
-  ) {
-    showBigSyncWarningCard();
-    SyncUIState.bigCardShown = true;
-    SyncUIState.lastWasDesynced = true;
-    return;
+  let indicator = document.getElementById('syncIndicator');
+
+  // Déterminer l'état
+  const hasPendingUpdates = pendingUpdates.length > 0;
+  const isDesync = SyncMonitor.state !== 'SYNCED';
+  const shouldShow = hasPendingUpdates || isDesync;
+
+  // Si plus de 5 updates et alerte pas encore montrée
+  if (pendingUpdates.length > 5 && !syncAlertShown) {
+    showSyncAlert('warning');
   }
 
-  // 🟧 2. MINI INDICATEUR
-  if (
-    SyncUIState.bigCardDismissed &&
-    pendingUpdates.length > 0
-  ) {
-    showMiniSyncIndicator(); // icône seule
-    return;
+  // Création de l'indicateur s'il n'existe pas
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.id = 'syncIndicator';
+    indicator.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(244, 67, 54, 0.95);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 999998;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      display: none;
+      opacity: 0;
+    `;
+    document.body.appendChild(indicator);
   }
 
-  // 🟩 3. SYNC OK
-  if (
-    pendingUpdates.length === 0 &&
-    SyncUIState.lastWasDesynced
-  ) {
-    showSyncSuccessMessage();
-    SyncUIState.lastWasDesynced = false;
-    SyncUIState.bigCardShown = false;
-    SyncUIState.bigCardDismissed = false;
-    return;
-  }
-
-  hideAllSyncIndicators();
-}
-function hideAllSyncIndicators() {
-  const indicator = document.getElementById('syncIndicator');
-  if (indicator) {
+  // Affichage ou masquage
+  if (shouldShow && syncAlertShown) {
+    // Petit indicateur : juste l'icône WiFi barrée
+    indicator.innerHTML = `
+      <span style="position: relative; display: inline-block;">
+        📶
+        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 24px; color: white;">╱</span>
+      </span>
+    `;
+    indicator.style.display = 'block';
+    indicator.style.opacity = '1';
+  } else if (!shouldShow) {
+    // Tout est synchronisé
     indicator.style.opacity = '0';
     setTimeout(() => {
-      indicator.style.display = 'none';
+      if (indicator.style.opacity === '0') {
+        indicator.style.display = 'none';
+      }
     }, 300);
+    
+    // Réinitialiser le flag pour le prochain cycle
+    if (syncAlertShown && pendingUpdates.length === 0) {
+      syncAlertShown = false;
+    }
   }
-
-  const overlay = document.getElementById('syncOverlay');
-  if (overlay) {
-    overlay.remove();
-  }
-}
-
-function showMiniSyncIndicator() {
-  const el = getOrCreateSyncIndicator();
-  el.textContent = '📶❌';
-  el.style.background = 'rgba(0,0,0,0.6)';
-  el.style.display = 'block';
-  requestAnimationFrame(() => {
-    el.style.opacity = '1';
-  });
-}
-function showSyncSuccessMessage() {
-  const el = getOrCreateSyncIndicator();
-  el.textContent = '✅ Synchronisation OK';
-  el.style.background = 'rgba(0,160,0,0.9)';
-  el.style.display = 'block';
-
-  requestAnimationFrame(() => {
-    el.style.opacity = '1';
-  });
-
-  setTimeout(() => {
-    el.style.opacity = '0';
-    setTimeout(() => {
-      el.style.display = 'none';
-    }, 300);
-  }, 2500);
-}
-
-
-function showBigSyncWarningCard() {
-  if (document.getElementById('syncOverlay')) return;
-
-  const overlay = document.createElement('div');
-  overlay.id = 'syncOverlay';
-
-  overlay.innerHTML = `
-    <div class="sync-card">
-      <div class="icon">📶❌</div>
-      <p>
-        <strong>Perte de signal détectée</strong><br><br>
-        Vous pouvez continuer à jouer, votre progression est mémorisée
-        et sera synchronisée dès le retour de la connexion.
-      </p>
-      <button id="closeSyncCard">Fermer</button>
-    </div>
-  `;
-
-  Object.assign(overlay.style, {
-    position: 'fixed',
-    inset: '0',
-    background: 'rgba(0,0,0,0.6)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: '1000000'
-  });
-
-  document.body.appendChild(overlay);
-
-  document.getElementById('closeSyncCard').onclick = () => {
-    SyncUIState.bigCardDismissed = true;
-    overlay.remove();
-  };
 }
 
 
 // Appeler cette fonction à la fin de processUpdates(), et dans SyncMonitor.evaluate()
+
+// ===============================================
+// SYSTÈME DE SYNC INDICATOR AMÉLIORÉ
+// ===============================================
+
+let syncAlertShown = false; // Pour ne montrer l'alerte qu'une fois par cycle
+
+// Fonction pour créer la carte d'alerte centrale
+function showSyncAlert(type = 'warning') {
+  // Si c'est une alerte de perte de signal et qu'elle a déjà été montrée
+  if (type === 'warning' && syncAlertShown) return;
+  
+  // Vérifier si la carte existe déjà
+  let existingCard = document.getElementById('syncAlertCard');
+  if (existingCard) {
+    existingCard.remove();
+  }
+
+  const card = document.createElement('div');
+  card.id = 'syncAlertCard';
+  card.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    z-index: 1000000;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    animation: slideIn 0.3s ease-out;
+  `;
+
+  // Overlay semi-transparent
+  const overlay = document.createElement('div');
+  overlay.id = 'syncAlertOverlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999999;
+    animation: fadeIn 0.3s ease-out;
+  `;
+
+  // Contenu selon le type
+  if (type === 'warning') {
+    card.innerHTML = `
+      <div style="font-size: 60px; margin-bottom: 20px;">
+        <span style="position: relative; display: inline-block;">
+          📶
+          <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 80px; color: #f44336;">╱</span>
+        </span>
+      </div>
+      <h2 style="color: #333; margin: 0 0 15px 0; font-size: 22px;">Perte de signal détectée</h2>
+      <p style="color: #666; margin: 0 0 25px 0; line-height: 1.6;">
+        Vous pouvez continuer à jouer, votre progression est mémorisée et sera synchronisée dès le retour de la connexion.
+      </p>
+      <button id="closeSyncAlert" style="
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+      " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+        J'ai compris
+      </button>
+    `;
+    syncAlertShown = true;
+  } else if (type === 'success') {
+    card.innerHTML = `
+      <div style="font-size: 60px; margin-bottom: 20px;">✅</div>
+      <h2 style="color: #4CAF50; margin: 0 0 15px 0; font-size: 22px;">Synchronisation réussie !</h2>
+      <p style="color: #666; margin: 0 0 25px 0; line-height: 1.6;">
+        Toutes vos données ont été sauvegardées avec succès.
+      </p>
+      <button id="closeSyncAlert" style="
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+      " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+        OK
+      </button>
+    `;
+    // Auto-fermeture après 2 secondes pour le succès
+    setTimeout(() => {
+      closeSyncAlert();
+    }, 2000);
+  }
+
+
+  // Ajouter les animations CSS
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(card);
+
+  // Événement de fermeture
+  document.getElementById('closeSyncAlert').addEventListener('click', closeSyncAlert);
+}
+
+// Fonction pour fermer l'alerte
+function closeSyncAlert() {
+  const card = document.getElementById('syncAlertCard');
+  const overlay = document.getElementById('syncAlertOverlay');
+  
+  if (card) {
+    card.style.animation = 'fadeOut 0.3s ease-out';
+    overlay.style.animation = 'fadeOut 0.3s ease-out';
+    setTimeout(() => {
+      card.remove();
+      overlay.remove();
+    }, 300);
+  }
+}
+
+// Fonction pour créer/mettre à jour le petit indicateur en bas
+function updateSyncIndicator() {
+  let indicator = document.getElementById('syncIndicator');
+
+  // Déterminer l'état
+  const hasPendingUpdates = pendingUpdates.length > 0;
+  const isDesync = SyncMonitor.state !== 'SYNCED';
+  const shouldShow = hasPendingUpdates || isDesync;
+
+  // Si plus de 5 updates et alerte pas encore montrée
+  if (pendingUpdates.length > 5 && !syncAlertShown) {
+    showSyncAlert('warning');
+  }
+
+  // Création de l'indicateur s'il n'existe pas
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.id = 'syncIndicator';
+    indicator.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(244, 67, 54, 0.95);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 999998;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      display: none;
+      opacity: 0;
+    `;
+    document.body.appendChild(indicator);
+  }
+
+  // Affichage ou masquage
+  if (shouldShow && syncAlertShown) {
+    // Petit indicateur : juste l'icône WiFi barrée
+    indicator.innerHTML = `
+      <span style="position: relative; display: inline-block;">
+        📶
+        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 24px; color: white;">╱</span>
+      </span>
+    `;
+    indicator.style.display = 'block';
+    indicator.style.opacity = '1';
+  } else if (!shouldShow) {
+    // Tout est synchronisé
+    indicator.style.opacity = '0';
+    setTimeout(() => {
+      if (indicator.style.opacity === '0') {
+        indicator.style.display = 'none';
+      }
+    }, 300);
+    
+    // Réinitialiser le flag pour le prochain cycle
+    if (syncAlertShown && pendingUpdates.length === 0) {
+      syncAlertShown = false;
+    }
+  }
+}
+
+// Fonction pour montrer l'alerte de succès
+function showSyncSuccessAlert() {
+  // Ne montrer que si on avait eu l'alerte de warning avant
+  if (syncAlertShown) {
+    showSyncAlert('success');
+    syncAlertShown = false; // Réinitialiser pour le prochain cycle
+  }
+}
+
+
+
+
   
 // ===============================
 // CLIENT TRUTH (source client)
@@ -3985,6 +4129,11 @@ async function processUpdates() {
   updateMenuButtonStates();
   updateAccountDisplay();
   updateSyncIndicator();
+  
+  // ✅ NOUVEAU : Montrer l'alerte de succès si tout est vidé
+  if (pendingUpdates.length === 0) {
+    showSyncSuccessAlert();
+  }
 }
 
 // ============================================================================
