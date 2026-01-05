@@ -3079,6 +3079,37 @@ const SyncCheckTrigger = {
     this.lastPendingCount = current;
   }
 };
+function getOrCreateSyncIndicator() {
+  let indicator = document.getElementById('syncIndicator');
+
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.id = 'syncIndicator';
+
+    Object.assign(indicator.style, {
+      position: 'fixed',
+      bottom: '20px',
+      right: '20px',
+      padding: '10px 14px',
+      borderRadius: '24px',
+      fontSize: '14px',
+      fontWeight: 'bold',
+      color: 'white',
+      background: 'rgba(0,0,0,0.7)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+      zIndex: '999999',
+      transition: 'opacity 0.3s ease',
+      opacity: '0',
+      display: 'none',
+      pointerEvents: 'none',
+      fontFamily: 'system-ui, sans-serif'
+    });
+
+    document.body.appendChild(indicator);
+  }
+
+  return indicator;
+}
   
 // ===============================================
 // POLLING DE SYNCHRONISATION (robuste même en mode avion)
@@ -3157,11 +3188,29 @@ function updateSyncIndicator() {
 
   hideAllSyncIndicators();
 }
+function hideAllSyncIndicators() {
+  const indicator = document.getElementById('syncIndicator');
+  if (indicator) {
+    indicator.style.opacity = '0';
+    setTimeout(() => {
+      indicator.style.display = 'none';
+    }, 300);
+  }
+
+  const overlay = document.getElementById('syncOverlay');
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
 function showMiniSyncIndicator() {
   const el = getOrCreateSyncIndicator();
   el.textContent = '📶❌';
   el.style.background = 'rgba(0,0,0,0.6)';
   el.style.display = 'block';
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+  });
 }
 function showSyncSuccessMessage() {
   const el = getOrCreateSyncIndicator();
@@ -3169,15 +3218,25 @@ function showSyncSuccessMessage() {
   el.style.background = 'rgba(0,160,0,0.9)';
   el.style.display = 'block';
 
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+  });
+
   setTimeout(() => {
     el.style.opacity = '0';
-    setTimeout(() => el.style.display = 'none', 300);
+    setTimeout(() => {
+      el.style.display = 'none';
+    }, 300);
   }, 2500);
 }
 
+
 function showBigSyncWarningCard() {
+  if (document.getElementById('syncOverlay')) return;
+
   const overlay = document.createElement('div');
   overlay.id = 'syncOverlay';
+
   overlay.innerHTML = `
     <div class="sync-card">
       <div class="icon">📶❌</div>
@@ -3189,15 +3248,25 @@ function showBigSyncWarningCard() {
       <button id="closeSyncCard">Fermer</button>
     </div>
   `;
+
+  Object.assign(overlay.style, {
+    position: 'fixed',
+    inset: '0',
+    background: 'rgba(0,0,0,0.6)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: '1000000'
+  });
+
   document.body.appendChild(overlay);
 
-  document
-    .getElementById('closeSyncCard')
-    .onclick = () => {
-      SyncUIState.bigCardDismissed = true;
-      overlay.remove();
-    };
+  document.getElementById('closeSyncCard').onclick = () => {
+    SyncUIState.bigCardDismissed = true;
+    overlay.remove();
+  };
 }
+
 
 // Appeler cette fonction à la fin de processUpdates(), et dans SyncMonitor.evaluate()
   
