@@ -3001,6 +3001,12 @@ function smartSegmentRomaji(romaji) {
 // ============================================================================
 
 const WEB_APP_URL = 'https://kanaszengarden.emmanuel-pierre.workers.dev/api';
+const SyncUIState = {
+  bigCardShown: false,
+  bigCardDismissed: false,
+  lastWasDesynced: false
+};
+
 let pendingUpdates = [];
 let isProcessing = false;
 async function ensureLatestProgress() {
@@ -3117,54 +3123,80 @@ startSyncPolling();
 // window.addEventListener('beforeunload', stopSyncPolling);
 
 function updateSyncIndicator() {
-  let indicator = document.getElementById('syncIndicator');
-
-  // Création si n'existe pas encore
-  if (!indicator) {
-    indicator = document.createElement('div');
-    indicator.id = 'syncIndicator';
-    indicator.style.position = 'fixed';
-    indicator.style.bottom = '20px';
-    indicator.style.right = '20px';
-    indicator.style.background = 'rgba(255, 152, 0, 0.95)'; // orange avec légère transparence
-    indicator.style.color = 'white';
-    indicator.style.padding = '10px 16px';
-    indicator.style.borderRadius = '30px';
-    indicator.style.fontSize = '14px';
-    indicator.style.fontWeight = 'bold';
-    indicator.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
-    indicator.style.zIndex = '999999';           // très très haut
-    indicator.style.transition = 'opacity 0.3s ease';
-    indicator.style.pointerEvents = 'none';       // ne bloque pas les clics dessous
-    indicator.style.maxWidth = '80vw';
-    indicator.style.textAlign = 'center';
-    indicator.style.fontFamily = 'system-ui, sans-serif';
-
-    document.body.appendChild(indicator);
+  // 🟥 1. GROSSE CARTE
+  if (
+    pendingUpdates.length >= SyncCheckTrigger.threshold &&
+    !SyncUIState.bigCardShown
+  ) {
+    showBigSyncWarningCard();
+    SyncUIState.bigCardShown = true;
+    SyncUIState.lastWasDesynced = true;
+    return;
   }
 
-  // Calcul du texte
-  let message = '';
-  if (pendingUpdates.length > 0) {
-    message = `Synchronisation... (${pendingUpdates.length} en attente)`;
-  } else if (SyncMonitor.state !== 'SYNCED') {
-    message = 'Synchronisation en cours...';
+  // 🟧 2. MINI INDICATEUR
+  if (
+    SyncUIState.bigCardDismissed &&
+    pendingUpdates.length > 0
+  ) {
+    showMiniSyncIndicator(); // icône seule
+    return;
   }
 
-  // Affichage ou masquage
-  if (message) {
-    indicator.textContent = message;
-    indicator.style.display = 'block';
-    indicator.style.opacity = '1';
-  } else {
-    indicator.style.opacity = '0';
-    // On le cache complètement après la transition
-    setTimeout(() => {
-      if (indicator.style.opacity === '0') {
-        indicator.style.display = 'none';
-      }
-    }, 300);
+  // 🟩 3. SYNC OK
+  if (
+    pendingUpdates.length === 0 &&
+    SyncUIState.lastWasDesynced
+  ) {
+    showSyncSuccessMessage();
+    SyncUIState.lastWasDesynced = false;
+    SyncUIState.bigCardShown = false;
+    SyncUIState.bigCardDismissed = false;
+    return;
   }
+
+  hideAllSyncIndicators();
+}
+function showMiniSyncIndicator() {
+  const el = getOrCreateSyncIndicator();
+  el.textContent = '📶❌';
+  el.style.background = 'rgba(0,0,0,0.6)';
+  el.style.display = 'block';
+}
+function showSyncSuccessMessage() {
+  const el = getOrCreateSyncIndicator();
+  el.textContent = '✅ Synchronisation OK';
+  el.style.background = 'rgba(0,160,0,0.9)';
+  el.style.display = 'block';
+
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => el.style.display = 'none', 300);
+  }, 2500);
+}
+
+function showBigSyncWarningCard() {
+  const overlay = document.createElement('div');
+  overlay.id = 'syncOverlay';
+  overlay.innerHTML = `
+    <div class="sync-card">
+      <div class="icon">📶❌</div>
+      <p>
+        <strong>Perte de signal détectée</strong><br><br>
+        Vous pouvez continuer à jouer, votre progression est mémorisée
+        et sera synchronisée dès le retour de la connexion.
+      </p>
+      <button id="closeSyncCard">Fermer</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  document
+    .getElementById('closeSyncCard')
+    .onclick = () => {
+      SyncUIState.bigCardDismissed = true;
+      overlay.remove();
+    };
 }
 
 // Appeler cette fonction à la fin de processUpdates(), et dans SyncMonitor.evaluate()
