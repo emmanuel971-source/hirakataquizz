@@ -3215,7 +3215,7 @@ function showSyncAlert(type = 'warning') {
     padding: 35px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     z-index: 1000000;
-    max-width: 300px;
+    max-width: 260px;
     width: 90%;
     text-align: center;
     animation: slideIn 0.3s ease-out;
@@ -3238,7 +3238,7 @@ function showSyncAlert(type = 'warning') {
   // Contenu selon le type
   if (type === 'warning') {
     card.innerHTML = `
-      <div style="font-size: 250px; margin-bottom: 20px;">
+      <div style="font-size: 100px; margin-bottom: 20px;">
         ⌔
       </div>
       <h2 style="color: #333; margin: 0 0 15px 0; font-size: 22px; font-weight: 600;">Perte de signal détectée</h2>
@@ -3342,7 +3342,7 @@ function updateSyncIndicator() {
   const shouldShow = hasPendingUpdates || isDesync;
 
   // Si plus de 5 updates et alerte pas encore montrée
-  if (pendingUpdates.length > 5 && !syncAlertShown) {
+  if (pendingUpdates.length > 3 && !syncAlertShown) {
     showSyncAlert('warning');
   }
 
@@ -3353,13 +3353,13 @@ function updateSyncIndicator() {
     indicator.style.cssText = `
       position: fixed;
       bottom: 35px;
-      right: 2px;
+      right: 20px;
       background: rgba(255, 152, 0, 0.95);
       color: white;
       padding-right:5px;
       padding-left:5px;
       border-radius: 25px;
-      font-size: 50px;
+      font-size: 30px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       z-index: 999998;
       transition: all 0.3s ease;
@@ -3373,7 +3373,7 @@ function updateSyncIndicator() {
   // Affichage ou masquage
   if (shouldShow && syncAlertShown) {
     // ✅ REMPLACE CET EMOJI PAR CELUI QUE TU VEUX
-    indicator.innerHTML = `⌔`;  // ← ICI : Change par ⚠️ ou 🔄 ou 🔴 etc.
+    indicator.innerHTML = ` ⌔ `;  // ← ICI : Change par ⚠️ ou 🔄 ou 🔴 etc.
     indicator.style.display = 'block';
     indicator.style.opacity = '1';
   } else if (!shouldShow) {
@@ -8145,6 +8145,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
