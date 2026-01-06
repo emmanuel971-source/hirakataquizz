@@ -3129,7 +3129,7 @@ function updateSyncIndicator() {
   const shouldShow = hasPendingUpdates || isDesync;
 
   // Si plus de 5 updates et alerte pas encore montrée
-  if (pendingUpdates.length > 5 && !syncAlertShown) {
+  if (pendingUpdates.length > 3 && !syncAlertShown) {
     showSyncAlert('warning');
   }
 
@@ -3238,12 +3238,12 @@ function showSyncAlert(type = 'warning') {
   // Contenu selon le type
   if (type === 'warning') {
     card.innerHTML = `
-      <div style="font-size: 150px; margin-bottom: 20px;">
+      <div style="font-size: 200px; margin-bottom: 20px;">
         ⌔
       </div>
       <h2 style="color: #333; margin: 0 0 15px 0; font-size: 22px; font-weight: 600;">Perte de signal détectée</h2>
       <p style="color: #666; margin: 0 0 25px 0; line-height: 1.6; font-size: 15px;">
-        Vous pouvez continuer à jouer, votre progression est mémorisée et sera synchronisée dès le retour de la connexion.
+        Votre progression est mémorisée et sera synchronisée dès le retour de la connexion.
       </p>
       <button id="closeSyncAlert" style="
         background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
@@ -3263,7 +3263,7 @@ function showSyncAlert(type = 'warning') {
     syncAlertShown = true;
   } else if (type === 'success') {
     card.innerHTML = `
-      <div style="font-size: 70px; margin-bottom: 20px;">✅</div>
+     
       <h2 style="color: #4CAF50; margin: 0 0 15px 0; font-size: 22px; font-weight: 600;">Synchronisation réussie !</h2>
       <p style="color: #666; margin: 0 0 25px 0; line-height: 1.6; font-size: 15px;">
         Toutes vos données ont été sauvegardées avec succès.
@@ -3353,13 +3353,13 @@ function updateSyncIndicator() {
     indicator.style.cssText = `
       position: fixed;
       bottom: 30px;
-      right: 20px;
+      right: 2px;
       background: rgba(255, 152, 0, 0.95);
       color: white;
-      padding-right:5px;
-      padding-left:5px;
+      padding-right:20px;
+      padding-left:20px;
       border-radius: 25px;
-      font-size: 36px;
+      font-size: 40px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       z-index: 999998;
       transition: all 0.3s ease;
@@ -8145,6 +8145,7 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
 </script>
 </html>
+
 
 
 
