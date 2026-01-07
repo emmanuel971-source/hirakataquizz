@@ -2012,10 +2012,26 @@ function updateAccountDisplay() {
 }
 
 // --- Fonctions onboarding ---
-function initPseudoCache() {
-  if (pseudoCache.length === 0) {
-    pseudoCache = generatePseudoBatch();
+async function initPseudoCache() {
+  // ✅ ATTENDRE que les WordLists soient chargées (max 5 secondes)
+  let attempts = 0;
+  while (!localStorage.getItem('wordLists') && attempts < 50) {
+    console.log(`⏳ Attente des WordLists... (${attempts + 1}/50)`);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    attempts++;
+  }
+  
+  // Si échec après 5 secondes, utiliser le fallback
+  if (!localStorage.getItem('wordLists')) {
+    console.error('❌ WordLists non disponibles après 5 secondes - Utilisation du fallback');
+    pseudoCache = generateFallbackPseudos();
     currentPseudoIndex = 0;
+  } else {
+    // WordLists disponibles, génération normale
+    if (pseudoCache.length === 0) {
+      pseudoCache = generatePseudoBatch();
+      currentPseudoIndex = 0;
+    }
   }
   
   // Initialiser avec le premier pseudo
@@ -2037,9 +2053,38 @@ function initPseudoCache() {
   stepTimestamps = { 1: Date.now() };
   userInteractions = { clicks: 0, keystrokes: 0, mouseMovements: 0 };
   
-  // ✅ RETIRÉ : La détection de langue se fait maintenant dans initGame/window.onload
-  
   console.log('🛡️ Session anti-bot initialisée');
+}
+// ✅ NOUVELLE FONCTION : Génération de pseudos de secours
+function generateFallbackPseudos() {
+  console.log('⚠️ Génération de pseudos de fallback (WordLists non disponibles)');
+  
+  const fallbackJpn = [
+    'Sakura', 'Hana', 'Yuki', 'Sora', 'Kaze', 
+    'Umi', 'Hoshi', 'Tsuki', 'Hi', 'Mizu',
+    'Kiri', 'Nami', 'Ame', 'Kumo', 'Yama'
+  ];
+  
+  const fallbackEng = [
+    'Zen', 'Spirit', 'Dream', 'Cloud', 'Star', 
+    'Moon', 'Fire', 'Water', 'Wind', 'Sky',
+    'Mist', 'Wave', 'Rain', 'Mountain', 'Light'
+  ];
+  
+  const batch = [];
+  for (let i = 0; i < 10; i++) {
+    const randomJpn = fallbackJpn[Math.floor(Math.random() * fallbackJpn.length)];
+    const randomEng = fallbackEng[Math.floor(Math.random() * fallbackEng.length)];
+    
+    batch.push({
+      pseudo: randomJpn + randomEng,
+      jpnWord: randomJpn,
+      engWord: randomEng
+    });
+  }
+  
+  console.log('✅ 10 pseudos de fallback générés:', batch.slice(0, 3).map(p => p.pseudo));
+  return batch;
 }
 function generatePseudoBatch() {
   const wordListsStr = localStorage.getItem('wordLists');
@@ -2106,9 +2151,15 @@ async function generateNewPseudo() {
     errorDiv.style.display = 'none';
   }
   
-  // Si cache vide ou épuisé, régénérer un batch
+// Si cache vide ou épuisé, régénérer un batch
   if (currentPseudoIndex >= pseudoCache.length) {
-    pseudoCache = generatePseudoBatch();
+    // ✅ Tenter génération normale, fallback si échec
+    if (localStorage.getItem('wordLists')) {
+      pseudoCache = generatePseudoBatch();
+    } else {
+      console.warn('⚠️ WordLists toujours indisponibles, utilisation du fallback');
+      pseudoCache = generateFallbackPseudos();
+    }
     currentPseudoIndex = 0;
     
     if (pseudoCache.length === 0) {
@@ -7711,17 +7762,19 @@ async function initGame() {
     // PHASE 2 : CHARGEMENT PRIORITAIRE (15-60%)
     // ==========================================
     
-    if (profile.isNew) {
-      // 🆕 NEW USER : WordLists + Niveaux 1-3
-      updateLoadingProgress(20, "Chargement des listes de mots...");
-      const wordListsResult = await callAPI('getWordLists');
-      if (wordListsResult.success) {
-        // Stocker pour generatePseudo côté client si besoin
-        localStorage.setItem('wordLists', JSON.stringify(wordListsResult.words));
-        console.log(`📚 ${wordListsResult.count} mots chargés`);
-      }
-      
-      updateLoadingProgress(35, "Chargement niveaux 1-3...");
+// ✅ NOUVEAU : Charger WordLists EN PRIORITÉ pour TOUS (NEW + RETURNING)
+updateLoadingProgress(20, "Chargement des listes de mots...");
+const wordListsResult = await callAPI('getWordLists');
+if (wordListsResult.success) {
+  localStorage.setItem('wordLists', JSON.stringify(wordListsResult.words));
+  console.log(`📚 ${wordListsResult.count} mots chargés`);
+} else {
+  console.warn('⚠️ Échec chargement WordLists, fallback sera utilisé');
+}
+
+if (profile.isNew) {
+  // 🆕 NEW USER : Niveaux 1-3
+  updateLoadingProgress(35, "Chargement niveaux 1-3...");
       const chunk1Result = await callAPI('getHiraganaChunk', { startLevel: 1, endLevel: 3 });
       
       if (chunk1Result.success) {
@@ -7934,13 +7987,7 @@ async function loadRemainingDataInBackground(profile) {
         }
       }
       
-      // Chargement WordLists
-      console.log('📥 Background: chargement WordLists...');
-      const wordListsResult = await callAPI('getWordLists');
-      if (wordListsResult.success) {
-        localStorage.setItem('wordLists', JSON.stringify(wordListsResult.words));
-        console.log(`✅ Background: ${wordListsResult.count} mots stockés`);
-      }
+
     }
     
     // Régénération tables
@@ -8167,9 +8214,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const menuBtn = document.querySelector(".hamburger");
     if (menuBtn) menuBtn.classList.remove("hidden");
     
-    if (!userToken || !currentUser) {
-      showSection('create-account');
-      generateNewPseudo();
+if (!userToken || !currentUser) {
+  showSection('create-account');
+  await initPseudoCache(); // ✅ Appel async
+}
     } else {
       showReturningUserWelcome(currentUser.pseudo);
     }
