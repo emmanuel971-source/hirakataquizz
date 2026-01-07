@@ -8204,37 +8204,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     panda.classList.add('loaded');
   }, 200);
   
-  // Événement click panda
-  panda.addEventListener("click", () => {
-    document.getElementById("welcome").classList.add("hidden");
-    loadDifficulty();
-    updateMenuMessage();
-    updateApprendreButtonState();
+ // Événement click panda
+panda.addEventListener("click", async () => { // ✅ Ajout de async
+  document.getElementById("welcome").classList.add("hidden");
+  loadDifficulty();
+  updateMenuMessage();
+  updateApprendreButtonState();
+  
+  const menuBtn = document.querySelector(".hamburger");
+  if (menuBtn) menuBtn.classList.remove("hidden");
+  
+  if (!userToken || !currentUser) {
+    showSection('create-account');
+    await initPseudoCache(); // ✅ Maintenant valide
+  } else {
+    showReturningUserWelcome(currentUser.pseudo);
+  }
+  
+  if (isApprentissageBloque()) {
+    console.log('🚫 Mode Apprendre bloqué détecté au démarrage');
+    wasBlockedWhenEnteringRevision = true;
+    deficitInitialRevision = calculerDeficitValidation();
+    pointsGagnesEnRevision = 0;
     
-    const menuBtn = document.querySelector(".hamburger");
-    if (menuBtn) menuBtn.classList.remove("hidden");
-    
-if (!userToken || !currentUser) {
-  showSection('create-account');
-  await initPseudoCache(); // ✅ Appel async
-}
-    } else {
-      showReturningUserWelcome(currentUser.pseudo);
-    }
-    
-    if (isApprentissageBloque()) {
-      console.log('🚫 Mode Apprendre bloqué détecté au démarrage');
-      wasBlockedWhenEnteringRevision = true;
-      deficitInitialRevision = calculerDeficitValidation();
-      pointsGagnesEnRevision = 0;
-      
-      setTimeout(() => {
-        showSection('mode2');
-      }, 100);
-    }
-    
-    nextQuestion();
-  });
+    setTimeout(() => {
+      showSection('mode2');
+    }, 100);
+  }
+  
+  nextQuestion();
+});
   
   updateAllTexts();
 });
