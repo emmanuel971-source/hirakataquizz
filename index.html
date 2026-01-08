@@ -8289,194 +8289,189 @@ document.querySelectorAll('.revision-key').forEach(key => {
 // ======================
 // TUTORIEL MODE QUIZ
 // ======================
-
 const quizTutorialSteps = [
-  {
-    title: "Bienvenue !",
-    text: "Commençons par une petite présentation.",
-    animate: () => {}
-  },
-  {
-    title: "Progression du niveau",
-    text: "Cette barre montre ton avancement dans le niveau actuel.",
-    animate: () => {
-      const marker = document.querySelector(".progress-marker");
-      if (!marker) return;
-      const orig = getComputedStyle(marker).left;
-      let interval = setInterval(() => {
-        marker.style.transition = "left 1s ease";
-        marker.style.left = "100%";
-        setTimeout(() => {
-          marker.style.transition = "none";
-          marker.style.left = orig;
-          setTimeout(() => {
-            marker.style.transition = "left 1s ease";
-          }, 50);
-        }, 1200);
-      }, 2500);
-      return () => clearInterval(interval);
-    }
-  },
-  {
-    title: "Tes kanas",
-    text: "Chaque carte affiche un kana et tes étoiles de maîtrise.",
-    animate: () => {
-      const cards = document.querySelectorAll(".hiragana-card");
-      if (cards.length === 0) return;
-      const target = cards[Math.floor(cards.length / 2)];
-      target.classList.add("tutorial-highlight");
-
-      const animateStars = () => {
-        const stars = target.querySelectorAll(".star");
-        stars.forEach(s => {
-          s.classList.remove("filled", "new-star");
-          s.style.background = "var(--gray-very-light)";
-        });
-        stars.forEach((star, i) => {
-          setTimeout(() => {
-            star.classList.add("filled", "new-star");
-            star.style.background = "var(--green-primary)";
-            setTimeout(() => star.classList.remove("new-star"), 1200);
-          }, i * 1200);
-        });
-        setTimeout(() => target.classList.add("completed"), stars.length * 1200 + 1200);
-      };
-
-      animateStars();
-      let interval = setInterval(animateStars, stars.length * 1200 + 2000);
-      target.classList.add("pulsing");
-      return () => clearInterval(interval);
-    }
-  },
-  {
-    title: "La question",
-    text: "Ici apparaît le kana à identifier. Observe-le bien !",
-    animate: () => {
-      const question = document.getElementById("question");
-      if (question) {
-        question.classList.add("tutorial-highlight", "pulsing");
-      }
-    }
-  },
-  {
-    title: "Réponses",
-    text: "Choisis une option dans chaque rangée pour valider.",
-    animate: () => {
-      const buttons = document.querySelectorAll(".answers button");
-      if (buttons.length === 0) return;
-      
-  //    let index = 0;
-  //    const highlightNext = () => {
-  //      buttons.forEach(b => b.classList.remove("tutorial-highlight"));
-  //      buttons[index].classList.add("tutorial-highlight", "pulsing");
-  //      index = (index + 1) % buttons.length;
- //     };
-     
-     highlightNext();
-      let interval = setInterval(highlightNext, 800);
-      
-      return () => clearInterval(interval);
-    }
-  },
-  {
-    title: "❌ Mauvaise réponse",
-    text: "Les boutons incorrects sont marqués en rose, et les bons en vert. Tu apprends de tes erreurs !",
-    animate: playIncorrectAnswerDemo
-  },
-  {
-    title: "✅ Bonne réponse",
-    text: "Quand tout est juste, c'est la fête ! Les boutons t'ont guidé vers la victoire. 🎉",
-    animate: playCorrectAnswerDemo
-  },
-  {
-    title: "Le menu",
-    text: "Utilise le bouton menu pour naviguer entre les sections.",
-    animate: () => {}
-  },
-  {
-    title: "C'est parti !",
-    text: "Tu es prêt·e, amuse-toi et progresse zen ! 🌸",
-   
-  }
+  {
+    title: "Bienvenue !",
+    text: "Commençons par une petite présentation.",
+    animate: () => {}
+  },
+  {
+    title: "Progression du niveau",
+    text: "Cette barre montre ton avancement dans le niveau actuel.",
+    animate: () => {
+      const marker = document.querySelector(".progress-marker");
+      if (!marker) return;
+      const orig = getComputedStyle(marker).left;
+      let interval = setInterval(() => {
+        marker.style.transition = "left 1s ease";
+        marker.style.left = "100%";
+        setTimeout(() => {
+          marker.style.transition = "none";
+          marker.style.left = orig;
+          setTimeout(() => {
+            marker.style.transition = "left 1s ease";
+          }, 50);
+        }, 1200);
+      }, 2500);
+      return () => clearInterval(interval);
+    }
+  },
+  {
+    title: "Tes kanas",
+    text: "Chaque carte affiche un kana et tes étoiles de maîtrise.",
+    animate: () => {
+      const cards = document.querySelectorAll(".hiragana-card");
+      if (cards.length === 0) return;
+      const target = cards[Math.floor(cards.length / 2)];
+      target.classList.add("tutorial-highlight");
+      const animateStars = () => {
+        const stars = target.querySelectorAll(".star");
+        stars.forEach(s => {
+          s.classList.remove("filled", "new-star");
+          s.style.background = "var(--gray-very-light)";
+        });
+        stars.forEach((star, i) => {
+          setTimeout(() => {
+            star.classList.add("filled", "new-star");
+            star.style.background = "var(--green-primary)";
+            setTimeout(() => star.classList.remove("new-star"), 1200);
+          }, i * 1200);
+        });
+        setTimeout(() => target.classList.add("completed"), stars.length * 1200 + 1200);
+      };
+      animateStars();
+      let interval = setInterval(animateStars, stars.length * 1200 + 2000);
+      target.classList.add("pulsing");
+      return () => clearInterval(interval);
+    }
+  },
+  {
+    title: "La question",
+    text: "Ici apparaît le kana à identifier. Observe-le bien !",
+    animate: () => {
+      const question = document.getElementById("question");
+      if (question) {
+        question.classList.add("tutorial-highlight", "pulsing");
+      }
+    }
+  },
+  {
+    title: "Réponses",
+    text: "Choisis une option dans chaque rangée pour valider.",
+    animate: () => {
+      const buttons = document.querySelectorAll(".answers button");
+      if (buttons.length === 0) return;
+     
+    // let index = 0;
+    // const highlightNext = () => {
+    // buttons.forEach(b => b.classList.remove("tutorial-highlight"));
+    // buttons[index].classList.add("tutorial-highlight", "pulsing");
+    // index = (index + 1) % buttons.length;
+    // };
+     
+   // highlightNext();
+   // let interval = setInterval(highlightNext, 800);
+     
+   // return () => clearInterval(interval);
+    }
+  },
+  {
+    title: "❌ Mauvaise réponse",
+    text: "Les boutons incorrects sont marqués en rose, et les bons en vert. Tu apprends de tes erreurs !",
+    animate: playIncorrectAnswerDemo
+  },
+  {
+    title: "✅ Bonne réponse",
+    text: "Quand tout est juste, c'est la fête ! Les boutons t'ont guidé vers la victoire. 🎉",
+    animate: playCorrectAnswerDemo
+  },
+  {
+    title: "Le menu",
+    text: "Utilise le bouton menu pour naviguer entre les sections.",
+    animate: () => {}
+  },
+  {
+    title: "C'est parti !",
+    text: "Tu es prêt·e, amuse-toi et progresse zen ! 🌸",
+  }
 ];
 let tutorialStep = 0;
 let tutorialActive = false;
 let currentCleanup = null;
-
 function startQuizTutorial() {
-  if (tutorialActive) return;
-  tutorialActive = true;
-  tutorialStep = 0;
-
-  // ✅ Génère la question démo AVANT le tutoriel
-  generateDemoQuestion();
-
-  document.getElementById("quiz-tutorial-overlay").style.display = "flex";
-
-  const dots = document.getElementById("tutorial-progress-dots");
-  dots.innerHTML = "";
-  quizTutorialSteps.forEach((_, i) => {
-    const d = document.createElement("div");
-    d.className = "tutorial-dot" + (i === 0 ? " active" : "");
-    dots.appendChild(d);
-  });
-
-  showTutorialStep();
+  if (tutorialActive) return;
+  tutorialActive = true;
+  tutorialStep = 0;
+ // ✅ Génère la VRAIE première question du jeu
+  nextQuestion();
+ 
+  // Désactive juste les interactions pendant le tuto
+  document.querySelectorAll(".answers button").forEach(b => {
+    b.disabled = true;
+    b.style.pointerEvents = "none";
+  });
+  document.getElementById("quiz-tutorial-overlay").style.display = "flex";
+  const dots = document.getElementById("tutorial-progress-dots");
+  dots.innerHTML = "";
+  quizTutorialSteps.forEach((_, i) => {
+    const d = document.createElement("div");
+    d.className = "tutorial-dot" + (i === 0 ? " active" : "");
+    dots.appendChild(d);
+  });
+  showTutorialStep();
 }
 
 function showTutorialStep() {
   const step = quizTutorialSteps[tutorialStep];
+
+  // Mise à jour titre et texte
   document.getElementById("tutorial-title").textContent = step.title;
   document.getElementById("tutorial-text").textContent = step.text;
-  
+
+  // Mise à jour des points de progression
   document.querySelectorAll(".tutorial-dot").forEach((d, i) => {
     d.classList.toggle("active", i === tutorialStep);
   });
-  
-  // Nettoyage précédent
-  if (currentCleanup) currentCleanup();
+
+  // Nettoyage de l'animation précédente
+  if (currentCleanup) {
+    currentCleanup();
+    currentCleanup = null;
+  }
+
+  // Retrait des highlights et animations générales
   document.querySelectorAll(".tutorial-highlight, .pulsing, .completed").forEach(el => {
     el.classList.remove("tutorial-highlight", "pulsing", "completed");
   });
 
-  // Déplacement vertical de la carte tuto
+  // Nettoyage spécifique des boutons de réponses
+  document.querySelectorAll(".answers button").forEach(b => {
+    b.classList.remove("clicked-glow", "clicked", "correct", "incorrect");
+  });
+
+  // Positionnement de la carte du tutoriel
   const card = document.getElementById("quiz-tutorial-card");
   card.style.transform = "translateY(0)"; // reset
-  
-  if (tutorialStep === 1) { 
-    // Barre progression → carte en bas
+
+  if (tutorialStep === 1) {
     card.style.transform = "translateY(0)";
-  } 
-  else if (tutorialStep === 2) { 
-    // Cartes hiragana → carte en bas
+  } else if (tutorialStep === 2) {
     card.style.transform = "translateY(0)";
-  } 
-  else if (tutorialStep === 3) { 
-    // Question → carte en haut
+  } else if (tutorialStep === 3) {
     card.style.transform = "translateY(20vh)";
-  } 
-  else if (tutorialStep === 4) { 
-    // Boutons réponses → carte en haut
+  } else if (tutorialStep === 4) {
     card.style.transform = "translateY(-20vh)";
-  } 
-  else if (tutorialStep === 5) { 
-    // ❌ Mauvaise réponse → carte en haut pour voir l'animation
-    card.style.transform = "translateY(-20vh)";
-  } 
-  else if (tutorialStep === 6) { 
-    // ✅ Bonne réponse → carte en haut pour voir l'animation
-    card.style.transform = "translateY(-20vh)";
-  } 
-  else if (tutorialStep === 7) { 
-    // Menu hamburger → carte au milieu
+  } else if (tutorialStep === 5) {
+    card.style.transform = "translateY(-30vh)";
+  } else if (tutorialStep === 6) {
+    card.style.transform = "translateY(-30vh)";
+  } else if (tutorialStep === 7) {
     card.style.transform = "translateY(0)";
-  } 
-  else { 
-    // Intro (0) et C'est parti (8) → centre
+  } else {
     card.style.transform = "translateY(0)";
   }
-  
-  // Highlight uniquement l'élément concerné
+
+  // Highlight de la zone concernée
   const highlightSelector = tutorialStep === 1 ? "#progressBarContainer" :
                             tutorialStep === 2 ? ".hiraganas-grid" :
                             tutorialStep === 3 ? "#question" :
@@ -8485,194 +8480,158 @@ function showTutorialStep() {
                             tutorialStep === 6 ? ".answers" :
                             tutorialStep === 7 ? null :
                             null;
-  
+
   if (highlightSelector) {
-    document.querySelectorAll(highlightSelector).forEach(el => el.classList.add("tutorial-highlight"));
+    document.querySelectorAll(highlightSelector).forEach(el => {
+      el.classList.add("tutorial-highlight");
+    });
   }
-  
-  // Animation (si définie)
-  if (step.animate) currentCleanup = step.animate() || null;
-  
+
+  // === LANCEMENT DE L'ANIMATION DE L'ÉTAPE ===
+  if (tutorialStep === 5 || tutorialStep === 6) {
+    // Pour les étapes ❌ et ✅ : on utilise une question fixe ultra-fiable
+    setupTutorialDemoQuestion();
+
+    // Petit délai pour que les boutons soient bien dans le DOM
+    setTimeout(() => {
+      if (step.animate) {
+        currentCleanup = step.animate() || null;
+      }
+    }, 50);
+
+  } else {
+    // Toutes les autres étapes : animation immédiate (comme avant)
+    if (step.animate) {
+      currentCleanup = step.animate() || null;
+    }
+  }
+
+  // Texte du bouton Suivant / Commencer
   document.getElementById("tutorial-next").textContent =
     tutorialStep === quizTutorialSteps.length - 1 ? "Commencer !" : "Suivant →";
 }
 function nextTutorialStep() {
-  tutorialStep++;
-  if (tutorialStep >= quizTutorialSteps.length) {
-    endQuizTutorial();
-  } else {
-    showTutorialStep();
-  }
+  tutorialStep++;
+  if (tutorialStep >= quizTutorialSteps.length) {
+    endQuizTutorial();
+  } else {
+    showTutorialStep();
+  }
 }
-
 function endQuizTutorial() {
-  tutorialActive = false;
-  document.getElementById("quiz-tutorial-overlay").style.display = "none";
-
-  if (currentCleanup) currentCleanup();
-  document.querySelectorAll(".tutorial-highlight, .pulsing, .completed").forEach(el => {
-    el.classList.remove("tutorial-highlight", "pulsing", "completed");
-  });
-localStorage.removeItem('quizTutorialSeen'); 
-  nextQuestion();
+  tutorialActive = false;
+  document.getElementById("quiz-tutorial-overlay").style.display = "none";
+  if (currentCleanup) currentCleanup();
+  document.querySelectorAll(".tutorial-highlight, .pulsing, .completed").forEach(el => {
+    el.classList.remove("tutorial-highlight", "pulsing", "completed");
+  });
+ 
+  // ✅ Réactive les boutons pour que l'utilisateur puisse jouer
+  document.querySelectorAll(".answers button").forEach(b => {
+    b.disabled = false;
+    b.style.pointerEvents = "auto";
+  });
+ 
+ localStorage.removeItem('quizTutorialSeen');
+  nextQuestion();
 }
-
 // Fonctions utilitaires
 function simulateTutorialAnswer(correct) {
-  const rows = [document.getElementById("choices1"), document.getElementById("choices2")];
-  rows.forEach(row => {
-    row.querySelectorAll("button").forEach(b => b.disabled = true);
-  });
-
-  rows.forEach((row, idx) => {
-    const btns = row.querySelectorAll("button");
-    const good = btns[idx % btns.length];
-    const chosen = correct ? good : btns[(idx + 1) % btns.length];
-
-    setTimeout(() => {
-      chosen.classList.add("clicked-glow", correct ? "correct" : "incorrect");
-      good.classList.add("correct");
-    }, idx * 400);
-  });
-
-
+  const rows = [document.getElementById("choices1"), document.getElementById("choices2")];
+  rows.forEach(row => {
+    row.querySelectorAll("button").forEach(b => b.disabled = true);
+  });
+  rows.forEach((row, idx) => {
+    const btns = row.querySelectorAll("button");
+    const good = btns[idx % btns.length];
+    const chosen = correct ? good : btns[(idx + 1) % btns.length];
+    setTimeout(() => {
+      chosen.classList.add("clicked-glow", correct ? "correct" : "incorrect");
+      good.classList.add("correct");
+    }, idx * 400);
+  });
+  if (correct) {
+  }
 }
-
 function resetTutorialButtons() {
-  document.querySelectorAll(".answers button").forEach(b => {
-    b.className = "arcade-button";
-    b.disabled = false;
-  });
+  document.querySelectorAll(".answers button").forEach(b => {
+    b.className = "arcade-button";
+    b.disabled = false;
+  });
 }
-
-// Nouvelle fonction pour le tutoriel avec démo interactive
-function generateDemoQuestion() {
-  // Prend le premier hiragana du niveau 1 pour la démo
-  const demoChar = HiraganaList.find(h => parseInt(h.Niveau, 10) === 1) || HiraganaList[0];
-  
-  current = demoChar;
-  document.getElementById("question").innerText = demoChar.Hiragana;
-
-  // Génère des choix démo avec la bonne réponse
-  const otherKatakana = ["カ", "サ", "タ", "ナ", "ハ", "マ"];
-  const otherRomaji = ["ka", "sa", "ta", "na", "ha", "ma"];
-  
-  const demoChoices1 = [
-    getLocalizedKatakana(demoChar),
-    ...otherKatakana.filter(k => k !== getLocalizedKatakana(demoChar)).slice(0, 3)
-  ].sort(() => 0.5 - Math.random());
-  
-  const demoChoices2 = [
-    demoChar.Romaji,
-    ...otherRomaji.filter(r => r !== demoChar.Romaji).slice(0, 3)
-  ].sort(() => 0.5 - Math.random());
-
-  renderChoices("choices1", demoChoices1, "first");
-  renderChoices("choices2", demoChoices2, "second");
-  
-  // Désactive les boutons pendant le tuto (sauf pour l'étape démo)
-  document.querySelectorAll(".answers button").forEach(b => {
-    b.disabled = true;
-    b.style.pointerEvents = "none";
-  });
-}
-
 // Fonction pour simuler une réponse correcte (étape du tuto)
 function playCorrectAnswerDemo() {
-  const correctKatakana = getLocalizedKatakana(current);
-  const correctRomaji = current.Romaji;
-  
-  // Trouve les bons boutons
-  let correctBtn1 = null;
-  let correctBtn2 = null;
-  
-  document.querySelectorAll("#choices1 button").forEach(btn => {
-    if (btn.innerText === correctKatakana) correctBtn1 = btn;
-  });
-  
-  document.querySelectorAll("#choices2 button").forEach(btn => {
-    if (btn.innerText === correctRomaji) correctBtn2 = btn;
-  });
-  
-  if (!correctBtn1 || !correctBtn2) return;
-  
-  // Animation : clic sur le premier bouton
+  const correctKatakana = "ア";
+  const correctRomaji = "a";
+
+  const correctBtn1 = [...document.querySelectorAll("#choices1 button")].find(b => b.innerText === correctKatakana);
+  const correctBtn2 = [...document.querySelectorAll("#choices2 button")].find(b => b.innerText === correctRomaji);
+
+  if (!correctBtn1 || !correctBtn2) {
+    console.warn("Boutons corrects non trouvés (démo bonne réponse)");
+    return () => {};
+  }
+
   setTimeout(() => {
     correctBtn1.classList.add("clicked-glow", "clicked");
     playTwinkle();
   }, 500);
-  
-  // Animation : clic sur le second bouton
+
   setTimeout(() => {
     correctBtn2.classList.add("clicked-glow", "clicked");
     playTwinkle();
   }, 1200);
-  
-  // Affiche les réponses correctes
+
   setTimeout(() => {
     correctBtn1.classList.remove("clicked-glow");
     correctBtn2.classList.remove("clicked-glow");
     correctBtn1.classList.add("correct");
     correctBtn2.classList.add("correct");
-    
-   
-    
+
     const fw = document.createElement("div");
     fw.className = "firework";
     fw.style.top = "30%";
     document.body.appendChild(fw);
     setTimeout(() => fw.remove(), 800);
-    
+
     playTwinkle();
   }, 1900);
-  
-  // Cleanup pour la suite du tuto
+
   return () => {
     document.querySelectorAll(".answers button").forEach(btn => {
       btn.classList.remove("clicked-glow", "clicked", "correct", "incorrect");
     });
   };
 }
-
 // Fonction pour simuler une réponse incorrecte
+
 function playIncorrectAnswerDemo() {
-  const correctKatakana = getLocalizedKatakana(current);
-  const correctRomaji = current.Romaji;
-  
-  let wrongBtn1 = null;
-  let wrongBtn2 = null;
-  let correctBtn1 = null;
-  let correctBtn2 = null;
-  
-  document.querySelectorAll("#choices1 button").forEach(btn => {
-    if (btn.innerText === correctKatakana) {
-      correctBtn1 = btn;
-    } else if (!wrongBtn1) {
-      wrongBtn1 = btn;
-    }
-  });
-  
-  document.querySelectorAll("#choices2 button").forEach(btn => {
-    if (btn.innerText === correctRomaji) {
-      correctBtn2 = btn;
-    } else if (!wrongBtn2) {
-      wrongBtn2 = btn;
-    }
-  });
-  
-  if (!wrongBtn1 || !wrongBtn2 || !correctBtn1 || !correctBtn2) return;
-  
-  // Animation : clic sur mauvais bouton 1
+  const correctKatakana = "ア";
+  const correctRomaji = "a";
+
+  const buttons1 = [...document.querySelectorAll("#choices1 button")];
+  const buttons2 = [...document.querySelectorAll("#choices2 button")];
+
+  const correctBtn1 = buttons1.find(b => b.innerText === correctKatakana);
+  const correctBtn2 = buttons2.find(b => b.innerText === correctRomaji);
+
+  // On prend un mauvais bouton (pas le bon)
+  const wrongBtn1 = buttons1.find(b => b.innerText !== correctKatakana);
+  const wrongBtn2 = buttons2.find(b => b.innerText !== correctRomaji);
+
+  if (!correctBtn1 || !correctBtn2 || !wrongBtn1 || !wrongBtn2) {
+    console.warn("Boutons manquants (démo mauvaise réponse)");
+    return () => {};
+  }
+
   setTimeout(() => {
     wrongBtn1.classList.add("clicked-glow", "clicked");
   }, 500);
-  
-  // Animation : clic sur mauvais bouton 2
+
   setTimeout(() => {
     wrongBtn2.classList.add("clicked-glow", "clicked");
   }, 1200);
-  
-  // Affiche l'erreur et la correction
+
   setTimeout(() => {
     wrongBtn1.classList.remove("clicked-glow");
     wrongBtn2.classList.remove("clicked-glow");
@@ -8680,22 +8639,53 @@ function playIncorrectAnswerDemo() {
     wrongBtn2.classList.add("incorrect");
     correctBtn1.classList.add("correct");
     correctBtn2.classList.add("correct");
-    
+
     playSoftError();
-  //  document.body.classList.add("shake");
-  //  setTimeout(() => document.body.classList.remove("shake"), 400);
   }, 1900);
-  
+
   return () => {
     document.querySelectorAll(".answers button").forEach(btn => {
       btn.classList.remove("clicked-glow", "clicked", "correct", "incorrect");
     });
   };
 }
-
 // Événements boutons
 document.getElementById("tutorial-next").onclick = nextTutorialStep;
+function setupTutorialDemoQuestion() {
+  // Question fixe pour le tutoriel : on prend "ア" (a en romaji) → simple et visuel
 
+  // 1. Mise à jour du kana affiché dans la question
+  const questionEl = document.getElementById("question");
+  if (questionEl) {
+    questionEl.textContent = "ア";  // Le kana affiché
+  }
+
+  // 2. Vidage des conteneurs de réponses
+  const choices1 = document.getElementById("choices1");
+  const choices2 = document.getElementById("choices2");
+  if (choices1) choices1.innerHTML = "";
+  if (choices2) choices2.innerHTML = "";
+
+  // 3. Création des boutons pour la ligne Katakana (choices1)
+  // Bonne réponse : "ア" → on la met en position 0 pour simplifier
+  const katakanaOptions = ["ウ", "イ", "ア", "エ"];
+  katakanaOptions.forEach(text => {
+    const btn = document.createElement("button");
+    btn.className = "arcade-button";
+    btn.innerText = text;
+    choices1.appendChild(btn);
+  });
+
+  // 4. Création des boutons pour la ligne Romaji (choices2)
+  // Bonne réponse : "a"
+  const romajiOptions = ["i", "a", "e", "o"];
+  romajiOptions.forEach(text => {
+    const btn = document.createElement("button");
+    btn.className = "arcade-button";
+    btn.innerText = text;
+    choices2.appendChild(btn);
+  });
+}
 </script>
 </html>
 
