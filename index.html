@@ -1226,6 +1226,13 @@ insect_msg_05: "Observe ton jardin. Il raconte ton parcours.",
     contact_user_not_found: "Utilisateur non identifié. Connecte-toi d'abord.",
     contact_inbox_error: "❌ Erreur de chargement",
     
+    sync_alert_title: "Perte de signal détectée",
+    sync_alert_message: "Vous pouvez continuer à jouer, votre progression est mémorisée et sera synchronisée dès le retour de la connexion.",
+    sync_alert_button: "J'ai compris",
+    sync_success_title: "Synchronisation réussie !",
+    sync_success_message: "Toutes vos données ont été sauvegardées avec succès.",
+    sync_success_button: "OK",
+
     // Déblocages
     unlock_revision_title: 'Mode Révisions',
     unlock_revision_message: 'Tu peux maintenant réviser tes kanas !',
@@ -1452,6 +1459,13 @@ insect_msg_05: "Look at your garden. It tells the story of your journey.",
     contact_error_occurred: 'An error occurred',
     contact_user_not_found: "User not identified. Please log in first.",
     contact_inbox_error: "❌ Loading error",
+
+    sync_alert_title: "Signal loss detected",
+    sync_alert_message: "You can continue playing, your progress is saved and will be synchronized when the connection returns.",
+    sync_alert_button: "Got it",
+    sync_success_title: "Sync successful!",
+    sync_success_message: "All your data has been saved successfully.",
+    sync_success_button: "OK",
     
     // Unlocks
     unlock_revision_title: 'Review Mode',
@@ -1678,6 +1692,13 @@ contact_user_not_identified: 'Usuario no identificado. Inicia sesión primero.',
 contact_error_occurred: 'Ocurrió un error',
 contact_user_not_found: "Usuario no identificado. Conéctate primero.",
 contact_inbox_error: "❌ Error de carga",
+
+sync_alert_title: "Pérdida de señal detectada",
+sync_alert_message: "Puedes seguir jugando, tu progreso está guardado y se sincronizará cuando vuelva la conexión.",
+sync_alert_button: "Entendido",
+sync_success_title: "¡Sincronización exitosa!",
+sync_success_message: "Todos tus datos se han guardado correctamente.",
+sync_success_button: "OK",
 
 // Desbloqueos
 unlock_revision_title: 'Modo Revisión',
@@ -3241,69 +3262,7 @@ startSyncPolling();
 // Optionnel : arrêter quand l'utilisateur se déconnecte volontairement ou ferme (mais pas critique)
 // window.addEventListener('beforeunload', stopSyncPolling);
 
-// Fonction pour créer/mettre à jour le petit indicateur en bas
-function updateSyncIndicator() {
-  let indicator = document.getElementById('syncIndicator');
 
-  // Déterminer l'état
-  const hasPendingUpdates = pendingUpdates.length > 0;
-  const isDesync = SyncMonitor.state !== 'SYNCED';
-  const shouldShow = hasPendingUpdates || isDesync;
-
-  // Si plus de 5 updates et alerte pas encore montrée
-  if (pendingUpdates.length > 3 && !syncAlertShown) {
-    showSyncAlert('warning');
-  }
-
-  // Création de l'indicateur s'il n'existe pas
-  if (!indicator) {
-    indicator = document.createElement('div');
-    indicator.id = 'syncIndicator';
-    indicator.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(244, 67, 54, 0.95);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 999998;
-      transition: all 0.3s ease;
-      pointer-events: none;
-      display: none;
-      opacity: 0;
-    `;
-    document.body.appendChild(indicator);
-  }
-
-  // Affichage ou masquage
-  if (shouldShow && syncAlertShown) {
-    // Petit indicateur : juste l'icône WiFi barrée
-    indicator.innerHTML = `
-      <span style="position: relative; display: inline-block;">
-        📶
-        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 24px; color: white;">╱</span>
-      </span>
-    `;
-    indicator.style.display = 'block';
-    indicator.style.opacity = '1';
-  } else if (!shouldShow) {
-    // Tout est synchronisé
-    indicator.style.opacity = '0';
-    setTimeout(() => {
-      if (indicator.style.opacity === '0') {
-        indicator.style.display = 'none';
-      }
-    }, 300);
-    
-    // Réinitialiser le flag pour le prochain cycle
-    if (syncAlertShown && pendingUpdates.length === 0) {
-      syncAlertShown = false;
-    }
-  }
-}
 
 
 // Appeler cette fonction à la fin de processUpdates(), et dans SyncMonitor.evaluate()
@@ -3312,14 +3271,33 @@ function updateSyncIndicator() {
 // SYSTÈME DE SYNC INDICATOR AMÉLIORÉ
 // ===============================================
 
-let syncAlertShown = false; // Pour ne montrer l'alerte qu'une fois par cycle
+// ✅ AJOUTER cette variable globale en haut avec syncAlertShown
+let wasDesynchronized = false; // Nouvelle variable pour mémoriser l'état de désync
+let syncAlertShown = false;
 
-// Fonction pour créer la carte d'alerte centrale
+function hasSeenSyncAlerts() {
+  if (!currentUser || !currentUser.pseudo) {
+    return localStorage.getItem('sync_alerts_seen') === 'true';
+  }
+  return localStorage.getItem(`sync_alerts_seen_${currentUser.pseudo}`) === 'true';
+}
+
+function markSyncAlertsAsSeen() {
+  if (!currentUser || !currentUser.pseudo) {
+    localStorage.setItem('sync_alerts_seen', 'true');
+  } else {
+    localStorage.setItem(`sync_alerts_seen_${currentUser.pseudo}`, 'true');
+  }
+}
+
 function showSyncAlert(type = 'warning') {
-  // Si c'est une alerte de perte de signal et qu'elle a déjà été montrée
+  if (hasSeenSyncAlerts()) {
+    console.log('🔕 Alertes sync désactivées (utilisateur déjà informé)');
+    return;
+  }
+
   if (type === 'warning' && syncAlertShown) return;
   
-  // Vérifier si la carte existe déjà
   let existingCard = document.getElementById('syncAlertCard');
   if (existingCard) {
     existingCard.remove();
@@ -3343,7 +3321,6 @@ function showSyncAlert(type = 'warning') {
     animation: slideIn 0.3s ease-out;
   `;
 
-  // Overlay semi-transparent
   const overlay = document.createElement('div');
   overlay.id = 'syncAlertOverlay';
   overlay.style.cssText = `
@@ -3357,15 +3334,12 @@ function showSyncAlert(type = 'warning') {
     animation: fadeIn 0.3s ease-out;
   `;
 
-  // Contenu selon le type
   if (type === 'warning') {
     card.innerHTML = `
-      <div style="font-size: 100px; margin-bottom: 20px;">
-        ⌔
-      </div>
-      <h2 style="color: #333; margin: 0 0 15px 0; font-size: 22px; font-weight: 600;">Perte de signal détectée</h2>
-      <p style="color: #666; margin: 0 0 25px 0; line-height: 1.6; font-size: 15px;">
-        Votre progression est mémorisée et sera synchronisée dès le retour de la connexion.
+      <div style="font-size: 100px; margin-bottom: 20px;">⌔</div>
+      <h2 style="color: #333; margin: 0 0 15px 0; font-size: 22px; font-weight: 600;" data-i18n="sync_alert_title">Perte de signal détectée</h2>
+      <p style="color: #666; margin: 0 0 25px 0; line-height: 1.6; font-size: 15px;" data-i18n="sync_alert_message">
+        Vous pouvez continuer à jouer, votre progression est mémorisée et sera synchronisée dès le retour de la connexion.
       </p>
       <button id="closeSyncAlert" style="
         background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
@@ -3378,16 +3352,15 @@ function showSyncAlert(type = 'warning') {
         cursor: pointer;
         transition: all 0.3s;
         box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-      " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(76, 175, 80, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)'">
+      " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(76, 175, 80, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)'" data-i18n="sync_alert_button">
         J'ai compris
       </button>
     `;
     syncAlertShown = true;
   } else if (type === 'success') {
     card.innerHTML = `
-     
-      <h2 style="color: #4CAF50; margin: 0 0 15px 0; font-size: 22px; font-weight: 600;">Synchronisation réussie !</h2>
-      <p style="color: #666; margin: 0 0 25px 0; line-height: 1.6; font-size: 15px;">
+      <h2 style="color: #4CAF50; margin: 0 0 15px 0; font-size: 22px; font-weight: 600;" data-i18n="sync_success_title">Synchronisation réussie !</h2>
+      <p style="color: #666; margin: 0 0 25px 0; line-height: 1.6; font-size: 15px;" data-i18n="sync_success_message">
         Toutes vos données ont été sauvegardées avec succès.
       </p>
       <button id="closeSyncAlert" style="
@@ -3401,25 +3374,17 @@ function showSyncAlert(type = 'warning') {
         cursor: pointer;
         transition: all 0.3s;
         box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-      " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(76, 175, 80, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)'">
+      " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(76, 175, 80, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)'" data-i18n="sync_success_button">
         OK
       </button>
     `;
-
   }
 
-  // Ajouter les animations CSS
   const style = document.createElement('style');
   style.textContent = `
     @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translate(-50%, -60%);
-      }
-      to {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-      }
+      from { opacity: 0; transform: translate(-50%, -60%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
     }
     @keyframes fadeIn {
       from { opacity: 0; }
@@ -3432,39 +3397,70 @@ function showSyncAlert(type = 'warning') {
   `;
   document.head.appendChild(style);
 
+  // ✅ D'ABORD ajouter au DOM
   document.body.appendChild(overlay);
   document.body.appendChild(card);
 
-  // Événement de fermeture
+  // ✅ PUIS appliquer les traductions (après que les éléments soient dans le DOM)
+  setTimeout(() => {
+    console.log('🌍 Application des traductions sync alert...');
+    
+    // Traduire manuellement les éléments de la carte
+    card.querySelectorAll('[data-i18n]').forEach(element => {
+      const key = element.getAttribute('data-i18n');
+      const translation = t(key);
+      console.log(`📝 Traduction ${key} →`, translation);
+      element.textContent = translation;
+    });
+    
+    console.log('✅ Traductions appliquées');
+  }, 10);
+
+  // ✅ Ajouter l'événement après tout
   document.getElementById('closeSyncAlert').addEventListener('click', closeSyncAlert);
 }
 
-// Fonction pour fermer l'alerte
+
 function closeSyncAlert() {
   const card = document.getElementById('syncAlertCard');
   const overlay = document.getElementById('syncAlertOverlay');
   
   if (card) {
+    const isSuccessAlert = card.querySelector('[data-i18n="sync_success_title"]');
+    
     card.style.animation = 'fadeOut 0.3s ease-out';
     overlay.style.animation = 'fadeOut 0.3s ease-out';
     setTimeout(() => {
       card.remove();
       overlay.remove();
+      
+      if (isSuccessAlert) {
+        markSyncAlertsAsSeen();
+        console.log('✅ Alertes sync marquées comme vues pour cet utilisateur');
+      }
     }, 300);
   }
 }
 
-// Fonction pour créer/mettre à jour le petit indicateur en bas
+
 function updateSyncIndicator() {
   let indicator = document.getElementById('syncIndicator');
 
-  // Déterminer l'état
-  const hasPendingUpdates = pendingUpdates.length > 0;
-  const isDesync = SyncMonitor.state !== 'SYNCED';
-  const shouldShow = hasPendingUpdates || isDesync;
+  // ✅ NOUVELLE LOGIQUE : Détecter la vraie désynchronisation
+  const isReallyDesync = pendingUpdates.length > 2;
+  
+  // Si on dépasse le seuil, on mémorise qu'on était désynchronisé
+  if (isReallyDesync) {
+    wasDesynchronized = true;
+  }
+  
+  // Si on revient à 0, on réinitialise
+  if (pendingUpdates.length === 0) {
+    wasDesynchronized = false;
+  }
 
-  // Si plus de 5 updates et alerte pas encore montrée
-  if (pendingUpdates.length > 3 && !syncAlertShown) {
+  // Si plus de 2 updates et alerte pas encore montrée ET utilisateur n'a pas déjà vu
+  if (isReallyDesync && !syncAlertShown && !hasSeenSyncAlerts()) {
     showSyncAlert('warning');
   }
 
@@ -3492,14 +3488,18 @@ function updateSyncIndicator() {
     document.body.appendChild(indicator);
   }
 
-  // Affichage ou masquage
-  if (shouldShow && syncAlertShown) {
-    // ✅ REMPLACE CET EMOJI PAR CELUI QUE TU VEUX
-    indicator.innerHTML = ` ⌔ `;  // ← ICI : Change par ⚠️ ou 🔄 ou 🔴 etc.
-    indicator.style.display = 'block';
-    indicator.style.opacity = '1';
-  } else if (!shouldShow) {
-    // Tout est synchronisé
+  // ✅ Afficher UNIQUEMENT si on est/était vraiment désynchronisé
+  // ET qu'il reste encore des updates à traiter
+  const shouldShowIndicator = wasDesynchronized && pendingUpdates.length > 0;
+  
+  if (shouldShowIndicator) {
+    if (hasSeenSyncAlerts() || syncAlertShown) {
+      indicator.innerHTML = ` ⌔ `;
+      indicator.style.display = 'block';
+      indicator.style.opacity = '1';
+    }
+  } else {
+    // Masquer l'indicateur
     indicator.style.opacity = '0';
     setTimeout(() => {
       if (indicator.style.opacity === '0') {
@@ -3509,21 +3509,19 @@ function updateSyncIndicator() {
   }
 }
 
-// Fonction pour montrer l'alerte de succès
+
 function showSyncSuccessAlert() {
-  // Ne montrer que si on avait eu l'alerte de warning avant
-  if (syncAlertShown) {
+  if (syncAlertShown && !hasSeenSyncAlerts()) {
     console.log('🎉 Affichage alerte de succès');
-    // Petit délai pour que l'indicateur disparaisse d'abord
     setTimeout(() => {
       showSyncAlert('success');
-      syncAlertShown = false; // Réinitialiser pour le prochain cycle
+      syncAlertShown = false;
     }, 300);
   } else {
-    console.log('⚠️ syncAlertShown est false, pas d\'alerte de succès');
+    console.log('⚠️ Pas d\'alerte de succès (déjà vue ou warning non affiché)');
+    syncAlertShown = false;
   }
 }
-
   
 // ===============================
 // CLIENT TRUTH (source client)
