@@ -8365,14 +8365,14 @@ const quizTutorialSteps = [
       const buttons = document.querySelectorAll(".answers button");
       if (buttons.length === 0) return;
       
-      let index = 0;
-      const highlightNext = () => {
-        buttons.forEach(b => b.classList.remove("tutorial-highlight"));
-        buttons[index].classList.add("tutorial-highlight", "pulsing");
-        index = (index + 1) % buttons.length;
-      };
-      
-      highlightNext();
+  //    let index = 0;
+  //    const highlightNext = () => {
+  //      buttons.forEach(b => b.classList.remove("tutorial-highlight"));
+  //      buttons[index].classList.add("tutorial-highlight", "pulsing");
+  //      index = (index + 1) % buttons.length;
+ //     };
+     
+     highlightNext();
       let interval = setInterval(highlightNext, 800);
       
       return () => clearInterval(interval);
@@ -8396,13 +8396,7 @@ const quizTutorialSteps = [
   {
     title: "C'est parti !",
     text: "Tu es prêt·e, amuse-toi et progresse zen ! 🌸",
-    animate: () => {
-      for (let i = 0; i < 12; i++) createSakura();
-      const fw = document.createElement("div");
-      fw.className = "firework";
-      document.body.appendChild(fw);
-      setTimeout(() => fw.remove(), 800);
-    }
+   
   }
 ];
 let tutorialStep = 0;
@@ -8541,11 +8535,7 @@ function simulateTutorialAnswer(correct) {
     }, idx * 400);
   });
 
-  if (correct) {
-    setTimeout(() => {
-      for (let i = 0; i < 6; i++) createSakura();
-    }, 800);
-  }
+
 }
 
 function resetTutorialButtons() {
@@ -8625,8 +8615,7 @@ function playCorrectAnswerDemo() {
     correctBtn1.classList.add("correct");
     correctBtn2.classList.add("correct");
     
-    // Effet de réussite
-    for (let i = 0; i < 8; i++) createSakura();
+   
     
     const fw = document.createElement("div");
     fw.className = "firework";
@@ -8693,8 +8682,8 @@ function playIncorrectAnswerDemo() {
     correctBtn2.classList.add("correct");
     
     playSoftError();
-    document.body.classList.add("shake");
-    setTimeout(() => document.body.classList.remove("shake"), 400);
+  //  document.body.classList.add("shake");
+  //  setTimeout(() => document.body.classList.remove("shake"), 400);
   }, 1900);
   
   return () => {
@@ -8709,5 +8698,6 @@ document.getElementById("tutorial-next").onclick = nextTutorialStep;
 
 </script>
 </html>
+
 
 
