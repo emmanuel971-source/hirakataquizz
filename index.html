@@ -8403,7 +8403,7 @@ function startQuizTutorial() {
   tutorialActive = true;
   tutorialStep = 0;
  // ✅ Génère la VRAIE première question du jeu
-  nextQuestion();
+ // nextQuestion();
  
   // Désactive juste les interactions pendant le tuto
   document.querySelectorAll(".answers button").forEach(b => {
@@ -8427,6 +8427,14 @@ function showTutorialStep() {
   // Mise à jour titre et texte
   document.getElementById("tutorial-title").textContent = step.title;
   document.getElementById("tutorial-text").textContent = step.text;
+
+  // 👇 AJOUT ICI
+ // if (tutorialStep === 3) {
+    const q = document.getElementById("question");
+    if (q) {
+      q.textContent = "あ";
+    }
+//  }
 
   // Mise à jour des points de progression
   document.querySelectorAll(".tutorial-dot").forEach((d, i) => {
@@ -8454,17 +8462,17 @@ function showTutorialStep() {
   card.style.transform = "translateY(0)"; // reset
 
   if (tutorialStep === 1) {
-    card.style.transform = "translateY(0)";
+    card.style.transform = "translateY(-25vh)";
   } else if (tutorialStep === 2) {
     card.style.transform = "translateY(0)";
   } else if (tutorialStep === 3) {
     card.style.transform = "translateY(20vh)";
   } else if (tutorialStep === 4) {
-    card.style.transform = "translateY(-20vh)";
+    card.style.transform = "translateY(-33vh)";
   } else if (tutorialStep === 5) {
-    card.style.transform = "translateY(-30vh)";
+    card.style.transform = "translateY(-33vh)";
   } else if (tutorialStep === 6) {
-    card.style.transform = "translateY(-30vh)";
+    card.style.transform = "translateY(-33vh)";
   } else if (tutorialStep === 7) {
     card.style.transform = "translateY(0)";
   } else {
@@ -8488,7 +8496,7 @@ function showTutorialStep() {
   }
 
   // === LANCEMENT DE L'ANIMATION DE L'ÉTAPE ===
-  if (tutorialStep === 5 || tutorialStep === 6) {
+ if (tutorialStep >= 1 && tutorialStep <= 6) {
     // Pour les étapes ❌ et ✅ : on utilise une question fixe ultra-fiable
     setupTutorialDemoQuestion();
 
@@ -8582,20 +8590,18 @@ function playCorrectAnswerDemo() {
     playTwinkle();
   }, 1200);
 
-  setTimeout(() => {
-    correctBtn1.classList.remove("clicked-glow");
-    correctBtn2.classList.remove("clicked-glow");
-    correctBtn1.classList.add("correct");
-    correctBtn2.classList.add("correct");
+// 1️⃣ Premier bouton validé
+setTimeout(() => {
+  correctBtn1.classList.remove("clicked-glow");
+  correctBtn1.classList.add("correct");
+}, 200);
 
-    const fw = document.createElement("div");
-    fw.className = "firework";
-    fw.style.top = "30%";
-    document.body.appendChild(fw);
-    setTimeout(() => fw.remove(), 800);
+// 2️⃣ Deuxième bouton validé un peu après
+setTimeout(() => {
+  correctBtn2.classList.remove("clicked-glow");
+  correctBtn2.classList.add("correct");
+}, 650);
 
-    playTwinkle();
-  }, 1900);
 
   return () => {
     document.querySelectorAll(".answers button").forEach(btn => {
@@ -8624,24 +8630,33 @@ function playIncorrectAnswerDemo() {
     return () => {};
   }
 
-  setTimeout(() => {
-    wrongBtn1.classList.add("clicked-glow", "clicked");
-  }, 500);
+// 1️⃣ Premier mauvais bouton → cliqué
+setTimeout(() => {
+  wrongBtn1.classList.add("clicked-glow", "clicked");
+}, 500);
 
-  setTimeout(() => {
-    wrongBtn2.classList.add("clicked-glow", "clicked");
-  }, 1200);
+// 2️⃣ Deuxième mauvais bouton → cliqué (400 ms après)
+setTimeout(() => {
+  wrongBtn2.classList.add("clicked-glow", "clicked");
+}, 900); // 500 + 400
 
-  setTimeout(() => {
-    wrongBtn1.classList.remove("clicked-glow");
-    wrongBtn2.classList.remove("clicked-glow");
-    wrongBtn1.classList.add("incorrect");
-    wrongBtn2.classList.add("incorrect");
-    correctBtn1.classList.add("correct");
-    correctBtn2.classList.add("correct");
+// 3️⃣ Résolution : rouges + verts + son (100 ms après)
+setTimeout(() => {
+  // Retrait glow
+  wrongBtn1.classList.remove("clicked-glow");
+  wrongBtn2.classList.remove("clicked-glow");
 
-    playSoftError();
-  }, 1900);
+  // Mauvaises réponses → rouge
+  wrongBtn1.classList.add("incorrect");
+  wrongBtn2.classList.add("incorrect");
+
+  // Bonnes réponses → vert (simultané)
+  correctBtn1.classList.add("correct");
+  correctBtn2.classList.add("correct");
+
+  playSoftError();
+}, 1000); // 900 + 100
+
 
   return () => {
     document.querySelectorAll(".answers button").forEach(btn => {
@@ -8657,7 +8672,7 @@ function setupTutorialDemoQuestion() {
   // 1. Mise à jour du kana affiché dans la question
   const questionEl = document.getElementById("question");
   if (questionEl) {
-    questionEl.textContent = "ア";  // Le kana affiché
+    questionEl.textContent = "あ";  // Le kana affiché
   }
 
   // 2. Vidage des conteneurs de réponses
