@@ -293,7 +293,21 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   left: auto !important;
   top: auto !important;
 }
+/* Animation spéciale pour la démo du tuto */
+.tutorial-demo-glow {
+  animation: demoGlow 2s ease-in-out infinite;
+}
 
+@keyframes demoGlow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(168, 213, 186, 0.6),
+                inset 0 0 10px rgba(168, 213, 186, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(168, 213, 186, 0.9),
+                inset 0 0 20px rgba(168, 213, 186, 0.5);
+  }
+}
 </style>
 </head>
 <body>
@@ -8280,7 +8294,7 @@ const quizTutorialSteps = [
   {
     title: "Bienvenue !",
     text: "Commençons par une petite présentation.",
-    animate: () => {} // Pas d'animation, juste intro
+    animate: () => {}
   },
   {
     title: "Progression du niveau",
@@ -8299,8 +8313,8 @@ const quizTutorialSteps = [
             marker.style.transition = "left 1s ease";
           }, 50);
         }, 1200);
-      }, 2500); // Boucle toutes les 2.5s
-      return () => clearInterval(interval); // Pour arrêter au suivant
+      }, 2500);
+      return () => clearInterval(interval);
     }
   },
   {
@@ -8322,45 +8336,68 @@ const quizTutorialSteps = [
           setTimeout(() => {
             star.classList.add("filled", "new-star");
             star.style.background = "var(--green-primary)";
-            setTimeout(() => star.classList.remove("new-star"), 1200); // Plus lent
-          }, i * 1200); // 2x plus lent (1200ms)
+            setTimeout(() => star.classList.remove("new-star"), 1200);
+          }, i * 1200);
         });
         setTimeout(() => target.classList.add("completed"), stars.length * 1200 + 1200);
       };
 
       animateStars();
-      let interval = setInterval(animateStars, stars.length * 1200 + 2000); // Boucle
+      let interval = setInterval(animateStars, stars.length * 1200 + 2000);
       target.classList.add("pulsing");
       return () => clearInterval(interval);
     }
   },
   {
     title: "La question",
-    text: "Ici apparaît le kana à identifier ou à associer.",
+    text: "Ici apparaît le kana à identifier. Observe-le bien !",
     animate: () => {
-      // Pas d'animation sur les autres éléments (masqués)
+      const question = document.getElementById("question");
+      if (question) {
+        question.classList.add("tutorial-highlight", "pulsing");
+      }
     }
   },
   {
     title: "Réponses",
     text: "Choisis une option dans chaque rangée pour valider.",
     animate: () => {
-      // Pas d'animation sur les autres éléments (masqués)
+      const buttons = document.querySelectorAll(".answers button");
+      if (buttons.length === 0) return;
+      
+      let index = 0;
+      const highlightNext = () => {
+        buttons.forEach(b => b.classList.remove("tutorial-highlight"));
+        buttons[index].classList.add("tutorial-highlight", "pulsing");
+        index = (index + 1) % buttons.length;
+      };
+      
+      highlightNext();
+      let interval = setInterval(highlightNext, 800);
+      
+      return () => clearInterval(interval);
     }
   },
   {
-title: "Le menu",
-    text: "Utilise le bouton menu en haut pour naviguer entre les sections.",
- // animate: () => {
- // const hamburger = document.querySelector(".hamburger");
- //   if (hamburger) hamburger.classList.add("tutorial-highlight", "pulsing");
- //}
+    title: "❌ Mauvaise réponse",
+    text: "Les boutons incorrects sont marqués en rose, et les bons en vert. Tu apprends de tes erreurs !",
+    animate: playIncorrectAnswerDemo
   },
   {
-    title: "C’est parti !",
-    text: "Tu es prêt·e, amuse-toi et progresse zen !",
+    title: "✅ Bonne réponse",
+    text: "Quand tout est juste, c'est la fête ! Les boutons t'ont guidé vers la victoire. 🎉",
+    animate: playCorrectAnswerDemo
+  },
+  {
+    title: "Le menu",
+    text: "Utilise le bouton menu pour naviguer entre les sections.",
+    animate: () => {}
+  },
+  {
+    title: "C'est parti !",
+    text: "Tu es prêt·e, amuse-toi et progresse zen ! 🌸",
     animate: () => {
-      for (let i = 0; i < 10; i++) createSakura();
+      for (let i = 0; i < 12; i++) createSakura();
       const fw = document.createElement("div");
       fw.className = "firework";
       document.body.appendChild(fw);
@@ -8368,7 +8405,6 @@ title: "Le menu",
     }
   }
 ];
-
 let tutorialStep = 0;
 let tutorialActive = false;
 let currentCleanup = null;
@@ -8378,6 +8414,8 @@ function startQuizTutorial() {
   tutorialActive = true;
   tutorialStep = 0;
 
+  // ✅ Génère la question démo AVANT le tutoriel
+  generateDemoQuestion();
 
   document.getElementById("quiz-tutorial-overlay").style.display = "flex";
 
@@ -8502,24 +8540,158 @@ function resetTutorialButtons() {
   });
 }
 
+// Nouvelle fonction pour le tutoriel avec démo interactive
+function generateDemoQuestion() {
+  // Prend le premier hiragana du niveau 1 pour la démo
+  const demoChar = HiraganaList.find(h => parseInt(h.Niveau, 10) === 1) || HiraganaList[0];
+  
+  current = demoChar;
+  document.getElementById("question").innerText = demoChar.Hiragana;
+
+  // Génère des choix démo avec la bonne réponse
+  const otherKatakana = ["カ", "サ", "タ", "ナ", "ハ", "マ"];
+  const otherRomaji = ["ka", "sa", "ta", "na", "ha", "ma"];
+  
+  const demoChoices1 = [
+    getLocalizedKatakana(demoChar),
+    ...otherKatakana.filter(k => k !== getLocalizedKatakana(demoChar)).slice(0, 3)
+  ].sort(() => 0.5 - Math.random());
+  
+  const demoChoices2 = [
+    demoChar.Romaji,
+    ...otherRomaji.filter(r => r !== demoChar.Romaji).slice(0, 3)
+  ].sort(() => 0.5 - Math.random());
+
+  renderChoices("choices1", demoChoices1, "first");
+  renderChoices("choices2", demoChoices2, "second");
+  
+  // Désactive les boutons pendant le tuto (sauf pour l'étape démo)
+  document.querySelectorAll(".answers button").forEach(b => {
+    b.disabled = true;
+    b.style.pointerEvents = "none";
+  });
+}
+
+// Fonction pour simuler une réponse correcte (étape du tuto)
+function playCorrectAnswerDemo() {
+  const correctKatakana = getLocalizedKatakana(current);
+  const correctRomaji = current.Romaji;
+  
+  // Trouve les bons boutons
+  let correctBtn1 = null;
+  let correctBtn2 = null;
+  
+  document.querySelectorAll("#choices1 button").forEach(btn => {
+    if (btn.innerText === correctKatakana) correctBtn1 = btn;
+  });
+  
+  document.querySelectorAll("#choices2 button").forEach(btn => {
+    if (btn.innerText === correctRomaji) correctBtn2 = btn;
+  });
+  
+  if (!correctBtn1 || !correctBtn2) return;
+  
+  // Animation : clic sur le premier bouton
+  setTimeout(() => {
+    correctBtn1.classList.add("clicked-glow", "clicked");
+    playTwinkle();
+  }, 500);
+  
+  // Animation : clic sur le second bouton
+  setTimeout(() => {
+    correctBtn2.classList.add("clicked-glow", "clicked");
+    playTwinkle();
+  }, 1200);
+  
+  // Affiche les réponses correctes
+  setTimeout(() => {
+    correctBtn1.classList.remove("clicked-glow");
+    correctBtn2.classList.remove("clicked-glow");
+    correctBtn1.classList.add("correct");
+    correctBtn2.classList.add("correct");
+    
+    // Effet de réussite
+    for (let i = 0; i < 8; i++) createSakura();
+    
+    const fw = document.createElement("div");
+    fw.className = "firework";
+    fw.style.top = "30%";
+    document.body.appendChild(fw);
+    setTimeout(() => fw.remove(), 800);
+    
+    playTwinkle();
+  }, 1900);
+  
+  // Cleanup pour la suite du tuto
+  return () => {
+    document.querySelectorAll(".answers button").forEach(btn => {
+      btn.classList.remove("clicked-glow", "clicked", "correct", "incorrect");
+    });
+  };
+}
+
+// Fonction pour simuler une réponse incorrecte
+function playIncorrectAnswerDemo() {
+  const correctKatakana = getLocalizedKatakana(current);
+  const correctRomaji = current.Romaji;
+  
+  let wrongBtn1 = null;
+  let wrongBtn2 = null;
+  let correctBtn1 = null;
+  let correctBtn2 = null;
+  
+  document.querySelectorAll("#choices1 button").forEach(btn => {
+    if (btn.innerText === correctKatakana) {
+      correctBtn1 = btn;
+    } else if (!wrongBtn1) {
+      wrongBtn1 = btn;
+    }
+  });
+  
+  document.querySelectorAll("#choices2 button").forEach(btn => {
+    if (btn.innerText === correctRomaji) {
+      correctBtn2 = btn;
+    } else if (!wrongBtn2) {
+      wrongBtn2 = btn;
+    }
+  });
+  
+  if (!wrongBtn1 || !wrongBtn2 || !correctBtn1 || !correctBtn2) return;
+  
+  // Animation : clic sur mauvais bouton 1
+  setTimeout(() => {
+    wrongBtn1.classList.add("clicked-glow", "clicked");
+  }, 500);
+  
+  // Animation : clic sur mauvais bouton 2
+  setTimeout(() => {
+    wrongBtn2.classList.add("clicked-glow", "clicked");
+  }, 1200);
+  
+  // Affiche l'erreur et la correction
+  setTimeout(() => {
+    wrongBtn1.classList.remove("clicked-glow");
+    wrongBtn2.classList.remove("clicked-glow");
+    wrongBtn1.classList.add("incorrect");
+    wrongBtn2.classList.add("incorrect");
+    correctBtn1.classList.add("correct");
+    correctBtn2.classList.add("correct");
+    
+    playSoftError();
+    document.body.classList.add("shake");
+    setTimeout(() => document.body.classList.remove("shake"), 400);
+  }, 1900);
+  
+  return () => {
+    document.querySelectorAll(".answers button").forEach(btn => {
+      btn.classList.remove("clicked-glow", "clicked", "correct", "incorrect");
+    });
+  };
+}
+
 // Événements boutons
 document.getElementById("tutorial-next").onclick = nextTutorialStep;
 
 </script>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
