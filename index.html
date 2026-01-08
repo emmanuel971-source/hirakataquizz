@@ -8434,59 +8434,74 @@ function showTutorialStep() {
   const step = quizTutorialSteps[tutorialStep];
   document.getElementById("tutorial-title").textContent = step.title;
   document.getElementById("tutorial-text").textContent = step.text;
-
+  
   document.querySelectorAll(".tutorial-dot").forEach((d, i) => {
     d.classList.toggle("active", i === tutorialStep);
   });
-
+  
   // Nettoyage précédent
   if (currentCleanup) currentCleanup();
   document.querySelectorAll(".tutorial-highlight, .pulsing, .completed").forEach(el => {
     el.classList.remove("tutorial-highlight", "pulsing", "completed");
   });
 
-// Déplacement vertical de la carte tuto
-const card = document.getElementById("quiz-tutorial-card");
-card.style.transform = "translateY(0)"; // reset
-
-if (tutorialStep === 1) { // Barre progression → carte en bas
-  card.style.transform = "translateY(0)";
-} 
-else if (tutorialStep === 2) { // Cartes hiragana → carte en bas
-  card.style.transform = "translateY(0)";
-} 
-else if (tutorialStep === 3) { // Question → carte en haut
-  card.style.transform = "translateY(20vh)";
-} 
-else if (tutorialStep === 4) { // Boutons réponses → carte en haut
-  card.style.transform = "translateY(-20vh)";
-} 
-else if (tutorialStep === 5) { // Hamburger → carte au milieu
-  card.style.transform = "translateY(0)";
-} 
-else {
-  // Intro (0) et Conclusion → centre
-  card.style.transform = "translateY(0)";
-}
-
-// Highlight uniquement l'élément concerné
-const highlightSelector = tutorialStep === 1 ? "#progressBarContainer" :
-                          tutorialStep === 2 ? ".hiraganas-grid" :
-                          tutorialStep === 3 ? "#question" :
-                          tutorialStep === 4 ? ".answers" :
-                          tutorialStep === 5 ? null :  // ← pas de highlight pour le menu
-                          null;
+  // Déplacement vertical de la carte tuto
+  const card = document.getElementById("quiz-tutorial-card");
+  card.style.transform = "translateY(0)"; // reset
+  
+  if (tutorialStep === 1) { 
+    // Barre progression → carte en bas
+    card.style.transform = "translateY(0)";
+  } 
+  else if (tutorialStep === 2) { 
+    // Cartes hiragana → carte en bas
+    card.style.transform = "translateY(0)";
+  } 
+  else if (tutorialStep === 3) { 
+    // Question → carte en haut
+    card.style.transform = "translateY(20vh)";
+  } 
+  else if (tutorialStep === 4) { 
+    // Boutons réponses → carte en haut
+    card.style.transform = "translateY(-20vh)";
+  } 
+  else if (tutorialStep === 5) { 
+    // ❌ Mauvaise réponse → carte en haut pour voir l'animation
+    card.style.transform = "translateY(-20vh)";
+  } 
+  else if (tutorialStep === 6) { 
+    // ✅ Bonne réponse → carte en haut pour voir l'animation
+    card.style.transform = "translateY(-20vh)";
+  } 
+  else if (tutorialStep === 7) { 
+    // Menu hamburger → carte au milieu
+    card.style.transform = "translateY(0)";
+  } 
+  else { 
+    // Intro (0) et C'est parti (8) → centre
+    card.style.transform = "translateY(0)";
+  }
+  
+  // Highlight uniquement l'élément concerné
+  const highlightSelector = tutorialStep === 1 ? "#progressBarContainer" :
+                            tutorialStep === 2 ? ".hiraganas-grid" :
+                            tutorialStep === 3 ? "#question" :
+                            tutorialStep === 4 ? ".answers" :
+                            tutorialStep === 5 ? ".answers" :
+                            tutorialStep === 6 ? ".answers" :
+                            tutorialStep === 7 ? null :
+                            null;
+  
   if (highlightSelector) {
     document.querySelectorAll(highlightSelector).forEach(el => el.classList.add("tutorial-highlight"));
   }
-
+  
   // Animation (si définie)
   if (step.animate) currentCleanup = step.animate() || null;
-
+  
   document.getElementById("tutorial-next").textContent =
     tutorialStep === quizTutorialSteps.length - 1 ? "Commencer !" : "Suivant →";
 }
-
 function nextTutorialStep() {
   tutorialStep++;
   if (tutorialStep >= quizTutorialSteps.length) {
@@ -8694,4 +8709,5 @@ document.getElementById("tutorial-next").onclick = nextTutorialStep;
 
 </script>
 </html>
+
 
