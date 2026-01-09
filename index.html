@@ -8317,33 +8317,40 @@ document.querySelectorAll('.revision-key').forEach(key => {
   title: "Tes kanas",
   text: "Chaque carte affiche un kana et tes étoiles de maîtrise.",
   animate: () => {
-    const cards = document.querySelectorAll(".hiragana-card");
-    if (cards.length === 0) return;
-    const target = cards[Math.floor(cards.length / 2)];
-    
-    // 👇 NE PAS ajouter le tutorial-highlight sur la carte individuelle
-    // target.classList.add("tutorial-highlight"); // ❌ SUPPRIMÉ
-    
-    const animateStars = () => {
-      const stars = target.querySelectorAll(".star");
-      stars.forEach(s => {
-        s.classList.remove("filled", "new-star");
-        s.style.background = "var(--gray-very-light)";
-      });
-      stars.forEach((star, i) => {
-        setTimeout(() => {
-          star.classList.add("filled", "new-star");
-          star.style.background = "var(--green-primary)";
-          setTimeout(() => star.classList.remove("new-star"), 1200);
-        }, i * 1200);
-      });
-      setTimeout(() => target.classList.add("completed"), stars.length * 1200 + 1200);
-    };
-    animateStars();
-    let interval = setInterval(animateStars, stars.length * 1200 + 2000);
-    target.classList.add("pulsing");
-    return () => clearInterval(interval);
-  }
+  const cards = document.querySelectorAll(".hiragana-card");
+  if (cards.length === 0) return;
+  
+  const target = cards[Math.floor(cards.length / 2)];
+  const stars = target.querySelectorAll(".star");   // ← ICI
+
+  const animateStars = () => {
+    stars.forEach(s => {
+      s.classList.remove("filled", "new-star");
+      s.style.background = "var(--gray-very-light)";
+    });
+
+    stars.forEach((star, i) => {
+      setTimeout(() => {
+        star.classList.add("filled", "new-star");
+        star.style.background = "var(--pink-primary)";
+        setTimeout(() => star.classList.remove("new-star"), 1200);
+      }, i * 1200);
+    });
+
+    setTimeout(() => {
+      target.classList.add("completed");
+    }, stars.length * 1200 + 1200);
+  };
+
+  animateStars();
+
+  const delayBetweenLoops = stars.length * 1200 + 2000;
+  let interval = setInterval(animateStars, delayBetweenLoops);
+
+  target.classList.add("pulsing");
+
+  return () => clearInterval(interval);
+}
 },
   {
     title: "La question",
@@ -8845,6 +8852,7 @@ function setupTutorialDemoQuestion() {
 }
 </script>
 </html>
+
 
 
 
