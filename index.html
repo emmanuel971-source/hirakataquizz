@@ -320,6 +320,13 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
                 inset 0 0 20px rgba(168, 213, 186, 0.5);
   }
 }
+/* Highlight spécial pour le bouton hamburger (garde le position fixed) */
+.tutorial-highlight-hamburger {
+  animation: tutorialPulse 1.2s ease-out infinite !important;
+  z-index: 1001 !important; /* Au-dessus du menu */
+  border-radius: 12px !important;
+  /* ❌ PAS de position: relative ici */
+}  
 </style>
 </head>
 <body>
@@ -8454,9 +8461,10 @@ function showTutorialStep() {
   }
 
   // Retrait des highlights et animations générales
-  document.querySelectorAll(".tutorial-highlight, .pulsing, .completed").forEach(el => {
-    el.classList.remove("tutorial-highlight", "pulsing", "completed");
-  });
+// Retrait des highlights et animations générales
+document.querySelectorAll(".tutorial-highlight, .tutorial-highlight-hamburger, .pulsing, .completed").forEach(el => {
+  el.classList.remove("tutorial-highlight", "tutorial-highlight-hamburger", "pulsing", "completed");
+});
 
   // Nettoyage spécifique des boutons de réponses
   document.querySelectorAll(".answers button").forEach(b => {
@@ -8505,6 +8513,7 @@ function showTutorialStep() {
  //   });
  // }
 // Highlight de la zone concernée
+// Highlight de la zone concernée
 if (tutorialStep === 1) {
   document.querySelector("#progressBarContainer")?.classList.add("tutorial-highlight");
 } else if (tutorialStep === 2) {
@@ -8512,11 +8521,18 @@ if (tutorialStep === 1) {
 } else if (tutorialStep === 3) {
   document.querySelector("#question")?.classList.add("tutorial-highlight");
 } else if (tutorialStep === 4 || tutorialStep === 5 || tutorialStep === 6) {
-  // Glow autour du conteneur des 2 rangées
-  const answersContainer = document.querySelector("#choices1")?.parentElement;
-  if (answersContainer) answersContainer.classList.add("tutorial-highlight");
+  const choices1 = document.querySelector("#choices1");
+  const choices2 = document.querySelector("#choices2");
+  
+  if (choices1 && choices2) {
+    const parent = choices1.parentElement;
+    if (parent) {
+      parent.classList.add("tutorial-highlight");
+    }
+  }
 } else if (tutorialStep === 7) {
-  document.querySelector(".hamburger")?.classList.add("tutorial-highlight");
+  // 👇 Utilise la classe spéciale pour le hamburger
+  document.querySelector(".hamburger")?.classList.add("tutorial-highlight-hamburger");
 }
   // === LANCEMENT DE L'ANIMATION DE L'ÉTAPE ===
  if (tutorialStep >= 1 && tutorialStep <= 6) {
@@ -8553,9 +8569,10 @@ function endQuizTutorial() {
   tutorialActive = false;
   document.getElementById("quiz-tutorial-overlay").style.display = "none";
   if (currentCleanup) currentCleanup();
-  document.querySelectorAll(".tutorial-highlight, .pulsing, .completed").forEach(el => {
-    el.classList.remove("tutorial-highlight", "pulsing", "completed");
-  });
+// Retrait des highlights et animations générales
+document.querySelectorAll(".tutorial-highlight, .tutorial-highlight-hamburger, .pulsing, .completed").forEach(el => {
+  el.classList.remove("tutorial-highlight", "tutorial-highlight-hamburger", "pulsing", "completed");
+});
  
   // ✅ Réactive les boutons pour que l'utilisateur puisse jouer
   document.querySelectorAll(".answers button").forEach(b => {
@@ -8828,6 +8845,7 @@ function setupTutorialDemoQuestion() {
 }
 </script>
 </html>
+
 
 
 
