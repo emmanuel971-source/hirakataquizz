@@ -8486,25 +8486,38 @@ function showTutorialStep() {
   }
 
 // Highlight de la zone concernée
-const highlightSelector = tutorialStep === 1 ? "#progressBarContainer" :
-                          tutorialStep === 2 ? ".hiraganas-grid" :
-                          tutorialStep === 3 ? "#question" :
-                        //  tutorialStep === 4 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
-                        //  tutorialStep === 5 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
-                        //  tutorialStep === 6 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
-                          tutorialStep === 4 ? ".answers" :
-                          tutorialStep === 5 ? ".answers" :
-                          tutorialStep === 6 ? ".answers" :
-         tutorialStep === 7 ? null :
-                            null;
+//const highlightSelector = tutorialStep === 1 ? "#progressBarContainer" :
+//                          tutorialStep === 2 ? ".hiraganas-grid" :
+//                          tutorialStep === 3 ? "#question" :
+//                        //  tutorialStep === 4 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
+//                        //  tutorialStep === 5 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
+//                        //  tutorialStep === 6 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
+//                          tutorialStep === 4 ? ".answers" :
+//                          tutorialStep === 5 ? ".answers" :
+//                          tutorialStep === 6 ? ".answers" :
+//         tutorialStep === 7 ? null :
+//                            null;
 
 
-  if (highlightSelector) {
-    document.querySelectorAll(highlightSelector).forEach(el => {
-      el.classList.add("tutorial-highlight");
-    });
-  }
-
+ // if (highlightSelector) {
+ //   document.querySelectorAll(highlightSelector).forEach(el => {
+ //     el.classList.add("tutorial-highlight");
+ //   });
+ // }
+// Highlight de la zone concernée
+if (tutorialStep === 1) {
+  document.querySelector("#progressBarContainer")?.classList.add("tutorial-highlight");
+} else if (tutorialStep === 2) {
+  document.querySelector(".hiraganas-grid")?.classList.add("tutorial-highlight");
+} else if (tutorialStep === 3) {
+  document.querySelector("#question")?.classList.add("tutorial-highlight");
+} else if (tutorialStep === 4 || tutorialStep === 5 || tutorialStep === 6) {
+  // Glow autour du conteneur des 2 rangées
+  const answersContainer = document.querySelector("#choices1")?.parentElement;
+  if (answersContainer) answersContainer.classList.add("tutorial-highlight");
+} else if (tutorialStep === 7) {
+  document.querySelector(".hamburger")?.classList.add("tutorial-highlight");
+}
   // === LANCEMENT DE L'ANIMATION DE L'ÉTAPE ===
  if (tutorialStep >= 1 && tutorialStep <= 6) {
     // Pour les étapes ❌ et ✅ : on utilise une question fixe ultra-fiable
@@ -8815,6 +8828,7 @@ function setupTutorialDemoQuestion() {
 }
 </script>
 </html>
+
 
 
 
