@@ -8301,7 +8301,10 @@ document.querySelectorAll('.revision-key').forEach(key => {
 // ======================
 // TUTORIEL MODE QUIZ
 // ======================
-const quizTutorialSteps = [
+document.addEventListener("touchstart", unlockChrome, { once: true });
+document.addEventListener("click", unlockChrome, { once: true });
+
+  const quizTutorialSteps = [
   {
     title: "Bienvenue !",
     text: "Commençons par une petite présentation.",
@@ -8414,6 +8417,7 @@ let tutorialStep = 0;
 let tutorialActive = false;
 let currentCleanup = null;
 function startQuizTutorial() {
+  
   if (tutorialActive) return;
   tutorialActive = true;
   tutorialStep = 0;
@@ -8833,6 +8837,7 @@ function setupTutorialDemoQuestion() {
 }
 </script>
 </html>
+
 
 
 
