@@ -7067,10 +7067,7 @@ if (sectionId === 'stats') {
   }
 
 
-  // ✅ AJOUTE ça à la fin
-  if (window.innerWidth <= 768) { // Seulement sur mobile
-    setTimeout(hideAddressBar, 100);
-  }  
+
 }
 function toggleMenu() {
   const menu = document.getElementById('menu');
@@ -8092,27 +8089,9 @@ window.addEventListener('orientationchange', () => {
 setTimeout(() => {
   window.scrollTo(0, 10);
 }, 100);
-// Fonction pour masquer la barre d'adresse
-function hideAddressBar() {
-  // Pour iOS Safari et Chrome mobile
-  if (!window.location.hash) {
-    if (document.height < window.outerHeight) {
-      document.body.style.height = (window.outerHeight + 50) + 'px';
-    }
-    
-    setTimeout(() => {
-      window.scrollTo(0, 1);
-    }, 50);
-  }
-}
 
-// Appeler au chargement
-window.addEventListener('load', hideAddressBar);
 
-// Appeler aussi lors du changement d'orientation
-window.addEventListener('orientationchange', () => {
-  setTimeout(hideAddressBar, 200);
-});
+
 function adjustStatsTableOffset() {
   const menu = document.getElementById('thead');
   const container = document.querySelector('.stats-table-container');
@@ -8164,10 +8143,7 @@ setTimeout(() => {
   window.scrollTo(0, 10);
 }, 100);
 
-window.addEventListener('load', hideAddressBar);
-window.addEventListener('orientationchange', () => {
-  setTimeout(hideAddressBar, 200);
-});
+
 
 // --- Initialisation au chargement ---
 window.onload = () => {
@@ -8836,6 +8812,7 @@ function setupTutorialDemoQuestion() {
 }
 </script>
 </html>
+
 
 
 
