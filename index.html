@@ -258,15 +258,27 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 /* Animation pour le changement de statut de la plante (bloom/rotation subtile) */
 .plant-status-change{animation:plantBloom .5s ease-in-out}@keyframes plantBloom{0%{transform:scale(1) rotate(0deg);opacity:.8}50%{transform:scale(1.2) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}.score-sparkle{animation:sparkle .6s ease-in-out;color:#FFD700}@keyframes sparkle{0%{transform:scale(1);opacity:1;text-shadow:0 0 5px #FFD700}50%{transform:scale(1.1);opacity:.7;text-shadow:0 0 10px #FFD700}100%{transform:scale(1);opacity:1;text-shadow:0 0 5px #FFD700}}#mode2.active #garden-modal,#mode2 #garden-modal.visible{z-index:9999!important;position:fixed!important;top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important}#mode2 .revision-keyboard,#mode2 #revision-input-display,#mode2 #revision-message{z-index:100!important}#modal-portal{position:fixed!important;top:0!important;left:0!important;width:100%!important;height:100%!important;z-index:2147483647!important;display:none;align-items:center;justify-content:center;pointer-events:none}#modal-portal.active{display:flex!important;pointer-events:auto!important}#modal-portal .revision-flashcard{padding:2.8em 3.2em;border-radius:28px;box-shadow:0 30px 60px rgba(0,0,0,.5);text-align:center;max-width:90%;background-color:#fff;animation:popIn .6s ease-out forwards}@media (max-width:480px) and (-webkit-min-device-pixel-ratio:2){#modal-portal .revision-flashcard{padding:2em 2.5em;border-radius:20px;max-width:85%}#modal-portal .revision-flashcard .romaji-display{font-size:3em!important}#modal-portal .revision-flashcard .score-display{font-size:2em!important}#modal-portal .revision-flashcard .plant-display{font-size:3.5em!important}#modal-portal .revision-flashcard .char-display{font-size:1.8em!important}}@media (min-width:481px) and (max-width:1024px) and (-webkit-min-device-pixel-ratio:2){#modal-portal .revision-flashcard{padding:2.5em 3em;max-width:80%}}@keyframes popIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}@keyframes rollUp{from{top:0}to{top:-70px}}@keyframes rollDown{from{top:0}to{top:70px}}@keyframes rollInUp{from{top:70px}to{top:0}}@keyframes rollInDown{from{top:-70px}to{top:0}}.contact-form-container,.contact-inbox-container{max-width:600px;margin:0 auto;padding:1em;overflow-y:auto;overflow-x:hidden;max-height:calc(100vh - 2em);box-sizing:border-box}.contact-subtitle{font-size:1.1em;color:var(--brown-primary);margin-bottom:1.5em;text-align:center}.contact-category{margin-bottom:1.5em}.contact-category label{display:block;font-weight:bold;color:var(--brown-primary);margin-bottom:.5em;font-size:1.1em}.contact-select{width:100%;padding:.8em;font-size:1.1em;border:2px solid var(--brown-primary);border-radius:8px;background:var(--white);color:var(--brown-primary);font-family:inherit;cursor:pointer}.contact-textarea{width:100%;min-height:150px;padding:1em;font-size:1.1em;border:2px solid var(--brown-primary);border-radius:8px;background:var(--white);color:var(--brown-primary);font-family:inherit;resize:vertical;box-sizing:border-box;word-wrap:break-word;overflow-wrap:break-word}.contact-textarea.small{min-height:100px}.contact-textarea:focus,.contact-select:focus,.contact-input:focus{outline:none;border-color:var(--green-primary);box-shadow:0 0 8px var(--overlay-green-30)}.char-counter{text-align:right;font-size:.9em;color:var(--gray-dark);margin-top:.3em;margin-bottom:1em}.contact-field{margin-bottom:1.5em}.contact-field label{display:block;font-weight:bold;color:var(--brown-primary);margin-bottom:.5em;font-size:1.1em}.contact-input{width:100%;padding:.8em;font-size:1.1em;border:2px solid var(--brown-primary);border-radius:8px;background:var(--white);color:var(--brown-primary);font-family:inherit;box-sizing:border-box;word-wrap:break-word;overflow-wrap:break-word}.contact-file-input{width:100%;max-width:100%;padding:.8em;font-size:1em;border:2px dashed var(--brown-primary);border-radius:8px;background:var(--beige-light);cursor:pointer;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file-info{font-size:.9em;color:var(--gray-dark);margin-top:.5em}.error-message{background:var(--pink-pale);border:2px solid var(--pink-primary);color:var(--brown-primary);padding:1em;border-radius:8px;margin:1em 0;text-align:center;font-weight:bold}.success-message{background:var(--green-pale);border:2px solid var(--green-primary);color:var(--green-dark);padding:1em;border-radius:8px;margin:1em 0;text-align:center;font-weight:bold}#contact-inbox-btn{position:relative}#contact-inbox-btn .notification-badge{position:absolute;top:-5px;right:-5px;background:var(--red-progress);color:var(--white);font-size:.8em;font-weight:bold;padding:.2em .5em;border-radius:50%;min-width:20px;text-align:center}.inbox-empty{text-align:center;padding:3em 1em;color:var(--gray-dark);font-size:1.2em}.inbox-messages{display:flex;flex-direction:column;gap:1em;overflow-y:auto;max-height:calc(100vh - 200px);padding-right:.5em}.message-card{background:var(--white);border:2px solid var(--brown-primary);border-radius:12px;padding:1.2em;box-shadow:0 4px 8px var(--shadow-black-medium);transition:all .3s ease}.message-card.unread{background:var(--green-subtle-2);border-color:var(--green-primary)}.message-card:hover{transform:translateY(-2px);box-shadow:0 6px 12px var(--shadow-black-strong)}.message-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8em;padding-bottom:.8em;border-bottom:1px solid var(--gray-light)}.message-type{font-size:.9em;font-weight:bold;color:var(--brown-primary);padding:.3em .8em;background:var(--beige-light);border-radius:20px}.message-date{font-size:.85em;color:var(--gray-dark)}.message-content{color:var(--gray-text);line-height:1.6;margin-bottom:1em;word-wrap:break-word;overflow-wrap:break-word;max-width:100%}.message-response{background:var(--green-subtle-3);border-left:4px solid var(--green-primary);padding:1em;border-radius:8px;margin-top:1em}.response-header{font-weight:bold;color:var(--green-dark);margin-bottom:.5em;display:flex;align-items:center;gap:.5em}.response-text{color:var(--gray-text);line-height:1.6;word-wrap:break-word;overflow-wrap:break-word;max-width:100%}@media (max-width:480px) and (-webkit-min-device-pixel-ratio:2){.contact-form-container,.contact-inbox-container{padding:.5em;max-height:none;min-height:100dvh;overflow-y:auto}.contact-textarea{font-size:1em;min-height:120px}.message-card{padding:1em}.inbox-messages{max-height:calc(100vh - 150px)}}body,html{margin:0;padding:0;height:100%;overflow:hidden;font-family:sans-serif}#rotation-toast{position:fixed;inset:0;background:rgba(0,0,0,.88);color:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;z-index:9999}.phone{width:84px;height:150px;border:6px solid #fff;border-radius:16px;position:relative;margin-bottom:32px;animation:rot 2.5s infinite ease-in-out}.phone::before{content:"";position:absolute;top:12px;left:50%;transform:translateX(-50%);width:36px;height:6px;background:#fff;border-radius:3px}.phone::after{content:"";position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:44px;height:44px;background:#fff;border-radius:50%;opacity:.15}@keyframes rot{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-90deg)}}.text{font-size:18px;text-align:center}.small{font-size:14px;margin-top:8px;opacity:.8}@media screen and (orientation:landscape) and (max-width:1024px){#rotation-toast{display:flex}}.sound-controls{padding:2em 1em;max-width:400px;margin:0 auto}.sound-control-item{background:var(--overlay-green-05);border-radius:20px;padding:2em 1.5em;margin-bottom:1.5em;display:flex;flex-direction:column;align-items:center;gap:1.2em;transition:all .3s ease}.sound-control-item:hover{background:var(--overlay-green-08);transform:translateY(-2px)}.sound-label{display:flex;flex-direction:column;align-items:center;gap:.5em}.sound-icon{font-size:4em;filter:grayscale(20%);transition:all .3s ease}.sound-control-item:hover .sound-icon{filter:grayscale(0%);transform:scale(1.1)}.sound-label span:last-child{font-size:1.1em;font-weight:600;color:var(--brown-primary);text-shadow:0 1px 2px var(--shadow-brown-light)}.sound-toggle{display:flex;align-items:center;gap:1em}.sound-status{font-size:1.8em;transition:all .3s ease}.switch{position:relative;display:inline-block;width:70px;height:40px}.switch input{opacity:0;width:0;height:0}.slider-round{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,var(--gray-light) 0%,var(--gray-medium) 100%);transition:.4s;border-radius:40px;box-shadow:inset 0 2px 4px var(--shadow-black-light)}.slider-round:before{position:absolute;content:"";height:32px;width:32px;left:4px;bottom:4px;background:linear-gradient(135deg,var(--white) 0%,var(--beige-light) 100%);transition:.4s;border-radius:50%;box-shadow:0 2px 4px var(--shadow-black-medium)}input:checked + .slider-round{background:linear-gradient(135deg,var(--green-gradient-start) 0%,var(--green-gradient-end) 100%)}input:checked + .slider-round:before{transform:translateX(30px);box-shadow:0 2px 6px var(--shadow-black-strong)}input:focus + .slider-round{box-shadow:0 0 8px var(--green-bright)}.difficulty-stars{display:inline-flex;gap:4px;margin-left:8px;vertical-align:middle}.difficulty-star{font-size:.8em;transition:all .3s ease}.difficulty-star.lit{color:#FFD700;text-shadow:0 0 10px #FFD700,0 0 20px #FFA500;filter:brightness(1.5)}.difficulty-star.unlit{color:rgba(139,111,71,.3);filter:grayscale(100%)}.arcade-button.difficulty-selected{background:linear-gradient(135deg,rgba(168,213,186,.3),rgba(253,193,197,.3))!important;border-color:var(--green-primary)!important;box-shadow:0 6px 12px var(--shadow-black-dark),inset 0 0 20px rgba(168,213,186,.2)!important}@keyframes kawaii-bounce{0%,100%{transform:scale(1) rotate(0deg)}25%{transform:scale(1.1) rotate(-5deg)}50%{transform:scale(1.2) rotate(5deg)}75%{transform:scale(1.1) rotate(-3deg)}}@keyframes sparkle{0%,100%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)}}.unlock-flashcard{background:linear-gradient(135deg,#d4edda 0%,#f8f1e9 100%);padding:3em;border-radius:24px;text-align:center;position:relative;overflow:hidden}.unlock-emoji{font-size:5em;animation:kawaii-bounce 1s ease-in-out infinite;display:inline-block;margin-bottom:.3em}.unlock-sparkles{position:absolute;font-size:2em;animation:sparkle 2s ease-in-out infinite}.unlock-sparkles:nth-child(1){top:10%;left:10%;animation-delay:0s}.unlock-sparkles:nth-child(2){top:10%;right:10%;animation-delay:.3s}.unlock-sparkles:nth-child(3){bottom:15%;left:15%;animation-delay:.6s}.unlock-sparkles:nth-child(4){bottom:15%;right:15%;animation-delay:.9s}.unlock-title{font-size:2em;font-weight:bold;color:var(--brown-primary);margin:.5em 0;text-shadow:0 2px 4px rgba(0,0,0,.1)}.unlock-message{font-size:1.3em;color:var(--gray-dark);margin-top:1em}.menu-emoji-header{display:flex;align-items:center;justify-content:center;height:25vh;min-height:90px;pointer-events:none}.menu-emoji-header span{display:inline-block;font-size:6.5rem;line-height:1;opacity:0;transform:scale(.9);transition:opacity .6s ease,transform .6s ease}.menu.active .menu-emoji-header span{opacity:1;transform:scale(1);animation:zen-breath 7s ease-in-out infinite}@keyframes zen-breath{0%{transform:scale(1)}50%{transform:scale(1.035)}100%{transform:scale(1)}}.contact-emoji-buttons{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1.5em;margin:2em 0}.emoji-button{font-size:4.5em;background:none;border:none;cursor:pointer;transition:all .3s ease;padding:.3em;border-radius:20px;position:relative;filter:drop-shadow(0 4px 8px rgba(0,0,0,.15))}.emoji-button:hover{transform:scale(1.15) rotate(-5deg);filter:drop-shadow(0 8px 16px rgba(0,0,0,.25))}.emoji-button:active{transform:scale(.95)}.emoji-button .notification-badge{position:absolute;top:0;right:0;background:#dc3545;color:#fff;font-size:.35em;font-weight:bold;border-radius:50%;width:1.2em;height:1.2em;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,.3)}img.emoji{display:inline-block;height:1em;width:1em;margin:0 .05em 0 .1em;vertical-align:-.1em}.result-emoji img.emoji{width:4rem;height:4rem;vertical-align:middle}.panda-logo img.emoji{width:1em;height:1em}.menu-emoji-header img.emoji{width:6.5rem;height:6.5rem}.emoji-button img.emoji{width:1em;height:1em}.garden-plant img.emoji{width:1em;height:1em}.unlock-emoji img.emoji{width:1em;height:1em}.progress-marker img.emoji{width:1em;height:1em}.side-emoji img.emoji{width:1em;height:1em}@keyframes plantShake{0%,100%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(-3px,0) rotate(-3deg)}50%{transform:translate(3px,0) rotate(3deg)}75%{transform:translate(-3px,0) rotate(-3deg)}}@keyframes plantPop{0%{opacity:0;transform:translate(-50%,-50%) scale(0) rotate(0deg);filter:brightness(.5)}60%{transform:translate(-50%,-50%) scale(1.3) rotate(-5deg);filter:brightness(1.5)}80%{transform:translate(-50%,-50%) scale(.95) rotate(5deg)}100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg);filter:brightness(1)}}@keyframes plantShakeCrescendo{0%{transform:translate(0,0) rotate(0deg)}10%{transform:translate(-1px,0) rotate(-1deg)}20%{transform:translate(1px,0) rotate(1deg)}30%{transform:translate(-2px,0) rotate(-2deg)}40%{transform:translate(2px,0) rotate(2deg)}50%{transform:translate(-3px,0) rotate(-3deg)}60%{transform:translate(3px,0) rotate(3deg)}70%{transform:translate(-5px,0) rotate(-5deg)}80%{transform:translate(5px,0) rotate(5deg)}90%{transform:translate(-7px,0) rotate(-7deg)}100%{transform:translate(7px,0) rotate(7deg)}}@keyframes plantPop{0%{opacity:0;transform:translate(-50%,-50%) scale(0) rotate(0deg);filter:brightness(.5)}60%{transform:translate(-50%,-50%) scale(1.3) rotate(-5deg);filter:brightness(1.5)}80%{transform:translate(-50%,-50%) scale(.95) rotate(5deg)}100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg);filter:brightness(1)}}.wobble{animation:wobbleFlashcard 500ms ease-in forwards}@keyframes wobbleFlashcard{0%{transform:translate(0) rotate(0)}20%{transform:translate(-1px) rotate(-1deg)}40%{transform:translate(1px) rotate(1deg)}60%{transform:translate(-3px) rotate(-3deg)}80%{transform:translate(4px) rotate(4deg)}100%{transform:translate(-6px) rotate(-6deg)}}.explode{transition:transform .12s ease-out,opacity .12s,filter .12s;transform:scale(2) rotate(160deg);opacity:0;filter:blur(14px) brightness(2.5)}.pop{animation:popFlashcard .45s cubic-bezier(.68,-.55,.25,1.55) forwards}@keyframes popFlashcard{0%{opacity:0;transform:scale(0) rotate(0);filter:brightness(.6)}60%{transform:scale(1.3) rotate(-6deg);filter:brightness(1.6)}100%{opacity:1;transform:scale(1) rotate(0);filter:brightness(1)}}.jelly{animation:jellyFlashcard 1.25s cubic-bezier(.25,1.6,.4,1)}@keyframes jellyFlashcard{0%{transform:scale(1,1) rotate(0)}15%{transform:scale(1.45,.6) rotate(-14deg)}35%{transform:scale(.8,1.3) rotate(10deg)}55%{transform:scale(1.25,.9) rotate(-8deg)}75%{transform:scale(.95,1.05) rotate(4deg)}100%{transform:scale(1,1) rotate(0)}}.sparkle-flashcard{position:absolute;font-size:22px;pointer-events:none;animation:sparkleFlashcard 1.3s ease-out forwards}@keyframes sparkleFlashcard{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(var(--x),var(--y)) scale(.2) rotate(360deg)}}.shine-flashcard{position:absolute;inset:-30px;background:linear-gradient(120deg,transparent 100%,rgba(255,255,255,.95) 50%,transparent 60%);animation:shineFlashcard .8s ease-out;pointer-events:none;z-index:1}@keyframes shineFlashcard{from{transform:translateX(-180%)}to{transform:translateX(180%)}}.plant-emoji{display:inline-block}.insect-card{background:linear-gradient(180deg,#f7fff5,#fff)}
 
-/* Highlight temporaire pour le tuto */
+/* Highlight temporaire pour le tuto - VERSION RADAR CONTINU */
 .tutorial-highlight {
-  animation: tutorialPulse 2s ease-in-out infinite !important;
+  animation: tutorialPulse 1s ease-out infinite !important;
   z-index: 10 !important;
   position: relative;
+  border-radius: 12px !important;
 }
+
 @keyframes tutorialPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(168, 213, 186, 0.7); }
-  50% { box-shadow: 0 0 0 12px rgba(168, 213, 186, 0); }
+  0% { 
+    box-shadow: 0 0 0 0 rgba(168, 213, 186, 1),
+                0 0 30px 8px rgba(168, 213, 186, 0.8),
+                inset 0 0 20px 2px rgba(168, 213, 186, 0.3);
+    transform: scale(1);
+  }
+  100% { 
+    box-shadow: 0 0 0 30px rgba(168, 213, 186, 0),
+                0 0 60px 25px rgba(168, 213, 186, 0),
+                inset 0 0 0 0 rgba(168, 213, 186, 0);
+    transform: scale(1.0);
+  }
 }
 
 /* Point actif du tuto */
@@ -8316,35 +8328,38 @@ const quizTutorialSteps = [
       return () => clearInterval(interval);
     }
   },
-  {
-    title: "Tes kanas",
-    text: "Chaque carte affiche un kana et tes étoiles de maîtrise.",
-    animate: () => {
-      const cards = document.querySelectorAll(".hiragana-card");
-      if (cards.length === 0) return;
-      const target = cards[Math.floor(cards.length / 2)];
-      target.classList.add("tutorial-highlight");
-      const animateStars = () => {
-        const stars = target.querySelectorAll(".star");
-        stars.forEach(s => {
-          s.classList.remove("filled", "new-star");
-          s.style.background = "var(--gray-very-light)";
-        });
-        stars.forEach((star, i) => {
-          setTimeout(() => {
-            star.classList.add("filled", "new-star");
-            star.style.background = "var(--green-primary)";
-            setTimeout(() => star.classList.remove("new-star"), 1200);
-          }, i * 1200);
-        });
-        setTimeout(() => target.classList.add("completed"), stars.length * 1200 + 1200);
-      };
-      animateStars();
-      let interval = setInterval(animateStars, stars.length * 1200 + 2000);
-      target.classList.add("pulsing");
-      return () => clearInterval(interval);
-    }
-  },
+{
+  title: "Tes kanas",
+  text: "Chaque carte affiche un kana et tes étoiles de maîtrise.",
+  animate: () => {
+    const cards = document.querySelectorAll(".hiragana-card");
+    if (cards.length === 0) return;
+    const target = cards[Math.floor(cards.length / 2)];
+    
+    // 👇 NE PAS ajouter le tutorial-highlight sur la carte individuelle
+    // target.classList.add("tutorial-highlight"); // ❌ SUPPRIMÉ
+    
+    const animateStars = () => {
+      const stars = target.querySelectorAll(".star");
+      stars.forEach(s => {
+        s.classList.remove("filled", "new-star");
+        s.style.background = "var(--gray-very-light)";
+      });
+      stars.forEach((star, i) => {
+        setTimeout(() => {
+          star.classList.add("filled", "new-star");
+          star.style.background = "var(--green-primary)";
+          setTimeout(() => star.classList.remove("new-star"), 1200);
+        }, i * 1200);
+      });
+      setTimeout(() => target.classList.add("completed"), stars.length * 1200 + 1200);
+    };
+    animateStars();
+    let interval = setInterval(animateStars, stars.length * 1200 + 2000);
+    target.classList.add("pulsing");
+    return () => clearInterval(interval);
+  }
+},
   {
     title: "La question",
     text: "Ici apparaît le kana à identifier. Observe-le bien !",
@@ -8428,6 +8443,18 @@ function showTutorialStep() {
   document.getElementById("tutorial-title").textContent = step.title;
   document.getElementById("tutorial-text").textContent = step.text;
 
+ // 👇 AJOUT : Reset de la carte avec étoiles de l'étape précédente
+  if (tutorialStep !== 2) {
+    document.querySelectorAll(".hiragana-card").forEach(card => {
+      card.classList.remove("completed", "pulsing");
+      // Reset des étoiles
+      card.querySelectorAll(".star").forEach(star => {
+        star.classList.remove("filled", "new-star");
+        star.style.background = "var(--gray-very-light)";
+      });
+    });
+  }
+
   // 👇 AJOUT ICI
  // if (tutorialStep === 3) {
     const q = document.getElementById("question");
@@ -8479,15 +8506,16 @@ function showTutorialStep() {
     card.style.transform = "translateY(0)";
   }
 
-  // Highlight de la zone concernée
-  const highlightSelector = tutorialStep === 1 ? "#progressBarContainer" :
-                            tutorialStep === 2 ? ".hiraganas-grid" :
-                            tutorialStep === 3 ? "#question" :
-                            tutorialStep === 4 ? ".answers" :
-                            tutorialStep === 5 ? ".answers" :
-                            tutorialStep === 6 ? ".answers" :
-                            tutorialStep === 7 ? null :
+// Highlight de la zone concernée
+const highlightSelector = tutorialStep === 1 ? "#progressBarContainer" :
+                          tutorialStep === 2 ? ".hiraganas-grid" :
+                          tutorialStep === 3 ? "#question" :
+                          tutorialStep === 4 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
+                          tutorialStep === 5 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
+                          tutorialStep === 6 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
+         tutorialStep === 7 ? null :
                             null;
+
 
   if (highlightSelector) {
     document.querySelectorAll(highlightSelector).forEach(el => {
@@ -8580,36 +8608,114 @@ function playCorrectAnswerDemo() {
     return () => {};
   }
 
+  // 1️⃣ Premier bouton cliqué + son + grisage des autres
   setTimeout(() => {
     correctBtn1.classList.add("clicked-glow", "clicked");
     playTwinkle();
-  }, 500);
+    
+    // Griser tous les autres boutons de la ligne 1
+    document.querySelectorAll("#choices1 button").forEach(btn => {
+      if (btn !== correctBtn1) {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+      }
+    });
+  }, 300);
 
+  // 2️⃣ Deuxième bouton cliqué + son + grisage des autres
   setTimeout(() => {
     correctBtn2.classList.add("clicked-glow", "clicked");
     playTwinkle();
-  }, 1200);
+    
+    // Griser tous les autres boutons de la ligne 2
+    document.querySelectorAll("#choices2 button").forEach(btn => {
+      if (btn !== correctBtn2) {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+      }
+    });
+  }, 800);
 
-// 1️⃣ Premier bouton validé
-setTimeout(() => {
-  correctBtn1.classList.remove("clicked-glow");
-  correctBtn1.classList.add("correct");
-}, 200);
+  // 3️⃣ Validation quasi-immédiate (comme dans le vrai jeu)
+  setTimeout(() => {
+    correctBtn1.classList.remove("clicked-glow");
+    correctBtn1.classList.add("correct");
+    correctBtn2.classList.remove("clicked-glow");
+    correctBtn2.classList.add("correct");
 
-// 2️⃣ Deuxième bouton validé un peu après
-setTimeout(() => {
-  correctBtn2.classList.remove("clicked-glow");
-  correctBtn2.classList.add("correct");
-}, 650);
+    // 🎉 ANIMATION DE SUCCÈS (immédiatement après validation)
+    const questionDiv = document.getElementById("question");
+    const resultDiv = document.getElementById("result");
+    const container = document.querySelector('.quiz-container');
+    
+    if (!questionDiv || !resultDiv || !container) return;
+    
+    const questionRect = questionDiv.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    // Positionnement du résultat à la place de la question
+    resultDiv.style.position = "absolute";
+    resultDiv.style.top = (questionRect.top - containerRect.top) + "px";
+    resultDiv.style.left = "0";
+    resultDiv.style.right = "0";
+    resultDiv.style.height = questionRect.height + "px";
+    resultDiv.style.zIndex = "10";
+    questionDiv.style.visibility = "hidden";
 
+    // Emojis de succès
+    const emojisOK = ["🦋","🐸","🌵","🌴","🍀","🌿","🌱","💩","👻","😸","😽","👽","🌈","🐻","🐛","🌞","✅","🧠","🐶","🐵"];
+    const emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
+    const text = "Parfait !";
 
+    setTimeout(() => {
+      resultDiv.className = 'anim-combo';
+      resultDiv.innerHTML = `<div class="result-line">
+        <div class="result-text">${text}</div>
+        <div class="result-emoji">${emoji}</div>
+      </div>`;
+      
+      // Conversion des emojis si twemoji est chargé
+      if (window.safeConvertEmojis) {
+        safeConvertEmojis(resultDiv);
+      }
+      
+      // Création des sparkles
+      setTimeout(() => {
+        if (window.createSparkles) {
+          createSparkles();
+        }
+      }, 100);
+    }, 10);
+
+    // Nettoyage après animation
+    setTimeout(() => {
+      questionDiv.style.visibility = "visible";
+      resultDiv.style.opacity = "0";
+      setTimeout(() => { 
+        resultDiv.innerHTML = ""; 
+        resultDiv.style = ""; 
+      }, 500);
+    }, 1800);
+  }, 900);
+
+  // Fonction de cleanup
   return () => {
+    const resultDiv = document.getElementById("result");
+    if (resultDiv) {
+      resultDiv.innerHTML = "";
+      resultDiv.style = "";
+    }
+    const questionDiv = document.getElementById("question");
+    if (questionDiv) {
+      questionDiv.style.visibility = "visible";
+    }
     document.querySelectorAll(".answers button").forEach(btn => {
       btn.classList.remove("clicked-glow", "clicked", "correct", "incorrect");
+      btn.disabled = false;
+      btn.style.opacity = "";
     });
   };
 }
-// Fonction pour simuler une réponse incorrecte
 
 function playIncorrectAnswerDemo() {
   const correctKatakana = "ア";
@@ -8630,37 +8736,61 @@ function playIncorrectAnswerDemo() {
     return () => {};
   }
 
-// 1️⃣ Premier mauvais bouton → cliqué
-setTimeout(() => {
-  wrongBtn1.classList.add("clicked-glow", "clicked");
-}, 500);
+  // 1️⃣ Premier mauvais bouton → cliqué + son + grisage
+  setTimeout(() => {
+    wrongBtn1.classList.add("clicked-glow", "clicked");
+    playTwinkle();
+    
+    // Griser tous les autres boutons de la ligne 1
+    document.querySelectorAll("#choices1 button").forEach(btn => {
+      if (btn !== wrongBtn1) {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+      }
+    });
+  }, 300);
 
-// 2️⃣ Deuxième mauvais bouton → cliqué (400 ms après)
-setTimeout(() => {
-  wrongBtn2.classList.add("clicked-glow", "clicked");
-}, 900); // 500 + 400
+  // 2️⃣ Deuxième mauvais bouton → cliqué + son + grisage
+  setTimeout(() => {
+    wrongBtn2.classList.add("clicked-glow", "clicked");
+    playTwinkle();
+    
+    // Griser tous les autres boutons de la ligne 2
+    document.querySelectorAll("#choices2 button").forEach(btn => {
+      if (btn !== wrongBtn2) {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+      }
+    });
+  }, 800);
 
-// 3️⃣ Résolution : rouges + verts + son (100 ms après)
-setTimeout(() => {
-  // Retrait glow
-  wrongBtn1.classList.remove("clicked-glow");
-  wrongBtn2.classList.remove("clicked-glow");
+  // 3️⃣ Résolution : rouges + verts + son (juste après le 2ème clic)
+  setTimeout(() => {
+    // Retrait glow
+    wrongBtn1.classList.remove("clicked-glow");
+    wrongBtn2.classList.remove("clicked-glow");
 
-  // Mauvaises réponses → rouge
-  wrongBtn1.classList.add("incorrect");
-  wrongBtn2.classList.add("incorrect");
+    // Mauvaises réponses → rouge
+    wrongBtn1.classList.add("incorrect");
+    wrongBtn2.classList.add("incorrect");
 
-  // Bonnes réponses → vert (simultané)
-  correctBtn1.classList.add("correct");
-  correctBtn2.classList.add("correct");
+    // Bonnes réponses → vert (simultané)
+    correctBtn1.classList.add("correct");
+    correctBtn2.classList.add("correct");
 
-  playSoftError();
-}, 1000); // 900 + 100
+    // Rendre les bonnes réponses bien visibles
+    correctBtn1.style.opacity = "1";
+    correctBtn2.style.opacity = "1";
 
+    // Son d'erreur
+    playSoftError();
+  }, 900);
 
   return () => {
     document.querySelectorAll(".answers button").forEach(btn => {
       btn.classList.remove("clicked-glow", "clicked", "correct", "incorrect");
+      btn.disabled = false;
+      btn.style.opacity = "";
     });
   };
 }
