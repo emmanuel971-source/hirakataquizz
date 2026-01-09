@@ -8489,9 +8489,12 @@ function showTutorialStep() {
 const highlightSelector = tutorialStep === 1 ? "#progressBarContainer" :
                           tutorialStep === 2 ? ".hiraganas-grid" :
                           tutorialStep === 3 ? "#question" :
-                          tutorialStep === 4 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
-                          tutorialStep === 5 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
-                          tutorialStep === 6 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
+                        //  tutorialStep === 4 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
+                        //  tutorialStep === 5 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
+                        //  tutorialStep === 6 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
+                          tutorialStep === 4 ? ".answers" :
+                          tutorialStep === 5 ? ".answers" :
+                          tutorialStep === 6 ? ".answers" :
          tutorialStep === 7 ? null :
                             null;
 
@@ -8812,6 +8815,7 @@ function setupTutorialDemoQuestion() {
 }
 </script>
 </html>
+
 
 
 
