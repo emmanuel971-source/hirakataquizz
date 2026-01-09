@@ -215,15 +215,15 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
 .birthdate-select option {background: var(--beige-background); color: var(--brown-primary); padding: 10px;}
 .result-line { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 0; /* ❌ SUPPRIME le padding-top: 5vh qui décalait tout */}
 .result-emoji { font-size: 4rem; line-height: 1; margin-top: 1rem; /* Espace entre texte et emoji */}
-.result-text { font-size: 3rem; font-weight: bold; margin-bottom: 0; /* ❌ SUPPRIME le margin-bottom: 3vh */}
+.result-text { font-size: 3rem; font-weight: bold; margin-bottom: 0; z-index: 10 !important;/* ❌ SUPPRIME le margin-bottom: 3vh */}
 /* Animation COMBO Pop + Pulse + Sparkles */
 .anim-combo { position: relative;}
-.anim-combo .result-text { animation: comboPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);}
+.anim-combo .result-text { animation: comboPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 10 !important;}
 .anim-combo .result-emoji { animation: comboPulseWiggle 0.6s ease-out 0.1s backwards;}
 @keyframes comboPop { 0% { opacity: 0; transform: scale(0);} 60% {transform: scale(1.15);} 100% { opacity: 1; transform: scale(1); }}
 @keyframes comboPulseWiggle { 0% { opacity: 0; transform: scale(0) rotate(0deg); filter: brightness(0.5);}40% { transform: scale(1.3) rotate(-8deg); filter: brightness(1.5); }60% { transform: scale(1.1) rotate(8deg); }80% { transform:scale(1.05) rotate(-4deg); } 100% {opacity: 1; transform: scale(1) rotate(0deg); filter: brightness(1); }}
 /* Étincelles / Sparkles */
-.sparkle { position: absolute; pointer-events: none; animation: sparkleFloat 0.8s ease-out forwards; will-change: transform, opacity;}
+.sparkle { position: absolute; pointer-events: none; animation: sparkleFloat 0.8s ease-out forwards; will-change: transform, opacity; z-index: 10 !important;}
 @keyframes sparkleFloat { 0% { opacity: 0;transform: translate(0, 0) scale(0) rotate(0deg);}50% { opacity: var(--sparkle-opacity); transform: translate(var(--tx), var(--ty)) scale(1.2) rotate(180deg);}100% {opacity: 0; transform:translate(calc(var(--tx) * 1.5), calc(var(--ty) * 1.5)) scale(0.5) rotate(360deg); }}
 /* Important : assurez-vous que #result a position: relative */
 #result {position: absolute; /* Sera positionné par JS */ display: flex;align-items: center;justify-content: center;overflow: visible; pointer-events: none;transition: opacity 0.5s ease;}
@@ -973,7 +973,7 @@ html,body{height:100%;margin:0;padding:0}body{display:flex;align-items:center;ju
   position: fixed;
   inset: 0;
 background: transparent;
-  z-index: 9999;
+  z-index: 9998;
   pointer-events: none;
   align-items: center;
   justify-content: center;
@@ -8317,40 +8317,42 @@ document.querySelectorAll('.revision-key').forEach(key => {
   title: "Tes kanas",
   text: "Chaque carte affiche un kana et tes étoiles de maîtrise.",
   animate: () => {
-  const cards = document.querySelectorAll(".hiragana-card");
-  if (cards.length === 0) return;
-  
-  const target = cards[Math.floor(cards.length / 2)];
-  const stars = target.querySelectorAll(".star");   // ← ICI
-
-  const animateStars = () => {
-    stars.forEach(s => {
-      s.classList.remove("filled", "new-star");
-      s.style.background = "var(--gray-very-light)";
-    });
-
-    stars.forEach((star, i) => {
-      setTimeout(() => {
-        star.classList.add("filled", "new-star");
-        star.style.background = "var(--pink-primary)";
-        setTimeout(() => star.classList.remove("new-star"), 1200);
-      }, i * 1200);
-    });
-
-    setTimeout(() => {
-      target.classList.add("completed");
-    }, stars.length * 1200 + 1200);
-  };
-
-  animateStars();
-
-  const delayBetweenLoops = stars.length * 1200 + 2000;
-  let interval = setInterval(animateStars, delayBetweenLoops);
-
-  target.classList.add("pulsing");
-
-  return () => clearInterval(interval);
-}
+    const cards = document.querySelectorAll(".hiragana-card");
+    if (cards.length === 0) return;
+    const target = cards[Math.floor(cards.length / 2)];
+    
+    let interval = null; // Stocker l'intervalle pour pouvoir le nettoyer
+    
+    const animateStars = () => {
+      const stars = target.querySelectorAll(".star");
+      stars.forEach(s => {
+        s.classList.remove("filled", "new-star");
+        s.style.background = "var(--gray-very-light)";
+      });
+      stars.forEach((star, i) => {
+        setTimeout(() => {
+          star.classList.add("filled", "new-star");
+          star.style.background = "var(--green-primary)";
+          setTimeout(() => star.classList.remove("new-star"), 1200);
+        }, i * 1200);
+      });
+      setTimeout(() => target.classList.add("completed"), stars.length * 1200 + 1200);
+    };
+    
+    animateStars();
+    interval = setInterval(animateStars, stars.length * 1200 + 2000);
+    target.classList.add("pulsing");
+    
+    // 👇 IMPORTANT : Retourner la fonction de cleanup
+    return () => {
+      if (interval) clearInterval(interval);
+      target.classList.remove("completed", "pulsing");
+      target.querySelectorAll(".star").forEach(star => {
+        star.classList.remove("filled", "new-star");
+        star.style.background = "var(--gray-very-light)";
+      });
+    };
+  }
 },
   {
     title: "La question",
@@ -8406,28 +8408,33 @@ let tutorialStep = 0;
 let tutorialActive = false;
 let currentCleanup = null;
 function startQuizTutorial() {
+  if (tutorialActive) return;
+  tutorialActive = true;
+  tutorialStep = 0;
+
+  // Désactive les boutons pour que l'utilisateur puisse jouer
+  document.querySelectorAll(".answers button").forEach(b => {
+    b.style.pointerEvents = "none";
+  });
   
-  if (tutorialActive) return;
-  tutorialActive = true;
-  tutorialStep = 0;
- // ✅ Génère la VRAIE première question du jeu
- // nextQuestion();
- 
-  // Désactive juste les interactions pendant le tuto
-  document.querySelectorAll(".answers button").forEach(b => {
-    b.disabled = true;
-    b.style.pointerEvents = "none";
-  });
-  document.getElementById("quiz-tutorial-overlay").style.display = "flex";
-  const dots = document.getElementById("tutorial-progress-dots");
-  dots.innerHTML = "";
-  quizTutorialSteps.forEach((_, i) => {
-    const d = document.createElement("div");
-    d.className = "tutorial-dot" + (i === 0 ? " active" : "");
-    dots.appendChild(d);
-  });
-  showTutorialStep();
+  // 👇 AJOUT : Désactiver le bouton hamburger
+  const hamburger = document.querySelector(".hamburger");
+  if (hamburger) {
+    hamburger.style.pointerEvents = "none";
+    hamburger.style.opacity = "0.5";
+  }
+  
+  document.getElementById("quiz-tutorial-overlay").style.display = "flex";
+  const dots = document.getElementById("tutorial-progress-dots");
+  dots.innerHTML = "";
+  quizTutorialSteps.forEach((_, i) => {
+    const d = document.createElement("div");
+    d.className = "tutorial-dot" + (i === 0 ? " active" : "");
+    dots.appendChild(d);
+  });
+  showTutorialStep();
 }
+
 
 function showTutorialStep() {
   const step = quizTutorialSteps[tutorialStep];
@@ -8436,11 +8443,19 @@ function showTutorialStep() {
   document.getElementById("tutorial-title").textContent = step.title;
   document.getElementById("tutorial-text").textContent = step.text;
 
- // 👇 AJOUT : Reset de la carte avec étoiles de l'étape précédente
+  // 👇 MODIFIÉ : Reset complet de la carte avec étoiles
   if (tutorialStep !== 2) {
     document.querySelectorAll(".hiragana-card").forEach(card => {
       card.classList.remove("completed", "pulsing");
-      // Reset des étoiles
+      card.querySelectorAll(".star").forEach(star => {
+        star.classList.remove("filled", "new-star");
+        star.style.background = "var(--gray-very-light)";
+      });
+    });
+  } else {
+    // 👇 AJOUT : À l'arrivée sur l'étape 2, reset aussi
+    document.querySelectorAll(".hiragana-card").forEach(card => {
+      card.classList.remove("completed", "pulsing");
       card.querySelectorAll(".star").forEach(star => {
         star.classList.remove("filled", "new-star");
         star.style.background = "var(--gray-very-light)";
@@ -8494,6 +8509,7 @@ document.querySelectorAll(".tutorial-highlight, .tutorial-highlight-hamburger, .
     card.style.transform = "translateY(-28vh)";
   } else if (tutorialStep === 6) {
     card.style.transform = "translateY(-28vh)";
+    card.style.zIndex = "5"; // 👈 AJOUT : Passe sous les sparkles (z-index 10)
   } else if (tutorialStep === 7) {
     card.style.transform = "translateY(0)";
   } else {
@@ -8586,7 +8602,12 @@ document.querySelectorAll(".tutorial-highlight, .tutorial-highlight-hamburger, .
     b.disabled = false;
     b.style.pointerEvents = "auto";
   });
- 
+   // 👇 AJOUT : Réactiver le bouton hamburger
+  const hamburger = document.querySelector(".hamburger");
+  if (hamburger) {
+    hamburger.style.pointerEvents = "auto";
+    hamburger.style.opacity = "1";
+  }
  localStorage.removeItem('quizTutorialSeen');
   nextQuestion();
 }
@@ -8852,6 +8873,7 @@ function setupTutorialDemoQuestion() {
 }
 </script>
 </html>
+
 
 
 
