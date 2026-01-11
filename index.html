@@ -991,7 +991,7 @@ background: transparent;
     animation: fadeIn 0.5s ease; /* Fade-in doux */
   ">
     <h2 id="tutorial-title" style="font-size: 1em; margin: 0.5em 0; color: var(--brown-primary);"></h2>
-    <p id="tutorial-text" style="font-size: 0.8em; margin: 1em 0 1.8em; line-height: 0.8; color: var(--brown-primary);"></p>
+    <p id="tutorial-text" style="font-size: 1.0em; margin: 1em 0 1.8em; line-height: 1.2; color: var(--brown-primary);"></p>
 
     <div style="display: flex; justify-content: center;">
       <button class="arcade-button primary-button" id="tutorial-next">Suivant →</button>
@@ -8288,13 +8288,14 @@ document.querySelectorAll('.revision-key').forEach(key => {
 
   const quizTutorialSteps = [
   {
-    title: "Bienvenue !",
-    text: "Commençons par une petite présentation.",
+ title: "Petite présentation",
+  text: "Avant de commencer, faisons un rapide tour du jeu et de son fonctionnement.",
     animate: () => {}
   },
   {
-    title: "Progression du niveau",
-    text: "Cette barre montre ton avancement dans le niveau actuel.",
+  title: "Barre de progression",
+  text: "Le panda avance au fil de ton apprentissage. Ton objectif : l’aider à rejoindre l’arbre.",
+
     animate: () => {
       const marker = document.querySelector(".progress-marker");
       if (!marker) return;
@@ -8314,49 +8315,84 @@ document.querySelectorAll('.revision-key').forEach(key => {
     }
   },
 {
-  title: "Tes kanas",
-  text: "Chaque carte affiche un kana et tes étoiles de maîtrise.",
-  animate: () => {
+  title: "Les cartes",
+  text: "Chaque carte représente un kana (puis des mots). Gagne jusqu’à 5 étoiles par carte. Quand toutes brillent, tu passes au niveau suivant.",
+animate: () => {
     const cards = document.querySelectorAll(".hiragana-card");
     if (cards.length === 0) return;
     const target = cards[Math.floor(cards.length / 2)];
     
-    let interval = null; // Stocker l'intervalle pour pouvoir le nettoyer
+    // 👇 DÉPLACE stars ICI pour qu'elle soit accessible partout
+    const stars = target.querySelectorAll(".star");
+    
+    let interval = null;
+    let timeouts = [];
     
     const animateStars = () => {
-      const stars = target.querySelectorAll(".star");
+      // Reset visuel
       stars.forEach(s => {
         s.classList.remove("filled", "new-star");
         s.style.background = "var(--gray-very-light)";
       });
+      
+      // Animer les étoiles une par une
       stars.forEach((star, i) => {
-        setTimeout(() => {
+        const timeout1 = setTimeout(() => {
           star.classList.add("filled", "new-star");
           star.style.background = "var(--pink-primary)";
-          setTimeout(() => star.classList.remove("new-star"), 1200);
+          
+          const timeout2 = setTimeout(() => {
+            star.classList.remove("new-star");
+          }, 1200);
+          
+          timeouts.push(timeout2);
         }, i * 1200);
+        
+        timeouts.push(timeout1);
       });
-      setTimeout(() => target.classList.add("completed"), stars.length * 1200 + 1200);
+      
+      // Passer la carte en "completed"
+      const completedTimeout = setTimeout(() => {
+        target.classList.add("completed");
+      }, stars.length * 1200 + 1200);
+      
+      timeouts.push(completedTimeout);
     };
     
     animateStars();
-    interval = setInterval(animateStars, stars.length * 1200 + 2000);
+    interval = setInterval(() => {
+      // Nettoyer les anciens timeouts avant de recommencer
+      timeouts.forEach(t => clearTimeout(t));
+      timeouts = [];
+      animateStars();
+    }, stars.length * 1200 + 2000); // 👈 Maintenant stars est accessible
+    
     target.classList.add("pulsing");
     
-    // 👇 IMPORTANT : Retourner la fonction de cleanup
+    // Fonction de cleanup complète
     return () => {
-      if (interval) clearInterval(interval);
+      console.log('🛑 Cleanup étape 2 appelé! Timeouts:', timeouts.length);
+      
+      if (interval) {
+        clearInterval(interval);
+        console.log('✅ Interval cleared');
+      }
+      
+      timeouts.forEach(t => clearTimeout(t));
+      console.log('✅ Timeouts cleared:', timeouts.length);
+      timeouts = [];
+      
       target.classList.remove("completed", "pulsing");
-      target.querySelectorAll(".star").forEach(star => {
+      stars.forEach(star => { // 👈 Utilise stars directement
         star.classList.remove("filled", "new-star");
         star.style.background = "var(--gray-very-light)";
       });
+      console.log('✅ Reset visuel effectué');
     };
   }
-},
-  {
+},{
     title: "La question",
-    text: "Ici apparaît le kana à identifier. Observe-le bien !",
+    text: "Ici apparaîssent les items que tu devra reconnaître : kana, romaji ou mot, selon le niveau..",
     animate: () => {
       const question = document.getElementById("question");
       if (question) {
@@ -8365,8 +8401,9 @@ document.querySelectorAll('.revision-key').forEach(key => {
     }
   },
   {
-    title: "Réponses",
-    text: "Choisis une option dans chaque rangée pour valider.",
+  title: "Les réponses",
+  text: "Pour chaque question, choisis une réponse sur chaque ligne parmi les boutons proposés.",
+
     animate: () => {
       const buttons = document.querySelectorAll(".answers button");
       if (buttons.length === 0) return;
@@ -8385,23 +8422,23 @@ document.querySelectorAll('.revision-key').forEach(key => {
     }
   },
   {
-    title: "❌ Mauvaise réponse",
-    text: "Les boutons incorrects sont marqués en rose, et les bons en vert. Tu apprends de tes erreurs !",
-    animate: playIncorrectAnswerDemo
+  title: "❌ Mauvaise réponse",
+  text: "En cas d’erreur, le rouge montre ce qui ne va pas et le vert t’indique la bonne réponse. Se tromper fait partie de l’apprentissage.",
+animate: playIncorrectAnswerDemo
   },
   {
-    title: "✅ Bonne réponse",
-    text: "Quand tout est juste, c'est la fête ! Les boutons t'ont guidé vers la victoire. 🎉",
-    animate: playCorrectAnswerDemo
+   title: "✅ Bonne réponse",
+  text: "Quand tout est correct, tu gagnes une étoile. Petit à petit, les bonnes réponses deviennent naturelles.",
+animate: playCorrectAnswerDemo
   },
   {
-    title: "Le menu",
-    text: "Utilise le bouton menu pour naviguer entre les sections.",
-    animate: () => {}
+  title: "Le menu",
+  text: "Le menu te permet de naviguer dans les différentes sections. Certaines seront débloquées au fil de ta progression. Une question ? Contacte-nous via le menu Options.",
+animate: () => {}
   },
   {
     title: "C'est parti !",
-    text: "Tu es prêt·e, amuse-toi et progresse zen ! 🌸",
+    text: "Apprendre devrait toujours être un jeu alors surtout amuse-toi et progresse zen ! 🌸",
   }
 ];
 let tutorialStep = 0;
@@ -8421,7 +8458,7 @@ function startQuizTutorial() {
   const hamburger = document.querySelector(".hamburger");
   if (hamburger) {
     hamburger.style.pointerEvents = "none";
-    hamburger.style.opacity = "0.5";
+  //  hamburger.style.opacity = "0.5";
   }
   
   document.getElementById("quiz-tutorial-overlay").style.display = "flex";
@@ -8437,13 +8474,33 @@ function startQuizTutorial() {
 
 
 function showTutorialStep() {
+  // 👇 DÉPLACE LE CLEANUP TOUT EN HAUT, AVANT TOUT
+  // Nettoyage de l'animation précédente
+  if (currentCleanup) {
+    console.log('🧹 Cleanup appelé pour étape', tutorialStep - 1);
+    currentCleanup();
+    currentCleanup = null;
+  }
+
   const step = quizTutorialSteps[tutorialStep];
 
   // Mise à jour titre et texte
   document.getElementById("tutorial-title").textContent = step.title;
   document.getElementById("tutorial-text").textContent = step.text;
 
-  // 👇 MODIFIÉ : Reset complet de la carte avec étoiles
+  // Reset question
+  const q = document.getElementById("question");
+  if (q) {
+    q.textContent = "あ";
+  }
+
+  // 👇 Maintenant le reste du code (reset cartes, etc.)
+  const resultDiv = document.getElementById("result");
+  if (resultDiv && tutorialStep !== 6) {
+    resultDiv.style.zIndex = "";
+  }
+
+  // Reset complet de la carte avec étoiles
   if (tutorialStep !== 2) {
     document.querySelectorAll(".hiragana-card").forEach(card => {
       card.classList.remove("completed", "pulsing");
@@ -8453,7 +8510,7 @@ function showTutorialStep() {
       });
     });
   } else {
-    // 👇 AJOUT : À l'arrivée sur l'étape 2, reset aussi
+    // À l'arrivée sur l'étape 2, reset aussi
     document.querySelectorAll(".hiragana-card").forEach(card => {
       card.classList.remove("completed", "pulsing");
       card.querySelectorAll(".star").forEach(star => {
@@ -8463,24 +8520,13 @@ function showTutorialStep() {
     });
   }
 
-  // 👇 AJOUT ICI
- // if (tutorialStep === 3) {
-    const q = document.getElementById("question");
-    if (q) {
-      q.textContent = "あ";
-    }
-//  }
-
   // Mise à jour des points de progression
   document.querySelectorAll(".tutorial-dot").forEach((d, i) => {
     d.classList.toggle("active", i === tutorialStep);
   });
 
-  // Nettoyage de l'animation précédente
-  if (currentCleanup) {
-    currentCleanup();
-    currentCleanup = null;
-  }
+
+
 
   // Retrait des highlights et animations générales
 // Retrait des highlights et animations générales
@@ -8703,7 +8749,7 @@ function playCorrectAnswerDemo() {
     questionDiv.style.visibility = "hidden";
 
     // Emojis de succès
-    const emojisOK = ["🦋","🐸","🌵","🌴","🍀","🌿","🌱","💩","👻","😸","😽","👽","🌈","🐻","🐛","🌞","✅","🧠","🐶","🐵"];
+    const emojisOK = ["🦋","🐸","🍀","💩","👻","😸","😽","🌈","🐻","🌞","✅","🧠","🐶","🐵"];
     const emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
     const text = "Parfait !";
 
