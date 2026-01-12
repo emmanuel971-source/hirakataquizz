@@ -1292,6 +1292,9 @@ insect_msg_05: "Observe ton jardin. Il raconte ton parcours.",
     tuto_next: "Suivant →",
     tuto_start: "Commencer !",
 
+    // Messages feedback tutoriel
+    tuto_perfect: "Parfait !",
+
     // Déblocages
     unlock_revision_title: 'Mode Révisions',
     unlock_revision_message: 'Tu peux maintenant réviser tes kanas !',
@@ -1551,6 +1554,9 @@ insect_msg_05: "Look at your garden. It tells the story of your journey.",
     // Tutorial buttons
     tuto_next: "Next →",
     tuto_start: "Start!",
+
+    // Feedback messages tutorial
+    tuto_perfect: "Perfect!",
     
     // Unlocks
     unlock_revision_title: 'Review Mode',
@@ -1811,6 +1817,9 @@ sync_success_button: "OK",
     // Botones tutorial
     tuto_next: "Siguiente →",
     tuto_start: "¡Empezar!",
+
+    // Mensajes feedback tutorial
+    tuto_perfect: "¡Perfecto!",
 
 // Desbloqueos
 unlock_revision_title: 'Modo Revisión',
@@ -3287,7 +3296,7 @@ async function ensureLatestProgress() {
 }
   
   
-  // ===============================================
+ //===============================================
 // SYNC CHECK TRIGGER - basé sur la descente du compteur
 // ===============================================
 const SyncCheckTrigger = {
@@ -3541,10 +3550,18 @@ function closeSyncAlert() {
     const isSuccessAlert = card.querySelector('[data-i18n="sync_success_title"]');
     
     card.style.animation = 'fadeOut 0.3s ease-out';
-    overlay.style.animation = 'fadeOut 0.3s ease-out';
+    
+    // ✅ CORRECTION : Vérifier que overlay existe avant de l'animer
+    if (overlay) {
+      overlay.style.animation = 'fadeOut 0.3s ease-out';
+    }
+    
     setTimeout(() => {
       card.remove();
-      overlay.remove();
+      // ✅ CORRECTION : Vérifier avant de supprimer
+      if (overlay) {
+        overlay.remove();
+      }
       
       if (isSuccessAlert) {
         markSyncAlertsAsSeen();
@@ -8801,7 +8818,7 @@ function playCorrectAnswerDemo() {
     // Emojis de succès
     const emojisOK = ["🦋","🐸","🍀","💩","👻","😸","😽","🌈","🐻","🌞","✅","🧠","🐶","🐵"];
     const emoji = emojisOK[Math.floor(Math.random() * emojisOK.length)];
-    const text = "Parfait !";
+    const text = t('tuto_perfect'); 
 
     setTimeout(() => {
       resultDiv.className = 'anim-combo';
