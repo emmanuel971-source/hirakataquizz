@@ -3420,7 +3420,7 @@ startSyncPolling();
 // ✅ AJOUTER cette variable globale en haut avec syncAlertShown
 let wasDesynchronized = false; // Nouvelle variable pour mémoriser l'état de désync
 let syncAlertShown = false;
-let tokenExpiredAlertShown = false;
+
 let tokenExpiredAlertShown = false; // ✅ Uniquement en mémoire = reset à chaque rechargement
 
 function hasSeenSyncAlerts() {
@@ -9124,6 +9124,7 @@ function setupTutorialDemoQuestion() {
 }
 </script>
 </html>
+
 
 
 
