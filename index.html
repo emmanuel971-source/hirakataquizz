@@ -1002,7 +1002,7 @@ background: transparent;
     animation: fadeIn 0.5s ease; /* Fade-in doux */
   ">
     <h2 id="tutorial-title" style="font-size: 1em; margin: 0.5em 0; color: var(--brown-primary);"></h2>
-    <p id="tutorial-text" style="font-size: 1.0em; margin: 1em 0 1.8em; line-height: 1.2; color: var(--brown-primary);"></p>
+    <p id="tutorial-text" style="font-size: 0.8em; margin: 0.8em 0 1.8em; line-height: 1.2; color: var(--brown-primary);"></p>
 
     <div style="display: flex; justify-content: center;">
       <button class="arcade-button primary-button" id="tutorial-next">Suivant →</button>
@@ -8580,8 +8580,7 @@ const quizTutorialSteps = [
           
           timeouts.push(timeout1);
         });
-        
-        const completedTimeout = setTimeout(() => {
+          const completedTimeout = setTimeout(() => {
           target.classList.add("completed");
         }, stars.length * 1200 + 1200);
         
@@ -8594,10 +8593,8 @@ const quizTutorialSteps = [
         timeouts = [];
         animateStars();
       }, stars.length * 1200 + 2000);
-      
-      target.classList.add("pulsing");
-      
-      return () => {
+        target.classList.add("pulsing");
+        return () => {
         if (interval) clearInterval(interval);
         timeouts.forEach(t => clearTimeout(t));
         timeouts = [];
@@ -8654,17 +8651,13 @@ function startQuizTutorial() {
   if (tutorialActive) return;
   tutorialActive = true;
   tutorialStep = 0;
-
-  // Désactive les boutons pour que l'utilisateur puisse jouer
   document.querySelectorAll(".answers button").forEach(b => {
     b.style.pointerEvents = "none";
   });
-  
-  // 👇 AJOUT : Désactiver le bouton hamburger
+
   const hamburger = document.querySelector(".hamburger");
   if (hamburger) {
     hamburger.style.pointerEvents = "none";
-  //  hamburger.style.opacity = "0.5";
   }
   
   document.getElementById("quiz-tutorial-overlay").style.display = "flex";
@@ -8680,33 +8673,23 @@ function startQuizTutorial() {
 
 
 function showTutorialStep() {
-  // Nettoyage...
   if (currentCleanup) {
     currentCleanup();
     currentCleanup = null;
   }
-
   const step = quizTutorialSteps[tutorialStep];
-
-  // 👇 Utilise la fonction de traduction t()
   document.getElementById("tutorial-title").textContent = t(step.title);
   document.getElementById("tutorial-text").textContent = t(step.text);
 
-
-  // Reset question
   const q = document.getElementById("question");
   if (q) {
     q.textContent = "あ";
   }
-
-  // 👇 Maintenant le reste du code (reset cartes, etc.)
   const resultDiv = document.getElementById("result");
   if (resultDiv && tutorialStep !== 6) {
     resultDiv.style.zIndex = "";
   }
-
-  // Reset complet de la carte avec étoiles
-  if (tutorialStep !== 2) {
+    if (tutorialStep !== 2) {
     document.querySelectorAll(".hiragana-card").forEach(card => {
       card.classList.remove("completed", "pulsing");
       card.querySelectorAll(".star").forEach(star => {
@@ -8715,8 +8698,7 @@ function showTutorialStep() {
       });
     });
   } else {
-    // À l'arrivée sur l'étape 2, reset aussi
-    document.querySelectorAll(".hiragana-card").forEach(card => {
+        document.querySelectorAll(".hiragana-card").forEach(card => {
       card.classList.remove("completed", "pulsing");
       card.querySelectorAll(".star").forEach(star => {
         star.classList.remove("filled", "new-star");
@@ -8724,29 +8706,17 @@ function showTutorialStep() {
       });
     });
   }
-
-  // Mise à jour des points de progression
   document.querySelectorAll(".tutorial-dot").forEach((d, i) => {
     d.classList.toggle("active", i === tutorialStep);
   });
-
-
-
-
-  // Retrait des highlights et animations générales
-// Retrait des highlights et animations générales
 document.querySelectorAll(".tutorial-highlight, .tutorial-highlight-hamburger, .pulsing, .completed").forEach(el => {
   el.classList.remove("tutorial-highlight", "tutorial-highlight-hamburger", "pulsing", "completed");
 });
-
-  // Nettoyage spécifique des boutons de réponses
   document.querySelectorAll(".answers button").forEach(b => {
     b.classList.remove("clicked-glow", "clicked", "correct", "incorrect");
   });
-
-  // Positionnement de la carte du tutoriel
   const card = document.getElementById("quiz-tutorial-card");
-  card.style.transform = "translateY(0)"; // reset
+  card.style.transform = "translateY(0)"; 
 
   if (tutorialStep === 1) {
     card.style.transform = "translateY(0)";
@@ -8766,28 +8736,6 @@ document.querySelectorAll(".tutorial-highlight, .tutorial-highlight-hamburger, .
   } else {
     card.style.transform = "translateY(0)";
   }
-
-// Highlight de la zone concernée
-//const highlightSelector = tutorialStep === 1 ? "#progressBarContainer" :
-//                          tutorialStep === 2 ? ".hiraganas-grid" :
-//                          tutorialStep === 3 ? "#question" :
-//                        //  tutorialStep === 4 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
-//                        //  tutorialStep === 5 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
-//                        //  tutorialStep === 6 ? ".quiz-container > div:has(.answers)" :  // 👈 Parent des 2 rangées
-//                          tutorialStep === 4 ? ".answers" :
-//                          tutorialStep === 5 ? ".answers" :
-//                          tutorialStep === 6 ? ".answers" :
-//         tutorialStep === 7 ? null :
-//                            null;
-
-
- // if (highlightSelector) {
- //   document.querySelectorAll(highlightSelector).forEach(el => {
- //     el.classList.add("tutorial-highlight");
- //   });
- // }
-// Highlight de la zone concernée
-// Highlight de la zone concernée
 if (tutorialStep === 1) {
   document.querySelector("#progressBarContainer")?.classList.add("tutorial-highlight");
 } else if (tutorialStep === 2) {
@@ -9124,6 +9072,7 @@ function setupTutorialDemoQuestion() {
 }
 </script>
 </html>
+
 
 
 
