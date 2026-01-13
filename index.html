@@ -1306,6 +1306,10 @@ insect_msg_05: "Observe ton jardin. Il raconte ton parcours.",
     // Messages feedback tutoriel
     tuto_perfect: "Parfait !",
 
+token_expired_title: "Session expirée",
+token_expired_message: "Votre compte a été ouvert sur un autre appareil. Veuillez recharger la page pour continuer.",
+token_expired_button: "Recharger la page",
+
     // Déblocages
     unlock_revision_title: 'Mode Révisions',
     unlock_revision_message: 'Tu peux maintenant réviser tes kanas !',
@@ -1568,6 +1572,10 @@ insect_msg_05: "Look at your garden. It tells the story of your journey.",
 
     // Feedback messages tutorial
     tuto_perfect: "Perfect!",
+
+token_expired_title: "Session Expired",
+token_expired_message: "Your account was opened on another device. Please reload the page to continue.",
+token_expired_button: "Reload Page",
     
     // Unlocks
     unlock_revision_title: 'Review Mode',
@@ -1831,6 +1839,10 @@ sync_success_button: "OK",
 
     // Mensajes feedback tutorial
     tuto_perfect: "¡Perfecto!",
+
+token_expired_title: "セッション期限切れ",
+token_expired_message: "アカウントが別のデバイスで開かれました。続行するにはページを再読み込みしてください。",
+token_expired_button: "ページを再読み込み",
 
 // Desbloqueos
 unlock_revision_title: 'Modo Revisión',
@@ -3409,6 +3421,8 @@ startSyncPolling();
 let wasDesynchronized = false; // Nouvelle variable pour mémoriser l'état de désync
 let syncAlertShown = false;
 
+let tokenExpiredAlertShown = false; // ✅ Uniquement en mémoire = reset à chaque rechargement
+
 function hasSeenSyncAlerts() {
   if (!currentUser || !currentUser.pseudo) {
     return localStorage.getItem('sync_alerts_seen') === 'true';
@@ -3554,6 +3568,106 @@ function showSyncAlert(type = 'warning') {
   document.getElementById('closeSyncAlert').addEventListener('click', closeSyncAlert);
 }
 
+function showTokenExpiredFlashcard() {
+  // Éviter les alertes multiples
+  if (tokenExpiredAlertShown) return;
+  tokenExpiredAlertShown = true;
+  
+  // Supprimer toute alerte existante
+  const existingCard = document.getElementById('tokenExpiredCard');
+  const existingOverlay = document.getElementById('tokenExpiredOverlay');
+  if (existingCard) existingCard.remove();
+  if (existingOverlay) existingOverlay.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'tokenExpiredOverlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999999;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease-out;
+  `;
+  
+  const card = document.createElement('div');
+  card.id = 'tokenExpiredCard';
+  card.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 24px;
+    padding: 35px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+    z-index: 10000000;
+    max-width: 300px;
+    width: 90%;
+    text-align: center;
+    animation: slideIn 0.3s ease-out;
+
+@keyframes shake {
+  0%, 100% { transform: translate(-50%, -50%); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-52%, -50%); }
+  20%, 40%, 60%, 80% { transform: translate(-48%, -50%); }
+}
+  `;
+  
+  card.innerHTML = `
+    <div style="font-size: 80px; margin-bottom: 20px;">⚠️</div>
+    <h2 style="color: #d32f2f; margin: 0 0 15px 0; font-size: 22px; font-weight: 600;" data-i18n="token_expired_title">
+      Session expirée
+    </h2>
+    <p style="color: #666; margin: 0 0 25px 0; line-height: 1.6; font-size: 15px;" data-i18n="token_expired_message">
+      Votre compte a été ouvert sur un autre appareil. Veuillez recharger la page pour continuer.
+    </p>
+    <button id="reloadPageBtn" style="
+      background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+      width: 100%;
+    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(211, 47, 47, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(211, 47, 47, 0.3)'" data-i18n="token_expired_button">
+      Recharger la page
+    </button>
+  `;
+  
+  document.body.appendChild(overlay);
+  document.body.appendChild(card);
+  
+  // Appliquer les traductions
+  setTimeout(() => {
+    card.querySelectorAll('[data-i18n]').forEach(element => {
+      const key = element.getAttribute('data-i18n');
+      element.textContent = t(key);
+    });
+  }, 10);
+  
+  // Action du bouton
+  document.getElementById('reloadPageBtn').addEventListener('click', () => {
+    window.location.reload();
+  });
+  
+  // Empêcher la fermeture en cliquant sur l'overlay
+  overlay.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // Optionnel : faire vibrer la carte pour montrer qu'on doit cliquer sur le bouton
+    card.style.animation = 'shake 0.5s';
+    setTimeout(() => {
+      card.style.animation = 'slideIn 0.3s ease-out';
+    }, 500);
+  });
+}
 
 function closeSyncAlert() {
   const card = document.getElementById('syncAlertCard');
@@ -4242,22 +4356,33 @@ async function callAPI(action, data = null) {
     }
 
     if (data && (action === 'overwriteUserStats' || action === 'updateStats' || params.toString().length > 1500)) {
-      // Passe en POST si données ou URL trop longue
       options.method = 'POST';
       options.body = params;
       options.headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
     } else {
-      // GET classique
       url += `?${params.toString()}`;
     }
 
-console.log(`🔍 Appel API (${options.method}): ${action}`);  // ✅ Bon
+    console.log(`🔍 Appel API (${options.method}): ${action}`);
     const response = await fetch(url, options);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     const result = await response.json();
+    
+    // ✅ NOUVEAU : Détection token invalide
+    if (result.error && (
+      result.error.toLowerCase().includes('token non trouvé') || 
+      result.error.toLowerCase().includes('token invalide') ||
+      result.error.toLowerCase().includes('session expirée') ||
+      result.error.toLowerCase().includes('token not found') ||
+      result.error.toLowerCase().includes('invalid token')
+    )) {
+      console.error('🚨 [TOKEN INVALIDE] Session expirée ou ouverte ailleurs');
+      showTokenExpiredFlashcard();
+    }
+    
     return result;
 
   } catch (error) {
