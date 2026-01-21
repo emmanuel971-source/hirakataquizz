@@ -1,36 +1,69 @@
 <!DOCTYPE html>
-<html>
-<body>
-  <button id="start">Démarrer reconnaissance</button>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Micro Mobile</title>
+</head>
+<body style="text-align:center; padding:2rem; font-family:sans-serif;">
+  <h2>Test reconnaissance vocale mobile</h2>
+  <button id="btn">Démarrer (parle après clic)</button>
   <p id="status">—</p>
+  <p id="result">Résultat : —</p>
 
   <script>
-    const btn = document.getElementById('start');
+    const btn = document.getElementById('btn');
     const status = document.getElementById('status');
+    const result = document.getElementById('result');
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      status.textContent = "API non supportée";
+    const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Speech) {
+      status.textContent = "❌ API non supportée sur ce navigateur/mobile";
+      btn.disabled = true;
       return;
     }
 
-    const rec = new SpeechRecognition();
-    rec.lang = 'fr-FR';  // ← change en 'ja-JP' après si ça marche
+    const rec = new Speech();
+    rec.lang = 'ja-JP';           // essaie aussi 'fr-FR' ou 'en-US' pour tester
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
 
     btn.onclick = () => {
-      status.textContent = "Démarrage...";
+      status.textContent = "Initialisation...";
+      btn.disabled = true;
+      btn.textContent = "Écoute...";
+
       try {
         rec.start();
-        status.textContent = "Écoute démarrée ! Parle...";
+        status.textContent = "🎤 Écoute en cours ! Parle maintenant (5-10s max)";
       } catch(e) {
-        status.textContent = "Erreur : " + e.message;
+        status.textContent = "Erreur immédiate : " + e.message;
+        btn.disabled = false;
       }
     };
 
-    rec.onstart = () => status.textContent = "→ ONSTART (micro actif)";
-    rec.onend   = () => status.textContent = "→ Fin d'écoute";
-    rec.onerror = e => status.textContent = "→ ERREUR : " + e.error;
-    rec.onresult = e => status.textContent = "→ Résultat : " + e.results[0][0].transcript;
+    rec.onstart = () => {
+      status.textContent = "→ Microphone actif !";
+    };
+
+    rec.onresult = (e) => {
+      const texte = e.results[0][0].transcript;
+      result.textContent = "Entendu : " + texte;
+      status.textContent = "OK !";
+    };
+
+    rec.onerror = (e) => {
+      status.textContent = "❌ Erreur : " + e.error;
+      console.error(e);
+      btn.disabled = false;
+      btn.textContent = "Démarrer";
+    };
+
+    rec.onend = () => {
+      status.textContent = "Écoute terminée";
+      btn.disabled = false;
+      btn.textContent = "Démarrer";
+    };
   </script>
 </body>
 </html>
