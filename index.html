@@ -1,163 +1,36 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Reconnaissance Hiragana</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      text-align: center;
-      padding: 2rem;
-    }
-    button {
-      font-size: 1.2rem;
-      padding: 1rem 2rem;
-      cursor: pointer;
-    }
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-    #kana {
-      font-size: 4rem;
-      margin-top: 1.5rem;
-    }
-    #raw {
-      margin-top: 1rem;
-      color: #666;
-      font-size: 0.9rem;
-    }
-    #error {
-      margin-top: 1rem;
-      color: red;
-      font-size: 1rem;
-    }
-  </style>
-</head>
+<html>
 <body>
-  <h1>🎤 Prononce un hiragana</h1>
-  <p>Conseil : dis "C'est [hiragana]" comme "C'est ka" pour une meilleure reconnaissance.</p>
-  <button id="mic">Parler</button>
-  <div id="kana">—</div>
-  <div id="raw"></div>
-  <div id="error"></div>
+  <button id="start">Démarrer reconnaissance</button>
+  <p id="status">—</p>
 
-<script>
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    alert("La reconnaissance vocale n'est pas supportée par votre navigateur. Essayez Chrome ou un navigateur compatible.");
-    document.getElementById("mic").disabled = true;
-    return;
-  }
+  <script>
+    const btn = document.getElementById('start');
+    const status = document.getElementById('status');
 
-  const recognition = new SpeechRecognition();
-  recognition.lang = "ja-JP";
-  recognition.continuous = false;
-  recognition.interimResults = false;
-
-  // Mapping étendu avec variantes courantes (aliases pour confusions fréquentes)
-  const kanaMap = {
-    "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お",
-    "ka": "か", "ki": "き", "ku": "く", "ke": "け", "ko": "こ",
-    "sa": "さ", "shi": "し", "si": "し", // variante si/shi
-    "su": "す", "se": "せ", "so": "そ",
-    "ta": "た", "chi": "ち", "ti": "ち", // variante ti/chi
-    "tsu": "つ", "tu": "つ", // variante tu/tsu (rare mais possible)
-    "te": "て", "to": "と",
-    "na": "な", "ni": "に", "nu": "ぬ", "ne": "ね", "no": "の",
-    "ha": "は", "hi": "ひ", "fu": "ふ", "hu": "ふ", // fu/hu
-    "he": "へ", "ho": "ほ",
-    "ma": "ま", "mi": "み", "mu": "む", "me": "め", "mo": "も",
-    "ya": "や", "yu": "ゆ", "yo": "よ",
-    "ra": "ら", "ri": "り", "ru": "る", "re": "れ", "ro": "ろ",
-    "wa": "わ", "wo": "を",
-    "n": "ん",
-    "ji": "じ", "zi": "じ" // ji/zi
-  };
-
-  const micBtn = document.getElementById("mic");
-  const kanaDiv = document.getElementById("kana");
-  const rawDiv = document.getElementById("raw");
-  const errorDiv = document.getElementById("error");
-
-  micBtn.onclick = () => {
-    kanaDiv.textContent = "🎧 Écoute...";
-    rawDiv.textContent = "";
-    errorDiv.textContent = "";
-    micBtn.disabled = true;
-    micBtn.textContent = "Écoute en cours...";
-    recognition.start();
-  };
-
-  recognition.onresult = (event) => {
-    const said = event.results[0][0].transcript.toLowerCase().trim();
-    const confidence = event.results[0][0].confidence;
-
-    // Affichage du texte brut avec score de confiance
-    rawDiv.textContent = `Reconnu : "${said}" (confiance : ${(confidence * 100).toFixed(0)}%)`;
-
-    // Seulement si confiance > 50% (ajustable)
-    if (confidence < 0.5) {
-      kanaDiv.textContent = "❓ Confiance trop faible";
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      status.textContent = "API non supportée";
       return;
     }
 
-    // Recherche de correspondance exacte, avec ou sans préfixe
-    let found = false;
-    for (const [romaji, char] of Object.entries(kanaMap)) {
-      if (
-        said === romaji ||
-        said === `c'est ${romaji}` ||
-        said === `${romaji} desu` ||
-        said === `hiragana ${romaji}` // Autre variante possible
-      ) {
-        kanaDiv.textContent = char;
-        found = true;
-        break;
+    const rec = new SpeechRecognition();
+    rec.lang = 'fr-FR';  // ← change en 'ja-JP' après si ça marche
+
+    btn.onclick = () => {
+      status.textContent = "Démarrage...";
+      try {
+        rec.start();
+        status.textContent = "Écoute démarrée ! Parle...";
+      } catch(e) {
+        status.textContent = "Erreur : " + e.message;
       }
-    }
+    };
 
-    if (!found) {
-      kanaDiv.textContent = "❓ Pas reconnu";
-    }
-  };
-
-  recognition.onerror = (event) => {
-    let message = "";
-    switch (event.error) {
-      case "no-speech":
-        message = "Aucun son détecté. Parlez plus fort ou vérifiez votre micro.";
-        break;
-      case "audio-capture":
-        message = "Problème avec le micro. Vérifiez qu'il est branché et autorisé.";
-        break;
-      case "not-allowed":
-        message = "Accès au micro refusé. Autorisez-le dans les paramètres du navigateur.";
-        break;
-      case "service-not-allowed":
-        message = "Le service de reconnaissance vocale n'est pas autorisé.";
-        break;
-      case "network":
-        message = "Problème de réseau. Vérifiez votre connexion internet.";
-        break;
-      case "aborted":
-        message = "Reconnaissance interrompue.";
-        break;
-      case "language-not-supported":
-        message = "La langue japonaise n'est pas supportée.";
-        break;
-      default:
-        message = `Erreur inconnue : ${event.error}`;
-    }
-    errorDiv.textContent = `❌ ${message}`;
-    kanaDiv.textContent = "—";
-  };
-
-  recognition.onend = () => {
-    micBtn.disabled = false;
-    micBtn.textContent = "Parler";
-  };
-</script>
+    rec.onstart = () => status.textContent = "→ ONSTART (micro actif)";
+    rec.onend   = () => status.textContent = "→ Fin d'écoute";
+    rec.onerror = e => status.textContent = "→ ERREUR : " + e.error;
+    rec.onresult = e => status.textContent = "→ Résultat : " + e.results[0][0].transcript;
+  </script>
 </body>
 </html>
