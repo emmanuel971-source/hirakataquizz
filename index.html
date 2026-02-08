@@ -2,8 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Quiz Kana - Détection Sons Courts</title>
+  <title>Quiz Kana - Vosk Test (Hiragana Syllabes)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/vosk-browser@0.0.8/dist/vosk.min.js"></script>
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -13,6 +14,7 @@
       margin: 0 auto;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
+      color: #333;
     }
     .container {
       background: white;
@@ -20,16 +22,7 @@
       border-radius: 20px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    h1 {
-      color: #333;
-      margin-bottom: 1rem;
-    }
-    .info {
-      color: #666;
-      font-size: 0.95rem;
-      margin-bottom: 1.5rem;
-      line-height: 1.5;
-    }
+    h1 { margin-bottom: 1rem; }
     button {
       font-size: 1.2rem;
       padding: 1rem 2rem;
@@ -50,14 +43,10 @@
       background: #f44336;
       animation: pulse 1s infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
+    @keyframes pulse { 0%,100% {opacity:1} 50% {opacity:0.7} }
     #kana {
       font-size: 10rem;
       margin: 2rem 0;
-      color: #333;
       min-height: 12rem;
       display: flex;
       align-items: center;
@@ -67,359 +56,185 @@
       color: #4CAF50;
       animation: pop 0.3s;
     }
-    @keyframes pop {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.15); }
-      100% { transform: scale(1); }
-    }
-    #status {
-      font-size: 1.1rem;
-      color: #666;
-      margin: 1rem 0;
-      min-height: 2rem;
-    }
+    @keyframes pop { 0% {transform:scale(1)} 50% {transform:scale(1.15)} 100% {transform:scale(1)} }
+    #status { font-size: 1.1rem; color: #666; margin: 1rem 0; min-height: 2rem; }
     .heard-box {
       margin: 1rem 0;
       padding: 1rem;
       background: #f5f5f5;
       border-radius: 8px;
-      min-height: 80px;
+      min-height: 100px;
+      text-align: left;
     }
-    .heard-item {
-      font-size: 0.9rem;
-      color: #555;
-      margin: 0.3rem 0;
-    }
-    .heard-item.match {
-      color: #4CAF50;
-      font-weight: bold;
-    }
-    .heard-item.rejected {
-      color: #999;
-      text-decoration: line-through;
-    }
+    .heard-item { font-size: 1rem; margin: 0.4rem 0; }
+    .heard-item.match { color: #4CAF50; font-weight: bold; }
+    .heard-item.partial { color: #888; font-style: italic; }
     #debug {
-      margin-top: 1rem;
+      margin-top: 1.5rem;
       padding: 1rem;
       background: #f5f5f5;
       border-radius: 8px;
-      font-size: 0.75rem;
+      font-size: 0.85rem;
       text-align: left;
-      max-height: 200px;
+      max-height: 220px;
       overflow-y: auto;
       font-family: monospace;
     }
-    .error {
-      color: #f44336;
-      font-weight: bold;
-    }
+    .error { color: #f44336; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🎤 Reconnaissance Kana</h1>
-    <div class="info">
-      Prononce clairement un kana (ka, shi, tsu, a, n...)<br>
-      Le système détecte les sons courts et filtre les mots longs
-    </div>
+    <h1>🎤 Test Vosk – Kana isolés (hiragana)</h1>
+    <p>Prononce clairement une syllabe : ka, a, shi, tsu, ne, ko, n...</p>
     
     <button id="toggleBtn">Démarrer l'écoute</button>
     
     <div id="kana">—</div>
-    <div id="status"></div>
+    <div id="status">En attente...</div>
     
     <div class="heard-box">
-      <strong>Derniers sons détectés:</strong>
+      <strong>Derniers résultats :</strong>
       <div id="heardList"></div>
     </div>
     
     <div id="debug"></div>
   </div>
 
-<script>
-  const toggleBtn = document.getElementById("toggleBtn");
-  const kanaDiv = document.getElementById("kana");
-  const statusDiv = document.getElementById("status");
-  const heardListDiv = document.getElementById("heardList");
-  const debugDiv = document.getElementById("debug");
+  <script>
+    const toggleBtn = document.getElementById("toggleBtn");
+    const kanaDiv = document.getElementById("kana");
+    const statusDiv = document.getElementById("status");
+    const heardListDiv = document.getElementById("heardList");
+    const debugDiv = document.getElementById("debug");
 
-  let isListening = false;
-  let recognition = null;
-  let lastDetectionTime = 0;
+    let isListening = false;
+    let model = null;
+    let recognizer = null;
+    let mediaStream = null;
+    let audioContext = null;
 
-  // Mapping très étendu romaji -> kana
-  const romajiToKana = {
-    // Voyelles
-    "a": "あ", "ah": "あ", "ha": "あ",
-    "i": "い", "ii": "い", "ee": "い",
-    "u": "う", "uu": "う", "ou": "う", "hou": "う",
-    "e": "え", "eh": "え", "ay": "え",
-    "o": "お", "oh": "お", "oo": "お",
-    
-    // K
-    "ka": "か", "ca": "か", "kah": "か",
-    "ki": "き", "key": "き", "kee": "き",
-    "ku": "く", "cou": "く", "koo": "く",
-    "ke": "け", "keh": "け", "kay": "け",
-    "ko": "こ", "koh": "こ", "coh": "こ",
-    
-    // S
-    "sa": "さ", "sah": "さ",
-    "shi": "し", "si": "し", "she": "し", "chi": "し", "shee": "し",
-    "su": "す", "sou": "す", "sue": "す",
-    "se": "せ", "seh": "せ", "say": "せ",
-    "so": "そ", "soh": "そ",
-    
-    // T
-    "ta": "た", "tah": "た",
-    "chi": "ち", "ti": "ち", "tchi": "ち", "chee": "ち",
-    "tsu": "つ", "tu": "つ", "tsou": "つ", "tsue": "つ", "sue": "つ",
-    "te": "て", "teh": "て", "tay": "て",
-    "to": "と", "toh": "と",
-    
-    // N
-    "na": "な", "nah": "な",
-    "ni": "に", "nee": "に",
-    "nu": "ぬ", "nou": "ぬ",
-    "ne": "ね", "neh": "ね", "nay": "ね",
-    "no": "の", "noh": "の",
-    
-    // H
-    "ha": "は", "hah": "は",
-    "hi": "ひ", "hee": "ひ",
-    "fu": "ふ", "hu": "ふ", "fou": "ふ", "who": "ふ",
-    "he": "へ", "heh": "へ", "hay": "へ",
-    "ho": "ほ", "hoh": "ほ",
-    
-    // M
-    "ma": "ま", "mah": "ま",
-    "mi": "み", "mee": "み",
-    "mu": "む", "mou": "む",
-    "me": "め", "meh": "め", "may": "め",
-    "mo": "も", "moh": "も",
-    
-    // Y
-    "ya": "や", "yah": "や",
-    "yu": "ゆ", "you": "ゆ", "yoo": "ゆ",
-    "yo": "よ", "yoh": "よ",
-    
-    // R
-    "ra": "ら", "la": "ら", "rah": "ら", "lah": "ら",
-    "ri": "り", "li": "り", "ree": "り", "lee": "り",
-    "ru": "る", "lou": "る", "rou": "る",
-    "re": "れ", "leh": "れ", "reh": "れ", "ray": "れ", "lay": "れ",
-    "ro": "ろ", "lo": "ろ", "roh": "ろ", "loh": "ろ",
-    
-    // W
-    "wa": "わ", "wah": "わ",
-    "wo": "を", "woh": "を",
-    "n": "ん", "nn": "ん", "m": "ん", "un": "ん",
-    
-    // G
-    "ga": "が", "gah": "が",
-    "gi": "ぎ", "gui": "ぎ", "gee": "ぎ",
-    "gu": "ぐ", "gou": "ぐ",
-    "ge": "げ", "geh": "げ", "gay": "げ",
-    "go": "ご", "goh": "ご",
-    
-    // Z
-    "za": "ざ", "zah": "ざ",
-    "ji": "じ", "zi": "じ", "jee": "じ", "gee": "じ",
-    "zu": "ず", "zou": "ず",
-    "ze": "ぜ", "zeh": "ぜ",
-    "zo": "ぞ", "zoh": "ぞ",
-    
-    // D
-    "da": "だ", "dah": "だ",
-    "di": "ぢ", "dji": "ぢ",
-    "du": "づ", "dzu": "づ",
-    "de": "で", "deh": "で", "day": "で",
-    "do": "ど", "doh": "ど",
-    
-    // B
-    "ba": "ば", "bah": "ば",
-    "bi": "び", "bee": "び",
-    "bu": "ぶ", "bou": "ぶ",
-    "be": "べ", "beh": "べ", "bay": "べ",
-    "bo": "ぼ", "boh": "ぼ",
-    
-    // P
-    "pa": "ぱ", "pah": "ぱ",
-    "pi": "ぴ", "pee": "ぴ",
-    "pu": "ぷ", "pou": "ぷ",
-    "pe": "ぺ", "peh": "ぺ", "pay": "ぺ",
-    "po": "ぽ", "poh": "ぽ"
-  };
+    const MODEL_PATH = "./vosk-model-small-ja-0.22/model.tar.gz"; // ← Change si besoin (ex: "models/vosk-model-small-ja-0.22/model.tar.gz")
 
-  // Inverser le mapping pour avoir kana -> romaji aussi
-  const kanaToRomaji = {};
-  for (const [romaji, kana] of Object.entries(romajiToKana)) {
-    if (!kanaToRomaji[kana]) {
-      kanaToRomaji[kana] = [];
+    function addDebug(msg, isError = false) {
+      const time = new Date().toLocaleTimeString();
+      debugDiv.innerHTML += `<div style="color:${isError?'red':'#444'}">[${time}] ${msg}</div>`;
+      debugDiv.scrollTop = debugDiv.scrollHeight;
     }
-    kanaToRomaji[kana].push(romaji);
-  }
 
-  function addDebug(msg, isError = false) {
-    const time = new Date().toLocaleTimeString();
-    debugDiv.innerHTML += `<div style="color: ${isError ? 'red' : '#333'}">[${time}] ${msg}</div>`;
-    debugDiv.scrollTop = debugDiv.scrollHeight;
-  }
-
-  function addHeard(text, isMatch = false, isRejected = false) {
-    const item = document.createElement('div');
-    item.className = 'heard-item';
-    if (isMatch) item.classList.add('match');
-    if (isRejected) item.classList.add('rejected');
-    item.textContent = text;
-    heardListDiv.insertBefore(item, heardListDiv.firstChild);
-    
-    // Garder seulement les 10 derniers
-    while (heardListDiv.children.length > 10) {
-      heardListDiv.removeChild(heardListDiv.lastChild);
+    function addHeard(text, isMatch = false, isPartial = false) {
+      const item = document.createElement('div');
+      item.className = 'heard-item';
+      if (isMatch) item.classList.add('match');
+      if (isPartial) item.classList.add('partial');
+      item.textContent = text;
+      heardListDiv.insertBefore(item, heardListDiv.firstChild);
+      while (heardListDiv.children.length > 12) {
+        heardListDiv.removeChild(heardListDiv.lastChild);
+      }
     }
-  }
 
-  addDebug("Script chargé");
+    async function initVosk() {
+      if (model) return;
+      try {
+        addDebug("Chargement du modèle japonais small...");
+        statusDiv.textContent = "Chargement du modèle (~50 Mo)...";
+        model = await Vosk.createModel(MODEL_PATH);
+        addDebug("Modèle chargé ✓");
 
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  
-  if (!SpeechRecognition) {
-    statusDiv.innerHTML = '<span class="error">❌ Reconnaissance vocale non supportée</span>';
-    toggleBtn.disabled = true;
-    addDebug("SpeechRecognition non disponible", true);
-  } else {
-    addDebug("SpeechRecognition disponible ✓");
-    
-    recognition = new SpeechRecognition();
-    
-    // 🔥 STRATÉGIE: On essaie en FRANÇAIS pour mieux capter les sons courts
-    recognition.lang = "fr-FR";
-    recognition.continuous = true;
-    recognition.interimResults = false; // Seulement les résultats finaux
-    recognition.maxAlternatives = 10;
+        recognizer = new model.KaldiRecognizer(16000);
+        recognizer.setMaxAlternatives(3); // pour avoir plusieurs hypothèses
 
-    function findKanaMatch(transcript) {
-      const cleaned = transcript.toLowerCase().trim()
-        .replace(/[.,!?;]/g, '')
-        .replace(/c'est\s+/gi, '')
-        .replace(/le\s+/gi, '')
-        .replace(/la\s+/gi, '')
-        .replace(/un\s+/gi, '')
-        .replace(/une\s+/gi, '');
-      
-      // Longueur max pour un son de kana
-      if (cleaned.length > 5) {
-        addDebug(`❌ Trop long: "${cleaned}" (${cleaned.length} chars)`);
-        return null;
+        recognizer.on("partialresult", (msg) => {
+          const partial = msg.result?.text?.trim() || "";
+          if (partial) {
+            statusDiv.textContent = `Entendu en live : ${partial}`;
+            addHeard(`Partial: ${partial}`, false, true);
+          }
+        });
+
+        recognizer.on("result", (msg) => {
+          const text = msg.result?.text?.trim() || "";
+          if (text) {
+            addDebug(`Résultat final : "${text}"`);
+            addHeard(`Final: ${text}`, true);
+            processKanaResult(text);
+          }
+        });
+
+        statusDiv.textContent = "Modèle prêt !";
+      } catch (err) {
+        addDebug("Erreur chargement Vosk : " + err.message, true);
+        statusDiv.innerHTML = '<span class="error">Erreur modèle – vérifie le chemin</span>';
       }
-      
-      // Chercher correspondance exacte
-      if (romajiToKana[cleaned]) {
-        return romajiToKana[cleaned];
+    }
+
+    function processKanaResult(text) {
+      // Le modèle sort du hiragana → on affiche directement
+      // (tu peux ajouter un mapping si tu veux romaji ou filtrer)
+      if (text.length <= 3 && /[\u3040-\u30FF]/.test(text)) { // hiragana/katakana court
+        kanaDiv.textContent = text;
+        kanaDiv.classList.add("match");
+        setTimeout(() => kanaDiv.classList.remove("match"), 1200);
+        statusDiv.textContent = `Match kana : ${text}`;
+      } else {
+        statusDiv.textContent = `Résultat : ${text} (peut-être trop long)`;
       }
-      
-      // Chercher correspondance partielle
-      for (const [romaji, kana] of Object.entries(romajiToKana)) {
-        if (cleaned === romaji || 
-            cleaned.endsWith(romaji) && cleaned.length - romaji.length <= 2) {
-          return kana;
-        }
+    }
+
+    async function startListening() {
+      try {
+        await initVosk();
+        if (!recognizer) return;
+
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+
+        const source = audioContext.createMediaStreamSource(mediaStream);
+        const node = recognizer.createAudioNode(audioContext);
+
+        source.connect(node);
+        node.connect(audioContext.destination); // optionnel (feedback audio)
+
+        recognizer.start();
+        addDebug("Écoute démarrée – prononce des kana !");
+        statusDiv.textContent = "🎧 En écoute... (parle lentement)";
+        toggleBtn.textContent = "Arrêter l'écoute";
+        toggleBtn.classList.add("listening");
+        isListening = true;
+      } catch (err) {
+        addDebug("Erreur démarrage : " + err.message, true);
       }
-      
-      return null;
+    }
+
+    function stopListening() {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(t => t.stop());
+        mediaStream = null;
+      }
+      if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+      }
+      if (recognizer) {
+        recognizer.stop();
+      }
+      addDebug("Écoute arrêtée");
+      statusDiv.textContent = "Écoute arrêtée";
+      toggleBtn.textContent = "Démarrer l'écoute";
+      toggleBtn.classList.remove("listening");
+      isListening = false;
     }
 
     toggleBtn.onclick = () => {
       if (!isListening) {
-        try {
-          recognition.start();
-          isListening = true;
-          toggleBtn.textContent = "Arrêter l'écoute";
-          toggleBtn.classList.add("listening");
-          statusDiv.innerHTML = '🎧 En écoute...';
-          addDebug("Écoute démarrée (fr-FR)");
-        } catch (e) {
-          addDebug(`Erreur: ${e.message}`, true);
-        }
+        startListening();
       } else {
-        recognition.stop();
-        isListening = false;
-        toggleBtn.textContent = "Démarrer l'écoute";
-        toggleBtn.classList.remove("listening");
-        statusDiv.textContent = "Écoute arrêtée";
-        addDebug("Écoute arrêtée");
+        stopListening();
       }
     };
 
-    recognition.onresult = (event) => {
-      const now = Date.now();
-      
-      // Anti-spam: ignorer si moins de 300ms depuis dernière détection
-      if (now - lastDetectionTime < 300) {
-        return;
-      }
-      
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (!result.isFinal) continue;
-        
-        const transcript = result[0].transcript;
-        addDebug(`Entendu: "${transcript}"`);
-        
-        // Essayer toutes les alternatives
-        let foundKana = null;
-        let matchedTranscript = null;
-        
-        for (let j = 0; j < Math.min(result.length, 10); j++) {
-          const altTranscript = result[j].transcript;
-          const altConfidence = result[j].confidence;
-          
-          addDebug(`  Alt ${j+1}: "${altTranscript}" (${(altConfidence * 100).toFixed(0)}%)`);
-          
-          if (!foundKana) {
-            foundKana = findKanaMatch(altTranscript);
-            if (foundKana) {
-              matchedTranscript = altTranscript;
-              addDebug(`  ✓ Match trouvé !`);
-            }
-          }
-        }
-        
-        if (foundKana) {
-          kanaDiv.textContent = foundKana;
-          kanaDiv.classList.add("match");
-          addHeard(`"${matchedTranscript}" → ${foundKana}`, true, false);
-          lastDetectionTime = now;
-          
-          setTimeout(() => {
-            kanaDiv.classList.remove("match");
-          }, 800);
-        } else {
-          addHeard(`"${transcript}" (pas de correspondance)`, false, true);
-        }
-      }
-    };
-
-    recognition.onerror = (event) => {
-      if (event.error === "no-speech" || event.error === "aborted") return;
-      addDebug(`Erreur: ${event.error}`, true);
-    };
-
-    recognition.onend = () => {
-      addDebug("Reconnaissance terminée");
-      if (isListening) {
-        setTimeout(() => {
-          try {
-            recognition.start();
-            addDebug("Redémarrage auto");
-          } catch (e) {
-            addDebug(`Erreur redémarrage: ${e.message}`, true);
-          }
-        }, 100);
-      }
-    };
-  }
-</script>
+    addDebug("Page chargée – clique sur Démarrer pour tester Vosk");
+  </script>
 </body>
 </html>
