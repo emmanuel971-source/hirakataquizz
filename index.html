@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Quiz Kana - ML Audio</title>
+  <title>Quiz Kana - Détection Sons Courts</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -24,29 +24,11 @@
       color: #333;
       margin-bottom: 1rem;
     }
-    .loading {
-      font-size: 1.1rem;
+    .info {
       color: #666;
-      margin: 2rem 0;
-    }
-    .progress {
-      width: 100%;
-      height: 30px;
-      background: #f0f0f0;
-      border-radius: 15px;
-      overflow: hidden;
-      margin: 1rem 0;
-    }
-    .progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, #4CAF50, #45a049);
-      width: 0%;
-      transition: width 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
     }
     button {
       font-size: 1.2rem;
@@ -64,10 +46,6 @@
       background: #45a049;
       transform: translateY(-2px);
     }
-    button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
     button.listening {
       background: #f44336;
       animation: pulse 1s infinite;
@@ -77,38 +55,48 @@
       50% { opacity: 0.7; }
     }
     #kana {
-      font-size: 8rem;
+      font-size: 10rem;
       margin: 2rem 0;
       color: #333;
-      min-height: 10rem;
+      min-height: 12rem;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    #kana.success {
+    #kana.match {
       color: #4CAF50;
       animation: pop 0.3s;
     }
     @keyframes pop {
       0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
+      50% { transform: scale(1.15); }
       100% { transform: scale(1); }
     }
-    #confidence {
+    #status {
       font-size: 1.1rem;
       color: #666;
       margin: 1rem 0;
+      min-height: 2rem;
     }
-    .matches {
+    .heard-box {
       margin: 1rem 0;
       padding: 1rem;
       background: #f5f5f5;
       border-radius: 8px;
-      text-align: left;
+      min-height: 80px;
     }
-    .match-item {
-      padding: 0.3rem;
+    .heard-item {
       font-size: 0.9rem;
+      color: #555;
+      margin: 0.3rem 0;
+    }
+    .heard-item.match {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .heard-item.rejected {
+      color: #999;
+      text-decoration: line-through;
     }
     #debug {
       margin-top: 1rem;
@@ -117,78 +105,160 @@
       border-radius: 8px;
       font-size: 0.75rem;
       text-align: left;
-      max-height: 150px;
+      max-height: 200px;
       overflow-y: auto;
       font-family: monospace;
     }
     .error {
       color: #f44336;
       font-weight: bold;
-      margin: 1rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🎤 Quiz Kana - ML Audio</h1>
-    
-    <div id="loading" class="loading">
-      Chargement des références audio...
-      <div class="progress">
-        <div class="progress-bar" id="progressBar">0%</div>
-      </div>
+    <h1>🎤 Reconnaissance Kana</h1>
+    <div class="info">
+      Prononce clairement un kana (ka, shi, tsu, a, n...)<br>
+      Le système détecte les sons courts et filtre les mots longs
     </div>
     
-    <div id="mainInterface" style="display: none;">
-      <p>Prononce un kana - le système compare avec les références</p>
-      <button id="recordBtn" disabled>Enregistrer (1s)</button>
-      <div id="kana">—</div>
-      <div id="confidence"></div>
-      <div class="matches" id="matches"></div>
+    <button id="toggleBtn">Démarrer l'écoute</button>
+    
+    <div id="kana">—</div>
+    <div id="status"></div>
+    
+    <div class="heard-box">
+      <strong>Derniers sons détectés:</strong>
+      <div id="heardList"></div>
     </div>
     
-    <div class="error" id="error"></div>
     <div id="debug"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
-
 <script>
-  // 🔥 Tous les MP3 sont à la racine
-  const BASE_URL = "https://emmanuel971-source.github.io/hirakataquizz/";
-  
-  // Liste des hiraganas
-  const allKana = [
-    "あ", "い", "う", "え", "お",
-    "か", "き", "く", "け", "こ",
-    "さ", "し", "す", "せ", "そ",
-    "た", "ち", "つ", "て", "と",
-    "な", "に", "ぬ", "ね", "の",
-    "は", "ひ", "ふ", "へ", "ほ",
-    "ま", "み", "む", "め", "も",
-    "や", "ゆ", "よ",
-    "ら", "り", "る", "れ", "ろ",
-    "わ", "を", "ん",
-    "が", "ぎ", "ぐ", "げ", "ご",
-    "ざ", "じ", "ず", "ぜ", "ぞ",
-    "だ", "ぢ", "づ", "で", "ど",
-    "ば", "び", "ぶ", "べ", "ぼ",
-    "ぱ", "ぴ", "ぷ", "ぺ", "ぽ"
-  ];
-
-  const recordBtn = document.getElementById("recordBtn");
+  const toggleBtn = document.getElementById("toggleBtn");
   const kanaDiv = document.getElementById("kana");
-  const confidenceDiv = document.getElementById("confidence");
-  const matchesDiv = document.getElementById("matches");
-  const errorDiv = document.getElementById("error");
+  const statusDiv = document.getElementById("status");
+  const heardListDiv = document.getElementById("heardList");
   const debugDiv = document.getElementById("debug");
-  const loadingDiv = document.getElementById("loading");
-  const mainInterface = document.getElementById("mainInterface");
-  const progressBar = document.getElementById("progressBar");
 
-  let audioContext;
-  let referenceFeatures = {};
-  let isRecording = false;
+  let isListening = false;
+  let recognition = null;
+  let lastDetectionTime = 0;
+
+  // Mapping très étendu romaji -> kana
+  const romajiToKana = {
+    // Voyelles
+    "a": "あ", "ah": "あ", "ha": "あ",
+    "i": "い", "ii": "い", "ee": "い",
+    "u": "う", "uu": "う", "ou": "う", "hou": "う",
+    "e": "え", "eh": "え", "ay": "え",
+    "o": "お", "oh": "お", "oo": "お",
+    
+    // K
+    "ka": "か", "ca": "か", "kah": "か",
+    "ki": "き", "key": "き", "kee": "き",
+    "ku": "く", "cou": "く", "koo": "く",
+    "ke": "け", "keh": "け", "kay": "け",
+    "ko": "こ", "koh": "こ", "coh": "こ",
+    
+    // S
+    "sa": "さ", "sah": "さ",
+    "shi": "し", "si": "し", "she": "し", "chi": "し", "shee": "し",
+    "su": "す", "sou": "す", "sue": "す",
+    "se": "せ", "seh": "せ", "say": "せ",
+    "so": "そ", "soh": "そ",
+    
+    // T
+    "ta": "た", "tah": "た",
+    "chi": "ち", "ti": "ち", "tchi": "ち", "chee": "ち",
+    "tsu": "つ", "tu": "つ", "tsou": "つ", "tsue": "つ", "sue": "つ",
+    "te": "て", "teh": "て", "tay": "て",
+    "to": "と", "toh": "と",
+    
+    // N
+    "na": "な", "nah": "な",
+    "ni": "に", "nee": "に",
+    "nu": "ぬ", "nou": "ぬ",
+    "ne": "ね", "neh": "ね", "nay": "ね",
+    "no": "の", "noh": "の",
+    
+    // H
+    "ha": "は", "hah": "は",
+    "hi": "ひ", "hee": "ひ",
+    "fu": "ふ", "hu": "ふ", "fou": "ふ", "who": "ふ",
+    "he": "へ", "heh": "へ", "hay": "へ",
+    "ho": "ほ", "hoh": "ほ",
+    
+    // M
+    "ma": "ま", "mah": "ま",
+    "mi": "み", "mee": "み",
+    "mu": "む", "mou": "む",
+    "me": "め", "meh": "め", "may": "め",
+    "mo": "も", "moh": "も",
+    
+    // Y
+    "ya": "や", "yah": "や",
+    "yu": "ゆ", "you": "ゆ", "yoo": "ゆ",
+    "yo": "よ", "yoh": "よ",
+    
+    // R
+    "ra": "ら", "la": "ら", "rah": "ら", "lah": "ら",
+    "ri": "り", "li": "り", "ree": "り", "lee": "り",
+    "ru": "る", "lou": "る", "rou": "る",
+    "re": "れ", "leh": "れ", "reh": "れ", "ray": "れ", "lay": "れ",
+    "ro": "ろ", "lo": "ろ", "roh": "ろ", "loh": "ろ",
+    
+    // W
+    "wa": "わ", "wah": "わ",
+    "wo": "を", "woh": "を",
+    "n": "ん", "nn": "ん", "m": "ん", "un": "ん",
+    
+    // G
+    "ga": "が", "gah": "が",
+    "gi": "ぎ", "gui": "ぎ", "gee": "ぎ",
+    "gu": "ぐ", "gou": "ぐ",
+    "ge": "げ", "geh": "げ", "gay": "げ",
+    "go": "ご", "goh": "ご",
+    
+    // Z
+    "za": "ざ", "zah": "ざ",
+    "ji": "じ", "zi": "じ", "jee": "じ", "gee": "じ",
+    "zu": "ず", "zou": "ず",
+    "ze": "ぜ", "zeh": "ぜ",
+    "zo": "ぞ", "zoh": "ぞ",
+    
+    // D
+    "da": "だ", "dah": "だ",
+    "di": "ぢ", "dji": "ぢ",
+    "du": "づ", "dzu": "づ",
+    "de": "で", "deh": "で", "day": "で",
+    "do": "ど", "doh": "ど",
+    
+    // B
+    "ba": "ば", "bah": "ば",
+    "bi": "び", "bee": "び",
+    "bu": "ぶ", "bou": "ぶ",
+    "be": "べ", "beh": "べ", "bay": "べ",
+    "bo": "ぼ", "boh": "ぼ",
+    
+    // P
+    "pa": "ぱ", "pah": "ぱ",
+    "pi": "ぴ", "pee": "ぴ",
+    "pu": "ぷ", "pou": "ぷ",
+    "pe": "ぺ", "peh": "ぺ", "pay": "ぺ",
+    "po": "ぽ", "poh": "ぽ"
+  };
+
+  // Inverser le mapping pour avoir kana -> romaji aussi
+  const kanaToRomaji = {};
+  for (const [romaji, kana] of Object.entries(romajiToKana)) {
+    if (!kanaToRomaji[kana]) {
+      kanaToRomaji[kana] = [];
+    }
+    kanaToRomaji[kana].push(romaji);
+  }
 
   function addDebug(msg, isError = false) {
     const time = new Date().toLocaleTimeString();
@@ -196,223 +266,160 @@
     debugDiv.scrollTop = debugDiv.scrollHeight;
   }
 
-  addDebug("Initialisation...");
-
-  // Fonction pour extraire les features audio (MFCC simplifiés)
-  async function extractAudioFeatures(audioBuffer) {
-    const audioData = audioBuffer.getChannelData(0);
-    const sampleRate = audioBuffer.sampleRate;
+  function addHeard(text, isMatch = false, isRejected = false) {
+    const item = document.createElement('div');
+    item.className = 'heard-item';
+    if (isMatch) item.classList.add('match');
+    if (isRejected) item.classList.add('rejected');
+    item.textContent = text;
+    heardListDiv.insertBefore(item, heardListDiv.firstChild);
     
-    // Convertir en spectrogramme simplifié
-    const fftSize = 2048;
-    const hopSize = 512;
-    const features = [];
-    
-    for (let i = 0; i < audioData.length - fftSize; i += hopSize) {
-      const frame = audioData.slice(i, i + fftSize);
-      const spectrum = computeSpectrum(frame);
-      features.push(spectrum);
+    // Garder seulement les 10 derniers
+    while (heardListDiv.children.length > 10) {
+      heardListDiv.removeChild(heardListDiv.lastChild);
     }
-    
-    // Moyenne des features
-    const avgFeatures = new Array(features[0].length).fill(0);
-    for (let i = 0; i < features.length; i++) {
-      for (let j = 0; j < features[i].length; j++) {
-        avgFeatures[j] += features[i][j];
-      }
-    }
-    return avgFeatures.map(v => v / features.length);
   }
 
-  function computeSpectrum(frame) {
-    // FFT simplifié - calculer l'énergie par bandes de fréquence
-    const numBands = 20;
-    const bandEnergy = new Array(numBands).fill(0);
-    const bandSize = Math.floor(frame.length / numBands);
+  addDebug("Script chargé");
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  
+  if (!SpeechRecognition) {
+    statusDiv.innerHTML = '<span class="error">❌ Reconnaissance vocale non supportée</span>';
+    toggleBtn.disabled = true;
+    addDebug("SpeechRecognition non disponible", true);
+  } else {
+    addDebug("SpeechRecognition disponible ✓");
     
-    for (let i = 0; i < numBands; i++) {
-      let energy = 0;
-      for (let j = 0; j < bandSize; j++) {
-        const idx = i * bandSize + j;
-        if (idx < frame.length) {
-          energy += frame[idx] * frame[idx];
+    recognition = new SpeechRecognition();
+    
+    // 🔥 STRATÉGIE: On essaie en FRANÇAIS pour mieux capter les sons courts
+    recognition.lang = "fr-FR";
+    recognition.continuous = true;
+    recognition.interimResults = false; // Seulement les résultats finaux
+    recognition.maxAlternatives = 10;
+
+    function findKanaMatch(transcript) {
+      const cleaned = transcript.toLowerCase().trim()
+        .replace(/[.,!?;]/g, '')
+        .replace(/c'est\s+/gi, '')
+        .replace(/le\s+/gi, '')
+        .replace(/la\s+/gi, '')
+        .replace(/un\s+/gi, '')
+        .replace(/une\s+/gi, '');
+      
+      // Longueur max pour un son de kana
+      if (cleaned.length > 5) {
+        addDebug(`❌ Trop long: "${cleaned}" (${cleaned.length} chars)`);
+        return null;
+      }
+      
+      // Chercher correspondance exacte
+      if (romajiToKana[cleaned]) {
+        return romajiToKana[cleaned];
+      }
+      
+      // Chercher correspondance partielle
+      for (const [romaji, kana] of Object.entries(romajiToKana)) {
+        if (cleaned === romaji || 
+            cleaned.endsWith(romaji) && cleaned.length - romaji.length <= 2) {
+          return kana;
         }
       }
-      bandEnergy[i] = Math.sqrt(energy / bandSize);
-    }
-    
-    return bandEnergy;
-  }
-
-  // Similarité cosinus entre deux vecteurs
-  function cosineSimilarity(a, b) {
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
-    
-    for (let i = 0; i < a.length; i++) {
-      dotProduct += a[i] * b[i];
-      normA += a[i] * a[i];
-      normB += b[i] * b[i];
-    }
-    
-    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-  }
-
-  // Charger un fichier audio MP3
-  async function loadAudioFile(url) {
-    try {
-      addDebug(`Chargement: ${url}`);
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      return await audioContext.decodeAudioData(arrayBuffer);
-    } catch (e) {
-      addDebug(`Erreur ${url}: ${e.message}`, true);
+      
       return null;
     }
-  }
 
-  // Charger toutes les références
-  async function loadReferences() {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    addDebug(`Chargement de ${allKana.length} références depuis ${BASE_URL}`);
-    
-    let loaded = 0;
-    
-    for (const kana of allKana) {
-      const url = `${BASE_URL}${kana}.mp3`;
-      const audioBuffer = await loadAudioFile(url);
-      
-      if (audioBuffer) {
-        referenceFeatures[kana] = await extractAudioFeatures(audioBuffer);
-        loaded++;
-        addDebug(`✓ ${kana} chargé (${audioBuffer.duration.toFixed(2)}s)`);
-        
-        const progress = Math.round((loaded / allKana.length) * 100);
-        progressBar.style.width = `${progress}%`;
-        progressBar.textContent = `${progress}%`;
+    toggleBtn.onclick = () => {
+      if (!isListening) {
+        try {
+          recognition.start();
+          isListening = true;
+          toggleBtn.textContent = "Arrêter l'écoute";
+          toggleBtn.classList.add("listening");
+          statusDiv.innerHTML = '🎧 En écoute...';
+          addDebug("Écoute démarrée (fr-FR)");
+        } catch (e) {
+          addDebug(`Erreur: ${e.message}`, true);
+        }
       } else {
-        addDebug(`✗ ${kana}.mp3 introuvable`, true);
+        recognition.stop();
+        isListening = false;
+        toggleBtn.textContent = "Démarrer l'écoute";
+        toggleBtn.classList.remove("listening");
+        statusDiv.textContent = "Écoute arrêtée";
+        addDebug("Écoute arrêtée");
       }
-    }
-    
-    addDebug(`${loaded}/${allKana.length} références chargées`);
-    
-    if (loaded > 0) {
-      loadingDiv.style.display = "none";
-      mainInterface.style.display = "block";
-      recordBtn.disabled = false;
-      addDebug("✓ Prêt à enregistrer !");
-    } else {
-      errorDiv.textContent = `❌ Aucun fichier trouvé à ${BASE_URL}`;
-      addDebug("Vérifie que les MP3 sont bien accessibles", true);
-    }
-  }
+    };
 
-  // Enregistrer depuis le micro
-  async function recordAudio(duration = 1000) {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      const chunks = [];
+    recognition.onresult = (event) => {
+      const now = Date.now();
       
-      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+      // Anti-spam: ignorer si moins de 300ms depuis dernière détection
+      if (now - lastDetectionTime < 300) {
+        return;
+      }
       
-      return new Promise((resolve, reject) => {
-        mediaRecorder.onstop = async () => {
-          stream.getTracks().forEach(track => track.stop());
-          const blob = new Blob(chunks, { type: 'audio/webm' });
-          const arrayBuffer = await blob.arrayBuffer();
-          try {
-            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            resolve(audioBuffer);
-          } catch (e) {
-            reject(e);
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (!result.isFinal) continue;
+        
+        const transcript = result[0].transcript;
+        addDebug(`Entendu: "${transcript}"`);
+        
+        // Essayer toutes les alternatives
+        let foundKana = null;
+        let matchedTranscript = null;
+        
+        for (let j = 0; j < Math.min(result.length, 10); j++) {
+          const altTranscript = result[j].transcript;
+          const altConfidence = result[j].confidence;
+          
+          addDebug(`  Alt ${j+1}: "${altTranscript}" (${(altConfidence * 100).toFixed(0)}%)`);
+          
+          if (!foundKana) {
+            foundKana = findKanaMatch(altTranscript);
+            if (foundKana) {
+              matchedTranscript = altTranscript;
+              addDebug(`  ✓ Match trouvé !`);
+            }
           }
-        };
+        }
         
-        mediaRecorder.start();
-        addDebug("🎤 Enregistrement 1s...");
-        
+        if (foundKana) {
+          kanaDiv.textContent = foundKana;
+          kanaDiv.classList.add("match");
+          addHeard(`"${matchedTranscript}" → ${foundKana}`, true, false);
+          lastDetectionTime = now;
+          
+          setTimeout(() => {
+            kanaDiv.classList.remove("match");
+          }, 800);
+        } else {
+          addHeard(`"${transcript}" (pas de correspondance)`, false, true);
+        }
+      }
+    };
+
+    recognition.onerror = (event) => {
+      if (event.error === "no-speech" || event.error === "aborted") return;
+      addDebug(`Erreur: ${event.error}`, true);
+    };
+
+    recognition.onend = () => {
+      addDebug("Reconnaissance terminée");
+      if (isListening) {
         setTimeout(() => {
-          mediaRecorder.stop();
-          addDebug("Analyse des features...");
-        }, duration);
-      });
-    } catch (e) {
-      addDebug(`Erreur micro: ${e.message}`, true);
-      throw e;
-    }
+          try {
+            recognition.start();
+            addDebug("Redémarrage auto");
+          } catch (e) {
+            addDebug(`Erreur redémarrage: ${e.message}`, true);
+          }
+        }, 100);
+      }
+    };
   }
-
-  // Comparer avec les références
-  async function compareWithReferences(recordedFeatures) {
-    const similarities = [];
-    
-    for (const [kana, features] of Object.entries(referenceFeatures)) {
-      const similarity = cosineSimilarity(recordedFeatures, features);
-      similarities.push({ kana, similarity });
-    }
-    
-    // Trier par similarité décroissante
-    similarities.sort((a, b) => b.similarity - a.similarity);
-    
-    return similarities;
-  }
-
-  // Bouton d'enregistrement
-  recordBtn.onclick = async () => {
-    if (isRecording) return;
-    
-    isRecording = true;
-    recordBtn.disabled = true;
-    recordBtn.classList.add("listening");
-    recordBtn.textContent = "Enregistrement...";
-    kanaDiv.textContent = "🎤";
-    confidenceDiv.textContent = "";
-    matchesDiv.innerHTML = "";
-    
-    try {
-      const audioBuffer = await recordAudio(1000);
-      const features = await extractAudioFeatures(audioBuffer);
-      const results = await compareWithReferences(features);
-      
-      addDebug(`Top 3: ${results.slice(0, 3).map(r => `${r.kana}(${(r.similarity * 100).toFixed(0)}%)`).join(', ')}`);
-      
-      // Afficher le meilleur match
-      const best = results[0];
-      kanaDiv.textContent = best.kana;
-      kanaDiv.classList.add("success");
-      confidenceDiv.textContent = `Similarité: ${(best.similarity * 100).toFixed(0)}%`;
-      
-      // Afficher top 5
-      matchesDiv.innerHTML = "<strong>Top 5 correspondances:</strong><br>" +
-        results.slice(0, 5).map((r, i) => 
-          `<div class="match-item">${i + 1}. ${r.kana} - ${(r.similarity * 100).toFixed(0)}%</div>`
-        ).join('');
-      
-      setTimeout(() => {
-        kanaDiv.classList.remove("success");
-      }, 1000);
-      
-    } catch (e) {
-      errorDiv.textContent = `❌ ${e.message}`;
-      addDebug(`Erreur: ${e.message}`, true);
-    } finally {
-      isRecording = false;
-      recordBtn.disabled = false;
-      recordBtn.classList.remove("listening");
-      recordBtn.textContent = "Enregistrer (1s)";
-    }
-  };
-
-  // Démarrage
-  window.onload = () => {
-    loadReferences();
-  };
 </script>
 </body>
 </html>
