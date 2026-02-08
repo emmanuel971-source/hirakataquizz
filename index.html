@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Reconnaissance Hiragana</title>
+  <title>Quiz Hiragana</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -31,9 +31,6 @@
       border-color: #999;
       cursor: not-allowed;
     }
-    button:active {
-      transform: scale(0.98);
-    }
     #kana {
       font-size: 4rem;
       margin-top: 1.5rem;
@@ -47,8 +44,6 @@
     #error {
       margin-top: 1rem;
       color: red;
-      font-size: 1rem;
-      padding: 0.5rem;
     }
     #debug {
       margin-top: 2rem;
@@ -57,15 +52,14 @@
       border-radius: 8px;
       font-size: 0.85rem;
       text-align: left;
-    }
-    .success {
-      color: green;
+      max-height: 200px;
+      overflow-y: auto;
     }
   </style>
 </head>
 <body>
   <h1>🎤 Prononce un hiragana</h1>
-  <p>Conseil : dis "C'est [hiragana]" comme "C'est ka" pour une meilleure reconnaissance.</p>
+  <p>Prononce simplement la syllabe : "ka", "shi", "tsu"...</p>
   <button id="mic">Parler</button>
   <div id="kana">—</div>
   <div id="raw"></div>
@@ -79,64 +73,139 @@
   const errorDiv = document.getElementById("error");
   const debugDiv = document.getElementById("debug");
 
-  // Fonction de debug
   function addDebug(msg, isError = false) {
     const time = new Date().toLocaleTimeString();
     debugDiv.innerHTML += `<div style="color: ${isError ? 'red' : '#333'}">[${time}] ${msg}</div>`;
+    debugDiv.scrollTop = debugDiv.scrollHeight;
   }
 
   addDebug("Script chargé");
-  addDebug(`URL: ${window.location.href}`);
-  addDebug(`Protocol: ${window.location.protocol}`);
 
-  // Vérification HTTPS (requis sur mobile)
+  // Vérification HTTPS
   if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-    errorDiv.textContent = "⚠️ HTTPS requis pour la reconnaissance vocale sur mobile";
+    errorDiv.textContent = "⚠️ HTTPS requis pour la reconnaissance vocale";
     micBtn.disabled = true;
-    addDebug("HTTPS non détecté - reconnaissance vocale impossible", true);
+    addDebug("HTTPS non détecté", true);
   }
 
-  // Vérification du support de la reconnaissance vocale
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   
   if (!SpeechRecognition) {
-    errorDiv.textContent = "❌ Reconnaissance vocale non supportée par votre navigateur";
+    errorDiv.textContent = "❌ Reconnaissance vocale non supportée";
     micBtn.disabled = true;
     addDebug("SpeechRecognition non disponible", true);
   } else {
-    addDebug("SpeechRecognition disponible ✓", false);
+    addDebug("SpeechRecognition disponible ✓");
     
     const recognition = new SpeechRecognition();
-    recognition.lang = "ja-JP";
+    
+    // ⭐ CHANGEMENT CLÉ : utiliser le français pour capter les syllabes
+    recognition.lang = "fr-FR";
+    
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    recognition.maxAlternatives = 3; // On augmente pour avoir plus de variantes
 
-    addDebug("Objet recognition créé");
-
-    // Mapping étendu avec variantes courantes
+    // Mapping complet hiragana
     const kanaMap = {
-      "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お",
-      "ka": "か", "ki": "き", "ku": "く", "ke": "け", "ko": "こ",
-      "sa": "さ", "shi": "し", "si": "し",
-      "su": "す", "se": "せ", "so": "そ",
-      "ta": "た", "chi": "ち", "ti": "ち",
-      "tsu": "つ", "tu": "つ",
-      "te": "て", "to": "と",
-      "na": "な", "ni": "に", "nu": "ぬ", "ne": "ね", "no": "の",
-      "ha": "は", "hi": "ひ", "fu": "ふ", "hu": "ふ",
-      "he": "へ", "ho": "ほ",
-      "ma": "ま", "mi": "み", "mu": "む", "me": "め", "mo": "も",
-      "ya": "や", "yu": "ゆ", "yo": "よ",
-      "ra": "ら", "ri": "り", "ru": "る", "re": "れ", "ro": "ろ",
-      "wa": "わ", "wo": "を",
-      "n": "ん",
-      "ji": "じ", "zi": "じ",
-      "ga": "が", "gi": "ぎ", "gu": "ぐ", "ge": "げ", "go": "ご",
-      "za": "ざ", "zu": "ず", "ze": "ぜ", "zo": "ぞ",
-      "da": "だ", "de": "で", "do": "ど",
-      "ba": "ば", "bi": "び", "bu": "ぶ", "be": "べ", "bo": "ぼ",
-      "pa": "ぱ", "pi": "ぴ", "pu": "ぷ", "pe": "ぺ", "po": "ぽ"
+      // Voyelles
+      "a": "あ", "ah": "あ",
+      "i": "い", "y": "い",
+      "u": "う", "ou": "う", "hou": "う",
+      "e": "え", "eh": "え",
+      "o": "お", "oh": "お",
+      
+      // K
+      "ka": "か", "ca": "か", "kah": "か",
+      "ki": "き", "qui": "き", "key": "き",
+      "ku": "く", "cou": "く", "kou": "く",
+      "ke": "け", "keh": "け",
+      "ko": "こ", "koh": "こ",
+      
+      // S
+      "sa": "さ", "sah": "さ",
+      "shi": "し", "si": "し", "chi": "し", "she": "し",
+      "su": "す", "sou": "す", "sue": "す",
+      "se": "せ", "seh": "せ",
+      "so": "そ", "soh": "そ",
+      
+      // T
+      "ta": "た", "tah": "た",
+      "chi": "ち", "tchi": "ち", "ti": "ち",
+      "tsu": "つ", "tsou": "つ", "tu": "つ", "tsue": "つ", "sou": "つ",
+      "te": "て", "teh": "て",
+      "to": "と", "toh": "と",
+      
+      // N
+      "na": "な", "nah": "な",
+      "ni": "に", "nhi": "に",
+      "nu": "ぬ", "nou": "ぬ",
+      "ne": "ね", "neh": "ね",
+      "no": "の", "noh": "の",
+      
+      // H
+      "ha": "は", "hah": "は",
+      "hi": "ひ", "hee": "ひ",
+      "fu": "ふ", "hu": "ふ", "fou": "ふ", "hou": "ふ",
+      "he": "へ", "heh": "へ",
+      "ho": "ほ", "hoh": "ほ",
+      
+      // M
+      "ma": "ま", "mah": "ま",
+      "mi": "み", "mee": "み",
+      "mu": "む", "mou": "む",
+      "me": "め", "meh": "め",
+      "mo": "も", "moh": "も",
+      
+      // Y
+      "ya": "や", "yah": "や",
+      "yu": "ゆ", "you": "ゆ",
+      "yo": "よ", "yoh": "よ",
+      
+      // R
+      "ra": "ら", "rah": "ら", "la": "ら",
+      "ri": "り", "ree": "り", "li": "り",
+      "ru": "る", "rou": "る", "lou": "る",
+      "re": "れ", "reh": "れ", "leh": "れ",
+      "ro": "ろ", "roh": "ろ", "loh": "ろ",
+      
+      // W
+      "wa": "わ", "wah": "わ",
+      "wo": "を", "woh": "を",
+      "n": "ん", "nn": "ん",
+      
+      // G
+      "ga": "が", "gah": "が",
+      "gi": "ぎ", "gui": "ぎ",
+      "gu": "ぐ", "gou": "ぐ",
+      "ge": "げ", "gueh": "げ",
+      "go": "ご", "goh": "ご",
+      
+      // Z
+      "za": "ざ", "zah": "ざ",
+      "ji": "じ", "zi": "じ", "dji": "じ",
+      "zu": "ず", "zou": "ず",
+      "ze": "ぜ", "zeh": "ぜ",
+      "zo": "ぞ", "zoh": "ぞ",
+      
+      // D
+      "da": "だ", "dah": "だ",
+      "de": "で", "deh": "で",
+      "do": "ど", "doh": "ど",
+      
+      // B
+      "ba": "ば", "bah": "ば",
+      "bi": "び", "bee": "び",
+      "bu": "ぶ", "bou": "ぶ",
+      "be": "べ", "beh": "べ",
+      "bo": "ぼ", "boh": "ぼ",
+      
+      // P
+      "pa": "ぱ", "pah": "ぱ",
+      "pi": "ぴ", "pee": "ぴ",
+      "pu": "ぷ", "pou": "ぷ",
+      "pe": "ぺ", "peh": "ぺ",
+      "po": "ぽ", "poh": "ぽ"
     };
 
     micBtn.onclick = () => {
@@ -148,57 +217,67 @@
       micBtn.textContent = "Écoute en cours...";
       
       try {
-        addDebug("Tentative de démarrage de la reconnaissance");
         recognition.start();
-        addDebug("recognition.start() appelé");
+        addDebug("Reconnaissance démarrée");
       } catch (e) {
-        addDebug(`Erreur au démarrage: ${e.message}`, true);
+        addDebug(`Erreur: ${e.message}`, true);
         errorDiv.textContent = `Erreur: ${e.message}`;
         micBtn.disabled = false;
         micBtn.textContent = "Parler";
       }
     };
 
-    recognition.onstart = () => {
-      addDebug("Reconnaissance démarrée ✓");
-    };
-
     recognition.onresult = (event) => {
       addDebug("Résultat reçu");
-      const said = event.results[0][0].transcript.toLowerCase().trim();
+      
+      // On vérifie toutes les alternatives
+      let allTranscripts = [];
+      for (let i = 0; i < event.results[0].length; i++) {
+        allTranscripts.push(event.results[0][i].transcript.toLowerCase().trim());
+      }
+      
+      const mainTranscript = allTranscripts[0];
       const confidence = event.results[0][0].confidence;
 
-      addDebug(`Transcript: "${said}", Confiance: ${(confidence * 100).toFixed(0)}%`);
-
-      rawDiv.textContent = `Reconnu : "${said}" (confiance : ${(confidence * 100).toFixed(0)}%)`;
-
-      if (confidence < 0.3) {
-        kanaDiv.textContent = "❓ Confiance trop faible";
-        addDebug("Confiance insuffisante");
-        return;
+      addDebug(`Reconnu: "${mainTranscript}" (${(confidence * 100).toFixed(0)}%)`);
+      if (allTranscripts.length > 1) {
+        addDebug(`Alternatives: ${allTranscripts.slice(1).join(', ')}`);
       }
 
+      rawDiv.textContent = `Reconnu : "${mainTranscript}" (${(confidence * 100).toFixed(0)}%)`;
+
+      // On cherche une correspondance dans toutes les alternatives
       let found = false;
-      for (const [romaji, char] of Object.entries(kanaMap)) {
-        if (
-          said === romaji ||
-          said === `c'est ${romaji}` ||
-          said === `sé ${romaji}` ||
-          said === `${romaji} desu` ||
-          said === `hiragana ${romaji}` ||
-          said.endsWith(romaji)
-        ) {
-          kanaDiv.textContent = char;
+      for (const transcript of allTranscripts) {
+        // Nettoyage du transcript
+        let cleaned = transcript
+          .replace(/[.,!?;]/g, '') // Enlever la ponctuation
+          .replace(/c'est\s+/gi, '')
+          .replace(/c\s+/gi, '')
+          .replace(/le\s+/gi, '')
+          .replace(/la\s+/gi, '')
+          .trim();
+
+        addDebug(`Recherche: "${cleaned}"`);
+
+        if (kanaMap[cleaned]) {
+          kanaDiv.textContent = kanaMap[cleaned];
+          kanaDiv.style.color = "green";
           found = true;
-          addDebug(`Match trouvé: ${romaji} → ${char}`, false);
+          addDebug(`✓ Match: ${cleaned} → ${kanaMap[cleaned]}`);
           break;
         }
       }
 
       if (!found) {
-        kanaDiv.textContent = "❓ Pas reconnu";
+        kanaDiv.textContent = "❓";
+        kanaDiv.style.color = "#666";
         addDebug("Aucune correspondance trouvée");
       }
+
+      setTimeout(() => {
+        kanaDiv.style.color = "black";
+      }, 1500);
     };
 
     recognition.onerror = (event) => {
@@ -206,25 +285,13 @@
       let message = "";
       switch (event.error) {
         case "no-speech":
-          message = "Aucun son détecté. Parlez plus fort.";
+          message = "Aucun son détecté";
           break;
         case "audio-capture":
-          message = "Problème avec le micro. Vérifiez qu'il est autorisé.";
+          message = "Problème avec le micro";
           break;
         case "not-allowed":
-          message = "Accès au micro refusé. Autorisez-le dans les paramètres.";
-          break;
-        case "service-not-allowed":
-          message = "Service de reconnaissance non autorisé.";
-          break;
-        case "network":
-          message = "Problème de réseau.";
-          break;
-        case "aborted":
-          message = "Reconnaissance interrompue.";
-          break;
-        case "language-not-supported":
-          message = "Langue japonaise non supportée.";
+          message = "Accès au micro refusé";
           break;
         default:
           message = `Erreur : ${event.error}`;
