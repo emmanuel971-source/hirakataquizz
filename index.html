@@ -1,240 +1,70 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Quiz Kana - Vosk Test (Hiragana Syllabes)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.jsdelivr.net/npm/vosk-browser@0.0.8/dist/vosk.min.js"></script>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      text-align: center;
-      padding: 2rem;
-      max-width: 700px;
-      margin: 0 auto;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      color: #333;
-    }
-    .container {
-      background: white;
-      padding: 2rem;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    h1 { margin-bottom: 1rem; }
-    button {
-      font-size: 1.2rem;
-      padding: 1rem 2rem;
-      cursor: pointer;
-      border: none;
-      border-radius: 12px;
-      background: #4CAF50;
-      color: white;
-      font-weight: bold;
-      margin: 1rem;
-      transition: all 0.3s;
-    }
-    button:hover:not(:disabled) {
-      background: #45a049;
-      transform: translateY(-2px);
-    }
-    button.listening {
-      background: #f44336;
-      animation: pulse 1s infinite;
-    }
-    @keyframes pulse { 0%,100% {opacity:1} 50% {opacity:0.7} }
-    #kana {
-      font-size: 10rem;
-      margin: 2rem 0;
-      min-height: 12rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #kana.match {
-      color: #4CAF50;
-      animation: pop 0.3s;
-    }
-    @keyframes pop { 0% {transform:scale(1)} 50% {transform:scale(1.15)} 100% {transform:scale(1)} }
-    #status { font-size: 1.1rem; color: #666; margin: 1rem 0; min-height: 2rem; }
-    .heard-box {
-      margin: 1rem 0;
-      padding: 1rem;
-      background: #f5f5f5;
-      border-radius: 8px;
-      min-height: 100px;
-      text-align: left;
-    }
-    .heard-item { font-size: 1rem; margin: 0.4rem 0; }
-    .heard-item.match { color: #4CAF50; font-weight: bold; }
-    .heard-item.partial { color: #888; font-style: italic; }
-    #debug {
-      margin-top: 1.5rem;
-      padding: 1rem;
-      background: #f5f5f5;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      text-align: left;
-      max-height: 220px;
-      overflow-y: auto;
-      font-family: monospace;
-    }
-    .error { color: #f44336; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>🎤 Test Vosk – Kana isolés (hiragana)</h1>
-    <p>Prononce clairement une syllabe : ka, a, shi, tsu, ne, ko, n...</p>
-    
-    <button id="toggleBtn">Démarrer l'écoute</button>
-    
-    <div id="kana">—</div>
-    <div id="status">En attente...</div>
-    
-    <div class="heard-box">
-      <strong>Derniers résultats :</strong>
-      <div id="heardList"></div>
-    </div>
-    
-    <div id="debug"></div>
-  </div>
+// ... (le haut du script reste le même)
 
-  <script>
-    const toggleBtn = document.getElementById("toggleBtn");
-    const kanaDiv = document.getElementById("kana");
-    const statusDiv = document.getElementById("status");
-    const heardListDiv = document.getElementById("heardList");
-    const debugDiv = document.getElementById("debug");
+const MODEL_PATH = "model.tar.gz";  // ← Mets ici le nom exact de ton fichier .tar.gz
 
-    let isListening = false;
-    let model = null;
-    let recognizer = null;
-    let mediaStream = null;
-    let audioContext = null;
+async function initVosk() {
+  if (model) return;
+  try {
+    addDebug("Tentative de chargement du modèle : " + MODEL_PATH);
+    statusDiv.textContent = "Chargement du modèle japonais (~48 Mo)... Patience !";
+    model = await Vosk.createModel(MODEL_PATH);
+    addDebug("Modèle chargé avec succès ✓");
 
-    const MODEL_PATH = "./vosk-model-small-ja-0.22/model.tar.gz"; // ← Change si besoin (ex: "models/vosk-model-small-ja-0.22/model.tar.gz")
+    recognizer = new model.KaldiRecognizer(16000);
+    recognizer.setMaxAlternatives(3);
 
-    function addDebug(msg, isError = false) {
-      const time = new Date().toLocaleTimeString();
-      debugDiv.innerHTML += `<div style="color:${isError?'red':'#444'}">[${time}] ${msg}</div>`;
-      debugDiv.scrollTop = debugDiv.scrollHeight;
-    }
-
-    function addHeard(text, isMatch = false, isPartial = false) {
-      const item = document.createElement('div');
-      item.className = 'heard-item';
-      if (isMatch) item.classList.add('match');
-      if (isPartial) item.classList.add('partial');
-      item.textContent = text;
-      heardListDiv.insertBefore(item, heardListDiv.firstChild);
-      while (heardListDiv.children.length > 12) {
-        heardListDiv.removeChild(heardListDiv.lastChild);
+    recognizer.on("partialresult", (msg) => {
+      const partial = msg.result?.text?.trim() || "";
+      if (partial) {
+        statusDiv.textContent = `En live : ${partial}`;
+        addHeard(`Partial → ${partial}`, false, true);
       }
+    });
+
+    recognizer.on("result", (msg) => {
+      const text = msg.result?.text?.trim() || "";
+      if (text) {
+        addDebug(`Final : "${text}"`);
+        addHeard(`Final → ${text}`, true);
+        processKanaResult(text);
+      }
+    });
+
+    statusDiv.textContent = "Prêt ! Prononce des kana...";
+  } catch (err) {
+    addDebug("Erreur Vosk : " + err.message + " (vérifie chemin + serveur local)", true);
+    statusDiv.innerHTML = '<span class="error">Échec chargement – voir debug (404 ? chemin ?)</span>';
+  }
+}
+
+async function startListening() {
+  try {
+    await initVosk();
+    if (!recognizer) {
+      addDebug("Recognizer pas prêt – recharge page après fix", true);
+      return;
     }
 
-    async function initVosk() {
-      if (model) return;
-      try {
-        addDebug("Chargement du modèle japonais small...");
-        statusDiv.textContent = "Chargement du modèle (~50 Mo)...";
-        model = await Vosk.createModel(MODEL_PATH);
-        addDebug("Modèle chargé ✓");
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
 
-        recognizer = new model.KaldiRecognizer(16000);
-        recognizer.setMaxAlternatives(3); // pour avoir plusieurs hypothèses
+    const source = audioContext.createMediaStreamSource(mediaStream);
+    const node = recognizer.createAudioNode(audioContext);
 
-        recognizer.on("partialresult", (msg) => {
-          const partial = msg.result?.text?.trim() || "";
-          if (partial) {
-            statusDiv.textContent = `Entendu en live : ${partial}`;
-            addHeard(`Partial: ${partial}`, false, true);
-          }
-        });
+    source.connect(node);
+    node.connect(audioContext.destination);
 
-        recognizer.on("result", (msg) => {
-          const text = msg.result?.text?.trim() || "";
-          if (text) {
-            addDebug(`Résultat final : "${text}"`);
-            addHeard(`Final: ${text}`, true);
-            processKanaResult(text);
-          }
-        });
+    // Pas de recognizer.start() – la lib commence auto sur audio input
+    addDebug("Micro ouvert + Vosk en écoute");
+    statusDiv.textContent = "🎤 Écoute active – parle lentement/clairement";
+    toggleBtn.textContent = "Arrêter";
+    toggleBtn.classList.add("listening");
+    isListening = true;
+  } catch (err) {
+    addDebug("Erreur start : " + err.message, true);
+  }
+}
 
-        statusDiv.textContent = "Modèle prêt !";
-      } catch (err) {
-        addDebug("Erreur chargement Vosk : " + err.message, true);
-        statusDiv.innerHTML = '<span class="error">Erreur modèle – vérifie le chemin</span>';
-      }
-    }
+// stopListening reste pareil
 
-    function processKanaResult(text) {
-      // Le modèle sort du hiragana → on affiche directement
-      // (tu peux ajouter un mapping si tu veux romaji ou filtrer)
-      if (text.length <= 3 && /[\u3040-\u30FF]/.test(text)) { // hiragana/katakana court
-        kanaDiv.textContent = text;
-        kanaDiv.classList.add("match");
-        setTimeout(() => kanaDiv.classList.remove("match"), 1200);
-        statusDiv.textContent = `Match kana : ${text}`;
-      } else {
-        statusDiv.textContent = `Résultat : ${text} (peut-être trop long)`;
-      }
-    }
-
-    async function startListening() {
-      try {
-        await initVosk();
-        if (!recognizer) return;
-
-        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-
-        const source = audioContext.createMediaStreamSource(mediaStream);
-        const node = recognizer.createAudioNode(audioContext);
-
-        source.connect(node);
-        node.connect(audioContext.destination); // optionnel (feedback audio)
-
-        recognizer.start();
-        addDebug("Écoute démarrée – prononce des kana !");
-        statusDiv.textContent = "🎧 En écoute... (parle lentement)";
-        toggleBtn.textContent = "Arrêter l'écoute";
-        toggleBtn.classList.add("listening");
-        isListening = true;
-      } catch (err) {
-        addDebug("Erreur démarrage : " + err.message, true);
-      }
-    }
-
-    function stopListening() {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(t => t.stop());
-        mediaStream = null;
-      }
-      if (audioContext) {
-        audioContext.close();
-        audioContext = null;
-      }
-      if (recognizer) {
-        recognizer.stop();
-      }
-      addDebug("Écoute arrêtée");
-      statusDiv.textContent = "Écoute arrêtée";
-      toggleBtn.textContent = "Démarrer l'écoute";
-      toggleBtn.classList.remove("listening");
-      isListening = false;
-    }
-
-    toggleBtn.onclick = () => {
-      if (!isListening) {
-        startListening();
-      } else {
-        stopListening();
-      }
-    };
-
-    addDebug("Page chargée – clique sur Démarrer pour tester Vosk");
-  </script>
-</body>
-</html>
+// ... (processKanaResult reste pareil, il affiche le hiragana directement)
