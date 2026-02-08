@@ -2,152 +2,113 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Quiz Hiragana - Chrono</title>
+  <title>Quiz Kana - ML Audio</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
     body {
       font-family: system-ui, sans-serif;
+      text-align: center;
+      padding: 2rem;
+      max-width: 700px;
+      margin: 0 auto;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
     }
     .container {
       background: white;
       padding: 2rem;
       border-radius: 20px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      max-width: 600px;
-      width: 100%;
     }
     h1 {
       color: #333;
-      text-align: center;
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
     }
-    .score {
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #4CAF50;
-      margin-bottom: 1.5rem;
+    .loading {
+      font-size: 1.1rem;
+      color: #666;
+      margin: 2rem 0;
     }
-    .game-area {
-      background: #f5f5f5;
+    .progress {
+      width: 100%;
+      height: 30px;
+      background: #f0f0f0;
       border-radius: 15px;
-      padding: 2rem;
-      margin-bottom: 1.5rem;
-      min-height: 300px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #45a049);
+      width: 0%;
+      transition: width 0.3s;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-    }
-    #kana {
-      font-size: 8rem;
-      margin: 1rem 0;
-      color: #333;
-      transition: all 0.3s;
-    }
-    #kana.correct {
-      color: #4CAF50;
-      transform: scale(1.2);
-    }
-    #kana.wrong {
-      color: #f44336;
-    }
-    .timer {
-      font-size: 2.5rem;
+      color: white;
       font-weight: bold;
-      margin: 1rem 0;
-    }
-    .timer.warning {
-      color: #ff9800;
-      animation: pulse 0.5s infinite;
-    }
-    .timer.danger {
-      color: #f44336;
-      animation: pulse 0.3s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.7; transform: scale(1.1); }
-    }
-    .status {
-      text-align: center;
-      font-size: 1.2rem;
-      color: #666;
-      margin: 1rem 0;
-      min-height: 2rem;
-    }
-    .status.listening {
-      color: #4CAF50;
-      font-weight: bold;
-    }
-    .status .indicator {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      background: #4CAF50;
-      border-radius: 50%;
-      margin-left: 8px;
-      animation: blink 1s infinite;
-    }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.2; }
     }
     button {
-      width: 100%;
-      font-size: 1.3rem;
-      padding: 1.2rem;
+      font-size: 1.2rem;
+      padding: 1rem 2rem;
       cursor: pointer;
       border: none;
       border-radius: 12px;
-      font-weight: bold;
-      transition: all 0.3s;
-      color: white;
-    }
-    #startBtn {
       background: #4CAF50;
+      color: white;
+      font-weight: bold;
+      margin: 1rem;
+      transition: all 0.3s;
     }
-    #startBtn:hover {
+    button:hover:not(:disabled) {
       background: #45a049;
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
     }
-    #startBtn:disabled {
+    button:disabled {
       background: #ccc;
       cursor: not-allowed;
-      transform: none;
     }
-    .feedback {
-      text-align: center;
-      font-size: 1.1rem;
-      margin-top: 1rem;
-      padding: 0.5rem;
-      border-radius: 8px;
-    }
-    .feedback.correct {
-      background: #4CAF50;
-      color: white;
-    }
-    .feedback.wrong {
+    button.listening {
       background: #f44336;
-      color: white;
+      animation: pulse 1s infinite;
     }
-    #error {
-      color: #f44336;
-      text-align: center;
-      margin-top: 1rem;
-      font-weight: bold;
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    #kana {
+      font-size: 8rem;
+      margin: 2rem 0;
+      color: #333;
+      min-height: 10rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #kana.success {
+      color: #4CAF50;
+      animation: pop 0.3s;
+    }
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    #confidence {
+      font-size: 1.1rem;
+      color: #666;
+      margin: 1rem 0;
+    }
+    .matches {
+      margin: 1rem 0;
+      padding: 1rem;
+      background: #f5f5f5;
+      border-radius: 8px;
+      text-align: left;
+    }
+    .match-item {
+      padding: 0.3rem;
+      font-size: 0.9rem;
     }
     #debug {
       margin-top: 1rem;
@@ -156,106 +117,78 @@
       border-radius: 8px;
       font-size: 0.75rem;
       text-align: left;
-      max-height: 120px;
+      max-height: 150px;
       overflow-y: auto;
       font-family: monospace;
+    }
+    .error {
+      color: #f44336;
+      font-weight: bold;
+      margin: 1rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🎌 Quiz Hiragana</h1>
-    <div class="score">Score: <span id="score">0</span></div>
+    <h1>🎤 Quiz Kana - ML Audio</h1>
     
-    <div class="game-area">
-      <div id="kana">—</div>
-      <div class="timer" id="timer"></div>
-      <div class="status" id="status">Prêt à commencer ?</div>
-      <div class="feedback" id="feedback"></div>
+    <div id="loading" class="loading">
+      Chargement des références audio...
+      <div class="progress">
+        <div class="progress-bar" id="progressBar">0%</div>
+      </div>
     </div>
     
-    <button id="startBtn">Démarrer le Quiz</button>
+    <div id="mainInterface" style="display: none;">
+      <p>Prononce un kana - le système compare avec les références</p>
+      <button id="recordBtn" disabled>Enregistrer (1s)</button>
+      <div id="kana">—</div>
+      <div id="confidence"></div>
+      <div class="matches" id="matches"></div>
+    </div>
     
-    <div id="error"></div>
+    <div class="error" id="error"></div>
     <div id="debug"></div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
+
 <script>
-  // 🔥 CONFIGURATION - Remplace par l'URL de ton repo GitHub
-  const MP3_BASE_URL = "https://emmanuel971-source.github.io/hirakataquizz/";
-  const ANSWER_TIME = 3; // Secondes pour répondre
-
-  // Elements DOM
-  const startBtn = document.getElementById("startBtn");
-  const kanaDiv = document.getElementById("kana");
-  const timerDiv = document.getElementById("timer");
-  const statusDiv = document.getElementById("status");
-  const feedbackDiv = document.getElementById("feedback");
-  const scoreDiv = document.getElementById("score");
-  const errorDiv = document.getElementById("error");
-  const debugDiv = document.getElementById("debug");
-
-  // Variables de jeu
-  let score = 0;
-  let currentKana = null;
-  let gameInterval = null;
-  let timeLeft = 0;
-  let recognition = null;
-  let isListening = false;
-  let hasAnswered = false;
-
-  // Liste complète des hiraganas
+  // 🔥 Tous les MP3 sont à la racine
+  const BASE_URL = "https://emmanuel971-source.github.io/hirakataquizz/";
+  
+  // Liste des hiraganas
   const allKana = [
-    // Voyelles
     "あ", "い", "う", "え", "お",
-    // K
     "か", "き", "く", "け", "こ",
-    // S
     "さ", "し", "す", "せ", "そ",
-    // T
     "た", "ち", "つ", "て", "と",
-    // N
     "な", "に", "ぬ", "ね", "の",
-    // H
     "は", "ひ", "ふ", "へ", "ほ",
-    // M
     "ま", "み", "む", "め", "も",
-    // Y
     "や", "ゆ", "よ",
-    // R
     "ら", "り", "る", "れ", "ろ",
-    // W
     "わ", "を", "ん",
-    // G
     "が", "ぎ", "ぐ", "げ", "ご",
-    // Z
     "ざ", "じ", "ず", "ぜ", "ぞ",
-    // D
     "だ", "ぢ", "づ", "で", "ど",
-    // B
     "ば", "び", "ぶ", "べ", "ぼ",
-    // P
     "ぱ", "ぴ", "ぷ", "ぺ", "ぽ"
   ];
 
-  // Mapping kana -> romaji possibles
-  const kanaToRomaji = {
-    "あ": ["a", "ah"], "い": ["i", "ii"], "う": ["u", "uu"], "え": ["e", "eh"], "お": ["o", "oh"],
-    "か": ["ka"], "き": ["ki"], "く": ["ku"], "け": ["ke"], "こ": ["ko"],
-    "さ": ["sa"], "し": ["shi", "si"], "す": ["su"], "せ": ["se"], "そ": ["so"],
-    "た": ["ta"], "ち": ["chi", "ti"], "つ": ["tsu", "tu"], "て": ["te"], "と": ["to"],
-    "な": ["na"], "に": ["ni"], "ぬ": ["nu"], "ね": ["ne"], "の": ["no"],
-    "は": ["ha"], "ひ": ["hi"], "ふ": ["fu", "hu"], "へ": ["he"], "ほ": ["ho"],
-    "ま": ["ma"], "み": ["mi"], "む": ["mu"], "め": ["me"], "も": ["mo"],
-    "や": ["ya"], "ゆ": ["yu"], "よ": ["yo"],
-    "ら": ["ra", "la"], "り": ["ri", "li"], "る": ["ru"], "れ": ["re"], "ろ": ["ro"],
-    "わ": ["wa"], "を": ["wo", "o"], "ん": ["n", "nn"],
-    "が": ["ga"], "ぎ": ["gi"], "ぐ": ["gu"], "げ": ["ge"], "ご": ["go"],
-    "ざ": ["za"], "じ": ["ji", "zi"], "ず": ["zu"], "ぜ": ["ze"], "ぞ": ["zo"],
-    "だ": ["da"], "ぢ": ["di"], "づ": ["du"], "で": ["de"], "ど": ["do"],
-    "ば": ["ba"], "び": ["bi"], "ぶ": ["bu"], "べ": ["be"], "ぼ": ["bo"],
-    "ぱ": ["pa"], "ぴ": ["pi"], "ぷ": ["pu"], "ぺ": ["pe"], "ぽ": ["po"]
-  };
+  const recordBtn = document.getElementById("recordBtn");
+  const kanaDiv = document.getElementById("kana");
+  const confidenceDiv = document.getElementById("confidence");
+  const matchesDiv = document.getElementById("matches");
+  const errorDiv = document.getElementById("error");
+  const debugDiv = document.getElementById("debug");
+  const loadingDiv = document.getElementById("loading");
+  const mainInterface = document.getElementById("mainInterface");
+  const progressBar = document.getElementById("progressBar");
+
+  let audioContext;
+  let referenceFeatures = {};
+  let isRecording = false;
 
   function addDebug(msg, isError = false) {
     const time = new Date().toLocaleTimeString();
@@ -263,233 +196,222 @@
     debugDiv.scrollTop = debugDiv.scrollHeight;
   }
 
-  addDebug("Script chargé");
+  addDebug("Initialisation...");
 
-  // Vérification HTTPS
-  if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-    errorDiv.textContent = "⚠️ HTTPS requis pour la reconnaissance vocale";
-    startBtn.disabled = true;
-    addDebug("HTTPS non détecté", true);
+  // Fonction pour extraire les features audio (MFCC simplifiés)
+  async function extractAudioFeatures(audioBuffer) {
+    const audioData = audioBuffer.getChannelData(0);
+    const sampleRate = audioBuffer.sampleRate;
+    
+    // Convertir en spectrogramme simplifié
+    const fftSize = 2048;
+    const hopSize = 512;
+    const features = [];
+    
+    for (let i = 0; i < audioData.length - fftSize; i += hopSize) {
+      const frame = audioData.slice(i, i + fftSize);
+      const spectrum = computeSpectrum(frame);
+      features.push(spectrum);
+    }
+    
+    // Moyenne des features
+    const avgFeatures = new Array(features[0].length).fill(0);
+    for (let i = 0; i < features.length; i++) {
+      for (let j = 0; j < features[i].length; j++) {
+        avgFeatures[j] += features[i][j];
+      }
+    }
+    return avgFeatures.map(v => v / features.length);
   }
 
-  // Configuration reconnaissance vocale
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  
-  if (!SpeechRecognition) {
-    errorDiv.textContent = "❌ Reconnaissance vocale non supportée";
-    startBtn.disabled = true;
-    addDebug("SpeechRecognition non disponible", true);
-  } else {
-    addDebug("SpeechRecognition disponible ✓");
+  function computeSpectrum(frame) {
+    // FFT simplifié - calculer l'énergie par bandes de fréquence
+    const numBands = 20;
+    const bandEnergy = new Array(numBands).fill(0);
+    const bandSize = Math.floor(frame.length / numBands);
     
-    recognition = new SpeechRecognition();
-    recognition.lang = "ja-JP";
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 5;
-
-    recognition.onresult = (event) => {
-      if (!currentKana || hasAnswered) return;
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (!result.isFinal) continue;
-
-        const transcript = result[0].transcript.toLowerCase().trim();
-        addDebug(`Reconnu: "${transcript}"`);
-
-        // Vérifier si c'est le bon kana
-        if (checkAnswer(transcript)) {
-          handleCorrectAnswer();
+    for (let i = 0; i < numBands; i++) {
+      let energy = 0;
+      for (let j = 0; j < bandSize; j++) {
+        const idx = i * bandSize + j;
+        if (idx < frame.length) {
+          energy += frame[idx] * frame[idx];
         }
       }
-    };
-
-    recognition.onerror = (event) => {
-      if (event.error === "no-speech" || event.error === "aborted") return;
-      addDebug(`Erreur: ${event.error}`, true);
-    };
-
-    recognition.onend = () => {
-      addDebug("Reconnaissance arrêtée");
-      if (isListening && currentKana && !hasAnswered) {
-        // Redémarrer si le jeu est en cours
-        setTimeout(() => {
-          try {
-            recognition.start();
-            addDebug("Reconnaissance redémarrée");
-          } catch (e) {
-            addDebug(`Erreur redémarrage: ${e.message}`, true);
-          }
-        }, 100);
-      }
-    };
-  }
-
-  // Vérifier la réponse
-  function checkAnswer(transcript) {
-    if (!currentKana) return false;
-
-    const validRomaji = kanaToRomaji[currentKana] || [];
-    
-    // Vérifier correspondance directe
-    for (const romaji of validRomaji) {
-      if (transcript === romaji || 
-          transcript === currentKana ||
-          transcript.includes(romaji) ||
-          transcript.includes(currentKana)) {
-        return true;
-      }
+      bandEnergy[i] = Math.sqrt(energy / bandSize);
     }
     
-    return false;
+    return bandEnergy;
   }
 
-  // Réponse correcte
-  function handleCorrectAnswer() {
-    if (hasAnswered) return;
+  // Similarité cosinus entre deux vecteurs
+  function cosineSimilarity(a, b) {
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
     
-    hasAnswered = true;
-    score++;
-    scoreDiv.textContent = score;
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
     
-    kanaDiv.classList.add("correct");
-    feedbackDiv.className = "feedback correct";
-    feedbackDiv.textContent = "✓ Correct !";
-    
-    addDebug(`Bonne réponse ! Score: ${score}`);
-    
-    stopListening();
-    
-    // Continuer après 1 seconde
-    setTimeout(() => {
-      nextRound();
-    }, 1000);
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
 
-  // Nouvelle manche
-  function nextRound() {
-    hasAnswered = false;
-    feedbackDiv.className = "feedback";
-    feedbackDiv.textContent = "";
-    kanaDiv.classList.remove("correct", "wrong");
+  // Charger un fichier audio MP3
+  async function loadAudioFile(url) {
+    try {
+      addDebug(`Chargement: ${url}`);
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      return await audioContext.decodeAudioData(arrayBuffer);
+    } catch (e) {
+      addDebug(`Erreur ${url}: ${e.message}`, true);
+      return null;
+    }
+  }
+
+  // Charger toutes les références
+  async function loadReferences() {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    addDebug(`Chargement de ${allKana.length} références depuis ${BASE_URL}`);
     
-    // Choisir un kana aléatoire
-    currentKana = allKana[Math.floor(Math.random() * allKana.length)];
-    kanaDiv.textContent = currentKana;
+    let loaded = 0;
     
-    addDebug(`Nouveau kana: ${currentKana}`);
-    
-    // Démarrer le timer
-    timeLeft = ANSWER_TIME;
-    updateTimer();
-    
-    gameInterval = setInterval(() => {
-      timeLeft--;
-      updateTimer();
+    for (const kana of allKana) {
+      const url = `${BASE_URL}${kana}.mp3`;
+      const audioBuffer = await loadAudioFile(url);
       
-      if (timeLeft <= 0) {
-        handleTimeout();
+      if (audioBuffer) {
+        referenceFeatures[kana] = await extractAudioFeatures(audioBuffer);
+        loaded++;
+        addDebug(`✓ ${kana} chargé (${audioBuffer.duration.toFixed(2)}s)`);
+        
+        const progress = Math.round((loaded / allKana.length) * 100);
+        progressBar.style.width = `${progress}%`;
+        progressBar.textContent = `${progress}%`;
+      } else {
+        addDebug(`✗ ${kana}.mp3 introuvable`, true);
       }
-    }, 1000);
+    }
     
-    // Démarrer l'écoute
-    startListening();
-  }
-
-  // Mise à jour du timer
-  function updateTimer() {
-    timerDiv.textContent = `⏱️ ${timeLeft}s`;
+    addDebug(`${loaded}/${allKana.length} références chargées`);
     
-    timerDiv.className = "timer";
-    if (timeLeft <= 1) {
-      timerDiv.classList.add("danger");
-    } else if (timeLeft <= 2) {
-      timerDiv.classList.add("warning");
+    if (loaded > 0) {
+      loadingDiv.style.display = "none";
+      mainInterface.style.display = "block";
+      recordBtn.disabled = false;
+      addDebug("✓ Prêt à enregistrer !");
+    } else {
+      errorDiv.textContent = `❌ Aucun fichier trouvé à ${BASE_URL}`;
+      addDebug("Vérifie que les MP3 sont bien accessibles", true);
     }
   }
 
-  // Timeout
-  function handleTimeout() {
-    clearInterval(gameInterval);
-    
-    if (hasAnswered) return;
-    
-    hasAnswered = true;
-    
-    kanaDiv.classList.add("wrong");
-    feedbackDiv.className = "feedback wrong";
-    feedbackDiv.textContent = "⏰ Temps écoulé !";
-    
-    addDebug("Temps écoulé");
-    
-    // Arrêter l'écoute AVANT de jouer le son
-    stopListening();
-    
-    // Jouer le MP3 de la réponse
-    playKanaAudio(currentKana);
-    
-    // Continuer après 2 secondes (le temps que l'audio se joue)
-    setTimeout(() => {
-      nextRound();
-    }, 2000);
+  // Enregistrer depuis le micro
+  async function recordAudio(duration = 1000) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks = [];
+      
+      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+      
+      return new Promise((resolve, reject) => {
+        mediaRecorder.onstop = async () => {
+          stream.getTracks().forEach(track => track.stop());
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          const arrayBuffer = await blob.arrayBuffer();
+          try {
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            resolve(audioBuffer);
+          } catch (e) {
+            reject(e);
+          }
+        };
+        
+        mediaRecorder.start();
+        addDebug("🎤 Enregistrement 1s...");
+        
+        setTimeout(() => {
+          mediaRecorder.stop();
+          addDebug("Analyse des features...");
+        }, duration);
+      });
+    } catch (e) {
+      addDebug(`Erreur micro: ${e.message}`, true);
+      throw e;
+    }
   }
 
-  // Jouer l'audio d'un kana
-  function playKanaAudio(kana) {
-    const audioUrl = `${MP3_BASE_URL}${kana}.mp3`;
-    addDebug(`Lecture audio: ${audioUrl}`);
+  // Comparer avec les références
+  async function compareWithReferences(recordedFeatures) {
+    const similarities = [];
     
-    const audio = new Audio(audioUrl);
-    audio.play().catch(err => {
-      addDebug(`Erreur lecture: ${err.message}`, true);
-    });
+    for (const [kana, features] of Object.entries(referenceFeatures)) {
+      const similarity = cosineSimilarity(recordedFeatures, features);
+      similarities.push({ kana, similarity });
+    }
+    
+    // Trier par similarité décroissante
+    similarities.sort((a, b) => b.similarity - a.similarity);
+    
+    return similarities;
   }
 
-  // Démarrer l'écoute
-  function startListening() {
-    if (!recognition || isListening) return;
+  // Bouton d'enregistrement
+  recordBtn.onclick = async () => {
+    if (isRecording) return;
+    
+    isRecording = true;
+    recordBtn.disabled = true;
+    recordBtn.classList.add("listening");
+    recordBtn.textContent = "Enregistrement...";
+    kanaDiv.textContent = "🎤";
+    confidenceDiv.textContent = "";
+    matchesDiv.innerHTML = "";
     
     try {
-      recognition.start();
-      isListening = true;
-      statusDiv.className = "status listening";
-      statusDiv.innerHTML = '🎤 En écoute <span class="indicator"></span>';
-      addDebug("Écoute démarrée");
+      const audioBuffer = await recordAudio(1000);
+      const features = await extractAudioFeatures(audioBuffer);
+      const results = await compareWithReferences(features);
+      
+      addDebug(`Top 3: ${results.slice(0, 3).map(r => `${r.kana}(${(r.similarity * 100).toFixed(0)}%)`).join(', ')}`);
+      
+      // Afficher le meilleur match
+      const best = results[0];
+      kanaDiv.textContent = best.kana;
+      kanaDiv.classList.add("success");
+      confidenceDiv.textContent = `Similarité: ${(best.similarity * 100).toFixed(0)}%`;
+      
+      // Afficher top 5
+      matchesDiv.innerHTML = "<strong>Top 5 correspondances:</strong><br>" +
+        results.slice(0, 5).map((r, i) => 
+          `<div class="match-item">${i + 1}. ${r.kana} - ${(r.similarity * 100).toFixed(0)}%</div>`
+        ).join('');
+      
+      setTimeout(() => {
+        kanaDiv.classList.remove("success");
+      }, 1000);
+      
     } catch (e) {
-      addDebug(`Erreur démarrage écoute: ${e.message}`, true);
+      errorDiv.textContent = `❌ ${e.message}`;
+      addDebug(`Erreur: ${e.message}`, true);
+    } finally {
+      isRecording = false;
+      recordBtn.disabled = false;
+      recordBtn.classList.remove("listening");
+      recordBtn.textContent = "Enregistrer (1s)";
     }
-  }
+  };
 
-  // Arrêter l'écoute
-  function stopListening() {
-    if (!recognition || !isListening) return;
-    
-    try {
-      recognition.stop();
-      isListening = false;
-      statusDiv.className = "status";
-      statusDiv.textContent = "";
-      addDebug("Écoute arrêtée");
-    } catch (e) {
-      addDebug(`Erreur arrêt écoute: ${e.message}`, true);
-    }
-  }
-
-  // Démarrer le jeu
-  startBtn.onclick = () => {
-    if (currentKana) {
-      // Reset du jeu
-      score = 0;
-      scoreDiv.textContent = score;
-      clearInterval(gameInterval);
-      stopListening();
-    }
-    
-    startBtn.textContent = "Redémarrer";
-    errorDiv.textContent = "";
-    
-    nextRound();
+  // Démarrage
+  window.onload = () => {
+    loadReferences();
   };
 </script>
 </body>
