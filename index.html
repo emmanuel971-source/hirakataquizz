@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎌 Kana Quiz - Proof of Concept</title>
+    <title>🎌 Kana Quiz - Simplifié (Concat Only)</title>
     <style>
         * {
             margin: 0;
@@ -41,31 +41,6 @@
             text-align: center;
             color: #666;
             margin-bottom: 30px;
-        }
-        
-        .score-board {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 15px;
-        }
-        
-        .score-item {
-            text-align: center;
-        }
-        
-        .score-label {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-        
-        .score-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
         }
         
         .card-container {
@@ -129,16 +104,6 @@
         .status.processing {
             background: #fff3cd;
             color: #856404;
-        }
-        
-        .status.correct {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status.incorrect {
-            background: #f8d7da;
-            color: #721c24;
         }
         
         .status.info {
@@ -208,17 +173,6 @@
             display: none;
         }
         
-        .mic-indicator {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            background: #dc3545;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-        
         .debug-panel {
             background: #f8f9fa;
             padding: 15px;
@@ -238,32 +192,20 @@
             margin: 5px 0;
         }
         
-        .result-animation {
-            font-size: 5em;
+        .audio-player {
             margin: 20px 0;
+            text-align: center;
+        }
+        
+        .audio-player audio {
+            width: 100%;
         }
     </style>
 </head>
 <body>
     <div class="quiz-container">
-        <h1>🎌 Kana Quiz</h1>
-        <p class="subtitle">Proof of Concept - 5 Hiragana de base</p>
-        
-        <!-- Score -->
-        <div class="score-board">
-            <div class="score-item">
-                <div class="score-label">Score</div>
-                <div class="score-value" id="scoreDisplay">0</div>
-            </div>
-            <div class="score-item">
-                <div class="score-label">Carte</div>
-                <div class="score-value"><span id="currentCard">0</span>/5</div>
-            </div>
-            <div class="score-item">
-                <div class="score-label">Précision</div>
-                <div class="score-value" id="accuracyDisplay">0%</div>
-            </div>
-        </div>
+        <h1>🎌 Kana Quiz - Simplifié</h1>
+        <p class="subtitle">Concaténation Audio Only - Pour Test</p>
         
         <!-- Carte Kana -->
         <div class="card-container" id="cardContainer">
@@ -273,21 +215,24 @@
         
         <!-- Status -->
         <div class="status info" id="statusDisplay">
-            Cliquez sur "Commencer" pour débuter le quiz
+            Cliquez sur "Commencer" pour débuter le test
         </div>
         
-        <!-- Answer Reveal (caché par défaut) -->
+        <!-- Audio Player (caché par défaut) -->
+        <div class="audio-player hidden" id="audioPlayerContainer">
+            <h3>Écoutez le résultat concaténé :</h3>
+            <audio id="audioPlayer" controls></audio>
+        </div>
+        
+        <!-- Answer Reveal (pour info mot attendu) -->
         <div class="answer-reveal hidden" id="answerReveal">
-            <h3>Réponse attendue :</h3>
+            <h3>Mot attendu :</h3>
             <div class="word" id="answerWord">あめ</div>
             <div class="meaning" id="answerMeaning">(pluie)</div>
-            <button id="downloadAudioBtn" class="secondary" style="margin-top: 15px;" onclick="downloadConcatenatedAudio()">
-                💾 Télécharger l'audio concaténé
-            </button>
         </div>
         
         <!-- Boutons -->
-        <button id="startBtn" onclick="startQuiz()">🚀 Commencer le Quiz</button>
+        <button id="startBtn" onclick="startQuiz()">🚀 Commencer le Test</button>
         <button id="nextBtn" class="secondary hidden" onclick="nextCard()">➡️ Carte suivante</button>
         <button id="restartBtn" class="secondary hidden" onclick="restartQuiz()">🔄 Recommencer</button>
         
@@ -297,8 +242,6 @@
             <div class="debug-line" id="debugAudioCapture">Audio capturé: -</div>
             <div class="debug-line" id="debugSuffixLoaded">Suffixe chargé: -</div>
             <div class="debug-line" id="debugConcatenation">Concaténation: -</div>
-            <div class="debug-line" id="debugRecognition">Reconnaissance: -</div>
-            <div class="debug-line" id="debugComparison">Comparaison: -</div>
         </div>
     </div>
     
@@ -321,8 +264,6 @@
         // VARIABLES GLOBALES
         // ========================================
         let currentIndex = 0;
-        let score = 0;
-        let totalAttempts = 0;
         let isRecording = false;
         let timer = null;
         let timeLeft = TIME_LIMIT;
@@ -332,37 +273,12 @@
         let audioContext = null;
         let suffixBuffers = {};
         
-        let recognition = null;
-        let lastConcatenatedAudioBlob = null; // Pour téléchargement
-        
         // ========================================
         // INITIALISATION
         // ========================================
         async function init() {
             // Créer AudioContext
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Initialiser Web Speech API
-            if ('webkitSpeechRecognition' in window) {
-                recognition = new webkitSpeechRecognition();
-                recognition.lang = 'ja-JP';
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                
-                recognition.onresult = handleRecognitionResult;
-                recognition.onerror = handleRecognitionError;
-            } else if ('SpeechRecognition' in window) {
-                recognition = new SpeechRecognition();
-                recognition.lang = 'ja-JP';
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                
-                recognition.onresult = handleRecognitionResult;
-                recognition.onerror = handleRecognitionError;
-            } else {
-                alert('❌ Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.');
-                return;
-            }
             
             // Précharger les suffixes
             await preloadSuffixes();
@@ -394,8 +310,6 @@
             await init();
             
             currentIndex = 0;
-            score = 0;
-            totalAttempts = 0;
             
             document.getElementById('startBtn').classList.add('hidden');
             document.getElementById('restartBtn').classList.add('hidden');
@@ -412,8 +326,8 @@
             const current = KANAS[currentIndex];
             
             document.getElementById('kanaDisplay').textContent = current.kana;
-            document.getElementById('currentCard').textContent = currentIndex + 1;
             document.getElementById('answerReveal').classList.add('hidden');
+            document.getElementById('audioPlayerContainer').classList.add('hidden');
             document.getElementById('nextBtn').classList.add('hidden');
             
             updateStatus('info', `Prononcez "${current.romaji}" en ${TIME_LIMIT} secondes !`);
@@ -421,8 +335,6 @@
             // Reset debug
             updateDebug('debugAudioCapture', 'En attente...');
             updateDebug('debugConcatenation', 'En attente...');
-            updateDebug('debugRecognition', 'En attente...');
-            updateDebug('debugComparison', 'En attente...');
             
             // Démarrer timer et enregistrement
             startTimer();
@@ -497,9 +409,9 @@
             const suffixBuffer = suffixBuffers[current.suffix];
             
             if (!suffixBuffer) {
-                updateStatus('incorrect', '❌ Erreur: suffixe non chargé');
+                updateStatus('info', '❌ Erreur: suffixe non chargé');
                 updateDebug('debugConcatenation', '❌ Suffixe manquant');
-                showAnswer(false);
+                showResult();
                 return;
             }
             
@@ -515,20 +427,23 @@
                 
                 updateDebug('debugConcatenation', '✅ Audio concaténé');
                 
-                // Convertir en Blob pour la reconnaissance
+                // Convertir en Blob WAV
                 const concatenatedBlob = await audioBufferToWavBlob(concatenatedBuffer);
                 
-                // Stocker pour téléchargement
-                lastConcatenatedAudioBlob = concatenatedBlob;
+                // Afficher le player audio
+                const audioURL = URL.createObjectURL(concatenatedBlob);
+                document.getElementById('audioPlayer').src = audioURL;
+                document.getElementById('audioPlayerContainer').classList.remove('hidden');
                 
-                // Lancer la reconnaissance vocale
-                recognizeAudio(concatenatedBlob, current.word);
+                updateStatus('info', '✅ Concaténation terminée ! Écoutez ci-dessous.');
+                
+                showResult();
                 
             } catch (error) {
                 console.error('Erreur processAudio:', error);
-                updateStatus('incorrect', '❌ Erreur de traitement');
+                updateStatus('info', '❌ Erreur de traitement');
                 updateDebug('debugConcatenation', '❌ Erreur: ' + error.message);
-                showAnswer(false);
+                showResult();
             }
         }
         
@@ -571,178 +486,3 @@
             // "RIFF"
             setUint32(0x46464952);
             // file length
-            setUint32(length + 36);
-            // "WAVE"
-            setUint32(0x45564157);
-            // "fmt "
-            setUint32(0x20746d66);
-            // format chunk length
-            setUint32(16);
-            // sample format (raw)
-            setUint16(1);
-            // channel count
-            setUint16(numberOfChannels);
-            // sample rate
-            setUint32(audioBuffer.sampleRate);
-            // byte rate
-            setUint32(audioBuffer.sampleRate * numberOfChannels * 2);
-            // block align
-            setUint16(numberOfChannels * 2);
-            // bits per sample
-            setUint16(16);
-            // "data"
-            setUint32(0x61746164);
-            // data chunk length
-            setUint32(length);
-            
-            // Write PCM samples
-            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-                channels.push(audioBuffer.getChannelData(i));
-            }
-            
-            offset = 44;
-            for (let i = 0; i < audioBuffer.length; i++) {
-                for (let channel = 0; channel < numberOfChannels; channel++) {
-                    let sample = Math.max(-1, Math.min(1, channels[channel][i]));
-                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-                    view.setInt16(offset, sample, true);
-                    offset += 2;
-                }
-            }
-            
-            return new Blob([buffer], { type: 'audio/wav' });
-        }
-        
-        function recognizeAudio(audioBlob, expectedWord) {
-            updateDebug('debugRecognition', 'Reconnaissance en cours...');
-            updateStatus('processing', '🎧 Reconnaissance vocale...');
-            
-            // Créer un élément audio temporaire
-            const audioURL = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioURL);
-            
-            // Jouer l'audio (nécessaire pour que la reconnaissance fonctionne)
-            audio.play();
-            
-            // Lancer la reconnaissance
-            recognition.start();
-            
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                const confidence = event.results[0][0].confidence;
-                
-                updateDebug('debugRecognition', `✅ Résultat: "${transcript}" (${Math.round(confidence * 100)}%)`);
-                
-                checkAnswer(transcript, expectedWord);
-            };
-            
-            recognition.onerror = (event) => {
-                console.error('Erreur reconnaissance:', event.error);
-                updateDebug('debugRecognition', `❌ Erreur: ${event.error}`);
-                updateStatus('incorrect', '❌ Erreur de reconnaissance');
-                showAnswer(false);
-            };
-        }
-        
-        function handleRecognitionResult(event) {
-            // Géré dans recognizeAudio
-        }
-        
-        function handleRecognitionError(event) {
-            // Géré dans recognizeAudio
-        }
-        
-        function checkAnswer(transcript, expectedWord) {
-            totalAttempts++;
-            
-            // Nettoyer et normaliser
-            const cleanTranscript = transcript.trim().toLowerCase();
-            const cleanExpected = expectedWord.toLowerCase();
-            
-            updateDebug('debugComparison', `Comparaison: "${cleanTranscript}" vs "${cleanExpected}"`);
-            
-            const isCorrect = cleanTranscript.includes(cleanExpected) || cleanExpected.includes(cleanTranscript);
-            
-            if (isCorrect) {
-                score++;
-                updateDebug('debugComparison', '✅ CORRECT !');
-            } else {
-                updateDebug('debugComparison', '❌ INCORRECT');
-            }
-            
-            updateScore();
-            showAnswer(isCorrect);
-        }
-        
-        function showAnswer(isCorrect) {
-            const current = KANAS[currentIndex];
-            
-            if (isCorrect) {
-                updateStatus('correct', '✅ Bravo ! Bonne réponse !');
-            } else {
-                updateStatus('incorrect', '❌ Dommage... Mauvaise réponse');
-            }
-            
-            // Afficher la réponse
-            document.getElementById('answerWord').textContent = current.word;
-            document.getElementById('answerMeaning').textContent = `(${current.meaning})`;
-            document.getElementById('answerReveal').classList.remove('hidden');
-            
-            // Bouton suivant
-            document.getElementById('nextBtn').classList.remove('hidden');
-        }
-        
-        function nextCard() {
-            currentIndex++;
-            showCard();
-        }
-        
-        function endQuiz() {
-            updateStatus('info', `🎉 Quiz terminé ! Score final: ${score}/${KANAS.length}`);
-            
-            document.getElementById('kanaDisplay').textContent = '🎉';
-            document.getElementById('timer').classList.add('hidden');
-            document.getElementById('restartBtn').classList.remove('hidden');
-        }
-        
-        function restartQuiz() {
-            location.reload();
-        }
-        
-        function updateScore() {
-            document.getElementById('scoreDisplay').textContent = score;
-            const accuracy = totalAttempts > 0 ? Math.round((score / totalAttempts) * 100) : 0;
-            document.getElementById('accuracyDisplay').textContent = accuracy + '%';
-        }
-        
-        function updateStatus(type, message) {
-            const status = document.getElementById('statusDisplay');
-            status.className = `status ${type}`;
-            status.textContent = message;
-        }
-        
-        function updateDebug(id, message) {
-            document.getElementById(id).textContent = message;
-        }
-        
-        function downloadConcatenatedAudio() {
-            if (!lastConcatenatedAudioBlob) {
-                alert('❌ Aucun audio à télécharger');
-                return;
-            }
-            
-            const current = KANAS[currentIndex];
-            const url = URL.createObjectURL(lastConcatenatedAudioBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `concatenated_${current.kana}_${current.word}.wav`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            console.log('✅ Audio téléchargé:', a.download);
-        }
-    </script>
-</body>
-</html>
