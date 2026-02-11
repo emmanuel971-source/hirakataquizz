@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎌 Kana Quiz - Simplifié (Concat Only)</title>
+    <title>🎤 Test Audio - Enregistrement et Concaténation</title>
     <style>
         * {
             margin: 0;
@@ -21,7 +21,7 @@
             padding: 20px;
         }
         
-        .quiz-container {
+        .container {
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -34,57 +34,27 @@
             text-align: center;
             color: #667eea;
             margin-bottom: 10px;
-            font-size: 2.5em;
+            font-size: 2em;
         }
         
         .subtitle {
             text-align: center;
             color: #666;
             margin-bottom: 30px;
+            font-size: 0.9em;
         }
         
-        .card-container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            padding: 60px;
-            text-align: center;
-            margin-bottom: 30px;
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        
-        .kana-display {
-            font-size: 10em;
-            color: white;
-            font-weight: bold;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
             margin-bottom: 20px;
         }
         
-        .timer {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-        
-        .timer.warning {
-            background: rgba(255,0,0,0.3);
-            animation: pulse 0.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+        .section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
         }
         
         .status {
@@ -96,7 +66,12 @@
             font-weight: bold;
         }
         
-        .status.listening {
+        .status.idle {
+            background: #e7e7e7;
+            color: #333;
+        }
+        
+        .status.recording {
             background: #d1ecf1;
             color: #0c5460;
         }
@@ -106,17 +81,22 @@
             color: #856404;
         }
         
-        .status.info {
-            background: #e7e7e7;
-            color: #333;
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
         }
         
         button {
             background: #667eea;
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.2em;
+            padding: 15px 30px;
+            font-size: 1.1em;
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
@@ -144,227 +124,221 @@
             background: #5a6268;
         }
         
-        .answer-reveal {
-            background: #fff3cd;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
+        button.success {
+            background: #28a745;
+        }
+        
+        button.success:hover:not(:disabled) {
+            background: #218838;
+        }
+        
+        .timer {
             text-align: center;
-        }
-        
-        .answer-reveal h3 {
-            color: #856404;
-            margin-bottom: 10px;
-        }
-        
-        .answer-reveal .word {
             font-size: 3em;
-            color: #667eea;
             font-weight: bold;
-            margin: 10px 0;
+            color: #667eea;
+            margin: 20px 0;
         }
         
-        .answer-reveal .meaning {
+        .timer.warning {
+            color: #dc3545;
+            animation: pulse 0.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .mic-indicator {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            background: #dc3545;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        .debug-info {
+            font-family: monospace;
+            font-size: 0.85em;
             color: #666;
-            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        .debug-line {
+            margin: 5px 0;
         }
         
         .hidden {
             display: none;
         }
         
-        .debug-panel {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-family: monospace;
-            font-size: 0.9em;
-        }
-        
-        .debug-panel h4 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-        
-        .debug-line {
-            color: #666;
-            margin: 5px 0;
-        }
-        
-        .audio-player {
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .audio-player audio {
+        audio {
             width: 100%;
+            margin: 10px 0;
+        }
+        
+        .select-wrapper {
+            margin-bottom: 15px;
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
         }
     </style>
 </head>
 <body>
-    <div class="quiz-container">
-        <h1>🎌 Kana Quiz - Simplifié</h1>
-        <p class="subtitle">Concaténation Audio Only - Pour Test</p>
-        
-        <!-- Carte Kana -->
-        <div class="card-container" id="cardContainer">
-            <div class="timer hidden" id="timer">3</div>
-            <div class="kana-display" id="kanaDisplay">あ</div>
-        </div>
+    <div class="container">
+        <h1>🎤 Test Audio Simplifié</h1>
+        <p class="subtitle">Enregistrement (3s) → Suppression silence → Concaténation</p>
         
         <!-- Status -->
-        <div class="status info" id="statusDisplay">
-            Cliquez sur "Commencer" pour débuter le test
+        <div id="statusDisplay" class="status idle">
+            ⏳ Prêt à démarrer
         </div>
         
-        <!-- Audio Player (caché par défaut) -->
-        <div class="audio-player hidden" id="audioPlayerContainer">
-            <h3>Écoutez le résultat concaténé :</h3>
-            <audio id="audioPlayer" controls></audio>
+        <!-- Sélection du suffixe -->
+        <div class="section">
+            <h3>1️⃣ Choisir un suffixe</h3>
+            <div class="select-wrapper">
+                <select id="suffixSelect">
+                    <option value="a">あ - /a/ (comme "ah")</option>
+                    <option value="i">い - /i/ (comme "i" dans "mini")</option>
+                    <option value="u">う - /u/ (comme "ou" dans "hibou")</option>
+                    <option value="e">え - /e/ (comme "é")</option>
+                    <option value="o">お - /o/ (comme "au" dans "auto")</option>
+                </select>
+            </div>
+            <div class="debug-info">
+                <div class="debug-line">Suffixe sélectionné: <span id="debugSuffix">a</span></div>
+            </div>
         </div>
         
-        <!-- Answer Reveal (pour info mot attendu) -->
-        <div class="answer-reveal hidden" id="answerReveal">
-            <h3>Mot attendu :</h3>
-            <div class="word" id="answerWord">あめ</div>
-            <div class="meaning" id="answerMeaning">(pluie)</div>
+        <!-- Enregistrement -->
+        <div class="section">
+            <h3>2️⃣ Enregistrer votre voix (3 secondes)</h3>
+            <div id="timerDisplay" class="timer hidden">3</div>
+            <button id="recordBtn" onclick="startRecording()">🎤 Commencer l'enregistrement</button>
+            <div class="debug-info">
+                <div class="debug-line">État: <span id="debugRecording">Pas encore enregistré</span></div>
+                <div class="debug-line">Durée brute: <span id="debugDuration">-</span></div>
+                <div class="debug-line">Durée traitée: <span id="debugTrimmedDuration">-</span></div>
+            </div>
         </div>
         
-        <!-- Boutons -->
-        <button id="startBtn" onclick="startQuiz()">🚀 Commencer le Test</button>
-        <button id="nextBtn" class="secondary hidden" onclick="nextCard()">➡️ Carte suivante</button>
-        <button id="restartBtn" class="secondary hidden" onclick="restartQuiz()">🔄 Recommencer</button>
-        
-        <!-- Debug Panel -->
-        <div class="debug-panel">
-            <h4>🔧 Debug Info</h4>
-            <div class="debug-line" id="debugAudioCapture">Audio capturé: -</div>
-            <div class="debug-line" id="debugSuffixLoaded">Suffixe chargé: -</div>
-            <div class="debug-line" id="debugConcatenation">Concaténation: -</div>
+        <!-- Résultat -->
+        <div class="section">
+            <h3>3️⃣ Résultat de la concaténation</h3>
+            <div class="debug-info">
+                <div class="debug-line">Concaténation: <span id="debugConcatenation">En attente</span></div>
+                <div class="debug-line">Durée finale: <span id="debugFinalDuration">-</span></div>
+            </div>
+            <div id="audioPlayerSection" class="hidden">
+                <audio id="audioPlayer" controls></audio>
+                <button class="success" onclick="downloadAudio()">⬇️ Télécharger le fichier WAV</button>
+            </div>
         </div>
+        
+        <!-- Reset -->
+        <button class="secondary" onclick="resetTest()">🔄 Recommencer</button>
     </div>
-    
+
     <script>
-        // ========================================
-        // CONFIGURATION
-        // ========================================
-        const KANAS = [
-            { kana: 'あ', suffix: 'め', word: 'あめ', romaji: 'ame', meaning: 'pluie' },
-            { kana: 'い', suffix: 'え', word: 'いえ', romaji: 'ie', meaning: 'maison' },
-            { kana: 'う', suffix: 'み', word: 'うみ', romaji: 'umi', meaning: 'mer' },
-            { kana: 'え', suffix: 'き', word: 'えき', romaji: 'eki', meaning: 'gare' },
-            { kana: 'お', suffix: 'ちゃ', word: 'おちゃ', romaji: 'ocha', meaning: 'thé' }
-        ];
+        // Configuration
+        const RECORDING_DURATION = 3000; // 3 secondes
+        const SILENCE_THRESHOLD = 0.01; // Seuil pour détecter le silence
         
-        const AUDIO_BASE_URL = 'https://emmanuel971-source.github.io/hirakataquizz/';
-        const TIME_LIMIT = 3; // secondes
-        
-        // ========================================
-        // VARIABLES GLOBALES
-        // ========================================
-        let currentIndex = 0;
-        let isRecording = false;
-        let timer = null;
-        let timeLeft = TIME_LIMIT;
-        
-        let mediaRecorder = null;
+        // Variables globales
+        let audioContext;
+        let mediaRecorder;
         let audioChunks = [];
-        let audioContext = null;
         let suffixBuffers = {};
+        let lastConcatenatedBlob = null;
         
-        // ========================================
-        // INITIALISATION
-        // ========================================
+        // Suffixes MP3 à charger
+        const SUFFIX_FILES = {
+            'a': 'https://raw.githubusercontent.com/tynorantoni/kana_quiz/main/suffixes/a.mp3',
+            'i': 'https://raw.githubusercontent.com/tynorantoni/kana_quiz/main/suffixes/i.mp3',
+            'u': 'https://raw.githubusercontent.com/tynorantoni/kana_quiz/main/suffixes/u.mp3',
+            'e': 'https://raw.githubusercontent.com/tynorantoni/kana_quiz/main/suffixes/e.mp3',
+            'o': 'https://raw.githubusercontent.com/tynorantoni/kana_quiz/main/suffixes/o.mp3'
+        };
+        
+        // Initialisation
         async function init() {
-            // Créer AudioContext
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Précharger les suffixes
-            await preloadSuffixes();
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                updateStatus('processing', '⏳ Chargement des suffixes...');
+                
+                // Charger tous les suffixes
+                await loadAllSuffixes();
+                
+                updateStatus('idle', '✅ Prêt à enregistrer !');
+            } catch (error) {
+                console.error('Erreur init:', error);
+                updateStatus('error', '❌ Erreur d\'initialisation: ' + error.message);
+            }
         }
         
-        async function preloadSuffixes() {
-            updateDebug('debugSuffixLoaded', 'Chargement des suffixes...');
-            
-            for (const item of KANAS) {
+        async function loadAllSuffixes() {
+            const promises = Object.entries(SUFFIX_FILES).map(async ([key, url]) => {
                 try {
-                    const url = AUDIO_BASE_URL + encodeURIComponent(item.suffix) + '.mp3';
                     const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const arrayBuffer = await response.arrayBuffer();
-                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                    suffixBuffers[item.suffix] = audioBuffer;
-                    console.log(`✅ Suffixe chargé: ${item.suffix}`);
+                    suffixBuffers[key] = await audioContext.decodeAudioData(arrayBuffer);
+                    console.log(`✅ Suffixe ${key} chargé`);
                 } catch (error) {
-                    console.error(`❌ Erreur chargement ${item.suffix}:`, error);
+                    console.error(`❌ Erreur chargement ${key}:`, error);
+                    throw error;
                 }
-            }
+            });
             
-            updateDebug('debugSuffixLoaded', `✅ ${Object.keys(suffixBuffers).length}/${KANAS.length} suffixes chargés`);
+            await Promise.all(promises);
         }
         
-        // ========================================
-        // QUIZ FLOW
-        // ========================================
-        async function startQuiz() {
-            await init();
-            
-            currentIndex = 0;
-            
-            document.getElementById('startBtn').classList.add('hidden');
-            document.getElementById('restartBtn').classList.add('hidden');
-            
-            showCard();
-        }
-        
-        function showCard() {
-            if (currentIndex >= KANAS.length) {
-                endQuiz();
-                return;
-            }
-            
-            const current = KANAS[currentIndex];
-            
-            document.getElementById('kanaDisplay').textContent = current.kana;
-            document.getElementById('answerReveal').classList.add('hidden');
-            document.getElementById('audioPlayerContainer').classList.add('hidden');
-            document.getElementById('nextBtn').classList.add('hidden');
-            
-            updateStatus('info', `Prononcez "${current.romaji}" en ${TIME_LIMIT} secondes !`);
-            
-            // Reset debug
-            updateDebug('debugAudioCapture', 'En attente...');
-            updateDebug('debugConcatenation', 'En attente...');
-            
-            // Démarrer timer et enregistrement
-            startTimer();
-            startRecording();
-        }
-        
-        function startTimer() {
-            timeLeft = TIME_LIMIT;
-            document.getElementById('timer').classList.remove('hidden', 'warning');
-            document.getElementById('timer').textContent = timeLeft;
-            
-            timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').textContent = timeLeft;
-                
-                if (timeLeft <= 1) {
-                    document.getElementById('timer').classList.add('warning');
-                }
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    stopRecording();
-                }
-            }, 1000);
-        }
-        
+        // Enregistrement
         async function startRecording() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                updateStatus('recording', '🎤 Enregistrement en cours...');
+                document.getElementById('recordBtn').disabled = true;
+                document.getElementById('debugRecording').textContent = 'Enregistrement...';
                 
+                // Afficher le timer
+                const timerEl = document.getElementById('timerDisplay');
+                timerEl.classList.remove('hidden');
+                let countdown = 3;
+                timerEl.textContent = countdown;
+                
+                const timerInterval = setInterval(() => {
+                    countdown--;
+                    timerEl.textContent = countdown;
+                    if (countdown <= 1) {
+                        timerEl.classList.add('warning');
+                    }
+                    if (countdown <= 0) {
+                        clearInterval(timerInterval);
+                        timerEl.classList.add('hidden');
+                        timerEl.classList.remove('warning');
+                    }
+                }, 1000);
+                
+                // Démarrer l'enregistrement
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
                 
@@ -373,77 +347,135 @@
                 };
                 
                 mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    updateDebug('debugAudioCapture', `✅ Audio capturé (${Math.round(audioBlob.size / 1024)}KB)`);
-                    await processAudio(audioBlob);
+                    stream.getTracks().forEach(track => track.stop());
+                    await processRecording();
                 };
                 
                 mediaRecorder.start();
-                isRecording = true;
-                updateStatus('listening', '🎤 En écoute... Parlez maintenant !');
+                
+                // Arrêter après 3 secondes
+                setTimeout(() => {
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                    }
+                }, RECORDING_DURATION);
                 
             } catch (error) {
-                console.error('Erreur micro:', error);
-                alert('❌ Impossible d\'accéder au microphone');
+                console.error('Erreur enregistrement:', error);
+                updateStatus('error', '❌ Erreur: ' + error.message);
+                document.getElementById('recordBtn').disabled = false;
             }
         }
         
-        function stopRecording() {
-            if (mediaRecorder && isRecording) {
-                mediaRecorder.stop();
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                isRecording = false;
-            }
-            
-            if (timer) {
-                clearInterval(timer);
-            }
-            
-            document.getElementById('timer').classList.add('hidden');
-        }
-        
-        async function processAudio(userAudioBlob) {
-            updateStatus('processing', '⏳ Traitement en cours...');
-            
-            const current = KANAS[currentIndex];
-            const suffixBuffer = suffixBuffers[current.suffix];
-            
-            if (!suffixBuffer) {
-                updateStatus('info', '❌ Erreur: suffixe non chargé');
-                updateDebug('debugConcatenation', '❌ Suffixe manquant');
-                showResult();
-                return;
-            }
-            
+        async function processRecording() {
             try {
-                // Convertir le blob utilisateur en AudioBuffer
-                const userArrayBuffer = await userAudioBlob.arrayBuffer();
-                const userAudioBuffer = await audioContext.decodeAudioData(userArrayBuffer);
+                updateStatus('processing', '⚙️ Traitement audio...');
+                document.getElementById('debugRecording').textContent = 'Traitement...';
                 
-                updateDebug('debugConcatenation', 'Concaténation en cours...');
+                // Créer le blob audio
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                document.getElementById('debugDuration').textContent = 
+                    audioBuffer.duration.toFixed(2) + 's';
+                
+                // Supprimer le silence
+                const trimmedBuffer = trimSilence(audioBuffer);
+                
+                document.getElementById('debugTrimmedDuration').textContent = 
+                    trimmedBuffer.duration.toFixed(2) + 's';
+                
+                document.getElementById('debugRecording').textContent = '✅ Enregistré et nettoyé';
+                
+                // Concaténer avec le suffixe
+                await concatenateWithSuffix(trimmedBuffer);
+                
+            } catch (error) {
+                console.error('Erreur traitement:', error);
+                updateStatus('error', '❌ Erreur de traitement: ' + error.message);
+                document.getElementById('recordBtn').disabled = false;
+            }
+        }
+        
+        function trimSilence(buffer) {
+            const channelData = buffer.getChannelData(0);
+            const sampleRate = buffer.sampleRate;
+            
+            // Trouver le début (premier échantillon non-silence)
+            let start = 0;
+            for (let i = 0; i < channelData.length; i++) {
+                if (Math.abs(channelData[i]) > SILENCE_THRESHOLD) {
+                    start = i;
+                    break;
+                }
+            }
+            
+            // Trouver la fin (dernier échantillon non-silence)
+            let end = channelData.length - 1;
+            for (let i = channelData.length - 1; i >= 0; i--) {
+                if (Math.abs(channelData[i]) > SILENCE_THRESHOLD) {
+                    end = i;
+                    break;
+                }
+            }
+            
+            // Créer un nouveau buffer avec seulement la partie utile
+            const trimmedLength = end - start + 1;
+            const trimmedBuffer = audioContext.createBuffer(
+                buffer.numberOfChannels,
+                trimmedLength,
+                sampleRate
+            );
+            
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const sourceData = buffer.getChannelData(channel);
+                const targetData = trimmedBuffer.getChannelData(channel);
+                for (let i = 0; i < trimmedLength; i++) {
+                    targetData[i] = sourceData[start + i];
+                }
+            }
+            
+            return trimmedBuffer;
+        }
+        
+        async function concatenateWithSuffix(userBuffer) {
+            try {
+                const selectedSuffix = document.getElementById('suffixSelect').value;
+                const suffixBuffer = suffixBuffers[selectedSuffix];
+                
+                if (!suffixBuffer) {
+                    throw new Error('Suffixe non chargé: ' + selectedSuffix);
+                }
+                
+                document.getElementById('debugConcatenation').textContent = 
+                    'Concaténation avec suffixe "' + selectedSuffix + '"...';
                 
                 // Concaténer les deux buffers
-                const concatenatedBuffer = concatenateAudioBuffers(userAudioBuffer, suffixBuffer);
+                const concatenatedBuffer = concatenateAudioBuffers(userBuffer, suffixBuffer);
                 
-                updateDebug('debugConcatenation', '✅ Audio concaténé');
+                document.getElementById('debugFinalDuration').textContent = 
+                    concatenatedBuffer.duration.toFixed(2) + 's';
                 
-                // Convertir en Blob WAV
-                const concatenatedBlob = await audioBufferToWavBlob(concatenatedBuffer);
+                // Convertir en WAV
+                lastConcatenatedBlob = await audioBufferToWavBlob(concatenatedBuffer);
                 
-                // Afficher le player audio
-                const audioURL = URL.createObjectURL(concatenatedBlob);
-                document.getElementById('audioPlayer').src = audioURL;
-                document.getElementById('audioPlayerContainer').classList.remove('hidden');
+                document.getElementById('debugConcatenation').textContent = 
+                    '✅ Concaténation réussie !';
                 
-                updateStatus('info', '✅ Concaténation terminée ! Écoutez ci-dessous.');
+                // Afficher le lecteur audio
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.src = URL.createObjectURL(lastConcatenatedBlob);
+                document.getElementById('audioPlayerSection').classList.remove('hidden');
                 
-                showResult();
+                updateStatus('ready', '✅ Audio prêt ! Écoutez et téléchargez si besoin');
+                document.getElementById('recordBtn').disabled = false;
                 
             } catch (error) {
-                console.error('Erreur processAudio:', error);
-                updateStatus('info', '❌ Erreur de traitement');
-                updateDebug('debugConcatenation', '❌ Erreur: ' + error.message);
-                showResult();
+                console.error('Erreur concaténation:', error);
+                updateStatus('error', '❌ Erreur de concaténation: ' + error.message);
+                document.getElementById('debugConcatenation').textContent = '❌ ' + error.message;
+                document.getElementById('recordBtn').disabled = false;
             }
         }
         
@@ -473,7 +505,7 @@
             let offset = 0;
             let pos = 0;
             
-            // Write WAV header
+            // Écrire l'en-tête WAV
             const setUint16 = (data) => {
                 view.setUint16(pos, data, true);
                 pos += 2;
@@ -483,6 +515,72 @@
                 pos += 4;
             };
             
-            // "RIFF"
-            setUint32(0x46464952);
-            // file length
+            setUint32(0x46464952); // "RIFF"
+            setUint32(length + 36); // file length
+            setUint32(0x45564157); // "WAVE"
+            setUint32(0x20746d66); // "fmt "
+            setUint32(16); // format chunk length
+            setUint16(1); // sample format (raw)
+            setUint16(numberOfChannels); // channel count
+            setUint32(audioBuffer.sampleRate); // sample rate
+            setUint32(audioBuffer.sampleRate * numberOfChannels * 2); // byte rate
+            setUint16(numberOfChannels * 2); // block align
+            setUint16(16); // bits per sample
+            setUint32(0x61746164); // "data"
+            setUint32(length); // data chunk length
+            
+            // Écrire les échantillons PCM
+            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                channels.push(audioBuffer.getChannelData(i));
+            }
+            
+            offset = 44;
+            for (let i = 0; i < audioBuffer.length; i++) {
+                for (let channel = 0; channel < numberOfChannels; channel++) {
+                    let sample = Math.max(-1, Math.min(1, channels[channel][i]));
+                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                    view.setInt16(offset, sample, true);
+                    offset += 2;
+                }
+            }
+            
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+        
+        function downloadAudio() {
+            if (!lastConcatenatedBlob) {
+                alert('❌ Aucun audio à télécharger');
+                return;
+            }
+            
+            const suffix = document.getElementById('suffixSelect').value;
+            const url = URL.createObjectURL(lastConcatenatedBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `test_audio_${suffix}_${Date.now()}.wav`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function resetTest() {
+            location.reload();
+        }
+        
+        function updateStatus(type, message) {
+            const status = document.getElementById('statusDisplay');
+            status.className = `status ${type}`;
+            status.textContent = message;
+        }
+        
+        // Mettre à jour le debug quand on change le suffixe
+        document.getElementById('suffixSelect').addEventListener('change', (e) => {
+            document.getElementById('debugSuffix').textContent = e.target.value;
+        });
+        
+        // Démarrer au chargement
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
