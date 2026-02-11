@@ -281,10 +281,14 @@
             <h3>Réponse attendue :</h3>
             <div class="word" id="answerWord">あめ</div>
             <div class="meaning" id="answerMeaning">(pluie)</div>
+            <button id="downloadAudioBtn" class="secondary" style="margin-top: 15px;" onclick="downloadConcatenatedAudio()">
+                💾 Télécharger l'audio concaténé
+            </button>
         </div>
         
         <!-- Boutons -->
         <button id="startBtn" onclick="startQuiz()">🚀 Commencer le Quiz</button>
+        <button id="downloadBtn" class="secondary hidden" onclick="downloadConcatenated()">⬇️ Télécharger l'audio concaténé</button>
         <button id="nextBtn" class="secondary hidden" onclick="nextCard()">➡️ Carte suivante</button>
         <button id="restartBtn" class="secondary hidden" onclick="restartQuiz()">🔄 Recommencer</button>
         
@@ -330,6 +334,7 @@
         let suffixBuffers = {};
         
         let recognition = null;
+        let lastConcatenatedAudioBlob = null; // Pour téléchargement
         
         // ========================================
         // INITIALISATION
@@ -513,6 +518,9 @@
                 
                 // Convertir en Blob pour la reconnaissance
                 const concatenatedBlob = await audioBufferToWavBlob(concatenatedBuffer);
+                
+                // Stocker pour téléchargement
+                lastConcatenatedAudioBlob = concatenatedBlob;
                 
                 // Lancer la reconnaissance vocale
                 recognizeAudio(concatenatedBlob, current.word);
@@ -716,6 +724,25 @@
         
         function updateDebug(id, message) {
             document.getElementById(id).textContent = message;
+        }
+        
+        function downloadConcatenatedAudio() {
+            if (!lastConcatenatedAudioBlob) {
+                alert('❌ Aucun audio à télécharger');
+                return;
+            }
+            
+            const current = KANAS[currentIndex];
+            const url = URL.createObjectURL(lastConcatenatedAudioBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `concatenated_${current.kana}_${current.word}.wav`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            console.log('✅ Audio téléchargé:', a.download);
         }
     </script>
 </body>
