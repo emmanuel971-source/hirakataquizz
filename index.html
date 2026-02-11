@@ -377,33 +377,69 @@
         }
         
         // Fonction de reconnaissance accessible globalement
-        window.recognizeWithWhisper = async function(audioBlob) {
-            if (!window.isWhisperReady) {
-                throw new Error('Whisper pas encore chargé');
-            }
+// Remplace la fonction recognizeWithWhisper par celle-ci dans la section <script type="module"> :
+
+window.recognizeWithWhisper = async function(audioBlob) {
+    if (!window.isWhisperReady) {
+        throw new Error('Whisper pas encore chargé');
+    }
+    
+    try {
+        // Convertir le blob en ArrayBuffer
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        
+        // IMPORTANT: Créer un AudioContext SANS spécifier le sampleRate
+        // Le navigateur choisira automatiquement le bon selon le device
+        let audioContext;
+        try {
+            audioContext = new AudioContext();
+        } catch (e) {
+            // Fallback pour les anciens navigateurs
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        
+        // Resample à 16kHz pour Whisper
+        const targetSampleRate = 16000;
+        let audioData;
+        
+        if (audioBuffer.sampleRate === targetSampleRate) {
+            // Pas besoin de resampling
+            audioData = audioBuffer.getChannelData(0);
+        } else {
+            // Resampling nécessaire
+            const offlineContext = new OfflineAudioContext(
+                1,
+                audioBuffer.duration * targetSampleRate,
+                targetSampleRate
+            );
             
-            try {
-                // Convertir le blob en ArrayBuffer
-                const arrayBuffer = await audioBlob.arrayBuffer();
-                
-                // Whisper attend un Float32Array
-                const audioContext = new AudioContext({ sampleRate: 16000 });
-                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                const audioData = audioBuffer.getChannelData(0);
-                
-                // Lancer la transcription
-                const result = await window.whisperPipeline(audioData, {
-                    language: 'japanese',
-                    task: 'transcribe'
-                });
-                
-                return result.text;
-                
-            } catch (error) {
-                console.error('Erreur reconnaissance:', error);
-                throw error;
-            }
-        };
+            const source = offlineContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(offlineContext.destination);
+            source.start();
+            
+            const resampledBuffer = await offlineContext.startRendering();
+            audioData = resampledBuffer.getChannelData(0);
+        }
+        
+        // Fermer le contexte pour libérer les ressources
+        await audioContext.close();
+        
+        // Lancer la transcription
+        const result = await window.whisperPipeline(audioData, {
+            language: 'japanese',
+            task: 'transcribe'
+        });
+        
+        return result.text;
+        
+    } catch (error) {
+        console.error('Erreur reconnaissance:', error);
+        throw error;
+    }
+};
         
         // Démarrer le chargement
         loadWhisper();
@@ -426,15 +462,18 @@
         const SUFFIXES = ['め', 'え', 'み', 'き', 'ちゃ'];
         
         // Initialisation des suffixes
-        async function init() {
-            try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                await loadAllSuffixes();
-            } catch (error) {
-                console.error('Erreur init:', error);
-            }
-        }
-        
+// Remplace aussi la fonction init() pour l'AudioContext principal :
+
+async function init() {
+    try {
+        // Ne pas spécifier de sampleRate, laisser le navigateur choisir
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('AudioContext sampleRate:', audioContext.sampleRate);
+        await loadAllSuffixes();
+    } catch (error) {
+        console.error('Erreur init:', error);
+    }
+}
         async function loadAllSuffixes() {
             let loaded = 0;
             
@@ -456,64 +495,90 @@
             document.getElementById('debugLoaded').textContent = `${loaded}/${SUFFIXES.length} chargés`;
         }
         
-        async function startRecording() {
-            try {
-                updateStatus('recording', '🎤 Enregistrement...');
-                document.getElementById('recordBtn').disabled = true;
-                document.getElementById('debugRecording').textContent = 'En cours...';
-                document.getElementById('audioPlayerSection').classList.add('hidden');
-                document.getElementById('recognitionResult').classList.add('hidden');
-                
-                // Reset debug
-                document.getElementById('debugNormalization').textContent = '-';
-                document.getElementById('debugCrossfade').textContent = '-';
-                document.getElementById('debugFinalDuration').textContent = '-';
-                document.getElementById('debugRecognition').textContent = '-';
-                
-                // Timer
-                const timerEl = document.getElementById('timerDisplay');
-                timerEl.classList.remove('hidden', 'warning');
-                let countdown = 3;
-                timerEl.textContent = countdown;
-                
-                const timerInterval = setInterval(() => {
-                    countdown--;
-                    timerEl.textContent = countdown;
-                    if (countdown <= 1) timerEl.classList.add('warning');
-                    if (countdown <= 0) {
-                        clearInterval(timerInterval);
-                        timerEl.classList.add('hidden');
-                        timerEl.classList.remove('warning');
-                    }
-                }, 1000);
-                
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
-                
-                mediaRecorder.onstop = async () => {
-                    stream.getTracks().forEach(track => track.stop());
-                    await processRecording();
-                };
-                
-                mediaRecorder.start();
-                
-                setTimeout(() => {
-                    if (mediaRecorder && mediaRecorder.state === 'recording') {
-                        mediaRecorder.stop();
-                    }
-                }, RECORDING_DURATION);
-                
-            } catch (error) {
-                console.error('Erreur enregistrement:', error);
-                updateStatus('error', '❌ Erreur: ' + error.message);
-                document.getElementById('recordBtn').disabled = false;
+      // Remplace la fonction startRecording() par celle-ci :
+
+async function startRecording() {
+    try {
+        updateStatus('recording', '🎤 Enregistrement...');
+        document.getElementById('recordBtn').disabled = true;
+        document.getElementById('debugRecording').textContent = 'En cours...';
+        document.getElementById('audioPlayerSection').classList.add('hidden');
+        document.getElementById('recognitionResult').classList.add('hidden');
+        
+        // Reset debug
+        document.getElementById('debugNormalization').textContent = '-';
+        document.getElementById('debugCrossfade').textContent = '-';
+        document.getElementById('debugFinalDuration').textContent = '-';
+        document.getElementById('debugRecognition').textContent = '-';
+        
+        // Timer
+        const timerEl = document.getElementById('timerDisplay');
+        timerEl.classList.remove('hidden', 'warning');
+        let countdown = 3;
+        timerEl.textContent = countdown;
+        
+        const timerInterval = setInterval(() => {
+            countdown--;
+            timerEl.textContent = countdown;
+            if (countdown <= 1) timerEl.classList.add('warning');
+            if (countdown <= 0) {
+                clearInterval(timerInterval);
+                timerEl.classList.add('hidden');
+                timerEl.classList.remove('warning');
             }
+        }, 1000);
+        
+        // Configuration audio optimisée
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+                sampleRate: 48000  // Sample rate élevé pour meilleure qualité
+            }
+        });
+        
+        // Détecter le meilleur format MIME supporté
+        let mimeType = 'audio/webm';
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+            mimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+            mimeType = 'audio/mp4';
+        } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+            mimeType = 'audio/ogg;codecs=opus';
         }
+        
+        console.log('Format utilisé:', mimeType);
+        
+        mediaRecorder = new MediaRecorder(stream, { 
+            mimeType: mimeType,
+            audioBitsPerSecond: 128000  // Haute qualité
+        });
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+            stream.getTracks().forEach(track => track.stop());
+            await processRecording();
+        };
+        
+        mediaRecorder.start();
+        
+        setTimeout(() => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+        }, RECORDING_DURATION);
+        
+    } catch (error) {
+        console.error('Erreur enregistrement:', error);
+        updateStatus('error', '❌ Erreur: ' + error.message);
+        document.getElementById('recordBtn').disabled = false;
+    }
+}
         
         async function processRecording() {
             try {
@@ -816,3 +881,4 @@
     </script>
 </body>
 </html>
+
