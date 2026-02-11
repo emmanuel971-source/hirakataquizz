@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎤 Test Audio - Enregistrement et Reconnaissance</title>
+    <title>🎤 Test Audio - Whisper Recognition</title>
     <style>
         * {
             margin: 0;
@@ -69,6 +69,11 @@
         .status.idle {
             background: #e7e7e7;
             color: #333;
+        }
+        
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
         }
         
         .status.recording {
@@ -215,21 +220,41 @@
             color: #667eea;
         }
         
-        .result-box .confidence {
-            color: #666;
-            font-size: 0.9em;
-            margin-top: 5px;
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎤 Test Reconnaissance Vocale</h1>
-        <p class="subtitle">Enregistrement → Nettoyage → Concaténation → Reconnaissance</p>
+        <h1>🎤 Test Whisper AI</h1>
+        <p class="subtitle">Reconnaissance vocale avec Whisper (offline)</p>
         
         <!-- Status -->
-        <div id="statusDisplay" class="status idle">
-            ⏳ Chargement...
+        <div id="statusDisplay" class="status loading">
+            ⏳ Chargement du modèle Whisper...
+        </div>
+        
+        <!-- Progress bar pour le chargement -->
+        <div id="loadingSection">
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <div class="debug-info" style="text-align: center;">
+                <div id="loadingText">Initialisation...</div>
+            </div>
         </div>
         
         <!-- Sélection du suffixe -->
@@ -246,6 +271,7 @@
             </div>
             <div class="debug-info">
                 <div class="debug-line">Mot attendu: <span id="debugExpectedWord">あめ</span></div>
+                <div class="debug-line">Romaji: <span id="debugRomaji">ame</span></div>
                 <div class="debug-line">Suffixe: <span id="debugSuffix">め</span></div>
                 <div class="debug-line">Chargés: <span id="debugLoaded">-</span></div>
             </div>
@@ -255,7 +281,7 @@
         <div class="section">
             <h3>2️⃣ Enregistrer (3 secondes)</h3>
             <div id="timerDisplay" class="timer hidden">3</div>
-            <button id="recordBtn" onclick="startRecording()">🎤 Commencer l'enregistrement</button>
+            <button id="recordBtn" onclick="startRecording()" disabled>🎤 Commencer l'enregistrement</button>
             <div class="debug-info">
                 <div class="debug-line">État: <span id="debugRecording">-</span></div>
                 <div class="debug-line">Durée brute: <span id="debugDuration">-</span></div>
@@ -277,9 +303,9 @@
             </div>
         </div>
         
-        <!-- Reconnaissance vocale -->
+        <!-- Reconnaissance vocale Whisper -->
         <div class="section">
-            <h3>4️⃣ Reconnaissance vocale</h3>
+            <h3>4️⃣ Reconnaissance Whisper AI</h3>
             <div class="debug-info">
                 <div class="debug-line">État: <span id="debugRecognition">-</span></div>
             </div>
@@ -287,7 +313,6 @@
                 <div class="result-box">
                     <div class="label">Résultat détecté :</div>
                     <div class="value" id="recognizedText">-</div>
-                    <div class="confidence">Confiance: <span id="recognitionConfidence">-</span></div>
                 </div>
                 <div class="result-box" style="margin-top: 10px;">
                     <div class="label">Comparaison :</div>
@@ -299,11 +324,96 @@
         <button class="secondary" onclick="resetTest()">🔄 Recommencer</button>
     </div>
 
+    <!-- Charger Transformers.js -->
+    <script type="module">
+        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+        
+        // Configuration
+        env.allowLocalModels = false;
+        
+        // Variables globales
+        window.whisperPipeline = null;
+        window.isWhisperReady = false;
+        
+        // Charger le modèle Whisper
+        async function loadWhisper() {
+            try {
+                document.getElementById('loadingText').textContent = 
+                    'Téléchargement du modèle Whisper (tiny) - ~75MB...';
+                document.getElementById('progressFill').style.width = '10%';
+                
+                // Utiliser le modèle "tiny" pour le japonais
+                window.whisperPipeline = await pipeline(
+                    'automatic-speech-recognition',
+                    'Xenova/whisper-tiny',
+                    {
+                        progress_callback: (progress) => {
+                            if (progress.status === 'progress') {
+                                const percent = Math.round((progress.loaded / progress.total) * 100);
+                                document.getElementById('progressFill').style.width = percent + '%';
+                                document.getElementById('loadingText').textContent = 
+                                    `Téléchargement: ${percent}%`;
+                            }
+                        }
+                    }
+                );
+                
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('loadingText').textContent = '✅ Modèle chargé !';
+                document.getElementById('loadingSection').classList.add('hidden');
+                document.getElementById('statusDisplay').className = 'status idle';
+                document.getElementById('statusDisplay').textContent = '✅ Prêt à enregistrer !';
+                document.getElementById('recordBtn').disabled = false;
+                
+                window.isWhisperReady = true;
+                console.log('✅ Whisper prêt');
+                
+            } catch (error) {
+                console.error('Erreur chargement Whisper:', error);
+                document.getElementById('statusDisplay').className = 'status error';
+                document.getElementById('statusDisplay').textContent = 
+                    '❌ Erreur de chargement: ' + error.message;
+            }
+        }
+        
+        // Fonction de reconnaissance accessible globalement
+        window.recognizeWithWhisper = async function(audioBlob) {
+            if (!window.isWhisperReady) {
+                throw new Error('Whisper pas encore chargé');
+            }
+            
+            try {
+                // Convertir le blob en ArrayBuffer
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                
+                // Whisper attend un Float32Array
+                const audioContext = new AudioContext({ sampleRate: 16000 });
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                const audioData = audioBuffer.getChannelData(0);
+                
+                // Lancer la transcription
+                const result = await window.whisperPipeline(audioData, {
+                    language: 'japanese',
+                    task: 'transcribe'
+                });
+                
+                return result.text;
+                
+            } catch (error) {
+                console.error('Erreur reconnaissance:', error);
+                throw error;
+            }
+        };
+        
+        // Démarrer le chargement
+        loadWhisper();
+    </script>
+
     <script>
         // Configuration
-        const RECORDING_DURATION = 3000; // 3 secondes
-        const SILENCE_THRESHOLD = 0.01; // Seuil pour détecter le silence
-        const CROSSFADE_DURATION = 0.05; // 50ms de crossfade
+        const RECORDING_DURATION = 3000;
+        const SILENCE_THRESHOLD = 0.01;
+        const CROSSFADE_DURATION = 0.05;
         const AUDIO_BASE_URL = 'https://emmanuel971-source.github.io/hirakataquizz/';
         
         // Variables globales
@@ -312,42 +422,17 @@
         let audioChunks = [];
         let suffixBuffers = {};
         let lastConcatenatedBlob = null;
-        let recognition = null;
         
-        // Liste des suffixes
         const SUFFIXES = ['め', 'え', 'み', 'き', 'ちゃ'];
         
-        // Initialisation
+        // Initialisation des suffixes
         async function init() {
             try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                updateStatus('processing', '⏳ Chargement des suffixes...');
-                
-                // Initialiser la reconnaissance vocale
-                initSpeechRecognition();
-                
                 await loadAllSuffixes();
-                
-                updateStatus('idle', '✅ Prêt à enregistrer !');
             } catch (error) {
                 console.error('Erreur init:', error);
-                updateStatus('error', '❌ Erreur: ' + error.message);
             }
-        }
-        
-        function initSpeechRecognition() {
-            if ('webkitSpeechRecognition' in window) {
-                recognition = new webkitSpeechRecognition();
-            } else if ('SpeechRecognition' in window) {
-                recognition = new SpeechRecognition();
-            } else {
-                console.warn('Reconnaissance vocale non disponible');
-                return;
-            }
-            
-            recognition.lang = 'ja-JP';
-            recognition.continuous = false;
-            recognition.interimResults = false;
         }
         
         async function loadAllSuffixes() {
@@ -371,7 +456,6 @@
             document.getElementById('debugLoaded').textContent = `${loaded}/${SUFFIXES.length} chargés`;
         }
         
-        // Enregistrement
         async function startRecording() {
             try {
                 updateStatus('recording', '🎤 Enregistrement...');
@@ -386,7 +470,7 @@
                 document.getElementById('debugFinalDuration').textContent = '-';
                 document.getElementById('debugRecognition').textContent = '-';
                 
-                // Timer visuel
+                // Timer
                 const timerEl = document.getElementById('timerDisplay');
                 timerEl.classList.remove('hidden', 'warning');
                 let countdown = 3;
@@ -403,7 +487,6 @@
                     }
                 }, 1000);
                 
-                // Démarrer l'enregistrement
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
@@ -419,7 +502,6 @@
                 
                 mediaRecorder.start();
                 
-                // Arrêter après 3 secondes
                 setTimeout(() => {
                     if (mediaRecorder && mediaRecorder.state === 'recording') {
                         mediaRecorder.stop();
@@ -438,7 +520,6 @@
                 updateStatus('processing', '⚙️ Traitement...');
                 document.getElementById('debugRecording').textContent = 'Traitement...';
                 
-                // Créer le blob audio
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 const arrayBuffer = await audioBlob.arrayBuffer();
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -446,7 +527,6 @@
                 document.getElementById('debugDuration').textContent = 
                     audioBuffer.duration.toFixed(2) + 's';
                 
-                // Supprimer le silence
                 const trimmedBuffer = trimSilence(audioBuffer);
                 
                 document.getElementById('debugTrimmedDuration').textContent = 
@@ -454,7 +534,6 @@
                 
                 document.getElementById('debugRecording').textContent = '✅ Nettoyé';
                 
-                // Concaténer avec le suffixe
                 await concatenateWithSuffix(trimmedBuffer);
                 
             } catch (error) {
@@ -468,7 +547,6 @@
             const channelData = buffer.getChannelData(0);
             const sampleRate = buffer.sampleRate;
             
-            // Trouver le début
             let start = 0;
             for (let i = 0; i < channelData.length; i++) {
                 if (Math.abs(channelData[i]) > SILENCE_THRESHOLD) {
@@ -477,7 +555,6 @@
                 }
             }
             
-            // Trouver la fin
             let end = channelData.length - 1;
             for (let i = channelData.length - 1; i >= 0; i--) {
                 if (Math.abs(channelData[i]) > SILENCE_THRESHOLD) {
@@ -486,7 +563,6 @@
                 }
             }
             
-            // Créer nouveau buffer
             const trimmedLength = end - start + 1;
             const trimmedBuffer = audioContext.createBuffer(
                 buffer.numberOfChannels,
@@ -506,7 +582,6 @@
         }
         
         function normalizeBuffer(buffer) {
-            // Trouver le pic maximum
             let max = 0;
             for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
                 const data = buffer.getChannelData(channel);
@@ -515,11 +590,9 @@
                 }
             }
             
-            // Normaliser à 0.8 pour éviter la saturation
             const targetLevel = 0.8;
             const gain = max > 0 ? targetLevel / max : 1;
             
-            // Créer nouveau buffer normalisé
             const normalized = audioContext.createBuffer(
                 buffer.numberOfChannels,
                 buffer.length,
@@ -547,13 +620,11 @@
                     throw new Error('Suffixe non chargé: ' + selectedSuffix);
                 }
                 
-                // Normaliser les deux buffers
                 document.getElementById('debugNormalization').textContent = 'En cours...';
                 const normalizedUser = normalizeBuffer(userBuffer);
                 const normalizedSuffix = normalizeBuffer(suffixBuffer);
                 document.getElementById('debugNormalization').textContent = '✅ OK';
                 
-                // Concaténer avec crossfade
                 document.getElementById('debugCrossfade').textContent = 'En cours...';
                 const concatenatedBuffer = concatenateWithCrossfade(normalizedUser, normalizedSuffix);
                 document.getElementById('debugCrossfade').textContent = '✅ OK';
@@ -561,17 +632,14 @@
                 document.getElementById('debugFinalDuration').textContent = 
                     concatenatedBuffer.duration.toFixed(2) + 's';
                 
-                // Convertir en WAV
                 lastConcatenatedBlob = await audioBufferToWavBlob(concatenatedBuffer);
                 
-                // Afficher le lecteur
                 const audioPlayer = document.getElementById('audioPlayer');
                 audioPlayer.src = URL.createObjectURL(lastConcatenatedBlob);
                 document.getElementById('audioPlayerSection').classList.remove('hidden');
                 
-                updateStatus('ready', '✅ Audio prêt ! Lancement reconnaissance...');
+                updateStatus('processing', '🤖 Reconnaissance Whisper en cours...');
                 
-                // Lancer la reconnaissance vocale
                 await recognizeAudio();
                 
             } catch (error) {
@@ -585,27 +653,19 @@
             const sampleRate = buffer1.sampleRate;
             const crossfadeSamples = Math.floor(CROSSFADE_DURATION * sampleRate);
             const numberOfChannels = Math.min(buffer1.numberOfChannels, buffer2.numberOfChannels);
-            
-            // Longueur totale avec crossfade
             const totalLength = buffer1.length + buffer2.length - crossfadeSamples;
             
-            const result = audioContext.createBuffer(
-                numberOfChannels,
-                totalLength,
-                sampleRate
-            );
+            const result = audioContext.createBuffer(numberOfChannels, totalLength, sampleRate);
             
             for (let channel = 0; channel < numberOfChannels; channel++) {
                 const output = result.getChannelData(channel);
                 const input1 = buffer1.getChannelData(channel);
                 const input2 = buffer2.getChannelData(channel);
                 
-                // Copier le premier buffer
                 for (let i = 0; i < buffer1.length - crossfadeSamples; i++) {
                     output[i] = input1[i];
                 }
                 
-                // Zone de crossfade
                 const crossfadeStart = buffer1.length - crossfadeSamples;
                 for (let i = 0; i < crossfadeSamples; i++) {
                     const ratio = i / crossfadeSamples;
@@ -614,7 +674,6 @@
                     output[crossfadeStart + i] = sample1 * (1 - ratio) + sample2 * ratio;
                 }
                 
-                // Copier le reste du deuxième buffer
                 for (let i = crossfadeSamples; i < buffer2.length; i++) {
                     output[buffer1.length - crossfadeSamples + i] = input2[i];
                 }
@@ -624,71 +683,50 @@
         }
         
         async function recognizeAudio() {
-            if (!recognition) {
-                updateStatus('error', '❌ Reconnaissance vocale non disponible');
-                document.getElementById('debugRecognition').textContent = '❌ Non disponible';
-                document.getElementById('recordBtn').disabled = false;
-                return;
-            }
-            
-            document.getElementById('debugRecognition').textContent = 'En cours...';
-            updateStatus('processing', '🎧 Reconnaissance vocale...');
-            
-            const select = document.getElementById('suffixSelect');
-            const expectedWord = select.options[select.selectedIndex].getAttribute('data-word');
-            
-            // Jouer l'audio silencieusement (nécessaire pour la reconnaissance)
-            const audioPlayer = document.getElementById('audioPlayer');
-            audioPlayer.volume = 0.01; // Très bas pour ne pas déranger
-            audioPlayer.play();
-            
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                const confidence = event.results[0][0].confidence;
+            try {
+                document.getElementById('debugRecognition').textContent = 'Transcription...';
+                
+                const select = document.getElementById('suffixSelect');
+                const expectedWord = select.options[select.selectedIndex].getAttribute('data-word');
+                const expectedRomaji = select.options[select.selectedIndex].getAttribute('data-romaji');
+                
+                // Utiliser Whisper
+                const transcript = await window.recognizeWithWhisper(lastConcatenatedBlob);
                 
                 document.getElementById('debugRecognition').textContent = 
-                    `✅ "${transcript}" (${Math.round(confidence * 100)}%)`;
+                    `✅ "${transcript}"`;
                 
-                // Afficher le résultat
                 document.getElementById('recognizedText').textContent = transcript;
-                document.getElementById('recognitionConfidence').textContent = 
-                    Math.round(confidence * 100) + '%';
                 
-                // Comparer
-                const cleanTranscript = transcript.trim();
+                // Comparer (en hiragana et romaji)
+                const cleanTranscript = transcript.trim().toLowerCase();
                 const isCorrect = cleanTranscript === expectedWord || 
+                                cleanTranscript === expectedRomaji ||
                                 cleanTranscript.includes(expectedWord) || 
+                                cleanTranscript.includes(expectedRomaji) ||
                                 expectedWord.includes(cleanTranscript);
                 
                 if (isCorrect) {
                     document.getElementById('comparisonResult').textContent = '✅ CORRECT !';
                     document.getElementById('comparisonResult').style.color = '#28a745';
-                    updateStatus('success', '✅ Mot reconnu correctement !');
+                    updateStatus('success', '✅ Mot reconnu !');
                 } else {
                     document.getElementById('comparisonResult').textContent = 
-                        `❌ Attendu: ${expectedWord}`;
+                        `❌ Attendu: ${expectedWord} (${expectedRomaji})`;
                     document.getElementById('comparisonResult').style.color = '#dc3545';
                     updateStatus('error', '❌ Mot non reconnu');
                 }
                 
                 document.getElementById('recognitionResult').classList.remove('hidden');
-                audioPlayer.volume = 1; // Remettre le volume normal
                 document.getElementById('recordBtn').disabled = false;
-            };
-            
-            recognition.onerror = (event) => {
-                console.error('Erreur reconnaissance:', event.error);
+                
+            } catch (error) {
+                console.error('Erreur reconnaissance:', error);
                 document.getElementById('debugRecognition').textContent = 
-                    `❌ Erreur: ${event.error}`;
-                updateStatus('error', '❌ Erreur de reconnaissance');
-                audioPlayer.volume = 1;
+                    `❌ Erreur: ${error.message}`;
+                updateStatus('error', '❌ Erreur reconnaissance');
                 document.getElementById('recordBtn').disabled = false;
-            };
-            
-            // Petite pause avant de lancer la reconnaissance
-            setTimeout(() => {
-                recognition.start();
-            }, 500);
+            }
         }
         
         async function audioBufferToWavBlob(audioBuffer) {
@@ -709,10 +747,10 @@
                 pos += 4;
             };
             
-            setUint32(0x46464952); // "RIFF"
+            setUint32(0x46464952);
             setUint32(length + 36);
-            setUint32(0x45564157); // "WAVE"
-            setUint32(0x20746d66); // "fmt "
+            setUint32(0x45564157);
+            setUint32(0x20746d66);
             setUint32(16);
             setUint16(1);
             setUint16(numberOfChannels);
@@ -720,7 +758,7 @@
             setUint32(audioBuffer.sampleRate * numberOfChannels * 2);
             setUint16(numberOfChannels * 2);
             setUint16(16);
-            setUint32(0x61746164); // "data"
+            setUint32(0x61746164);
             setUint32(length);
             
             for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
@@ -767,14 +805,13 @@
             status.textContent = message;
         }
         
-        // Event listeners
         document.getElementById('suffixSelect').addEventListener('change', (e) => {
             const option = e.target.options[e.target.selectedIndex];
             document.getElementById('debugSuffix').textContent = e.target.value;
             document.getElementById('debugExpectedWord').textContent = option.getAttribute('data-word');
+            document.getElementById('debugRomaji').textContent = option.getAttribute('data-romaji');
         });
         
-        // Démarrer
         window.addEventListener('load', init);
     </script>
 </body>
