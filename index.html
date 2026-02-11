@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎤 Test Audio - Enregistrement et Concaténation</title>
+    <title>🎤 Test Audio - Enregistrement et Reconnaissance</title>
     <style>
         * {
             margin: 0;
@@ -82,6 +82,11 @@
         }
         
         .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.success {
             background: #d4edda;
             color: #155724;
         }
@@ -188,12 +193,39 @@
             outline: none;
             border-color: #667eea;
         }
+        
+        .result-box {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .result-box .label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .result-box .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .result-box .confidence {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎤 Test Audio Simplifié</h1>
-        <p class="subtitle">Enregistrement (3s) → Suppression silence → Concaténation</p>
+        <h1>🎤 Test Reconnaissance Vocale</h1>
+        <p class="subtitle">Enregistrement → Nettoyage → Concaténation → Reconnaissance</p>
         
         <!-- Status -->
         <div id="statusDisplay" class="status idle">
@@ -202,17 +234,18 @@
         
         <!-- Sélection du suffixe -->
         <div class="section">
-            <h3>1️⃣ Choisir un suffixe</h3>
+            <h3>1️⃣ Choisir un mot</h3>
             <div class="select-wrapper">
                 <select id="suffixSelect">
-                    <option value="め">あめ - /ame/ (pluie)</option>
-                    <option value="え">いえ - /ie/ (maison)</option>
-                    <option value="み">うみ - /umi/ (mer)</option>
-                    <option value="き">えき - /eki/ (gare)</option>
-                    <option value="ちゃ">おちゃ - /ocha/ (thé)</option>
+                    <option value="め" data-word="あめ" data-romaji="ame">あめ - /ame/ (pluie)</option>
+                    <option value="え" data-word="いえ" data-romaji="ie">いえ - /ie/ (maison)</option>
+                    <option value="み" data-word="うみ" data-romaji="umi">うみ - /umi/ (mer)</option>
+                    <option value="き" data-word="えき" data-romaji="eki">えき - /eki/ (gare)</option>
+                    <option value="ちゃ" data-word="おちゃ" data-romaji="ocha">おちゃ - /ocha/ (thé)</option>
                 </select>
             </div>
             <div class="debug-info">
+                <div class="debug-line">Mot attendu: <span id="debugExpectedWord">あめ</span></div>
                 <div class="debug-line">Suffixe: <span id="debugSuffix">め</span></div>
                 <div class="debug-line">Chargés: <span id="debugLoaded">-</span></div>
             </div>
@@ -230,16 +263,36 @@
             </div>
         </div>
         
-        <!-- Résultat -->
+        <!-- Concaténation -->
         <div class="section">
-            <h3>3️⃣ Résultat</h3>
+            <h3>3️⃣ Concaténation</h3>
             <div class="debug-info">
-                <div class="debug-line">Concaténation: <span id="debugConcatenation">-</span></div>
+                <div class="debug-line">Normalisation: <span id="debugNormalization">-</span></div>
+                <div class="debug-line">Crossfade: <span id="debugCrossfade">-</span></div>
                 <div class="debug-line">Durée finale: <span id="debugFinalDuration">-</span></div>
             </div>
             <div id="audioPlayerSection" class="hidden">
                 <audio id="audioPlayer" controls></audio>
                 <button class="success" onclick="downloadAudio()">⬇️ Télécharger WAV</button>
+            </div>
+        </div>
+        
+        <!-- Reconnaissance vocale -->
+        <div class="section">
+            <h3>4️⃣ Reconnaissance vocale</h3>
+            <div class="debug-info">
+                <div class="debug-line">État: <span id="debugRecognition">-</span></div>
+            </div>
+            <div id="recognitionResult" class="hidden">
+                <div class="result-box">
+                    <div class="label">Résultat détecté :</div>
+                    <div class="value" id="recognizedText">-</div>
+                    <div class="confidence">Confiance: <span id="recognitionConfidence">-</span></div>
+                </div>
+                <div class="result-box" style="margin-top: 10px;">
+                    <div class="label">Comparaison :</div>
+                    <div class="value" id="comparisonResult" style="font-size: 1.5em;">-</div>
+                </div>
             </div>
         </div>
         
@@ -250,6 +303,7 @@
         // Configuration
         const RECORDING_DURATION = 3000; // 3 secondes
         const SILENCE_THRESHOLD = 0.01; // Seuil pour détecter le silence
+        const CROSSFADE_DURATION = 0.05; // 50ms de crossfade
         const AUDIO_BASE_URL = 'https://emmanuel971-source.github.io/hirakataquizz/';
         
         // Variables globales
@@ -258,6 +312,7 @@
         let audioChunks = [];
         let suffixBuffers = {};
         let lastConcatenatedBlob = null;
+        let recognition = null;
         
         // Liste des suffixes
         const SUFFIXES = ['め', 'え', 'み', 'き', 'ちゃ'];
@@ -268,6 +323,9 @@
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 updateStatus('processing', '⏳ Chargement des suffixes...');
                 
+                // Initialiser la reconnaissance vocale
+                initSpeechRecognition();
+                
                 await loadAllSuffixes();
                 
                 updateStatus('idle', '✅ Prêt à enregistrer !');
@@ -275,6 +333,21 @@
                 console.error('Erreur init:', error);
                 updateStatus('error', '❌ Erreur: ' + error.message);
             }
+        }
+        
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+            } else if ('SpeechRecognition' in window) {
+                recognition = new SpeechRecognition();
+            } else {
+                console.warn('Reconnaissance vocale non disponible');
+                return;
+            }
+            
+            recognition.lang = 'ja-JP';
+            recognition.continuous = false;
+            recognition.interimResults = false;
         }
         
         async function loadAllSuffixes() {
@@ -305,6 +378,13 @@
                 document.getElementById('recordBtn').disabled = true;
                 document.getElementById('debugRecording').textContent = 'En cours...';
                 document.getElementById('audioPlayerSection').classList.add('hidden');
+                document.getElementById('recognitionResult').classList.add('hidden');
+                
+                // Reset debug
+                document.getElementById('debugNormalization').textContent = '-';
+                document.getElementById('debugCrossfade').textContent = '-';
+                document.getElementById('debugFinalDuration').textContent = '-';
+                document.getElementById('debugRecognition').textContent = '-';
                 
                 // Timer visuel
                 const timerEl = document.getElementById('timerDisplay');
@@ -425,20 +505,58 @@
             return trimmedBuffer;
         }
         
+        function normalizeBuffer(buffer) {
+            // Trouver le pic maximum
+            let max = 0;
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const data = buffer.getChannelData(channel);
+                for (let i = 0; i < data.length; i++) {
+                    max = Math.max(max, Math.abs(data[i]));
+                }
+            }
+            
+            // Normaliser à 0.8 pour éviter la saturation
+            const targetLevel = 0.8;
+            const gain = max > 0 ? targetLevel / max : 1;
+            
+            // Créer nouveau buffer normalisé
+            const normalized = audioContext.createBuffer(
+                buffer.numberOfChannels,
+                buffer.length,
+                buffer.sampleRate
+            );
+            
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const sourceData = buffer.getChannelData(channel);
+                const targetData = normalized.getChannelData(channel);
+                for (let i = 0; i < buffer.length; i++) {
+                    targetData[i] = sourceData[i] * gain;
+                }
+            }
+            
+            return normalized;
+        }
+        
         async function concatenateWithSuffix(userBuffer) {
             try {
-                const selectedSuffix = document.getElementById('suffixSelect').value;
+                const select = document.getElementById('suffixSelect');
+                const selectedSuffix = select.value;
                 const suffixBuffer = suffixBuffers[selectedSuffix];
                 
                 if (!suffixBuffer) {
                     throw new Error('Suffixe non chargé: ' + selectedSuffix);
                 }
                 
-                document.getElementById('debugConcatenation').textContent = 
-                    'Concaténation...';
+                // Normaliser les deux buffers
+                document.getElementById('debugNormalization').textContent = 'En cours...';
+                const normalizedUser = normalizeBuffer(userBuffer);
+                const normalizedSuffix = normalizeBuffer(suffixBuffer);
+                document.getElementById('debugNormalization').textContent = '✅ OK';
                 
-                // Concaténer
-                const concatenatedBuffer = concatenateAudioBuffers(userBuffer, suffixBuffer);
+                // Concaténer avec crossfade
+                document.getElementById('debugCrossfade').textContent = 'En cours...';
+                const concatenatedBuffer = concatenateWithCrossfade(normalizedUser, normalizedSuffix);
+                document.getElementById('debugCrossfade').textContent = '✅ OK';
                 
                 document.getElementById('debugFinalDuration').textContent = 
                     concatenatedBuffer.duration.toFixed(2) + 's';
@@ -446,39 +564,131 @@
                 // Convertir en WAV
                 lastConcatenatedBlob = await audioBufferToWavBlob(concatenatedBuffer);
                 
-                document.getElementById('debugConcatenation').textContent = '✅ OK';
-                
                 // Afficher le lecteur
                 const audioPlayer = document.getElementById('audioPlayer');
                 audioPlayer.src = URL.createObjectURL(lastConcatenatedBlob);
                 document.getElementById('audioPlayerSection').classList.remove('hidden');
                 
-                updateStatus('ready', '✅ Audio prêt !');
-                document.getElementById('recordBtn').disabled = false;
+                updateStatus('ready', '✅ Audio prêt ! Lancement reconnaissance...');
+                
+                // Lancer la reconnaissance vocale
+                await recognizeAudio();
                 
             } catch (error) {
                 console.error('Erreur concaténation:', error);
                 updateStatus('error', '❌ Erreur: ' + error.message);
-                document.getElementById('debugConcatenation').textContent = '❌ ' + error.message;
                 document.getElementById('recordBtn').disabled = false;
             }
         }
         
-        function concatenateAudioBuffers(buffer1, buffer2) {
+        function concatenateWithCrossfade(buffer1, buffer2) {
+            const sampleRate = buffer1.sampleRate;
+            const crossfadeSamples = Math.floor(CROSSFADE_DURATION * sampleRate);
             const numberOfChannels = Math.min(buffer1.numberOfChannels, buffer2.numberOfChannels);
-            const tmp = audioContext.createBuffer(
+            
+            // Longueur totale avec crossfade
+            const totalLength = buffer1.length + buffer2.length - crossfadeSamples;
+            
+            const result = audioContext.createBuffer(
                 numberOfChannels,
-                buffer1.length + buffer2.length,
-                buffer1.sampleRate
+                totalLength,
+                sampleRate
             );
             
-            for (let i = 0; i < numberOfChannels; i++) {
-                const channel = tmp.getChannelData(i);
-                channel.set(buffer1.getChannelData(i), 0);
-                channel.set(buffer2.getChannelData(i), buffer1.length);
+            for (let channel = 0; channel < numberOfChannels; channel++) {
+                const output = result.getChannelData(channel);
+                const input1 = buffer1.getChannelData(channel);
+                const input2 = buffer2.getChannelData(channel);
+                
+                // Copier le premier buffer
+                for (let i = 0; i < buffer1.length - crossfadeSamples; i++) {
+                    output[i] = input1[i];
+                }
+                
+                // Zone de crossfade
+                const crossfadeStart = buffer1.length - crossfadeSamples;
+                for (let i = 0; i < crossfadeSamples; i++) {
+                    const ratio = i / crossfadeSamples;
+                    const sample1 = input1[crossfadeStart + i];
+                    const sample2 = input2[i];
+                    output[crossfadeStart + i] = sample1 * (1 - ratio) + sample2 * ratio;
+                }
+                
+                // Copier le reste du deuxième buffer
+                for (let i = crossfadeSamples; i < buffer2.length; i++) {
+                    output[buffer1.length - crossfadeSamples + i] = input2[i];
+                }
             }
             
-            return tmp;
+            return result;
+        }
+        
+        async function recognizeAudio() {
+            if (!recognition) {
+                updateStatus('error', '❌ Reconnaissance vocale non disponible');
+                document.getElementById('debugRecognition').textContent = '❌ Non disponible';
+                document.getElementById('recordBtn').disabled = false;
+                return;
+            }
+            
+            document.getElementById('debugRecognition').textContent = 'En cours...';
+            updateStatus('processing', '🎧 Reconnaissance vocale...');
+            
+            const select = document.getElementById('suffixSelect');
+            const expectedWord = select.options[select.selectedIndex].getAttribute('data-word');
+            
+            // Jouer l'audio silencieusement (nécessaire pour la reconnaissance)
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.volume = 0.01; // Très bas pour ne pas déranger
+            audioPlayer.play();
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                const confidence = event.results[0][0].confidence;
+                
+                document.getElementById('debugRecognition').textContent = 
+                    `✅ "${transcript}" (${Math.round(confidence * 100)}%)`;
+                
+                // Afficher le résultat
+                document.getElementById('recognizedText').textContent = transcript;
+                document.getElementById('recognitionConfidence').textContent = 
+                    Math.round(confidence * 100) + '%';
+                
+                // Comparer
+                const cleanTranscript = transcript.trim();
+                const isCorrect = cleanTranscript === expectedWord || 
+                                cleanTranscript.includes(expectedWord) || 
+                                expectedWord.includes(cleanTranscript);
+                
+                if (isCorrect) {
+                    document.getElementById('comparisonResult').textContent = '✅ CORRECT !';
+                    document.getElementById('comparisonResult').style.color = '#28a745';
+                    updateStatus('success', '✅ Mot reconnu correctement !');
+                } else {
+                    document.getElementById('comparisonResult').textContent = 
+                        `❌ Attendu: ${expectedWord}`;
+                    document.getElementById('comparisonResult').style.color = '#dc3545';
+                    updateStatus('error', '❌ Mot non reconnu');
+                }
+                
+                document.getElementById('recognitionResult').classList.remove('hidden');
+                audioPlayer.volume = 1; // Remettre le volume normal
+                document.getElementById('recordBtn').disabled = false;
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Erreur reconnaissance:', event.error);
+                document.getElementById('debugRecognition').textContent = 
+                    `❌ Erreur: ${event.error}`;
+                updateStatus('error', '❌ Erreur de reconnaissance');
+                audioPlayer.volume = 1;
+                document.getElementById('recordBtn').disabled = false;
+            };
+            
+            // Petite pause avant de lancer la reconnaissance
+            setTimeout(() => {
+                recognition.start();
+            }, 500);
         }
         
         async function audioBufferToWavBlob(audioBuffer) {
@@ -559,7 +769,9 @@
         
         // Event listeners
         document.getElementById('suffixSelect').addEventListener('change', (e) => {
+            const option = e.target.options[e.target.selectedIndex];
             document.getElementById('debugSuffix').textContent = e.target.value;
+            document.getElementById('debugExpectedWord').textContent = option.getAttribute('data-word');
         });
         
         // Démarrer
