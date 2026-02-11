@@ -150,17 +150,6 @@
             50% { transform: scale(1.1); }
         }
         
-        .mic-indicator {
-            display: inline-block;
-            width: 15px;
-            height: 15px;
-            background: #dc3545;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-        
         .debug-info {
             font-family: monospace;
             font-size: 0.85em;
@@ -208,7 +197,7 @@
         
         <!-- Status -->
         <div id="statusDisplay" class="status idle">
-            ⏳ Prêt à démarrer
+            ⏳ Chargement...
         </div>
         
         <!-- Sélection du suffixe -->
@@ -216,44 +205,44 @@
             <h3>1️⃣ Choisir un suffixe</h3>
             <div class="select-wrapper">
                 <select id="suffixSelect">
-                    <option value="a">あ - /a/ (comme "ah")</option>
-                    <option value="i">い - /i/ (comme "i" dans "mini")</option>
-                    <option value="u">う - /u/ (comme "ou" dans "hibou")</option>
-                    <option value="e">え - /e/ (comme "é")</option>
-                    <option value="o">お - /o/ (comme "au" dans "auto")</option>
+                    <option value="め">あめ - /ame/ (pluie)</option>
+                    <option value="え">いえ - /ie/ (maison)</option>
+                    <option value="み">うみ - /umi/ (mer)</option>
+                    <option value="き">えき - /eki/ (gare)</option>
+                    <option value="ちゃ">おちゃ - /ocha/ (thé)</option>
                 </select>
             </div>
             <div class="debug-info">
-                <div class="debug-line">Suffixe sélectionné: <span id="debugSuffix">a</span></div>
+                <div class="debug-line">Suffixe: <span id="debugSuffix">め</span></div>
+                <div class="debug-line">Chargés: <span id="debugLoaded">-</span></div>
             </div>
         </div>
         
         <!-- Enregistrement -->
         <div class="section">
-            <h3>2️⃣ Enregistrer votre voix (3 secondes)</h3>
+            <h3>2️⃣ Enregistrer (3 secondes)</h3>
             <div id="timerDisplay" class="timer hidden">3</div>
             <button id="recordBtn" onclick="startRecording()">🎤 Commencer l'enregistrement</button>
             <div class="debug-info">
-                <div class="debug-line">État: <span id="debugRecording">Pas encore enregistré</span></div>
+                <div class="debug-line">État: <span id="debugRecording">-</span></div>
                 <div class="debug-line">Durée brute: <span id="debugDuration">-</span></div>
-                <div class="debug-line">Durée traitée: <span id="debugTrimmedDuration">-</span></div>
+                <div class="debug-line">Durée nettoyée: <span id="debugTrimmedDuration">-</span></div>
             </div>
         </div>
         
         <!-- Résultat -->
         <div class="section">
-            <h3>3️⃣ Résultat de la concaténation</h3>
+            <h3>3️⃣ Résultat</h3>
             <div class="debug-info">
-                <div class="debug-line">Concaténation: <span id="debugConcatenation">En attente</span></div>
+                <div class="debug-line">Concaténation: <span id="debugConcatenation">-</span></div>
                 <div class="debug-line">Durée finale: <span id="debugFinalDuration">-</span></div>
             </div>
             <div id="audioPlayerSection" class="hidden">
                 <audio id="audioPlayer" controls></audio>
-                <button class="success" onclick="downloadAudio()">⬇️ Télécharger le fichier WAV</button>
+                <button class="success" onclick="downloadAudio()">⬇️ Télécharger WAV</button>
             </div>
         </div>
         
-        <!-- Reset -->
         <button class="secondary" onclick="resetTest()">🔄 Recommencer</button>
     </div>
 
@@ -261,6 +250,7 @@
         // Configuration
         const RECORDING_DURATION = 3000; // 3 secondes
         const SILENCE_THRESHOLD = 0.01; // Seuil pour détecter le silence
+        const AUDIO_BASE_URL = 'https://emmanuel971-source.github.io/hirakataquizz/';
         
         // Variables globales
         let audioContext;
@@ -269,14 +259,8 @@
         let suffixBuffers = {};
         let lastConcatenatedBlob = null;
         
-        // Suffixes MP3 à charger
-        const SUFFIX_FILES = {
-            'a': 'https://raw.githubusercontent.com/tynorantoni/kana_quiz/main/suffixes/a.mp3',
-            'i': 'https://raw.githubusercontent.com/tynorantoni/kana_quiz/main/suffixes/i.mp3',
-            'u': 'https://raw.githubusercontent.com/tynorantoni/kana_quiz/main/suffixes/u.mp3',
-            'e': 'https://raw.githubusercontent.com/tynorantoni/kana_quiz/main/suffixes/e.mp3',
-            'o': 'https://raw.githubusercontent.com/tynorantoni/kana_quiz/main/suffixes/o.mp3'
-        };
+        // Liste des suffixes
+        const SUFFIXES = ['め', 'え', 'み', 'き', 'ちゃ'];
         
         // Initialisation
         async function init() {
@@ -284,52 +268,54 @@
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 updateStatus('processing', '⏳ Chargement des suffixes...');
                 
-                // Charger tous les suffixes
                 await loadAllSuffixes();
                 
                 updateStatus('idle', '✅ Prêt à enregistrer !');
             } catch (error) {
                 console.error('Erreur init:', error);
-                updateStatus('error', '❌ Erreur d\'initialisation: ' + error.message);
+                updateStatus('error', '❌ Erreur: ' + error.message);
             }
         }
         
         async function loadAllSuffixes() {
-            const promises = Object.entries(SUFFIX_FILES).map(async ([key, url]) => {
+            let loaded = 0;
+            
+            for (const suffix of SUFFIXES) {
                 try {
+                    const url = AUDIO_BASE_URL + encodeURIComponent(suffix) + '.mp3';
                     const response = await fetch(url);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const arrayBuffer = await response.arrayBuffer();
-                    suffixBuffers[key] = await audioContext.decodeAudioData(arrayBuffer);
-                    console.log(`✅ Suffixe ${key} chargé`);
+                    suffixBuffers[suffix] = await audioContext.decodeAudioData(arrayBuffer);
+                    loaded++;
+                    console.log(`✅ Suffixe ${suffix} chargé`);
+                    document.getElementById('debugLoaded').textContent = `${loaded}/${SUFFIXES.length}`;
                 } catch (error) {
-                    console.error(`❌ Erreur chargement ${key}:`, error);
-                    throw error;
+                    console.error(`❌ Erreur chargement ${suffix}:`, error);
                 }
-            });
+            }
             
-            await Promise.all(promises);
+            document.getElementById('debugLoaded').textContent = `${loaded}/${SUFFIXES.length} chargés`;
         }
         
         // Enregistrement
         async function startRecording() {
             try {
-                updateStatus('recording', '🎤 Enregistrement en cours...');
+                updateStatus('recording', '🎤 Enregistrement...');
                 document.getElementById('recordBtn').disabled = true;
-                document.getElementById('debugRecording').textContent = 'Enregistrement...';
+                document.getElementById('debugRecording').textContent = 'En cours...';
+                document.getElementById('audioPlayerSection').classList.add('hidden');
                 
-                // Afficher le timer
+                // Timer visuel
                 const timerEl = document.getElementById('timerDisplay');
-                timerEl.classList.remove('hidden');
+                timerEl.classList.remove('hidden', 'warning');
                 let countdown = 3;
                 timerEl.textContent = countdown;
                 
                 const timerInterval = setInterval(() => {
                     countdown--;
                     timerEl.textContent = countdown;
-                    if (countdown <= 1) {
-                        timerEl.classList.add('warning');
-                    }
+                    if (countdown <= 1) timerEl.classList.add('warning');
                     if (countdown <= 0) {
                         clearInterval(timerInterval);
                         timerEl.classList.add('hidden');
@@ -369,7 +355,7 @@
         
         async function processRecording() {
             try {
-                updateStatus('processing', '⚙️ Traitement audio...');
+                updateStatus('processing', '⚙️ Traitement...');
                 document.getElementById('debugRecording').textContent = 'Traitement...';
                 
                 // Créer le blob audio
@@ -386,14 +372,14 @@
                 document.getElementById('debugTrimmedDuration').textContent = 
                     trimmedBuffer.duration.toFixed(2) + 's';
                 
-                document.getElementById('debugRecording').textContent = '✅ Enregistré et nettoyé';
+                document.getElementById('debugRecording').textContent = '✅ Nettoyé';
                 
                 // Concaténer avec le suffixe
                 await concatenateWithSuffix(trimmedBuffer);
                 
             } catch (error) {
                 console.error('Erreur traitement:', error);
-                updateStatus('error', '❌ Erreur de traitement: ' + error.message);
+                updateStatus('error', '❌ Erreur: ' + error.message);
                 document.getElementById('recordBtn').disabled = false;
             }
         }
@@ -402,7 +388,7 @@
             const channelData = buffer.getChannelData(0);
             const sampleRate = buffer.sampleRate;
             
-            // Trouver le début (premier échantillon non-silence)
+            // Trouver le début
             let start = 0;
             for (let i = 0; i < channelData.length; i++) {
                 if (Math.abs(channelData[i]) > SILENCE_THRESHOLD) {
@@ -411,7 +397,7 @@
                 }
             }
             
-            // Trouver la fin (dernier échantillon non-silence)
+            // Trouver la fin
             let end = channelData.length - 1;
             for (let i = channelData.length - 1; i >= 0; i--) {
                 if (Math.abs(channelData[i]) > SILENCE_THRESHOLD) {
@@ -420,7 +406,7 @@
                 }
             }
             
-            // Créer un nouveau buffer avec seulement la partie utile
+            // Créer nouveau buffer
             const trimmedLength = end - start + 1;
             const trimmedBuffer = audioContext.createBuffer(
                 buffer.numberOfChannels,
@@ -449,9 +435,9 @@
                 }
                 
                 document.getElementById('debugConcatenation').textContent = 
-                    'Concaténation avec suffixe "' + selectedSuffix + '"...';
+                    'Concaténation...';
                 
-                // Concaténer les deux buffers
+                // Concaténer
                 const concatenatedBuffer = concatenateAudioBuffers(userBuffer, suffixBuffer);
                 
                 document.getElementById('debugFinalDuration').textContent = 
@@ -460,20 +446,19 @@
                 // Convertir en WAV
                 lastConcatenatedBlob = await audioBufferToWavBlob(concatenatedBuffer);
                 
-                document.getElementById('debugConcatenation').textContent = 
-                    '✅ Concaténation réussie !';
+                document.getElementById('debugConcatenation').textContent = '✅ OK';
                 
-                // Afficher le lecteur audio
+                // Afficher le lecteur
                 const audioPlayer = document.getElementById('audioPlayer');
                 audioPlayer.src = URL.createObjectURL(lastConcatenatedBlob);
                 document.getElementById('audioPlayerSection').classList.remove('hidden');
                 
-                updateStatus('ready', '✅ Audio prêt ! Écoutez et téléchargez si besoin');
+                updateStatus('ready', '✅ Audio prêt !');
                 document.getElementById('recordBtn').disabled = false;
                 
             } catch (error) {
                 console.error('Erreur concaténation:', error);
-                updateStatus('error', '❌ Erreur de concaténation: ' + error.message);
+                updateStatus('error', '❌ Erreur: ' + error.message);
                 document.getElementById('debugConcatenation').textContent = '❌ ' + error.message;
                 document.getElementById('recordBtn').disabled = false;
             }
@@ -505,7 +490,6 @@
             let offset = 0;
             let pos = 0;
             
-            // Écrire l'en-tête WAV
             const setUint16 = (data) => {
                 view.setUint16(pos, data, true);
                 pos += 2;
@@ -516,20 +500,19 @@
             };
             
             setUint32(0x46464952); // "RIFF"
-            setUint32(length + 36); // file length
+            setUint32(length + 36);
             setUint32(0x45564157); // "WAVE"
             setUint32(0x20746d66); // "fmt "
-            setUint32(16); // format chunk length
-            setUint16(1); // sample format (raw)
-            setUint16(numberOfChannels); // channel count
-            setUint32(audioBuffer.sampleRate); // sample rate
-            setUint32(audioBuffer.sampleRate * numberOfChannels * 2); // byte rate
-            setUint16(numberOfChannels * 2); // block align
-            setUint16(16); // bits per sample
+            setUint32(16);
+            setUint16(1);
+            setUint16(numberOfChannels);
+            setUint32(audioBuffer.sampleRate);
+            setUint32(audioBuffer.sampleRate * numberOfChannels * 2);
+            setUint16(numberOfChannels * 2);
+            setUint16(16);
             setUint32(0x61746164); // "data"
-            setUint32(length); // data chunk length
+            setUint32(length);
             
-            // Écrire les échantillons PCM
             for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
                 channels.push(audioBuffer.getChannelData(i));
             }
@@ -549,7 +532,7 @@
         
         function downloadAudio() {
             if (!lastConcatenatedBlob) {
-                alert('❌ Aucun audio à télécharger');
+                alert('❌ Aucun audio');
                 return;
             }
             
@@ -557,7 +540,7 @@
             const url = URL.createObjectURL(lastConcatenatedBlob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `test_audio_${suffix}_${Date.now()}.wav`;
+            a.download = `test_${suffix}_${Date.now()}.wav`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -574,12 +557,12 @@
             status.textContent = message;
         }
         
-        // Mettre à jour le debug quand on change le suffixe
+        // Event listeners
         document.getElementById('suffixSelect').addEventListener('change', (e) => {
             document.getElementById('debugSuffix').textContent = e.target.value;
         });
         
-        // Démarrer au chargement
+        // Démarrer
         window.addEventListener('load', init);
     </script>
 </body>
