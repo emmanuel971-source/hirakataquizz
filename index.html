@@ -447,9 +447,9 @@ window.recognizeWithWhisper = async function(audioBlob) {
 
     <script>
         // Configuration
-        const RECORDING_DURATION = 3000;
+        const RECORDING_DURATION = 2000;
         const SILENCE_THRESHOLD = 0.01;
-        const CROSSFADE_DURATION = 0.05;
+        const CROSSFADE_DURATION = 0.01;
         const AUDIO_BASE_URL = 'https://emmanuel971-source.github.io/hirakataquizz/';
         
         // Variables globales
@@ -608,43 +608,67 @@ async function startRecording() {
             }
         }
         
-        function trimSilence(buffer) {
-            const channelData = buffer.getChannelData(0);
-            const sampleRate = buffer.sampleRate;
-            
-            let start = 0;
-            for (let i = 0; i < channelData.length; i++) {
-                if (Math.abs(channelData[i]) > SILENCE_THRESHOLD) {
-                    start = i;
-                    break;
-                }
-            }
-            
-            let end = channelData.length - 1;
-            for (let i = channelData.length - 1; i >= 0; i--) {
-                if (Math.abs(channelData[i]) > SILENCE_THRESHOLD) {
-                    end = i;
-                    break;
-                }
-            }
-            
-            const trimmedLength = end - start + 1;
-            const trimmedBuffer = audioContext.createBuffer(
-                buffer.numberOfChannels,
-                trimmedLength,
-                sampleRate
-            );
-            
-            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-                const sourceData = buffer.getChannelData(channel);
-                const targetData = trimmedBuffer.getChannelData(channel);
-                for (let i = 0; i < trimmedLength; i++) {
-                    targetData[i] = sourceData[start + i];
-                }
-            }
-            
-            return trimmedBuffer;
+      function trimSilence(buffer) {
+    const channelData = buffer.getChannelData(0);
+    const sampleRate = buffer.sampleRate;
+    const threshold = 0.005;
+    
+    // Trouver le PREMIER son
+    let start = 0;
+    for (let i = 0; i < channelData.length; i++) {
+        if (Math.abs(channelData[i]) > threshold) {
+            start = Math.max(0, i - Math.floor(0.05 * sampleRate));
+            break;
         }
+    }
+    
+    // Trouver où le son s'ARRÊTE (premier long silence)
+    let end = start;
+    let silentSamples = 0;
+    const maxSilence = Math.floor(0.3 * sampleRate); // 300ms de silence max
+    
+    for (let i = start; i < channelData.length; i++) {
+        if (Math.abs(channelData[i]) > threshold) {
+            silentSamples = 0;
+            end = i;
+        } else {
+            silentSamples++;
+            if (silentSamples > maxSilence) {
+                // Trop de silence, on coupe ici
+                break;
+            }
+        }
+    }
+    
+    // Ajouter une petite marge à la fin
+    end = Math.min(channelData.length - 1, end + Math.floor(0.05 * sampleRate));
+    
+    if (start >= end) {
+        console.warn('Aucun son détecté');
+        return buffer;
+    }
+    
+    const trimmedLength = end - start + 1;
+    console.log('Trim:', {
+        original: (buffer.length / sampleRate).toFixed(2) + 's',
+        trimmed: (trimmedLength / sampleRate).toFixed(2) + 's',
+        removed: ((buffer.length - trimmedLength) / sampleRate).toFixed(2) + 's'
+    });
+    
+    const trimmedBuffer = audioContext.createBuffer(
+        buffer.numberOfChannels,
+        trimmedLength,
+        sampleRate
+    );
+    
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+        const sourceData = buffer.getChannelData(channel);
+        const targetData = trimmedBuffer.getChannelData(channel);
+        targetData.set(sourceData.slice(start, end + 1));
+    }
+    
+    return trimmedBuffer;
+}
         
         function normalizeBuffer(buffer) {
             let max = 0;
@@ -881,4 +905,5 @@ async function startRecording() {
     </script>
 </body>
 </html>
+
 
