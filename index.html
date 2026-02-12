@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur Voyelles WAV - Synthèse</title>
+    <title>Générateur Voyelles WAV</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,26 +21,14 @@
         h1 {
             color: #333;
             text-align: center;
+            font-size: 24px;
         }
         .info {
             background: #e3f2fd;
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
-        }
-        .method-select {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .method-select label {
-            display: block;
-            margin: 10px 0;
-            cursor: pointer;
-        }
-        .method-select input[type="radio"] {
-            margin-right: 10px;
+            font-size: 14px;
         }
         button {
             background: #4CAF50;
@@ -59,6 +47,12 @@
         button:disabled {
             background: #cccccc;
             cursor: not-allowed;
+        }
+        .test-btn {
+            background: #2196F3;
+        }
+        .test-btn:hover {
+            background: #1976D2;
         }
         .progress {
             margin-top: 20px;
@@ -88,7 +82,7 @@
             padding: 10px;
             border-radius: 5px;
             font-family: monospace;
-            font-size: 12px;
+            font-size: 11px;
             margin-top: 10px;
         }
         .log div {
@@ -106,33 +100,22 @@
     <div class="container">
         <h1>🎙️ Générateur de Voyelles WAV</h1>
         
-        <div class="method-select">
-            <strong>🔧 Choisissez la méthode :</strong>
-            <label>
-                <input type="radio" name="method" value="tts" checked>
-                <strong>Méthode 1 : Synthèse vocale</strong> (voix naturelles, nécessite un enregistrement manuel fichier par fichier)
-            </label>
-            <label>
-                <input type="radio" name="method" value="synth">
-                <strong>Méthode 2 : Synthèse pure</strong> (tonalités synthétiques, génération automatique rapide)
-            </label>
+        <div class="info">
+            <strong>ℹ️ Information :</strong><br>
+            Ce générateur crée 150 fichiers audio WAV<br>
+            • 5 voyelles (A, É, I, O, U)<br>
+            • 30 variations par voyelle<br>
+            • Durée : ~1 seconde/fichier<br>
+            • Format : WAV 16-bit (~40 Ko/fichier)<br>
+            • Synthèse basée sur les formants vocaux
         </div>
 
-        <div class="info">
-            <strong>ℹ️ Configuration :</strong><br>
-            150 fichiers audio WAV (30 variations × 5 voyelles)<br>
-            Voyelles : A, É, I, O, U<br>
-            Durée : ~1 seconde par fichier<br>
-            Format : WAV 16-bit, ~40-80 Ko/fichier<br>
-            <span id="voiceCount">Chargement...</span>
-        </div>
+        <button id="testBtn" onclick="testSound()" class="test-btn">
+            🔊 Tester un son
+        </button>
 
         <button id="startBtn" onclick="startGeneration()">
-            🚀 Démarrer la génération
-        </button>
-        
-        <button id="testBtn" onclick="testSound()" style="background: #2196F3;">
-            🔊 Tester un son
+            🚀 Démarrer la génération (150 fichiers)
         </button>
 
         <div class="progress" id="progressDiv">
@@ -148,37 +131,24 @@
     </div>
 
     <script>
-        let voices = [];
         let isGenerating = false;
+        let generatedCount = 0;
+        const totalFiles = 150;
+        
+        // Formants pour chaque voyelle [F1, F2]
         const voyelles = {
-            'A': [730, 1090], // Formants F1, F2
-            'É': [390, 2300],
+            'A': [730, 1090],
+            'E': [390, 2300],  // É
             'I': [240, 2400],
             'O': [400, 800],
             'U': [250, 595]
         };
-        const totalFiles = 150;
-        let generatedCount = 0;
-
-        // Charger les voix
-        function loadVoices() {
-            voices = speechSynthesis.getVoices();
-            const frenchVoices = voices.filter(v => v.lang.startsWith('fr'));
-            if (frenchVoices.length > 0) {
-                voices = frenchVoices;
-            }
-            document.getElementById('voiceCount').textContent = 
-                `Synthèse vocale : ${voices.length} voix | Synthèse pure : ∞ variations`;
-            log(`✓ ${voices.length} voix disponibles`, 'success');
-        }
-
-        speechSynthesis.onvoiceschanged = loadVoices;
-        loadVoices();
 
         function log(message, type = '') {
             const logDiv = document.getElementById('log');
             const entry = document.createElement('div');
-            entry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            const time = new Date().toLocaleTimeString();
+            entry.textContent = `${time} - ${message}`;
             if (type) entry.className = type;
             logDiv.appendChild(entry);
             logDiv.scrollTop = logDiv.scrollHeight;
@@ -191,18 +161,19 @@
                 `${generatedCount}/${totalFiles} (${Math.round(percent)}%)`;
         }
 
-        // Créer un fichier WAV
-        function createWavFile(audioBuffer) {
-            const numberOfChannels = 1;
+        // Créer un fichier WAV à partir d'un AudioBuffer
+        function audioBufferToWav(audioBuffer) {
+            const numChannels = 1;
             const sampleRate = audioBuffer.sampleRate;
-            const format = 1;
+            const format = 1; // PCM
             const bitDepth = 16;
             
-            const data = audioBuffer.getChannelData(0);
-            const dataLength = data.length * 2;
+            const channelData = audioBuffer.getChannelData(0);
+            const dataLength = channelData.length * 2;
             const buffer = new ArrayBuffer(44 + dataLength);
             const view = new DataView(buffer);
             
+            // Écrire l'en-tête WAV
             const writeString = (offset, string) => {
                 for (let i = 0; i < string.length; i++) {
                     view.setUint8(offset + i, string.charCodeAt(i));
@@ -215,7 +186,7 @@
             writeString(12, 'fmt ');
             view.setUint32(16, 16, true);
             view.setUint16(20, format, true);
-            view.setUint16(22, numberOfChannels, true);
+            view.setUint16(22, numChannels, true);
             view.setUint32(24, sampleRate, true);
             view.setUint32(28, sampleRate * 2, true);
             view.setUint16(32, 2, true);
@@ -223,107 +194,139 @@
             writeString(36, 'data');
             view.setUint32(40, dataLength, true);
             
+            // Écrire les données audio
             let offset = 44;
-            for (let i = 0; i < data.length; i++) {
-                const sample = Math.max(-1, Math.min(1, data[i]));
-                view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+            for (let i = 0; i < channelData.length; i++) {
+                const sample = Math.max(-1, Math.min(1, channelData[i]));
+                const intSample = sample < 0 ? sample * 32768 : sample * 32767;
+                view.setInt16(offset, intSample, true);
                 offset += 2;
             }
             
             return new Blob([buffer], { type: 'audio/wav' });
         }
 
-        // Synthèse pure avec formants
-        async function synthesizeVowelPure(vowel, variation) {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const sampleRate = audioContext.sampleRate;
-            const duration = 0.9;
-            const bufferSize = sampleRate * duration;
-            
-            const audioBuffer = audioContext.createBuffer(1, bufferSize, sampleRate);
-            const channelData = audioBuffer.getChannelData(0);
-            
-            const [f1, f2] = voyelles[voyel];
-            
-            // Variations
-            const pitchVar = 1 + ((variation % 10) - 5) * 0.05;
-            const f1Freq = f1 * pitchVar;
-            const f2Freq = f2 * pitchVar;
-            const f0 = 120 + ((variation % 20) - 10) * 3; // Fréquence fondamentale
-            
-            // Générer le son
-            for (let i = 0; i < bufferSize; i++) {
-                const t = i / sampleRate;
+        // Générer une voyelle synthétique
+        function generateVowel(vowel, variationIndex) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContext();
                 
-                // Fondamentale + harmoniques
-                let sample = 0;
-                sample += 0.4 * Math.sin(2 * Math.PI * f0 * t);
-                sample += 0.3 * Math.sin(2 * Math.PI * f0 * 2 * t);
-                sample += 0.2 * Math.sin(2 * Math.PI * f0 * 3 * t);
+                const sampleRate = audioContext.sampleRate;
+                const duration = 0.9; // 0.9 secondes
+                const numSamples = Math.floor(sampleRate * duration);
                 
-                // Formants (filtre simplifié)
-                sample += 0.3 * Math.sin(2 * Math.PI * f1Freq * t) * Math.exp(-t * 2);
-                sample += 0.2 * Math.sin(2 * Math.PI * f2Freq * t) * Math.exp(-t * 3);
+                const audioBuffer = audioContext.createBuffer(1, numSamples, sampleRate);
+                const channelData = audioBuffer.getChannelData(0);
                 
-                // Enveloppe ADSR
-                const attack = 0.05;
-                const decay = 0.1;
-                const sustain = 0.7;
-                const release = 0.15;
+                const [f1Base, f2Base] = voyelles[vowel];
                 
-                let envelope = 1;
-                if (t < attack) {
-                    envelope = t / attack;
-                } else if (t < attack + decay) {
-                    envelope = 1 - ((t - attack) / decay) * (1 - sustain);
-                } else if (t > duration - release) {
-                    envelope = sustain * ((duration - t) / release);
-                } else {
-                    envelope = sustain;
+                // Variations de pitch
+                const pitchVariation = 1 + ((variationIndex % 10) - 5) * 0.04;
+                const f1 = f1Base * pitchVariation;
+                const f2 = f2Base * pitchVariation;
+                
+                // Fréquence fondamentale (voix)
+                const f0Variation = ((variationIndex % 20) - 10) * 2;
+                const f0 = 120 + f0Variation; // Entre 100 et 140 Hz
+                
+                // Générer le signal audio
+                for (let i = 0; i < numSamples; i++) {
+                    const t = i / sampleRate;
+                    
+                    // Signal de base (onde fondamentale + harmoniques)
+                    let signal = 0;
+                    signal += 0.4 * Math.sin(2 * Math.PI * f0 * t);
+                    signal += 0.25 * Math.sin(2 * Math.PI * f0 * 2 * t);
+                    signal += 0.15 * Math.sin(2 * Math.PI * f0 * 3 * t);
+                    signal += 0.1 * Math.sin(2 * Math.PI * f0 * 4 * t);
+                    
+                    // Ajouter les formants
+                    signal += 0.25 * Math.sin(2 * Math.PI * f1 * t) * Math.exp(-t * 2);
+                    signal += 0.15 * Math.sin(2 * Math.PI * f2 * t) * Math.exp(-t * 3);
+                    
+                    // Enveloppe ADSR
+                    const attackTime = 0.05;
+                    const decayTime = 0.1;
+                    const sustainLevel = 0.7;
+                    const releaseTime = 0.15;
+                    
+                    let envelope = 1;
+                    if (t < attackTime) {
+                        // Attack
+                        envelope = t / attackTime;
+                    } else if (t < attackTime + decayTime) {
+                        // Decay
+                        const decayProgress = (t - attackTime) / decayTime;
+                        envelope = 1 - decayProgress * (1 - sustainLevel);
+                    } else if (t > duration - releaseTime) {
+                        // Release
+                        envelope = sustainLevel * ((duration - t) / releaseTime);
+                    } else {
+                        // Sustain
+                        envelope = sustainLevel;
+                    }
+                    
+                    channelData[i] = signal * envelope * 0.4;
                 }
                 
-                channelData[i] = sample * envelope * 0.5;
+                const wavBlob = audioBufferToWav(audioBuffer);
+                audioContext.close();
+                
+                return wavBlob;
+                
+            } catch (error) {
+                log(`Erreur génération: ${error.message}`, 'error');
+                console.error(error);
+                throw error;
             }
-            
-            const wavBlob = createWavFile(audioBuffer);
-            await audioContext.close();
-            
-            return wavBlob;
         }
 
-        // Synthèse vocale TTS
-        async function synthesizeVowelTTS(vowel, voiceIndex, pitch, rate) {
-            return new Promise((resolve, reject) => {
-                // Pour TTS, on doit générer un par un manuellement
-                // car on ne peut pas capturer directement l'audio
-                log(`⚠️ TTS nécessite un enregistrement manuel`, 'error');
-                resolve(null);
-            });
-        }
-
-        function downloadBlob(blob, filename) {
+        // Télécharger un fichier
+        function downloadFile(blob, filename) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
+            a.style.display = 'none';
             a.href = url;
             a.download = filename;
             document.body.appendChild(a);
             a.click();
+            
             setTimeout(() => {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             }, 100);
         }
 
+        // Tester un son
+        async function testSound() {
+            try {
+                log('🔊 Test en cours...', 'success');
+                const blob = await generateVowel('A', 0);
+                const url = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                
+                audio.onended = () => {
+                    URL.revokeObjectURL(url);
+                    log('✓ Test réussi !', 'success');
+                };
+                
+                audio.onerror = (e) => {
+                    log('✗ Erreur lecture audio', 'error');
+                };
+                
+                await audio.play();
+                
+            } catch (error) {
+                log(`✗ Erreur test: ${error.message}`, 'error');
+                alert('Erreur lors du test. Vérifiez la console.');
+            }
+        }
+
+        // Générer tous les fichiers
         async function startGeneration() {
             if (isGenerating) return;
             
-            const method = document.querySelector('input[name="method"]:checked').value;
-            
-            if (method === 'tts') {
-                alert('⚠️ La méthode TTS ne fonctionne pas automatiquement sur mobile.\n\nUtilisez plutôt la Méthode 2 (Synthèse pure) pour une génération automatique complète.');
-                return;
-            }
-
             isGenerating = true;
             generatedCount = 0;
             
@@ -332,7 +335,7 @@
             document.getElementById('progressDiv').style.display = 'block';
             document.getElementById('log').innerHTML = '';
             
-            log('🚀 Génération démarrée (Synthèse pure)...', 'success');
+            log('🚀 Démarrage de la génération...', 'success');
             updateProgress();
 
             try {
@@ -342,56 +345,42 @@
                     log(`📝 Génération de "${vowel}"...`);
                     
                     for (let i = 0; i < 30; i++) {
-                        const blob = await synthesizeVowelPure(vowel, i);
-                        
-                        const filename = `${vowel.toLowerCase()}_${String(i).padStart(2, '0')}_synth.wav`;
-                        downloadBlob(blob, filename);
-                        
-                        generatedCount++;
-                        updateProgress();
-                        
-                        if (i % 5 === 0) {
-                            log(`✓ ${vowel}: ${i + 1}/30`, 'success');
+                        try {
+                            const blob = await generateVowel(vowel, i);
+                            const filename = `${vowel.toLowerCase()}_${String(i + 1).padStart(2, '0')}.wav`;
+                            
+                            downloadFile(blob, filename);
+                            
+                            generatedCount++;
+                            updateProgress();
+                            
+                            // Log toutes les 5 générations
+                            if ((i + 1) % 5 === 0) {
+                                log(`✓ ${vowel}: ${i + 1}/30 générés`, 'success');
+                            }
+                            
+                            // Pause pour permettre les téléchargements
+                            await new Promise(resolve => setTimeout(resolve, 150));
+                            
+                        } catch (error) {
+                            log(`✗ Erreur ${vowel}_${i + 1}: ${error.message}`, 'error');
                         }
-                        
-                        // Pause pour permettre le téléchargement
-                        await new Promise(resolve => setTimeout(resolve, 200));
                     }
                 }
                 
-                log('🎉 Génération terminée ! 150 fichiers WAV créés.', 'success');
-                alert('✅ Terminé ! 150 fichiers WAV générés.');
+                log('🎉 Génération terminée !', 'success');
+                log(`✓ ${generatedCount} fichiers WAV créés`, 'success');
+                alert(`✅ Terminé !\n${generatedCount} fichiers WAV générés avec succès.`);
                 
             } catch (error) {
-                log(`❌ Erreur: ${error.message}`, 'error');
-                alert('Erreur lors de la génération.');
+                log(`❌ Erreur critique: ${error.message}`, 'error');
+                console.error(error);
+                alert(`Erreur: ${error.message}\nVérifiez la console pour plus de détails.`);
+                
             } finally {
                 isGenerating = false;
                 document.getElementById('startBtn').disabled = false;
                 document.getElementById('testBtn').disabled = false;
-            }
-        }
-
-        function testSound() {
-            const method = document.querySelector('input[name="method"]:checked').value;
-            
-            if (method === 'tts') {
-                if (voices.length === 0) {
-                    alert('Aucune voix disponible.');
-                    return;
-                }
-                const utterance = new SpeechSynthesisUtterance('A É I O U');
-                utterance.voice = voices[0];
-                speechSynthesis.speak(utterance);
-                log('🔊 Test TTS : A É I O U', 'success');
-            } else {
-                synthesizeVowelPure('A', 0).then(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const audio = new Audio(url);
-                    audio.play();
-                    log('🔊 Test synthèse : A', 'success');
-                    audio.onended = () => URL.revokeObjectURL(url);
-                });
             }
         }
     </script>
