@@ -91,6 +91,10 @@ const total = 150;
 let count = 0;
 let voices = [];
 
+let stream;
+let recorder;
+let chunks = [];
+
 speechSynthesis.onvoiceschanged = () => {
     voices = speechSynthesis.getVoices().filter(v=>v.lang.startsWith("fr"));
     log(`Voix détectées : ${voices.length}`);
@@ -106,40 +110,51 @@ function progress(){
     document.getElementById("bar").style.width=(count/total*100)+"%";
 }
 
-async function captureAndSpeak(text, pitch, rate, filename){
-
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-        video:false,
-        audio:true
+async function initCapture(){
+    stream = await navigator.mediaDevices.getDisplayMedia({
+        audio:true,
+        video:false
     });
 
-    const recorder = new MediaRecorder(stream);
-    const chunks=[];
+    recorder = new MediaRecorder(stream);
 
-    recorder.ondataavailable=e=>chunks.push(e.data);
-
-    recorder.onstop=()=>{
-        const blob=new Blob(chunks,{type:'audio/webm'});
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement("a");
-        a.href=url;
-        a.download=filename;
-        a.click();
-        URL.revokeObjectURL(url);
+    recorder.ondataavailable = e => {
+        if(e.data.size>0) chunks.push(e.data);
     };
+}
+
+async function speakAndSave(text, pitch, rate, filename){
+
+    chunks = [];
 
     recorder.start();
 
-    const u=new SpeechSynthesisUtterance(text);
-    u.voice=voices[Math.floor(Math.random()*voices.length)];
-    u.pitch=pitch;
-    u.rate=rate;
+    const u = new SpeechSynthesisUtterance(text);
+    u.voice = voices[Math.floor(Math.random()*voices.length)];
+    u.pitch = pitch;
+    u.rate = rate;
 
     speechSynthesis.speak(u);
 
-    u.onend=()=>setTimeout(()=>recorder.stop(),150);
+    return new Promise(resolve => {
+        u.onend = () => {
+            setTimeout(() => {
+                recorder.stop();
 
-    await new Promise(r=>u.onend=r);
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks,{type:'audio/webm'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    resolve();
+                };
+
+            },150);
+        };
+    });
 }
 
 async function start(){
@@ -150,22 +165,25 @@ async function start(){
     }
 
     document.getElementById("startBtn").disabled=true;
-    count=0;
+
+    log("Autorisation audio système...");
+    await initCapture();
+
     log("Démarrage génération...");
+    count=0;
     progress();
 
     for(const v of voyelles){
-
         for(let i=0;i<30;i++){
 
-            const pitch=1+(Math.random()*0.6-0.3);
-            const rate=1+(Math.random()*0.6-0.3);
+            const pitch = 1+(Math.random()*0.6-0.3);
+            const rate  = 1+(Math.random()*0.6-0.3);
 
-            const name=`${v}_${i+1}_p${pitch.toFixed(2)}_r${rate.toFixed(2)}.webm`;
+            const name = `${v}_${i+1}_p${pitch.toFixed(2)}_r${rate.toFixed(2)}.webm`;
 
             log(`Génération ${name}`);
 
-            await captureAndSpeak(v,pitch,rate,name);
+            await speakAndSave(v,pitch,rate,name);
 
             count++;
             progress();
@@ -176,6 +194,7 @@ async function start(){
 
     log("🎉 Génération terminée !");
     alert("150 fichiers audio générés !");
+
     document.getElementById("startBtn").disabled=false;
 }
 
@@ -187,3 +206,4 @@ function testVoice(){
 </script>
 </body>
 </html>
+
