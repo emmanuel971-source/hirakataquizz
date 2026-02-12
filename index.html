@@ -1,246 +1,558 @@
-import React, { useState, useRef } from 'react';
-
-export default function HiraganaRecognition() {
-  const [status, setStatus] = useState('idle');
-  const [recognizedKana, setRecognizedKana] = useState('—');
-  const [transcription, setTranscription] = useState('');
-  const [audioUrl, setAudioUrl] = useState(null);
-  const [debugLog, setDebugLog] = useState([]);
-  
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-  const RECORDING_DURATION = 2000; // 2 secondes
-
-  // Mapping hiragana complet
-  const kanaMap = {
-    // Hiragana direct
-    "あ": "あ", "い": "い", "う": "う", "え": "え", "お": "お",
-    "か": "か", "き": "き", "く": "く", "け": "け", "こ": "こ",
-    "さ": "さ", "し": "し", "す": "す", "せ": "せ", "そ": "そ",
-    "た": "た", "ち": "ち", "つ": "つ", "て": "て", "と": "と",
-    "な": "な", "に": "に", "ぬ": "ぬ", "ね": "ね", "の": "の",
-    "は": "は", "ひ": "ひ", "ふ": "ふ", "へ": "へ", "ほ": "ほ",
-    "ま": "ま", "み": "み", "む": "む", "め": "め", "も": "も",
-    "や": "や", "ゆ": "ゆ", "よ": "よ",
-    "ら": "ら", "り": "り", "る": "る", "れ": "れ", "ろ": "ろ",
-    "わ": "わ", "を": "を", "ん": "ん",
-    "が": "が", "ぎ": "ぎ", "ぐ": "ぐ", "げ": "げ", "ご": "ご",
-    "ざ": "ざ", "じ": "じ", "ず": "ず", "ぜ": "ぜ", "ぞ": "ぞ",
-    "だ": "だ", "ぢ": "ぢ", "づ": "づ", "で": "で", "ど": "ど",
-    "ば": "ば", "び": "び", "ぶ": "ぶ", "べ": "べ", "ぼ": "ぼ",
-    "ぱ": "ぱ", "ぴ": "ぴ", "ぷ": "ぷ", "ぺ": "ぺ", "ぽ": "ぽ",
-    // Romaji
-    "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お",
-    "ka": "か", "ki": "き", "ku": "く", "ke": "け", "ko": "こ",
-    "sa": "さ", "shi": "し", "si": "し", "su": "す", "se": "せ", "so": "そ",
-    "ta": "た", "chi": "ち", "ti": "ち", "tsu": "つ", "tu": "つ",
-    "te": "て", "to": "と",
-    "na": "な", "ni": "に", "nu": "ぬ", "ne": "ね", "no": "の",
-    "ha": "は", "hi": "ひ", "fu": "ふ", "hu": "ふ", "he": "へ", "ho": "ほ",
-    "ma": "ま", "mi": "み", "mu": "む", "me": "め", "mo": "も",
-    "ya": "や", "yu": "ゆ", "yo": "よ",
-    "ra": "ら", "ri": "り", "ru": "る", "re": "れ", "ro": "ろ",
-    "wa": "わ", "wo": "を", "n": "ん"
-  };
-
-  const addLog = (msg, isError = false) => {
-    const time = new Date().toLocaleTimeString();
-    setDebugLog(prev => [...prev, { time, msg, isError }]);
-  };
-
-  const startRecording = async () => {
-    try {
-      setStatus('recording');
-      setRecognizedKana('🎧');
-      setTranscription('');
-      setAudioUrl(null);
-      setDebugLog([]);
-      addLog('🎤 Début enregistrement');
-
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 48000
-        }
-      });
-
-      let mimeType = 'audio/webm';
-      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-        mimeType = 'audio/webm;codecs=opus';
-      }
-
-      addLog(`Format: ${mimeType}`);
-
-      mediaRecorderRef.current = new MediaRecorder(stream, { 
-        mimeType,
-        audioBitsPerSecond: 128000
-      });
-      audioChunksRef.current = [];
-
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-
-      mediaRecorderRef.current.onstop = async () => {
-        stream.getTracks().forEach(track => track.stop());
-        await processRecording();
-      };
-
-      mediaRecorderRef.current.start();
-
-      setTimeout(() => {
-        if (mediaRecorderRef.current?.state === 'recording') {
-          mediaRecorderRef.current.stop();
-          addLog('⏹️ Enregistrement terminé');
-        }
-      }, RECORDING_DURATION);
-
-    } catch (error) {
-      addLog(`❌ Erreur: ${error.message}`, true);
-      setStatus('error');
-      setRecognizedKana('—');
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reconnaissance Hiragana - Whisper AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      padding: 2rem;
+      max-width: 600px;
+      margin: 0 auto;
     }
-  };
+    button {
+      font-size: 1.2rem;
+      padding: 1rem 2rem;
+      cursor: pointer;
+      border: 2px solid #333;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    button:hover:not(:disabled) {
+      background: #45a049;
+    }
+    button:disabled {
+      background-color: #ccc;
+      border-color: #999;
+      cursor: not-allowed;
+    }
+    button:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+    #kana {
+      font-size: 4rem;
+      margin-top: 1.5rem;
+      min-height: 5rem;
+    }
+    #raw {
+      margin-top: 1rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    #error {
+      margin-top: 1rem;
+      color: red;
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+    #loading {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #f0f8ff;
+      border-radius: 8px;
+      border: 2px solid #4CAF50;
+    }
+    #loading.hidden {
+      display: none;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background: #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #45a049);
+      width: 0%;
+      transition: width 0.3s;
+    }
+    #loadingText {
+      font-size: 0.9rem;
+      color: #333;
+      margin-top: 0.5rem;
+    }
+    #debug {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #f5f5f5;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    .success {
+      color: green;
+    }
+    .recording-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: red;
+      margin-right: 8px;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    #audioSection {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 2px solid #4CAF50;
+    }
+    #audioSection.hidden {
+      display: none;
+    }
+    #audioSection h3 {
+      margin-top: 0;
+      color: #333;
+      font-size: 1.1rem;
+    }
+    audio {
+      width: 100%;
+      margin: 1rem 0;
+    }
+    .btn-download {
+      background: #2196F3;
+      margin-top: 0.5rem;
+    }
+    .btn-download:hover:not(:disabled) {
+      background: #1976D2;
+    }
+    .audio-info {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎤 Prononce un hiragana</h1>
+  <p>Dis un son en japonais (a, ka, shi, etc.)</p>
+  
+  <!-- Indicateur de chargement -->
+  <div id="loading">
+    <div style="font-weight: bold; font-size: 1.1rem;">⏳ Chargement du modèle Whisper...</div>
+    <div class="progress-bar">
+      <div id="progressFill" class="progress-fill"></div>
+    </div>
+    <div id="loadingText">Initialisation...</div>
+  </div>
+  
+  <button id="mic" disabled>Parler</button>
+  <div id="kana">—</div>
+  <div id="raw"></div>
+  <div id="error"></div>
+  
+  <!-- Section Audio Player -->
+  <div id="audioSection" class="hidden">
+    <h3>🔊 Audio enregistré</h3>
+    <audio id="audioPlayer" controls></audio>
+    <div class="audio-info">
+      Durée: <span id="audioDuration">-</span>s | 
+      Taille: <span id="audioSize">-</span>
+    </div>
+    <button class="btn-download" onclick="downloadAudio()">⬇️ Télécharger WAV</button>
+  </div>
+  
+  <div id="debug"></div>
 
-  const processRecording = async () => {
-    try {
-      setStatus('processing');
-      setRecognizedKana('⚙️');
-      addLog('Traitement audio...');
+  <!-- Charger Transformers.js -->
+  <script type="module">
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+    
+    // Configuration
+    env.allowLocalModels = false;
+    
+    // Variables globales
+    window.whisperPipeline = null;
+    window.isWhisperReady = false;
+    
+    // Fonction de debug
+    function addDebug(msg, isError = false) {
+      const time = new Date().toLocaleTimeString();
+      const debugDiv = document.getElementById('debug');
+      debugDiv.innerHTML += `<div style="color: ${isError ? 'red' : '#333'}">[${time}] ${msg}</div>`;
+    }
+    
+    // Charger le modèle Whisper
+    async function loadWhisper() {
+      try {
+        document.getElementById('loadingText').textContent = 
+          'Téléchargement du modèle Whisper (tiny) - ~75MB...';
+        document.getElementById('progressFill').style.width = '10%';
+        
+        addDebug('Début du chargement de Whisper...');
+        
+        window.whisperPipeline = await pipeline(
+          'automatic-speech-recognition',
+          'Xenova/whisper-base',
+          {
+            progress_callback: (progress) => {
+              if (progress.status === 'progress') {
+                const percent = Math.round((progress.loaded / progress.total) * 100);
+                document.getElementById('progressFill').style.width = percent + '%';
+                document.getElementById('loadingText').textContent = 
+                  `Téléchargement: ${percent}%`;
+              }
+            }
+          }
+        );
+        
+        document.getElementById('progressFill').style.width = '100%';
+        document.getElementById('loadingText').textContent = '✅ Modèle chargé !';
+        
+        setTimeout(() => {
+          document.getElementById('loading').classList.add('hidden');
+        }, 1000);
+        
+        document.getElementById('mic').disabled = false;
+        
+        window.isWhisperReady = true;
+        addDebug('✅ Whisper prêt à l\'utilisation');
+        
+      } catch (error) {
+        addDebug('❌ Erreur chargement Whisper: ' + error.message, true);
+        document.getElementById('error').textContent = 
+          '❌ Erreur de chargement: ' + error.message;
+      }
+    }
+    
+    // Démarrer le chargement
+    addDebug('Script chargé');
+    loadWhisper();
+  </script>
 
-      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-      const url = URL.createObjectURL(audioBlob);
-      setAudioUrl(url);
+  <script>
+    const micBtn = document.getElementById("mic");
+    const kanaDiv = document.getElementById("kana");
+    const rawDiv = document.getElementById("raw");
+    const errorDiv = document.getElementById("error");
+    const debugDiv = document.getElementById("debug");
 
-      addLog('🤖 Appel Whisper via Claude API...');
+    // Variables pour l'enregistrement
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let lastRecordedBlob = null;
+    const RECORDING_DURATION = 3000; // 3 secondes
 
-      // UTILISATION DE L'API WHISPER INTÉGRÉE DANS CLAUDE
-      const result = await window.recognizeWithWhisper(audioBlob);
+    // Fonction de debug
+    function addDebug(msg, isError = false) {
+      const time = new Date().toLocaleTimeString();
+      debugDiv.innerHTML += `<div style="color: ${isError ? 'red' : '#333'}">[${time}] ${msg}</div>`;
+    }
+
+    // Mapping hiragana étendu
+    const kanaMap = {
+      "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お",
+      "ka": "か", "ki": "き", "ku": "く", "ke": "け", "ko": "こ",
+      "sa": "さ", "shi": "し", "si": "し",
+      "su": "す", "se": "せ", "so": "そ",
+      "ta": "た", "chi": "ち", "ti": "ち",
+      "tsu": "つ", "tu": "つ",
+      "te": "て", "to": "と",
+      "na": "な", "ni": "に", "nu": "ぬ", "ne": "ね", "no": "の",
+      "ha": "は", "hi": "ひ", "fu": "ふ", "hu": "ふ",
+      "he": "へ", "ho": "ほ",
+      "ma": "ま", "mi": "み", "mu": "む", "me": "め", "mo": "も",
+      "ya": "や", "yu": "ゆ", "yo": "よ",
+      "ra": "ら", "ri": "り", "ru": "る", "re": "れ", "ro": "ろ",
+      "wa": "わ", "wo": "を", "n": "ん",
+      "ji": "じ", "zi": "じ",
+      "ga": "が", "gi": "ぎ", "gu": "ぐ", "ge": "げ", "go": "ご",
+      "za": "ざ", "zu": "ず", "ze": "ぜ", "zo": "ぞ",
+      "da": "だ", "de": "で", "do": "ど",
+      "ba": "ば", "bi": "び", "bu": "ぶ", "be": "べ", "bo": "ぼ",
+      "pa": "ぱ", "pi": "ぴ", "pu": "ぷ", "pe": "ぺ", "po": "ぽ"
+    };
+
+    // Fonction de reconnaissance avec Whisper
+    async function recognizeWithWhisper(audioBlob) {
+      if (!window.isWhisperReady) {
+        throw new Error('Whisper pas encore chargé');
+      }
       
-      addLog(`✅ Transcription: "${result}"`);
-      setTranscription(result);
-
-      // Chercher correspondance
-      const cleanResult = result.toLowerCase().trim();
-      let found = false;
-
-      // Essai 1: Match direct
-      if (kanaMap[cleanResult]) {
-        setRecognizedKana(kanaMap[cleanResult]);
-        found = true;
-        addLog(`✅ Match direct: "${cleanResult}" → ${kanaMap[cleanResult]}`);
-      }
-
-      // Essai 2: Première lettre/caractère
-      if (!found && cleanResult.length > 0) {
-        const firstChar = cleanResult.charAt(0);
-        if (kanaMap[firstChar]) {
-          setRecognizedKana(kanaMap[firstChar]);
-          found = true;
-          addLog(`✅ Match 1er caractère: "${firstChar}" → ${kanaMap[firstChar]}`);
+      try {
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        
+        // Créer AudioContext sans spécifier le sampleRate
+        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        
+        // Resample à 16kHz pour Whisper
+        const targetSampleRate = 16000;
+        let audioData;
+        
+        if (audioBuffer.sampleRate === targetSampleRate) {
+          audioData = audioBuffer.getChannelData(0);
+        } else {
+          const offlineContext = new OfflineAudioContext(
+            1,
+            audioBuffer.duration * targetSampleRate,
+            targetSampleRate
+          );
+          
+          const source = offlineContext.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(offlineContext.destination);
+          source.start();
+          
+          const resampledBuffer = await offlineContext.startRendering();
+          audioData = resampledBuffer.getChannelData(0);
         }
+        
+        await audioContext.close();
+        
+        // Transcription avec Whisper
+        const result = await window.whisperPipeline(audioData, {
+          language: 'japanese',
+          task: 'transcribe'
+        });
+        
+        return result.text;
+        
+      } catch (error) {
+        addDebug('Erreur reconnaissance: ' + error.message, true);
+        throw error;
       }
+    }
 
-      // Essai 3: Contient un hiragana connu
-      if (!found) {
-        for (const [key, value] of Object.entries(kanaMap)) {
-          if (cleanResult.includes(key) && key.length > 1) {
-            setRecognizedKana(value);
+    // Démarrer l'enregistrement
+    async function startRecording() {
+      try {
+        addDebug('Début de l\'enregistrement');
+        kanaDiv.innerHTML = '<span class="recording-indicator"></span>🎧 Écoute...';
+        rawDiv.textContent = "";
+        errorDiv.textContent = "";
+        micBtn.disabled = true;
+        micBtn.textContent = "Écoute en cours...";
+        
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            sampleRate: 48000
+          }
+        });
+        
+        // Détecter le meilleur format
+        let mimeType = 'audio/webm';
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          mimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4';
+        }
+        
+        addDebug('Format audio: ' + mimeType);
+        
+        mediaRecorder = new MediaRecorder(stream, { 
+          mimeType: mimeType,
+          audioBitsPerSecond: 128000
+        });
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+          stream.getTracks().forEach(track => track.stop());
+          await processRecording();
+        };
+        
+        mediaRecorder.start();
+        addDebug('MediaRecorder démarré');
+        
+        setTimeout(() => {
+          if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            addDebug('Enregistrement terminé');
+          }
+        }, RECORDING_DURATION);
+        
+      } catch (error) {
+        addDebug('Erreur enregistrement: ' + error.message, true);
+        errorDiv.textContent = `Erreur: ${error.message}`;
+        micBtn.disabled = false;
+        micBtn.textContent = "Parler";
+        kanaDiv.textContent = "—";
+      }
+    }
+
+    // Traiter l'enregistrement
+    async function processRecording() {
+      try {
+        kanaDiv.textContent = "⚙️ Analyse...";
+        addDebug('Traitement de l\'audio');
+        
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        lastRecordedBlob = audioBlob;
+        
+        // Afficher les infos de l'audio
+        const sizeKB = (audioBlob.size / 1024).toFixed(1);
+        document.getElementById('audioSize').textContent = sizeKB + ' KB';
+        
+        // Convertir en WAV pour le lecteur et afficher la durée
+        const wavBlob = await convertToWav(audioBlob);
+        const audioDuration = await getAudioDuration(wavBlob);
+        document.getElementById('audioDuration').textContent = audioDuration.toFixed(2);
+        
+        // Afficher le lecteur audio
+        const audioPlayer = document.getElementById('audioPlayer');
+        audioPlayer.src = URL.createObjectURL(wavBlob);
+        document.getElementById('audioSection').classList.remove('hidden');
+        
+        addDebug(`Audio: ${audioDuration.toFixed(2)}s, ${sizeKB}KB`);
+        
+        // Reconnaissance avec Whisper
+        const transcript = await recognizeWithWhisper(audioBlob);
+        
+        addDebug(`Transcription: "${transcript}"`);
+        
+        const said = transcript.toLowerCase().trim();
+        rawDiv.textContent = `Reconnu : "${said}"`;
+        
+        // Rechercher la correspondance
+        let found = false;
+        for (const [romaji, char] of Object.entries(kanaMap)) {
+          if (
+            said === romaji ||
+            said === `c'est ${romaji}` ||
+            said === `sé ${romaji}` ||
+            said === `${romaji} desu` ||
+            said === `hiragana ${romaji}` ||
+            said.endsWith(romaji) ||
+            said.includes(romaji)
+          ) {
+            kanaDiv.textContent = char;
             found = true;
-            addLog(`✅ Match contient: "${key}" → ${value}`);
+            addDebug(`✅ Match trouvé: ${romaji} → ${char}`);
             break;
           }
         }
+        
+        if (!found) {
+          kanaDiv.textContent = "❓ Pas reconnu";
+          addDebug('❌ Aucune correspondance trouvée');
+        }
+        
+      } catch (error) {
+        addDebug('Erreur traitement: ' + error.message, true);
+        errorDiv.textContent = `❌ ${error.message}`;
+        kanaDiv.textContent = "—";
+      } finally {
+        micBtn.disabled = false;
+        micBtn.textContent = "Parler";
       }
-
-      if (!found) {
-        setRecognizedKana('❓');
-        addLog('❌ Aucune correspondance trouvée');
-      }
-
-      setStatus('ready');
-
-    } catch (error) {
-      addLog(`❌ Erreur Whisper: ${error.message}`, true);
-      setStatus('error');
-      setRecognizedKana('—');
     }
-  };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-indigo-600 mb-2">
-            🎤 Reconnaissance Hiragana
-          </h1>
-          <p className="text-gray-600">Version Whisper AI - Artifact Claude</p>
-        </div>
+    // Obtenir la durée de l'audio
+    async function getAudioDuration(blob) {
+      return new Promise((resolve, reject) => {
+        const audio = new Audio();
+        audio.onloadedmetadata = () => {
+          resolve(audio.duration);
+        };
+        audio.onerror = reject;
+        audio.src = URL.createObjectURL(blob);
+      });
+    }
 
-        {/* Hint */}
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
-          <p className="text-sm text-gray-700">
-            💡 <strong>Comment ça marche :</strong><br/>
-            • Clique sur "Parler" et prononce un hiragana (ex: あ, か, し)<br/>
-            • L'enregistrement dure 2 secondes<br/>
-            • Whisper AI reconnaîtra le son isolé !
-          </p>
-        </div>
+    // Convertir WebM en WAV
+    async function convertToWav(webmBlob) {
+      const arrayBuffer = await webmBlob.arrayBuffer();
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      
+      // Convertir en WAV
+      const wavBlob = await audioBufferToWavBlob(audioBuffer);
+      await audioContext.close();
+      
+      return wavBlob;
+    }
 
-        {/* Bouton principal */}
-        <div className="text-center mb-6">
-          <button
-            onClick={startRecording}
-            disabled={status === 'recording' || status === 'processing'}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-xl text-xl transition-all transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {status === 'recording' && '🎤 Écoute... (2s)'}
-            {status === 'processing' && '⚙️ Analyse Whisper...'}
-            {(status === 'idle' || status === 'ready' || status === 'error') && '🎤 Parler'}
-          </button>
-        </div>
+    // Convertir AudioBuffer en WAV Blob
+    async function audioBufferToWavBlob(audioBuffer) {
+      const numberOfChannels = audioBuffer.numberOfChannels;
+      const length = audioBuffer.length * numberOfChannels * 2;
+      const buffer = new ArrayBuffer(44 + length);
+      const view = new DataView(buffer);
+      const channels = [];
+      let offset = 0;
+      let pos = 0;
+      
+      const setUint16 = (data) => {
+        view.setUint16(pos, data, true);
+        pos += 2;
+      };
+      const setUint32 = (data) => {
+        view.setUint32(pos, data, true);
+        pos += 4;
+      };
+      
+      setUint32(0x46464952); // "RIFF"
+      setUint32(length + 36);
+      setUint32(0x45564157); // "WAVE"
+      setUint32(0x20746d66); // "fmt "
+      setUint32(16);
+      setUint16(1);
+      setUint16(numberOfChannels);
+      setUint32(audioBuffer.sampleRate);
+      setUint32(audioBuffer.sampleRate * numberOfChannels * 2);
+      setUint16(numberOfChannels * 2);
+      setUint16(16);
+      setUint32(0x61746164); // "data"
+      setUint32(length);
+      
+      for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+        channels.push(audioBuffer.getChannelData(i));
+      }
+      
+      offset = 44;
+      for (let i = 0; i < audioBuffer.length; i++) {
+        for (let channel = 0; channel < numberOfChannels; channel++) {
+          let sample = Math.max(-1, Math.min(1, channels[channel][i]));
+          sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+          view.setInt16(offset, sample, true);
+          offset += 2;
+        }
+      }
+      
+      return new Blob([buffer], { type: 'audio/wav' });
+    }
 
-        {/* Résultat principal */}
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-8 mb-6 text-center border-2 border-indigo-200">
-          <div className="text-8xl mb-4 font-bold">
-            {recognizedKana}
-          </div>
-          {transcription && (
-            <div className="text-gray-600 text-lg">
-              Transcription : <span className="font-semibold">"{transcription}"</span>
-            </div>
-          )}
-        </div>
+    // Télécharger l'audio
+    function downloadAudio() {
+      if (!lastRecordedBlob) {
+        alert('❌ Aucun audio enregistré');
+        return;
+      }
+      
+      convertToWav(lastRecordedBlob).then(wavBlob => {
+        const url = URL.createObjectURL(wavBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hiragana_recording_${Date.now()}.wav`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    }
 
-        {/* Lecteur audio */}
-        {audioUrl && (
-          <div className="bg-gray-50 rounded-xl p-6 mb-6">
-            <h3 className="font-semibold text-gray-700 mb-3">🔊 Audio enregistré</h3>
-            <audio src={audioUrl} controls className="w-full" />
-          </div>
-        )}
-
-        {/* Debug log */}
-        {debugLog.length > 0 && (
-          <div className="bg-gray-900 text-green-400 rounded-xl p-4 font-mono text-sm max-h-60 overflow-y-auto">
-            <div className="font-bold text-green-300 mb-2">📋 Debug Log</div>
-            {debugLog.map((log, i) => (
-              <div key={i} className={log.isError ? 'text-red-400' : 'text-green-400'}>
-                [{log.time}] {log.msg}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Info technique */}
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>✨ Utilise Whisper AI via l'API Claude</p>
-          <p>🚀 Fonctionne sur PC et smartphone</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+    // Event listener sur le bouton
+    micBtn.onclick = startRecording;
+  </script>
+</body>
+</html>
