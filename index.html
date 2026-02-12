@@ -103,6 +103,37 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.3; }
     }
+    #audioSection {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 2px solid #4CAF50;
+    }
+    #audioSection.hidden {
+      display: none;
+    }
+    #audioSection h3 {
+      margin-top: 0;
+      color: #333;
+      font-size: 1.1rem;
+    }
+    audio {
+      width: 100%;
+      margin: 1rem 0;
+    }
+    .btn-download {
+      background: #2196F3;
+      margin-top: 0.5rem;
+    }
+    .btn-download:hover:not(:disabled) {
+      background: #1976D2;
+    }
+    .audio-info {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -122,6 +153,18 @@
   <div id="kana">—</div>
   <div id="raw"></div>
   <div id="error"></div>
+  
+  <!-- Section Audio Player -->
+  <div id="audioSection" class="hidden">
+    <h3>🔊 Audio enregistré</h3>
+    <audio id="audioPlayer" controls></audio>
+    <div class="audio-info">
+      Durée: <span id="audioDuration">-</span>s | 
+      Taille: <span id="audioSize">-</span>
+    </div>
+    <button class="btn-download" onclick="downloadAudio()">⬇️ Télécharger WAV</button>
+  </div>
+  
   <div id="debug"></div>
 
   <!-- Charger Transformers.js -->
@@ -200,7 +243,8 @@
     // Variables pour l'enregistrement
     let mediaRecorder = null;
     let audioChunks = [];
-    const RECORDING_DURATION = 2000; // 2 secondes
+    let lastRecordedBlob = null;
+    const RECORDING_DURATION = 3000; // 3 secondes
 
     // Fonction de debug
     function addDebug(msg, isError = false) {
@@ -353,6 +397,23 @@
         addDebug('Traitement de l\'audio');
         
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        lastRecordedBlob = audioBlob;
+        
+        // Afficher les infos de l'audio
+        const sizeKB = (audioBlob.size / 1024).toFixed(1);
+        document.getElementById('audioSize').textContent = sizeKB + ' KB';
+        
+        // Convertir en WAV pour le lecteur et afficher la durée
+        const wavBlob = await convertToWav(audioBlob);
+        const audioDuration = await getAudioDuration(wavBlob);
+        document.getElementById('audioDuration').textContent = audioDuration.toFixed(2);
+        
+        // Afficher le lecteur audio
+        const audioPlayer = document.getElementById('audioPlayer');
+        audioPlayer.src = URL.createObjectURL(wavBlob);
+        document.getElementById('audioSection').classList.remove('hidden');
+        
+        addDebug(`Audio: ${audioDuration.toFixed(2)}s, ${sizeKB}KB`);
         
         // Reconnaissance avec Whisper
         const transcript = await recognizeWithWhisper(audioBlob);
@@ -394,6 +455,100 @@
         micBtn.disabled = false;
         micBtn.textContent = "Parler";
       }
+    }
+
+    // Obtenir la durée de l'audio
+    async function getAudioDuration(blob) {
+      return new Promise((resolve, reject) => {
+        const audio = new Audio();
+        audio.onloadedmetadata = () => {
+          resolve(audio.duration);
+        };
+        audio.onerror = reject;
+        audio.src = URL.createObjectURL(blob);
+      });
+    }
+
+    // Convertir WebM en WAV
+    async function convertToWav(webmBlob) {
+      const arrayBuffer = await webmBlob.arrayBuffer();
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      
+      // Convertir en WAV
+      const wavBlob = await audioBufferToWavBlob(audioBuffer);
+      await audioContext.close();
+      
+      return wavBlob;
+    }
+
+    // Convertir AudioBuffer en WAV Blob
+    async function audioBufferToWavBlob(audioBuffer) {
+      const numberOfChannels = audioBuffer.numberOfChannels;
+      const length = audioBuffer.length * numberOfChannels * 2;
+      const buffer = new ArrayBuffer(44 + length);
+      const view = new DataView(buffer);
+      const channels = [];
+      let offset = 0;
+      let pos = 0;
+      
+      const setUint16 = (data) => {
+        view.setUint16(pos, data, true);
+        pos += 2;
+      };
+      const setUint32 = (data) => {
+        view.setUint32(pos, data, true);
+        pos += 4;
+      };
+      
+      setUint32(0x46464952); // "RIFF"
+      setUint32(length + 36);
+      setUint32(0x45564157); // "WAVE"
+      setUint32(0x20746d66); // "fmt "
+      setUint32(16);
+      setUint16(1);
+      setUint16(numberOfChannels);
+      setUint32(audioBuffer.sampleRate);
+      setUint32(audioBuffer.sampleRate * numberOfChannels * 2);
+      setUint16(numberOfChannels * 2);
+      setUint16(16);
+      setUint32(0x61746164); // "data"
+      setUint32(length);
+      
+      for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+        channels.push(audioBuffer.getChannelData(i));
+      }
+      
+      offset = 44;
+      for (let i = 0; i < audioBuffer.length; i++) {
+        for (let channel = 0; channel < numberOfChannels; channel++) {
+          let sample = Math.max(-1, Math.min(1, channels[channel][i]));
+          sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+          view.setInt16(offset, sample, true);
+          offset += 2;
+        }
+      }
+      
+      return new Blob([buffer], { type: 'audio/wav' });
+    }
+
+    // Télécharger l'audio
+    function downloadAudio() {
+      if (!lastRecordedBlob) {
+        alert('❌ Aucun audio enregistré');
+        return;
+      }
+      
+      convertToWav(lastRecordedBlob).then(wavBlob => {
+        const url = URL.createObjectURL(wavBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hiragana_recording_${Date.now()}.wav`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
     }
 
     // Event listener sur le bouton
