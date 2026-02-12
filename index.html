@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎤 Test Audio - Whisper Recognition</title>
+    <title>🎤 Test Audio - Whisper Recognition (FIXED)</title>
     <style>
         * {
             margin: 0;
@@ -235,12 +235,21 @@
             width: 0%;
             transition: width 0.3s;
         }
+        
+        .fix-badge {
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7em;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎤 Test Whisper AI</h1>
-        <p class="subtitle">Reconnaissance vocale avec Whisper (offline)</p>
+        <h1>🎤 Test Whisper AI <span class="fix-badge">FIXED</span></h1>
+        <p class="subtitle">Version corrigée : détection précise + crossfade optimisé</p>
         
         <!-- Status -->
         <div id="statusDisplay" class="status loading">
@@ -285,17 +294,18 @@
             <div class="debug-info">
                 <div class="debug-line">État: <span id="debugRecording">-</span></div>
                 <div class="debug-line">Durée brute: <span id="debugDuration">-</span></div>
-                <div class="debug-line">Durée nettoyée: <span id="debugTrimmedDuration">-</span></div>
+                <div class="debug-line">✨ Début détecté: <span id="debugStartPoint">-</span></div>
+                <div class="debug-line">✨ Durée nettoyée: <span id="debugTrimmedDuration">-</span></div>
             </div>
         </div>
         
         <!-- Concaténation -->
         <div class="section">
-            <h3>3️⃣ Concaténation</h3>
+            <h3>3️⃣ Concaténation intelligente</h3>
             <div class="debug-info">
                 <div class="debug-line">Normalisation: <span id="debugNormalization">-</span></div>
-                <div class="debug-line">Crossfade: <span id="debugCrossfade">-</span></div>
-                <div class="debug-line">Durée finale: <span id="debugFinalDuration">-</span></div>
+                <div class="debug-line">✨ Crossfade: <span id="debugCrossfade">-</span></div>
+                <div class="debug-line">✨ Durée finale: <span id="debugFinalDuration">-</span></div>
             </div>
             <div id="audioPlayerSection" class="hidden">
                 <audio id="audioPlayer" controls></audio>
@@ -342,7 +352,6 @@
                     'Téléchargement du modèle Whisper (tiny) - ~75MB...';
                 document.getElementById('progressFill').style.width = '10%';
                 
-                // Utiliser le modèle "tiny" pour le japonais
                 window.whisperPipeline = await pipeline(
                     'automatic-speech-recognition',
                     'Xenova/whisper-tiny',
@@ -377,79 +386,61 @@
         }
         
         // Fonction de reconnaissance accessible globalement
-// Remplace la fonction recognizeWithWhisper par celle-ci dans la section <script type="module"> :
-
-window.recognizeWithWhisper = async function(audioBlob) {
-    if (!window.isWhisperReady) {
-        throw new Error('Whisper pas encore chargé');
-    }
-    
-    try {
-        // Convertir le blob en ArrayBuffer
-        const arrayBuffer = await audioBlob.arrayBuffer();
-        
-        // IMPORTANT: Créer un AudioContext SANS spécifier le sampleRate
-        // Le navigateur choisira automatiquement le bon selon le device
-        let audioContext;
-        try {
-            audioContext = new AudioContext();
-        } catch (e) {
-            // Fallback pour les anciens navigateurs
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        
-        // Resample à 16kHz pour Whisper
-        const targetSampleRate = 16000;
-        let audioData;
-        
-        if (audioBuffer.sampleRate === targetSampleRate) {
-            // Pas besoin de resampling
-            audioData = audioBuffer.getChannelData(0);
-        } else {
-            // Resampling nécessaire
-            const offlineContext = new OfflineAudioContext(
-                1,
-                audioBuffer.duration * targetSampleRate,
-                targetSampleRate
-            );
+        window.recognizeWithWhisper = async function(audioBlob) {
+            if (!window.isWhisperReady) {
+                throw new Error('Whisper pas encore chargé');
+            }
             
-            const source = offlineContext.createBufferSource();
-            source.buffer = audioBuffer;
-            source.connect(offlineContext.destination);
-            source.start();
-            
-            const resampledBuffer = await offlineContext.startRendering();
-            audioData = resampledBuffer.getChannelData(0);
-        }
+            try {
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const audioContext = new AudioContext();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // Resample à 16kHz pour Whisper
+                const targetSampleRate = 16000;
+                let audioData;
+                
+                if (audioBuffer.sampleRate === targetSampleRate) {
+                    audioData = audioBuffer.getChannelData(0);
+                } else {
+                    const offlineContext = new OfflineAudioContext(
+                        1,
+                        audioBuffer.duration * targetSampleRate,
+                        targetSampleRate
+                    );
+                    
+                    const source = offlineContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(offlineContext.destination);
+                    source.start();
+                    
+                    const resampledBuffer = await offlineContext.startRendering();
+                    audioData = resampledBuffer.getChannelData(0);
+                }
+                
+                await audioContext.close();
+                
+                const result = await window.whisperPipeline(audioData, {
+                    language: 'japanese',
+                    task: 'transcribe'
+                });
+                
+                return result.text;
+                
+            } catch (error) {
+                console.error('Erreur reconnaissance:', error);
+                throw error;
+            }
+        };
         
-        // Fermer le contexte pour libérer les ressources
-        await audioContext.close();
-        
-        // Lancer la transcription
-        const result = await window.whisperPipeline(audioData, {
-            language: 'japanese',
-            task: 'transcribe'
-        });
-        
-        return result.text;
-        
-    } catch (error) {
-        console.error('Erreur reconnaissance:', error);
-        throw error;
-    }
-};
-        
-        // Démarrer le chargement
         loadWhisper();
     </script>
 
     <script>
-        // Configuration
+        // Configuration AMÉLIORÉE
         const RECORDING_DURATION = 2000;
-        const SILENCE_THRESHOLD = 0.01;
-        const CROSSFADE_DURATION = 0.01;
+        const SILENCE_THRESHOLD = 0.005;  // Plus sensible
+        const CROSSFADE_DURATION = 0.05;  // 50ms au lieu de 10ms ✨
         const AUDIO_BASE_URL = 'https://emmanuel971-source.github.io/hirakataquizz/';
         
         // Variables globales
@@ -461,19 +452,16 @@ window.recognizeWithWhisper = async function(audioBlob) {
         
         const SUFFIXES = ['め', 'え', 'み', 'き', 'ちゃ'];
         
-        // Initialisation des suffixes
-// Remplace aussi la fonction init() pour l'AudioContext principal :
-
-async function init() {
-    try {
-        // Ne pas spécifier de sampleRate, laisser le navigateur choisir
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('AudioContext sampleRate:', audioContext.sampleRate);
-        await loadAllSuffixes();
-    } catch (error) {
-        console.error('Erreur init:', error);
-    }
-}
+        async function init() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('AudioContext sampleRate:', audioContext.sampleRate);
+                await loadAllSuffixes();
+            } catch (error) {
+                console.error('Erreur init:', error);
+            }
+        }
+        
         async function loadAllSuffixes() {
             let loaded = 0;
             
@@ -495,90 +483,87 @@ async function init() {
             document.getElementById('debugLoaded').textContent = `${loaded}/${SUFFIXES.length} chargés`;
         }
         
-      // Remplace la fonction startRecording() par celle-ci :
-
-async function startRecording() {
-    try {
-        updateStatus('recording', '🎤 Enregistrement...');
-        document.getElementById('recordBtn').disabled = true;
-        document.getElementById('debugRecording').textContent = 'En cours...';
-        document.getElementById('audioPlayerSection').classList.add('hidden');
-        document.getElementById('recognitionResult').classList.add('hidden');
-        
-        // Reset debug
-        document.getElementById('debugNormalization').textContent = '-';
-        document.getElementById('debugCrossfade').textContent = '-';
-        document.getElementById('debugFinalDuration').textContent = '-';
-        document.getElementById('debugRecognition').textContent = '-';
-        
-        // Timer
-        const timerEl = document.getElementById('timerDisplay');
-        timerEl.classList.remove('hidden', 'warning');
-        let countdown = 3;
-        timerEl.textContent = countdown;
-        
-        const timerInterval = setInterval(() => {
-            countdown--;
-            timerEl.textContent = countdown;
-            if (countdown <= 1) timerEl.classList.add('warning');
-            if (countdown <= 0) {
-                clearInterval(timerInterval);
-                timerEl.classList.add('hidden');
-                timerEl.classList.remove('warning');
+        async function startRecording() {
+            try {
+                updateStatus('recording', '🎤 Enregistrement...');
+                document.getElementById('recordBtn').disabled = true;
+                document.getElementById('debugRecording').textContent = 'En cours...';
+                document.getElementById('audioPlayerSection').classList.add('hidden');
+                document.getElementById('recognitionResult').classList.add('hidden');
+                
+                // Reset debug
+                document.getElementById('debugNormalization').textContent = '-';
+                document.getElementById('debugCrossfade').textContent = '-';
+                document.getElementById('debugFinalDuration').textContent = '-';
+                document.getElementById('debugRecognition').textContent = '-';
+                document.getElementById('debugStartPoint').textContent = '-';
+                
+                // Timer
+                const timerEl = document.getElementById('timerDisplay');
+                timerEl.classList.remove('hidden', 'warning');
+                let countdown = 3;
+                timerEl.textContent = countdown;
+                
+                const timerInterval = setInterval(() => {
+                    countdown--;
+                    timerEl.textContent = countdown;
+                    if (countdown <= 1) timerEl.classList.add('warning');
+                    if (countdown <= 0) {
+                        clearInterval(timerInterval);
+                        timerEl.classList.add('hidden');
+                        timerEl.classList.remove('warning');
+                    }
+                }, 1000);
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        sampleRate: 48000
+                    }
+                });
+                
+                let mimeType = 'audio/webm';
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    mimeType = 'audio/webm;codecs=opus';
+                } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    mimeType = 'audio/mp4';
+                } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                    mimeType = 'audio/ogg;codecs=opus';
+                }
+                
+                console.log('Format utilisé:', mimeType);
+                
+                mediaRecorder = new MediaRecorder(stream, { 
+                    mimeType: mimeType,
+                    audioBitsPerSecond: 128000
+                });
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    stream.getTracks().forEach(track => track.stop());
+                    await processRecording();
+                };
+                
+                mediaRecorder.start();
+                
+                setTimeout(() => {
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                    }
+                }, RECORDING_DURATION);
+                
+            } catch (error) {
+                console.error('Erreur enregistrement:', error);
+                updateStatus('error', '❌ Erreur: ' + error.message);
+                document.getElementById('recordBtn').disabled = false;
             }
-        }, 1000);
-        
-        // Configuration audio optimisée
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-            audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true,
-                sampleRate: 48000  // Sample rate élevé pour meilleure qualité
-            }
-        });
-        
-        // Détecter le meilleur format MIME supporté
-        let mimeType = 'audio/webm';
-        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-            mimeType = 'audio/webm;codecs=opus';
-        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-            mimeType = 'audio/mp4';
-        } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
-            mimeType = 'audio/ogg;codecs=opus';
         }
-        
-        console.log('Format utilisé:', mimeType);
-        
-        mediaRecorder = new MediaRecorder(stream, { 
-            mimeType: mimeType,
-            audioBitsPerSecond: 128000  // Haute qualité
-        });
-        audioChunks = [];
-        
-        mediaRecorder.ondataavailable = (event) => {
-            audioChunks.push(event.data);
-        };
-        
-        mediaRecorder.onstop = async () => {
-            stream.getTracks().forEach(track => track.stop());
-            await processRecording();
-        };
-        
-        mediaRecorder.start();
-        
-        setTimeout(() => {
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-            }
-        }, RECORDING_DURATION);
-        
-    } catch (error) {
-        console.error('Erreur enregistrement:', error);
-        updateStatus('error', '❌ Erreur: ' + error.message);
-        document.getElementById('recordBtn').disabled = false;
-    }
-}
         
         async function processRecording() {
             try {
@@ -590,12 +575,12 @@ async function startRecording() {
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 
                 document.getElementById('debugDuration').textContent = 
-                    audioBuffer.duration.toFixed(2) + 's';
+                    audioBuffer.duration.toFixed(3) + 's';
                 
-                const trimmedBuffer = trimSilence(audioBuffer);
+                const trimmedBuffer = trimSilenceImproved(audioBuffer);
                 
                 document.getElementById('debugTrimmedDuration').textContent = 
-                    trimmedBuffer.duration.toFixed(2) + 's';
+                    trimmedBuffer.duration.toFixed(3) + 's';
                 
                 document.getElementById('debugRecording').textContent = '✅ Nettoyé';
                 
@@ -608,67 +593,86 @@ async function startRecording() {
             }
         }
         
-      function trimSilence(buffer) {
-    const channelData = buffer.getChannelData(0);
-    const sampleRate = buffer.sampleRate;
-    const threshold = 0.005;
-    
-    // Trouver le PREMIER son
-    let start = 0;
-    for (let i = 0; i < channelData.length; i++) {
-        if (Math.abs(channelData[i]) > threshold) {
-            start = Math.max(0, i - Math.floor(0.05 * sampleRate));
-            break;
-        }
-    }
-    
-    // Trouver où le son s'ARRÊTE (premier long silence)
-    let end = start;
-    let silentSamples = 0;
-    const maxSilence = Math.floor(0.3 * sampleRate); // 300ms de silence max
-    
-    for (let i = start; i < channelData.length; i++) {
-        if (Math.abs(channelData[i]) > threshold) {
-            silentSamples = 0;
-            end = i;
-        } else {
-            silentSamples++;
-            if (silentSamples > maxSilence) {
-                // Trop de silence, on coupe ici
-                break;
+        // ✨ FONCTION AMÉLIORÉE : Détection précise du début du son
+        function trimSilenceImproved(buffer) {
+            const channelData = buffer.getChannelData(0);
+            const sampleRate = buffer.sampleRate;
+            
+            // Seuils adaptés
+            const noiseThreshold = 0.002;    // Pour ignorer le bruit de fond
+            const soundThreshold = 0.01;     // Pour détecter le vrai son
+            
+            // 1️⃣ TROUVER LE VRAI DÉBUT (ignore le bruit initial)
+            let start = 0;
+            let consecutiveSoundSamples = 0;
+            const minConsecutiveSamples = Math.floor(0.02 * sampleRate); // 20ms de son continu
+            
+            for (let i = 0; i < channelData.length; i++) {
+                const amplitude = Math.abs(channelData[i]);
+                
+                if (amplitude > soundThreshold) {
+                    consecutiveSoundSamples++;
+                    if (consecutiveSoundSamples >= minConsecutiveSamples) {
+                        // Trouvé le vrai début, on recule un peu pour garder l'attaque
+                        start = Math.max(0, i - consecutiveSoundSamples - Math.floor(0.01 * sampleRate));
+                        break;
+                    }
+                } else if (amplitude < noiseThreshold) {
+                    consecutiveSoundSamples = 0; // Reset si retour au bruit
+                }
             }
+            
+            document.getElementById('debugStartPoint').textContent = 
+                `${(start / sampleRate * 1000).toFixed(1)}ms`;
+            
+            // 2️⃣ TROUVER LA FIN (premier long silence)
+            let end = start;
+            let silentSamples = 0;
+            const maxSilence = Math.floor(0.15 * sampleRate); // 150ms de silence
+            
+            for (let i = start; i < channelData.length; i++) {
+                if (Math.abs(channelData[i]) > noiseThreshold) {
+                    silentSamples = 0;
+                    end = i;
+                } else {
+                    silentSamples++;
+                    if (silentSamples > maxSilence) {
+                        break;
+                    }
+                }
+            }
+            
+            // Ajouter un fade-out de 5ms à la fin
+            end = Math.min(channelData.length - 1, end + Math.floor(0.005 * sampleRate));
+            
+            if (start >= end) {
+                console.warn('Aucun son détecté');
+                return buffer;
+            }
+            
+            const trimmedLength = end - start + 1;
+            console.log('✨ Trim amélioré:', {
+                start: (start / sampleRate * 1000).toFixed(1) + 'ms',
+                original: (buffer.length / sampleRate * 1000).toFixed(1) + 'ms',
+                trimmed: (trimmedLength / sampleRate * 1000).toFixed(1) + 'ms',
+                removed: ((buffer.length - trimmedLength) / sampleRate * 1000).toFixed(1) + 'ms'
+            });
+            
+            // Créer le buffer nettoyé
+            const trimmedBuffer = audioContext.createBuffer(
+                buffer.numberOfChannels,
+                trimmedLength,
+                sampleRate
+            );
+            
+            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                const sourceData = buffer.getChannelData(channel);
+                const targetData = trimmedBuffer.getChannelData(channel);
+                targetData.set(sourceData.slice(start, end + 1));
+            }
+            
+            return trimmedBuffer;
         }
-    }
-    
-    // Ajouter une petite marge à la fin
-    end = Math.min(channelData.length - 1, end + Math.floor(0.05 * sampleRate));
-    
-    if (start >= end) {
-        console.warn('Aucun son détecté');
-        return buffer;
-    }
-    
-    const trimmedLength = end - start + 1;
-    console.log('Trim:', {
-        original: (buffer.length / sampleRate).toFixed(2) + 's',
-        trimmed: (trimmedLength / sampleRate).toFixed(2) + 's',
-        removed: ((buffer.length - trimmedLength) / sampleRate).toFixed(2) + 's'
-    });
-    
-    const trimmedBuffer = audioContext.createBuffer(
-        buffer.numberOfChannels,
-        trimmedLength,
-        sampleRate
-    );
-    
-    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-        const sourceData = buffer.getChannelData(channel);
-        const targetData = trimmedBuffer.getChannelData(channel);
-        targetData.set(sourceData.slice(start, end + 1));
-    }
-    
-    return trimmedBuffer;
-}
         
         function normalizeBuffer(buffer) {
             let max = 0;
@@ -714,12 +718,12 @@ async function startRecording() {
                 const normalizedSuffix = normalizeBuffer(suffixBuffer);
                 document.getElementById('debugNormalization').textContent = '✅ OK';
                 
-                document.getElementById('debugCrossfade').textContent = 'En cours...';
+                document.getElementById('debugCrossfade').textContent = `${(CROSSFADE_DURATION * 1000).toFixed(0)}ms...`;
                 const concatenatedBuffer = concatenateWithCrossfade(normalizedUser, normalizedSuffix);
-                document.getElementById('debugCrossfade').textContent = '✅ OK';
+                document.getElementById('debugCrossfade').textContent = `✅ ${(CROSSFADE_DURATION * 1000).toFixed(0)}ms`;
                 
                 document.getElementById('debugFinalDuration').textContent = 
-                    concatenatedBuffer.duration.toFixed(2) + 's';
+                    concatenatedBuffer.duration.toFixed(3) + 's';
                 
                 lastConcatenatedBlob = await audioBufferToWavBlob(concatenatedBuffer);
                 
@@ -738,6 +742,7 @@ async function startRecording() {
             }
         }
         
+        // ✨ CROSSFADE AMÉLIORÉ avec courbe logarithmique
         function concatenateWithCrossfade(buffer1, buffer2) {
             const sampleRate = buffer1.sampleRate;
             const crossfadeSamples = Math.floor(CROSSFADE_DURATION * sampleRate);
@@ -751,22 +756,35 @@ async function startRecording() {
                 const input1 = buffer1.getChannelData(channel);
                 const input2 = buffer2.getChannelData(channel);
                 
+                // Copier le premier buffer (sans crossfade)
                 for (let i = 0; i < buffer1.length - crossfadeSamples; i++) {
                     output[i] = input1[i];
                 }
                 
+                // Zone de crossfade avec courbe logarithmique
                 const crossfadeStart = buffer1.length - crossfadeSamples;
                 for (let i = 0; i < crossfadeSamples; i++) {
-                    const ratio = i / crossfadeSamples;
-                    const sample1 = input1[crossfadeStart + i];
-                    const sample2 = input2[i];
-                    output[crossfadeStart + i] = sample1 * (1 - ratio) + sample2 * ratio;
+                    const linearRatio = i / crossfadeSamples;
+                    
+                    // Courbe logarithmique pour un fondu plus naturel
+                    const fadeOut = Math.cos(linearRatio * Math.PI / 2); // Décroissance cosinus
+                    const fadeIn = Math.sin(linearRatio * Math.PI / 2);  // Croissance sinus
+                    
+                    const sample1 = input1[crossfadeStart + i] * fadeOut;
+                    const sample2 = input2[i] * fadeIn;
+                    output[crossfadeStart + i] = sample1 + sample2;
                 }
                 
+                // Copier le reste du deuxième buffer
                 for (let i = crossfadeSamples; i < buffer2.length; i++) {
                     output[buffer1.length - crossfadeSamples + i] = input2[i];
                 }
             }
+            
+            console.log('✨ Crossfade:', {
+                duration: (crossfadeSamples / sampleRate * 1000).toFixed(1) + 'ms',
+                totalLength: (totalLength / sampleRate).toFixed(3) + 's'
+            });
             
             return result;
         }
@@ -779,7 +797,6 @@ async function startRecording() {
                 const expectedWord = select.options[select.selectedIndex].getAttribute('data-word');
                 const expectedRomaji = select.options[select.selectedIndex].getAttribute('data-romaji');
                 
-                // Utiliser Whisper
                 const transcript = await window.recognizeWithWhisper(lastConcatenatedBlob);
                 
                 document.getElementById('debugRecognition').textContent = 
@@ -787,7 +804,7 @@ async function startRecording() {
                 
                 document.getElementById('recognizedText').textContent = transcript;
                 
-                // Comparer (en hiragana et romaji)
+                // Comparer
                 const cleanTranscript = transcript.trim().toLowerCase();
                 const isCorrect = cleanTranscript === expectedWord || 
                                 cleanTranscript === expectedRomaji ||
@@ -877,7 +894,7 @@ async function startRecording() {
             const url = URL.createObjectURL(lastConcatenatedBlob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `test_${suffix}_${Date.now()}.wav`;
+            a.download = `test_fixed_${suffix}_${Date.now()}.wav`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -905,5 +922,3 @@ async function startRecording() {
     </script>
 </body>
 </html>
-
-
