@@ -1,924 +1,244 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎤 Test Audio - Whisper Recognition (FIXED)</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-        }
-        
-        h1 {
-            text-align: center;
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2em;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 0.9em;
-        }
-        
-        .section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .section h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-        
-        .status {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-        
-        .status.idle {
-            background: #e7e7e7;
-            color: #333;
-        }
-        
-        .status.loading {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status.recording {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        
-        .status.processing {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status.ready {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.1em;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        button:hover:not(:disabled) {
-            background: #764ba2;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-        
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        button.secondary {
-            background: #6c757d;
-        }
-        
-        button.secondary:hover:not(:disabled) {
-            background: #5a6268;
-        }
-        
-        button.success {
-            background: #28a745;
-        }
-        
-        button.success:hover:not(:disabled) {
-            background: #218838;
-        }
-        
-        .timer {
-            text-align: center;
-            font-size: 3em;
-            font-weight: bold;
-            color: #667eea;
-            margin: 20px 0;
-        }
-        
-        .timer.warning {
-            color: #dc3545;
-            animation: pulse 0.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        
-        .debug-info {
-            font-family: monospace;
-            font-size: 0.85em;
-            color: #666;
-            line-height: 1.6;
-        }
-        
-        .debug-line {
-            margin: 5px 0;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        audio {
-            width: 100%;
-            margin: 10px 0;
-        }
-        
-        .select-wrapper {
-            margin-bottom: 15px;
-        }
-        
-        select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
-            background: white;
-            cursor: pointer;
-        }
-        
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .result-box {
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            text-align: center;
-        }
-        
-        .result-box .label {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-        
-        .result-box .value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.3s;
-        }
-        
-        .fix-badge {
-            background: #28a745;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 5px;
-            font-size: 0.7em;
-            margin-left: 8px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Reconnaissance Hiragana</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      padding: 2rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    button {
+      font-size: 1.2rem;
+      padding: 1rem 2rem;
+      cursor: pointer;
+      border: 2px solid #333;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background-color: #ccc;
+      border-color: #999;
+      cursor: not-allowed;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    #kana {
+      font-size: 4rem;
+      margin-top: 1.5rem;
+      min-height: 5rem;
+    }
+    #raw {
+      margin-top: 1rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    #error {
+      margin-top: 1rem;
+      color: red;
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+    #debug {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #f5f5f5;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    .success {
+      color: green;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎤 Test Whisper AI <span class="fix-badge">FIXED</span></h1>
-        <p class="subtitle">Version corrigée : détection précise + crossfade optimisé</p>
-        
-        <!-- Status -->
-        <div id="statusDisplay" class="status loading">
-            ⏳ Chargement du modèle Whisper...
-        </div>
-        
-        <!-- Progress bar pour le chargement -->
-        <div id="loadingSection">
-            <div class="progress-bar">
-                <div id="progressFill" class="progress-fill"></div>
-            </div>
-            <div class="debug-info" style="text-align: center;">
-                <div id="loadingText">Initialisation...</div>
-            </div>
-        </div>
-        
-        <!-- Sélection du suffixe -->
-        <div class="section">
-            <h3>1️⃣ Choisir un mot</h3>
-            <div class="select-wrapper">
-                <select id="suffixSelect">
-                    <option value="め" data-word="あめ" data-romaji="ame">あめ - /ame/ (pluie)</option>
-                    <option value="え" data-word="いえ" data-romaji="ie">いえ - /ie/ (maison)</option>
-                    <option value="み" data-word="うみ" data-romaji="umi">うみ - /umi/ (mer)</option>
-                    <option value="き" data-word="えき" data-romaji="eki">えき - /eki/ (gare)</option>
-                    <option value="ちゃ" data-word="おちゃ" data-romaji="ocha">おちゃ - /ocha/ (thé)</option>
-                </select>
-            </div>
-            <div class="debug-info">
-                <div class="debug-line">Mot attendu: <span id="debugExpectedWord">あめ</span></div>
-                <div class="debug-line">Romaji: <span id="debugRomaji">ame</span></div>
-                <div class="debug-line">Suffixe: <span id="debugSuffix">め</span></div>
-                <div class="debug-line">Chargés: <span id="debugLoaded">-</span></div>
-            </div>
-        </div>
-        
-        <!-- Enregistrement -->
-        <div class="section">
-            <h3>2️⃣ Enregistrer (3 secondes)</h3>
-            <div id="timerDisplay" class="timer hidden">3</div>
-            <button id="recordBtn" onclick="startRecording()" disabled>🎤 Commencer l'enregistrement</button>
-            <div class="debug-info">
-                <div class="debug-line">État: <span id="debugRecording">-</span></div>
-                <div class="debug-line">Durée brute: <span id="debugDuration">-</span></div>
-                <div class="debug-line">✨ Début détecté: <span id="debugStartPoint">-</span></div>
-                <div class="debug-line">✨ Durée nettoyée: <span id="debugTrimmedDuration">-</span></div>
-            </div>
-        </div>
-        
-        <!-- Concaténation -->
-        <div class="section">
-            <h3>3️⃣ Concaténation intelligente</h3>
-            <div class="debug-info">
-                <div class="debug-line">Normalisation: <span id="debugNormalization">-</span></div>
-                <div class="debug-line">✨ Crossfade: <span id="debugCrossfade">-</span></div>
-                <div class="debug-line">✨ Durée finale: <span id="debugFinalDuration">-</span></div>
-            </div>
-            <div id="audioPlayerSection" class="hidden">
-                <audio id="audioPlayer" controls></audio>
-                <button class="success" onclick="downloadAudio()">⬇️ Télécharger WAV</button>
-            </div>
-        </div>
-        
-        <!-- Reconnaissance vocale Whisper -->
-        <div class="section">
-            <h3>4️⃣ Reconnaissance Whisper AI</h3>
-            <div class="debug-info">
-                <div class="debug-line">État: <span id="debugRecognition">-</span></div>
-            </div>
-            <div id="recognitionResult" class="hidden">
-                <div class="result-box">
-                    <div class="label">Résultat détecté :</div>
-                    <div class="value" id="recognizedText">-</div>
-                </div>
-                <div class="result-box" style="margin-top: 10px;">
-                    <div class="label">Comparaison :</div>
-                    <div class="value" id="comparisonResult" style="font-size: 1.5em;">-</div>
-                </div>
-            </div>
-        </div>
-        
-        <button class="secondary" onclick="resetTest()">🔄 Recommencer</button>
-    </div>
+  <h1>🎤 Prononce un hiragana</h1>
+  <p>Conseil : dis "C'est [hiragana]" comme "C'est ka" pour une meilleure reconnaissance.</p>
+  <button id="mic">Parler</button>
+  <div id="kana">—</div>
+  <div id="raw"></div>
+  <div id="error"></div>
+  <div id="debug"></div>
 
-    <!-- Charger Transformers.js -->
-    <script type="module">
-        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
-        
-        // Configuration
-        env.allowLocalModels = false;
-        
-        // Variables globales
-        window.whisperPipeline = null;
-        window.isWhisperReady = false;
-        
-        // Charger le modèle Whisper
-        async function loadWhisper() {
-            try {
-                document.getElementById('loadingText').textContent = 
-                    'Téléchargement du modèle Whisper (tiny) - ~75MB...';
-                document.getElementById('progressFill').style.width = '10%';
-                
-                window.whisperPipeline = await pipeline(
-                    'automatic-speech-recognition',
-                    'Xenova/whisper-tiny',
-                    {
-                        progress_callback: (progress) => {
-                            if (progress.status === 'progress') {
-                                const percent = Math.round((progress.loaded / progress.total) * 100);
-                                document.getElementById('progressFill').style.width = percent + '%';
-                                document.getElementById('loadingText').textContent = 
-                                    `Téléchargement: ${percent}%`;
-                            }
-                        }
-                    }
-                );
-                
-                document.getElementById('progressFill').style.width = '100%';
-                document.getElementById('loadingText').textContent = '✅ Modèle chargé !';
-                document.getElementById('loadingSection').classList.add('hidden');
-                document.getElementById('statusDisplay').className = 'status idle';
-                document.getElementById('statusDisplay').textContent = '✅ Prêt à enregistrer !';
-                document.getElementById('recordBtn').disabled = false;
-                
-                window.isWhisperReady = true;
-                console.log('✅ Whisper prêt');
-                
-            } catch (error) {
-                console.error('Erreur chargement Whisper:', error);
-                document.getElementById('statusDisplay').className = 'status error';
-                document.getElementById('statusDisplay').textContent = 
-                    '❌ Erreur de chargement: ' + error.message;
-            }
-        }
-        
-        // Fonction de reconnaissance accessible globalement
-        window.recognizeWithWhisper = async function(audioBlob) {
-            if (!window.isWhisperReady) {
-                throw new Error('Whisper pas encore chargé');
-            }
-            
-            try {
-                const arrayBuffer = await audioBlob.arrayBuffer();
-                const audioContext = new AudioContext();
-                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                
-                // Resample à 16kHz pour Whisper
-                const targetSampleRate = 16000;
-                let audioData;
-                
-                if (audioBuffer.sampleRate === targetSampleRate) {
-                    audioData = audioBuffer.getChannelData(0);
-                } else {
-                    const offlineContext = new OfflineAudioContext(
-                        1,
-                        audioBuffer.duration * targetSampleRate,
-                        targetSampleRate
-                    );
-                    
-                    const source = offlineContext.createBufferSource();
-                    source.buffer = audioBuffer;
-                    source.connect(offlineContext.destination);
-                    source.start();
-                    
-                    const resampledBuffer = await offlineContext.startRendering();
-                    audioData = resampledBuffer.getChannelData(0);
-                }
-                
-                await audioContext.close();
-                
-                const result = await window.whisperPipeline(audioData, {
-                    language: 'japanese',
-                    task: 'transcribe'
-                });
-                
-                return result.text;
-                
-            } catch (error) {
-                console.error('Erreur reconnaissance:', error);
-                throw error;
-            }
-        };
-        
-        loadWhisper();
-    </script>
+<script>
+  const micBtn = document.getElementById("mic");
+  const kanaDiv = document.getElementById("kana");
+  const rawDiv = document.getElementById("raw");
+  const errorDiv = document.getElementById("error");
+  const debugDiv = document.getElementById("debug");
 
-    <script>
-        // Configuration AMÉLIORÉE
-        const RECORDING_DURATION = 2000;
-        const SILENCE_THRESHOLD = 0.005;  // Plus sensible
-        const CROSSFADE_DURATION = 0.05;  // 50ms au lieu de 10ms ✨
-        const AUDIO_BASE_URL = 'https://emmanuel971-source.github.io/hirakataquizz/';
-        
-        // Variables globales
-        let audioContext;
-        let mediaRecorder;
-        let audioChunks = [];
-        let suffixBuffers = {};
-        let lastConcatenatedBlob = null;
-        
-        const SUFFIXES = ['め', 'え', 'み', 'き', 'ちゃ'];
-        
-        async function init() {
-            try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                console.log('AudioContext sampleRate:', audioContext.sampleRate);
-                await loadAllSuffixes();
-            } catch (error) {
-                console.error('Erreur init:', error);
-            }
+  // Fonction de debug
+  function addDebug(msg, isError = false) {
+    const time = new Date().toLocaleTimeString();
+    debugDiv.innerHTML += `<div style="color: ${isError ? 'red' : '#333'}">[${time}] ${msg}</div>`;
+  }
+
+  addDebug("Script chargé");
+  addDebug(`URL: ${window.location.href}`);
+  addDebug(`Protocol: ${window.location.protocol}`);
+
+  // Vérification HTTPS (requis sur mobile)
+  if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+    errorDiv.textContent = "⚠️ HTTPS requis pour la reconnaissance vocale sur mobile";
+    micBtn.disabled = true;
+    addDebug("HTTPS non détecté - reconnaissance vocale impossible", true);
+  }
+
+  // Vérification du support de la reconnaissance vocale
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  
+  if (!SpeechRecognition) {
+    errorDiv.textContent = "❌ Reconnaissance vocale non supportée par votre navigateur";
+    micBtn.disabled = true;
+    addDebug("SpeechRecognition non disponible", true);
+  } else {
+    addDebug("SpeechRecognition disponible ✓", false);
+    
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ja-JP";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    addDebug("Objet recognition créé");
+
+    // Mapping étendu avec variantes courantes
+    const kanaMap = {
+      "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お",
+      "ka": "か", "ki": "き", "ku": "く", "ke": "け", "ko": "こ",
+      "sa": "さ", "shi": "し", "si": "し",
+      "su": "す", "se": "せ", "so": "そ",
+      "ta": "た", "chi": "ち", "ti": "ち",
+      "tsu": "つ", "tu": "つ",
+      "te": "て", "to": "と",
+      "na": "な", "ni": "に", "nu": "ぬ", "ne": "ね", "no": "の",
+      "ha": "は", "hi": "ひ", "fu": "ふ", "hu": "ふ",
+      "he": "へ", "ho": "ほ",
+      "ma": "ま", "mi": "み", "mu": "む", "me": "め", "mo": "も",
+      "ya": "や", "yu": "ゆ", "yo": "よ",
+      "ra": "ら", "ri": "り", "ru": "る", "re": "れ", "ro": "ろ",
+      "wa": "わ", "wo": "を",
+      "n": "ん",
+      "ji": "じ", "zi": "じ",
+      "ga": "が", "gi": "ぎ", "gu": "ぐ", "ge": "げ", "go": "ご",
+      "za": "ざ", "zu": "ず", "ze": "ぜ", "zo": "ぞ",
+      "da": "だ", "de": "で", "do": "ど",
+      "ba": "ば", "bi": "び", "bu": "ぶ", "be": "べ", "bo": "ぼ",
+      "pa": "ぱ", "pi": "ぴ", "pu": "ぷ", "pe": "ぺ", "po": "ぽ"
+    };
+
+    micBtn.onclick = () => {
+      addDebug("Bouton cliqué");
+      kanaDiv.textContent = "🎧 Écoute...";
+      rawDiv.textContent = "";
+      errorDiv.textContent = "";
+      micBtn.disabled = true;
+      micBtn.textContent = "Écoute en cours...";
+      
+      try {
+        addDebug("Tentative de démarrage de la reconnaissance");
+        recognition.start();
+        addDebug("recognition.start() appelé");
+      } catch (e) {
+        addDebug(`Erreur au démarrage: ${e.message}`, true);
+        errorDiv.textContent = `Erreur: ${e.message}`;
+        micBtn.disabled = false;
+        micBtn.textContent = "Parler";
+      }
+    };
+
+    recognition.onstart = () => {
+      addDebug("Reconnaissance démarrée ✓");
+    };
+
+    recognition.onresult = (event) => {
+      addDebug("Résultat reçu");
+      const said = event.results[0][0].transcript.toLowerCase().trim();
+      const confidence = event.results[0][0].confidence;
+
+      addDebug(`Transcript: "${said}", Confiance: ${(confidence * 100).toFixed(0)}%`);
+
+      rawDiv.textContent = `Reconnu : "${said}" (confiance : ${(confidence * 100).toFixed(0)}%)`;
+
+      if (confidence < 0.3) {
+        kanaDiv.textContent = "❓ Confiance trop faible";
+        addDebug("Confiance insuffisante");
+        return;
+      }
+
+      let found = false;
+      for (const [romaji, char] of Object.entries(kanaMap)) {
+        if (
+          said === romaji ||
+          said === `c'est ${romaji}` ||
+          said === `sé ${romaji}` ||
+          said === `${romaji} desu` ||
+          said === `hiragana ${romaji}` ||
+          said.endsWith(romaji)
+        ) {
+          kanaDiv.textContent = char;
+          found = true;
+          addDebug(`Match trouvé: ${romaji} → ${char}`, false);
+          break;
         }
-        
-        async function loadAllSuffixes() {
-            let loaded = 0;
-            
-            for (const suffix of SUFFIXES) {
-                try {
-                    const url = AUDIO_BASE_URL + encodeURIComponent(suffix) + '.mp3';
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const arrayBuffer = await response.arrayBuffer();
-                    suffixBuffers[suffix] = await audioContext.decodeAudioData(arrayBuffer);
-                    loaded++;
-                    console.log(`✅ Suffixe ${suffix} chargé`);
-                    document.getElementById('debugLoaded').textContent = `${loaded}/${SUFFIXES.length}`;
-                } catch (error) {
-                    console.error(`❌ Erreur chargement ${suffix}:`, error);
-                }
-            }
-            
-            document.getElementById('debugLoaded').textContent = `${loaded}/${SUFFIXES.length} chargés`;
-        }
-        
-        async function startRecording() {
-            try {
-                updateStatus('recording', '🎤 Enregistrement...');
-                document.getElementById('recordBtn').disabled = true;
-                document.getElementById('debugRecording').textContent = 'En cours...';
-                document.getElementById('audioPlayerSection').classList.add('hidden');
-                document.getElementById('recognitionResult').classList.add('hidden');
-                
-                // Reset debug
-                document.getElementById('debugNormalization').textContent = '-';
-                document.getElementById('debugCrossfade').textContent = '-';
-                document.getElementById('debugFinalDuration').textContent = '-';
-                document.getElementById('debugRecognition').textContent = '-';
-                document.getElementById('debugStartPoint').textContent = '-';
-                
-                // Timer
-                const timerEl = document.getElementById('timerDisplay');
-                timerEl.classList.remove('hidden', 'warning');
-                let countdown = 3;
-                timerEl.textContent = countdown;
-                
-                const timerInterval = setInterval(() => {
-                    countdown--;
-                    timerEl.textContent = countdown;
-                    if (countdown <= 1) timerEl.classList.add('warning');
-                    if (countdown <= 0) {
-                        clearInterval(timerInterval);
-                        timerEl.classList.add('hidden');
-                        timerEl.classList.remove('warning');
-                    }
-                }, 1000);
-                
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true,
-                        sampleRate: 48000
-                    }
-                });
-                
-                let mimeType = 'audio/webm';
-                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-                    mimeType = 'audio/webm;codecs=opus';
-                } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-                    mimeType = 'audio/mp4';
-                } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
-                    mimeType = 'audio/ogg;codecs=opus';
-                }
-                
-                console.log('Format utilisé:', mimeType);
-                
-                mediaRecorder = new MediaRecorder(stream, { 
-                    mimeType: mimeType,
-                    audioBitsPerSecond: 128000
-                });
-                audioChunks = [];
-                
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
-                
-                mediaRecorder.onstop = async () => {
-                    stream.getTracks().forEach(track => track.stop());
-                    await processRecording();
-                };
-                
-                mediaRecorder.start();
-                
-                setTimeout(() => {
-                    if (mediaRecorder && mediaRecorder.state === 'recording') {
-                        mediaRecorder.stop();
-                    }
-                }, RECORDING_DURATION);
-                
-            } catch (error) {
-                console.error('Erreur enregistrement:', error);
-                updateStatus('error', '❌ Erreur: ' + error.message);
-                document.getElementById('recordBtn').disabled = false;
-            }
-        }
-        
-        async function processRecording() {
-            try {
-                updateStatus('processing', '⚙️ Traitement...');
-                document.getElementById('debugRecording').textContent = 'Traitement...';
-                
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                const arrayBuffer = await audioBlob.arrayBuffer();
-                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                
-                document.getElementById('debugDuration').textContent = 
-                    audioBuffer.duration.toFixed(3) + 's';
-                
-                const trimmedBuffer = trimSilenceImproved(audioBuffer);
-                
-                document.getElementById('debugTrimmedDuration').textContent = 
-                    trimmedBuffer.duration.toFixed(3) + 's';
-                
-                document.getElementById('debugRecording').textContent = '✅ Nettoyé';
-                
-                await concatenateWithSuffix(trimmedBuffer);
-                
-            } catch (error) {
-                console.error('Erreur traitement:', error);
-                updateStatus('error', '❌ Erreur: ' + error.message);
-                document.getElementById('recordBtn').disabled = false;
-            }
-        }
-        
-        // ✨ FONCTION AMÉLIORÉE : Détection précise du début du son
-        function trimSilenceImproved(buffer) {
-            const channelData = buffer.getChannelData(0);
-            const sampleRate = buffer.sampleRate;
-            
-            // Seuils adaptés
-            const noiseThreshold = 0.002;    // Pour ignorer le bruit de fond
-            const soundThreshold = 0.01;     // Pour détecter le vrai son
-            
-            // 1️⃣ TROUVER LE VRAI DÉBUT (ignore le bruit initial)
-            let start = 0;
-            let consecutiveSoundSamples = 0;
-            const minConsecutiveSamples = Math.floor(0.02 * sampleRate); // 20ms de son continu
-            
-            for (let i = 0; i < channelData.length; i++) {
-                const amplitude = Math.abs(channelData[i]);
-                
-                if (amplitude > soundThreshold) {
-                    consecutiveSoundSamples++;
-                    if (consecutiveSoundSamples >= minConsecutiveSamples) {
-                        // Trouvé le vrai début, on recule un peu pour garder l'attaque
-                        start = Math.max(0, i - consecutiveSoundSamples - Math.floor(0.01 * sampleRate));
-                        break;
-                    }
-                } else if (amplitude < noiseThreshold) {
-                    consecutiveSoundSamples = 0; // Reset si retour au bruit
-                }
-            }
-            
-            document.getElementById('debugStartPoint').textContent = 
-                `${(start / sampleRate * 1000).toFixed(1)}ms`;
-            
-            // 2️⃣ TROUVER LA FIN (premier long silence)
-            let end = start;
-            let silentSamples = 0;
-            const maxSilence = Math.floor(0.15 * sampleRate); // 150ms de silence
-            
-            for (let i = start; i < channelData.length; i++) {
-                if (Math.abs(channelData[i]) > noiseThreshold) {
-                    silentSamples = 0;
-                    end = i;
-                } else {
-                    silentSamples++;
-                    if (silentSamples > maxSilence) {
-                        break;
-                    }
-                }
-            }
-            
-            // Ajouter un fade-out de 5ms à la fin
-            end = Math.min(channelData.length - 1, end + Math.floor(0.005 * sampleRate));
-            
-            if (start >= end) {
-                console.warn('Aucun son détecté');
-                return buffer;
-            }
-            
-            const trimmedLength = end - start + 1;
-            console.log('✨ Trim amélioré:', {
-                start: (start / sampleRate * 1000).toFixed(1) + 'ms',
-                original: (buffer.length / sampleRate * 1000).toFixed(1) + 'ms',
-                trimmed: (trimmedLength / sampleRate * 1000).toFixed(1) + 'ms',
-                removed: ((buffer.length - trimmedLength) / sampleRate * 1000).toFixed(1) + 'ms'
-            });
-            
-            // Créer le buffer nettoyé
-            const trimmedBuffer = audioContext.createBuffer(
-                buffer.numberOfChannels,
-                trimmedLength,
-                sampleRate
-            );
-            
-            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-                const sourceData = buffer.getChannelData(channel);
-                const targetData = trimmedBuffer.getChannelData(channel);
-                targetData.set(sourceData.slice(start, end + 1));
-            }
-            
-            return trimmedBuffer;
-        }
-        
-        function normalizeBuffer(buffer) {
-            let max = 0;
-            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-                const data = buffer.getChannelData(channel);
-                for (let i = 0; i < data.length; i++) {
-                    max = Math.max(max, Math.abs(data[i]));
-                }
-            }
-            
-            const targetLevel = 0.8;
-            const gain = max > 0 ? targetLevel / max : 1;
-            
-            const normalized = audioContext.createBuffer(
-                buffer.numberOfChannels,
-                buffer.length,
-                buffer.sampleRate
-            );
-            
-            for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-                const sourceData = buffer.getChannelData(channel);
-                const targetData = normalized.getChannelData(channel);
-                for (let i = 0; i < buffer.length; i++) {
-                    targetData[i] = sourceData[i] * gain;
-                }
-            }
-            
-            return normalized;
-        }
-        
-        async function concatenateWithSuffix(userBuffer) {
-            try {
-                const select = document.getElementById('suffixSelect');
-                const selectedSuffix = select.value;
-                const suffixBuffer = suffixBuffers[selectedSuffix];
-                
-                if (!suffixBuffer) {
-                    throw new Error('Suffixe non chargé: ' + selectedSuffix);
-                }
-                
-                document.getElementById('debugNormalization').textContent = 'En cours...';
-                const normalizedUser = normalizeBuffer(userBuffer);
-                const normalizedSuffix = normalizeBuffer(suffixBuffer);
-                document.getElementById('debugNormalization').textContent = '✅ OK';
-                
-                document.getElementById('debugCrossfade').textContent = `${(CROSSFADE_DURATION * 1000).toFixed(0)}ms...`;
-                const concatenatedBuffer = concatenateWithCrossfade(normalizedUser, normalizedSuffix);
-                document.getElementById('debugCrossfade').textContent = `✅ ${(CROSSFADE_DURATION * 1000).toFixed(0)}ms`;
-                
-                document.getElementById('debugFinalDuration').textContent = 
-                    concatenatedBuffer.duration.toFixed(3) + 's';
-                
-                lastConcatenatedBlob = await audioBufferToWavBlob(concatenatedBuffer);
-                
-                const audioPlayer = document.getElementById('audioPlayer');
-                audioPlayer.src = URL.createObjectURL(lastConcatenatedBlob);
-                document.getElementById('audioPlayerSection').classList.remove('hidden');
-                
-                updateStatus('processing', '🤖 Reconnaissance Whisper en cours...');
-                
-                await recognizeAudio();
-                
-            } catch (error) {
-                console.error('Erreur concaténation:', error);
-                updateStatus('error', '❌ Erreur: ' + error.message);
-                document.getElementById('recordBtn').disabled = false;
-            }
-        }
-        
-        // ✨ CROSSFADE AMÉLIORÉ avec courbe logarithmique
-        function concatenateWithCrossfade(buffer1, buffer2) {
-            const sampleRate = buffer1.sampleRate;
-            const crossfadeSamples = Math.floor(CROSSFADE_DURATION * sampleRate);
-            const numberOfChannels = Math.min(buffer1.numberOfChannels, buffer2.numberOfChannels);
-            const totalLength = buffer1.length + buffer2.length - crossfadeSamples;
-            
-            const result = audioContext.createBuffer(numberOfChannels, totalLength, sampleRate);
-            
-            for (let channel = 0; channel < numberOfChannels; channel++) {
-                const output = result.getChannelData(channel);
-                const input1 = buffer1.getChannelData(channel);
-                const input2 = buffer2.getChannelData(channel);
-                
-                // Copier le premier buffer (sans crossfade)
-                for (let i = 0; i < buffer1.length - crossfadeSamples; i++) {
-                    output[i] = input1[i];
-                }
-                
-                // Zone de crossfade avec courbe logarithmique
-                const crossfadeStart = buffer1.length - crossfadeSamples;
-                for (let i = 0; i < crossfadeSamples; i++) {
-                    const linearRatio = i / crossfadeSamples;
-                    
-                    // Courbe logarithmique pour un fondu plus naturel
-                    const fadeOut = Math.cos(linearRatio * Math.PI / 2); // Décroissance cosinus
-                    const fadeIn = Math.sin(linearRatio * Math.PI / 2);  // Croissance sinus
-                    
-                    const sample1 = input1[crossfadeStart + i] * fadeOut;
-                    const sample2 = input2[i] * fadeIn;
-                    output[crossfadeStart + i] = sample1 + sample2;
-                }
-                
-                // Copier le reste du deuxième buffer
-                for (let i = crossfadeSamples; i < buffer2.length; i++) {
-                    output[buffer1.length - crossfadeSamples + i] = input2[i];
-                }
-            }
-            
-            console.log('✨ Crossfade:', {
-                duration: (crossfadeSamples / sampleRate * 1000).toFixed(1) + 'ms',
-                totalLength: (totalLength / sampleRate).toFixed(3) + 's'
-            });
-            
-            return result;
-        }
-        
-        async function recognizeAudio() {
-            try {
-                document.getElementById('debugRecognition').textContent = 'Transcription...';
-                
-                const select = document.getElementById('suffixSelect');
-                const expectedWord = select.options[select.selectedIndex].getAttribute('data-word');
-                const expectedRomaji = select.options[select.selectedIndex].getAttribute('data-romaji');
-                
-                const transcript = await window.recognizeWithWhisper(lastConcatenatedBlob);
-                
-                document.getElementById('debugRecognition').textContent = 
-                    `✅ "${transcript}"`;
-                
-                document.getElementById('recognizedText').textContent = transcript;
-                
-                // Comparer
-                const cleanTranscript = transcript.trim().toLowerCase();
-                const isCorrect = cleanTranscript === expectedWord || 
-                                cleanTranscript === expectedRomaji ||
-                                cleanTranscript.includes(expectedWord) || 
-                                cleanTranscript.includes(expectedRomaji) ||
-                                expectedWord.includes(cleanTranscript);
-                
-                if (isCorrect) {
-                    document.getElementById('comparisonResult').textContent = '✅ CORRECT !';
-                    document.getElementById('comparisonResult').style.color = '#28a745';
-                    updateStatus('success', '✅ Mot reconnu !');
-                } else {
-                    document.getElementById('comparisonResult').textContent = 
-                        `❌ Attendu: ${expectedWord} (${expectedRomaji})`;
-                    document.getElementById('comparisonResult').style.color = '#dc3545';
-                    updateStatus('error', '❌ Mot non reconnu');
-                }
-                
-                document.getElementById('recognitionResult').classList.remove('hidden');
-                document.getElementById('recordBtn').disabled = false;
-                
-            } catch (error) {
-                console.error('Erreur reconnaissance:', error);
-                document.getElementById('debugRecognition').textContent = 
-                    `❌ Erreur: ${error.message}`;
-                updateStatus('error', '❌ Erreur reconnaissance');
-                document.getElementById('recordBtn').disabled = false;
-            }
-        }
-        
-        async function audioBufferToWavBlob(audioBuffer) {
-            const numberOfChannels = audioBuffer.numberOfChannels;
-            const length = audioBuffer.length * numberOfChannels * 2;
-            const buffer = new ArrayBuffer(44 + length);
-            const view = new DataView(buffer);
-            const channels = [];
-            let offset = 0;
-            let pos = 0;
-            
-            const setUint16 = (data) => {
-                view.setUint16(pos, data, true);
-                pos += 2;
-            };
-            const setUint32 = (data) => {
-                view.setUint32(pos, data, true);
-                pos += 4;
-            };
-            
-            setUint32(0x46464952);
-            setUint32(length + 36);
-            setUint32(0x45564157);
-            setUint32(0x20746d66);
-            setUint32(16);
-            setUint16(1);
-            setUint16(numberOfChannels);
-            setUint32(audioBuffer.sampleRate);
-            setUint32(audioBuffer.sampleRate * numberOfChannels * 2);
-            setUint16(numberOfChannels * 2);
-            setUint16(16);
-            setUint32(0x61746164);
-            setUint32(length);
-            
-            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-                channels.push(audioBuffer.getChannelData(i));
-            }
-            
-            offset = 44;
-            for (let i = 0; i < audioBuffer.length; i++) {
-                for (let channel = 0; channel < numberOfChannels; channel++) {
-                    let sample = Math.max(-1, Math.min(1, channels[channel][i]));
-                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-                    view.setInt16(offset, sample, true);
-                    offset += 2;
-                }
-            }
-            
-            return new Blob([buffer], { type: 'audio/wav' });
-        }
-        
-        function downloadAudio() {
-            if (!lastConcatenatedBlob) {
-                alert('❌ Aucun audio');
-                return;
-            }
-            
-            const suffix = document.getElementById('suffixSelect').value;
-            const url = URL.createObjectURL(lastConcatenatedBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `test_fixed_${suffix}_${Date.now()}.wav`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-        
-        function resetTest() {
-            location.reload();
-        }
-        
-        function updateStatus(type, message) {
-            const status = document.getElementById('statusDisplay');
-            status.className = `status ${type}`;
-            status.textContent = message;
-        }
-        
-        document.getElementById('suffixSelect').addEventListener('change', (e) => {
-            const option = e.target.options[e.target.selectedIndex];
-            document.getElementById('debugSuffix').textContent = e.target.value;
-            document.getElementById('debugExpectedWord').textContent = option.getAttribute('data-word');
-            document.getElementById('debugRomaji').textContent = option.getAttribute('data-romaji');
-        });
-        
-        window.addEventListener('load', init);
-    </script>
+      }
+
+      if (!found) {
+        kanaDiv.textContent = "❓ Pas reconnu";
+        addDebug("Aucune correspondance trouvée");
+      }
+    };
+
+    recognition.onerror = (event) => {
+      addDebug(`Erreur: ${event.error}`, true);
+      let message = "";
+      switch (event.error) {
+        case "no-speech":
+          message = "Aucun son détecté. Parlez plus fort.";
+          break;
+        case "audio-capture":
+          message = "Problème avec le micro. Vérifiez qu'il est autorisé.";
+          break;
+        case "not-allowed":
+          message = "Accès au micro refusé. Autorisez-le dans les paramètres.";
+          break;
+        case "service-not-allowed":
+          message = "Service de reconnaissance non autorisé.";
+          break;
+        case "network":
+          message = "Problème de réseau.";
+          break;
+        case "aborted":
+          message = "Reconnaissance interrompue.";
+          break;
+        case "language-not-supported":
+          message = "Langue japonaise non supportée.";
+          break;
+        default:
+          message = `Erreur : ${event.error}`;
+      }
+      errorDiv.textContent = `❌ ${message}`;
+      kanaDiv.textContent = "—";
+    };
+
+    recognition.onend = () => {
+      addDebug("Reconnaissance terminée");
+      micBtn.disabled = false;
+      micBtn.textContent = "Parler";
+    };
+  }
+</script>
 </body>
 </html>
