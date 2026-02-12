@@ -85,125 +85,18 @@ Fonctionne directement sur téléphone Android.
 
 </div>
 
+<button onclick="test()">Test capture</button>
+
 <script>
-const voyelles = ['A','É','I','O','U'];
-const total = 150;
-let count = 0;
-let voices = [];
-
-let stream;
-let recorder;
-let chunks = [];
-
-speechSynthesis.onvoiceschanged = () => {
-    voices = speechSynthesis.getVoices().filter(v=>v.lang.startsWith("fr"));
-    log(`Voix détectées : ${voices.length}`);
-};
-
-function log(txt){
-    const l=document.getElementById("log");
-    l.innerHTML+=`<div>${new Date().toLocaleTimeString()} — ${txt}</div>`;
-    l.scrollTop=l.scrollHeight;
-}
-
-function progress(){
-    document.getElementById("bar").style.width=(count/total*100)+"%";
-}
-
-async function initCapture(){
-    stream = await navigator.mediaDevices.getDisplayMedia({
-        audio:true,
-        video:false
-    });
-
-    recorder = new MediaRecorder(stream);
-
-    recorder.ondataavailable = e => {
-        if(e.data.size>0) chunks.push(e.data);
-    };
-}
-
-async function speakAndSave(text, pitch, rate, filename){
-
-    chunks = [];
-
-    recorder.start();
-
-    const u = new SpeechSynthesisUtterance(text);
-    u.voice = voices[Math.floor(Math.random()*voices.length)];
-    u.pitch = pitch;
-    u.rate = rate;
-
-    speechSynthesis.speak(u);
-
-    return new Promise(resolve => {
-        u.onend = () => {
-            setTimeout(() => {
-                recorder.stop();
-
-                recorder.onstop = () => {
-                    const blob = new Blob(chunks,{type:'audio/webm'});
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = filename;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    resolve();
-                };
-
-            },150);
-        };
-    });
-}
-
-async function start(){
-
-    if(!voices.length){
-        alert("Voix non chargées");
-        return;
-    }
-
-    document.getElementById("startBtn").disabled=true;
-
-    log("Autorisation audio système...");
-    await initCapture();
-
-    log("Démarrage génération...");
-    count=0;
-    progress();
-
-    for(const v of voyelles){
-        for(let i=0;i<30;i++){
-
-            const pitch = 1+(Math.random()*0.6-0.3);
-            const rate  = 1+(Math.random()*0.6-0.3);
-
-            const name = `${v}_${i+1}_p${pitch.toFixed(2)}_r${rate.toFixed(2)}.webm`;
-
-            log(`Génération ${name}`);
-
-            await speakAndSave(v,pitch,rate,name);
-
-            count++;
-            progress();
-
-            await new Promise(r=>setTimeout(r,300));
-        }
-    }
-
-    log("🎉 Génération terminée !");
-    alert("150 fichiers audio générés !");
-
-    document.getElementById("startBtn").disabled=false;
-}
-
-function testVoice(){
-    const u=new SpeechSynthesisUtterance("A É I O U");
-    u.voice=voices[0];
-    speechSynthesis.speak(u);
+async function test(){
+  const s = await navigator.mediaDevices.getDisplayMedia({
+    audio:true,
+    video:false
+  });
+  alert("Capture audio OK");
 }
 </script>
 </body>
 </html>
+
 
