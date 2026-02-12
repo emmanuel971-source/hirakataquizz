@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Reconnaissance Hiragana</title>
+  <title>Reconnaissance Hiragana - Whisper AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -23,7 +23,7 @@
       font-weight: bold;
       transition: all 0.3s;
     }
-    button:hover {
+    button:hover:not(:disabled) {
       background: #45a049;
     }
     button:disabled {
@@ -31,7 +31,7 @@
       border-color: #999;
       cursor: not-allowed;
     }
-    button:active {
+    button:active:not(:disabled) {
       transform: scale(0.98);
     }
     #kana {
@@ -50,6 +50,35 @@
       font-size: 1rem;
       padding: 0.5rem;
     }
+    #loading {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #f0f8ff;
+      border-radius: 8px;
+      border: 2px solid #4CAF50;
+    }
+    #loading.hidden {
+      display: none;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background: #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #45a049);
+      width: 0%;
+      transition: width 0.3s;
+    }
+    #loadingText {
+      font-size: 0.9rem;
+      color: #333;
+      margin-top: 0.5rem;
+    }
     #debug {
       margin-top: 2rem;
       padding: 1rem;
@@ -61,60 +90,125 @@
     .success {
       color: green;
     }
+    .recording-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: red;
+      margin-right: 8px;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
   </style>
 </head>
 <body>
   <h1>🎤 Prononce un hiragana</h1>
-  <p>Conseil : dis "C'est [hiragana]" comme "C'est ka" pour une meilleure reconnaissance.</p>
-  <button id="mic">Parler</button>
+  <p>Dis un son en japonais (a, ka, shi, etc.)</p>
+  
+  <!-- Indicateur de chargement -->
+  <div id="loading">
+    <div style="font-weight: bold; font-size: 1.1rem;">⏳ Chargement du modèle Whisper...</div>
+    <div class="progress-bar">
+      <div id="progressFill" class="progress-fill"></div>
+    </div>
+    <div id="loadingText">Initialisation...</div>
+  </div>
+  
+  <button id="mic" disabled>Parler</button>
   <div id="kana">—</div>
   <div id="raw"></div>
   <div id="error"></div>
   <div id="debug"></div>
 
-<script>
-  const micBtn = document.getElementById("mic");
-  const kanaDiv = document.getElementById("kana");
-  const rawDiv = document.getElementById("raw");
-  const errorDiv = document.getElementById("error");
-  const debugDiv = document.getElementById("debug");
-
-  // Fonction de debug
-  function addDebug(msg, isError = false) {
-    const time = new Date().toLocaleTimeString();
-    debugDiv.innerHTML += `<div style="color: ${isError ? 'red' : '#333'}">[${time}] ${msg}</div>`;
-  }
-
-  addDebug("Script chargé");
-  addDebug(`URL: ${window.location.href}`);
-  addDebug(`Protocol: ${window.location.protocol}`);
-
-  // Vérification HTTPS (requis sur mobile)
-  if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-    errorDiv.textContent = "⚠️ HTTPS requis pour la reconnaissance vocale sur mobile";
-    micBtn.disabled = true;
-    addDebug("HTTPS non détecté - reconnaissance vocale impossible", true);
-  }
-
-  // Vérification du support de la reconnaissance vocale
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  
-  if (!SpeechRecognition) {
-    errorDiv.textContent = "❌ Reconnaissance vocale non supportée par votre navigateur";
-    micBtn.disabled = true;
-    addDebug("SpeechRecognition non disponible", true);
-  } else {
-    addDebug("SpeechRecognition disponible ✓", false);
+  <!-- Charger Transformers.js -->
+  <script type="module">
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
     
-    const recognition = new SpeechRecognition();
-    recognition.lang = "ja-JP";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    // Configuration
+    env.allowLocalModels = false;
+    
+    // Variables globales
+    window.whisperPipeline = null;
+    window.isWhisperReady = false;
+    
+    // Fonction de debug
+    function addDebug(msg, isError = false) {
+      const time = new Date().toLocaleTimeString();
+      const debugDiv = document.getElementById('debug');
+      debugDiv.innerHTML += `<div style="color: ${isError ? 'red' : '#333'}">[${time}] ${msg}</div>`;
+    }
+    
+    // Charger le modèle Whisper
+    async function loadWhisper() {
+      try {
+        document.getElementById('loadingText').textContent = 
+          'Téléchargement du modèle Whisper (tiny) - ~75MB...';
+        document.getElementById('progressFill').style.width = '10%';
+        
+        addDebug('Début du chargement de Whisper...');
+        
+        window.whisperPipeline = await pipeline(
+          'automatic-speech-recognition',
+          'Xenova/whisper-tiny',
+          {
+            progress_callback: (progress) => {
+              if (progress.status === 'progress') {
+                const percent = Math.round((progress.loaded / progress.total) * 100);
+                document.getElementById('progressFill').style.width = percent + '%';
+                document.getElementById('loadingText').textContent = 
+                  `Téléchargement: ${percent}%`;
+              }
+            }
+          }
+        );
+        
+        document.getElementById('progressFill').style.width = '100%';
+        document.getElementById('loadingText').textContent = '✅ Modèle chargé !';
+        
+        setTimeout(() => {
+          document.getElementById('loading').classList.add('hidden');
+        }, 1000);
+        
+        document.getElementById('mic').disabled = false;
+        
+        window.isWhisperReady = true;
+        addDebug('✅ Whisper prêt à l\'utilisation');
+        
+      } catch (error) {
+        addDebug('❌ Erreur chargement Whisper: ' + error.message, true);
+        document.getElementById('error').textContent = 
+          '❌ Erreur de chargement: ' + error.message;
+      }
+    }
+    
+    // Démarrer le chargement
+    addDebug('Script chargé');
+    loadWhisper();
+  </script>
 
-    addDebug("Objet recognition créé");
+  <script>
+    const micBtn = document.getElementById("mic");
+    const kanaDiv = document.getElementById("kana");
+    const rawDiv = document.getElementById("raw");
+    const errorDiv = document.getElementById("error");
+    const debugDiv = document.getElementById("debug");
 
-    // Mapping étendu avec variantes courantes
+    // Variables pour l'enregistrement
+    let mediaRecorder = null;
+    let audioChunks = [];
+    const RECORDING_DURATION = 2000; // 2 secondes
+
+    // Fonction de debug
+    function addDebug(msg, isError = false) {
+      const time = new Date().toLocaleTimeString();
+      debugDiv.innerHTML += `<div style="color: ${isError ? 'red' : '#333'}">[${time}] ${msg}</div>`;
+    }
+
+    // Mapping hiragana étendu
     const kanaMap = {
       "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お",
       "ka": "か", "ki": "き", "ku": "く", "ke": "け", "ko": "こ",
@@ -129,8 +223,7 @@
       "ma": "ま", "mi": "み", "mu": "む", "me": "め", "mo": "も",
       "ya": "や", "yu": "ゆ", "yo": "よ",
       "ra": "ら", "ri": "り", "ru": "る", "re": "れ", "ro": "ろ",
-      "wa": "わ", "wo": "を",
-      "n": "ん",
+      "wa": "わ", "wo": "を", "n": "ん",
       "ji": "じ", "zi": "じ",
       "ga": "が", "gi": "ぎ", "gu": "ぐ", "ge": "げ", "go": "ご",
       "za": "ざ", "zu": "ず", "ze": "ぜ", "zo": "ぞ",
@@ -139,106 +232,172 @@
       "pa": "ぱ", "pi": "ぴ", "pu": "ぷ", "pe": "ぺ", "po": "ぽ"
     };
 
-    micBtn.onclick = () => {
-      addDebug("Bouton cliqué");
-      kanaDiv.textContent = "🎧 Écoute...";
-      rawDiv.textContent = "";
-      errorDiv.textContent = "";
-      micBtn.disabled = true;
-      micBtn.textContent = "Écoute en cours...";
+    // Fonction de reconnaissance avec Whisper
+    async function recognizeWithWhisper(audioBlob) {
+      if (!window.isWhisperReady) {
+        throw new Error('Whisper pas encore chargé');
+      }
       
       try {
-        addDebug("Tentative de démarrage de la reconnaissance");
-        recognition.start();
-        addDebug("recognition.start() appelé");
-      } catch (e) {
-        addDebug(`Erreur au démarrage: ${e.message}`, true);
-        errorDiv.textContent = `Erreur: ${e.message}`;
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        
+        // Créer AudioContext sans spécifier le sampleRate
+        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        
+        // Resample à 16kHz pour Whisper
+        const targetSampleRate = 16000;
+        let audioData;
+        
+        if (audioBuffer.sampleRate === targetSampleRate) {
+          audioData = audioBuffer.getChannelData(0);
+        } else {
+          const offlineContext = new OfflineAudioContext(
+            1,
+            audioBuffer.duration * targetSampleRate,
+            targetSampleRate
+          );
+          
+          const source = offlineContext.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(offlineContext.destination);
+          source.start();
+          
+          const resampledBuffer = await offlineContext.startRendering();
+          audioData = resampledBuffer.getChannelData(0);
+        }
+        
+        await audioContext.close();
+        
+        // Transcription avec Whisper
+        const result = await window.whisperPipeline(audioData, {
+          language: 'japanese',
+          task: 'transcribe'
+        });
+        
+        return result.text;
+        
+      } catch (error) {
+        addDebug('Erreur reconnaissance: ' + error.message, true);
+        throw error;
+      }
+    }
+
+    // Démarrer l'enregistrement
+    async function startRecording() {
+      try {
+        addDebug('Début de l\'enregistrement');
+        kanaDiv.innerHTML = '<span class="recording-indicator"></span>🎧 Écoute...';
+        rawDiv.textContent = "";
+        errorDiv.textContent = "";
+        micBtn.disabled = true;
+        micBtn.textContent = "Écoute en cours...";
+        
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            sampleRate: 48000
+          }
+        });
+        
+        // Détecter le meilleur format
+        let mimeType = 'audio/webm';
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          mimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4';
+        }
+        
+        addDebug('Format audio: ' + mimeType);
+        
+        mediaRecorder = new MediaRecorder(stream, { 
+          mimeType: mimeType,
+          audioBitsPerSecond: 128000
+        });
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+          stream.getTracks().forEach(track => track.stop());
+          await processRecording();
+        };
+        
+        mediaRecorder.start();
+        addDebug('MediaRecorder démarré');
+        
+        setTimeout(() => {
+          if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            addDebug('Enregistrement terminé');
+          }
+        }, RECORDING_DURATION);
+        
+      } catch (error) {
+        addDebug('Erreur enregistrement: ' + error.message, true);
+        errorDiv.textContent = `Erreur: ${error.message}`;
+        micBtn.disabled = false;
+        micBtn.textContent = "Parler";
+        kanaDiv.textContent = "—";
+      }
+    }
+
+    // Traiter l'enregistrement
+    async function processRecording() {
+      try {
+        kanaDiv.textContent = "⚙️ Analyse...";
+        addDebug('Traitement de l\'audio');
+        
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        
+        // Reconnaissance avec Whisper
+        const transcript = await recognizeWithWhisper(audioBlob);
+        
+        addDebug(`Transcription: "${transcript}"`);
+        
+        const said = transcript.toLowerCase().trim();
+        rawDiv.textContent = `Reconnu : "${said}"`;
+        
+        // Rechercher la correspondance
+        let found = false;
+        for (const [romaji, char] of Object.entries(kanaMap)) {
+          if (
+            said === romaji ||
+            said === `c'est ${romaji}` ||
+            said === `sé ${romaji}` ||
+            said === `${romaji} desu` ||
+            said === `hiragana ${romaji}` ||
+            said.endsWith(romaji) ||
+            said.includes(romaji)
+          ) {
+            kanaDiv.textContent = char;
+            found = true;
+            addDebug(`✅ Match trouvé: ${romaji} → ${char}`);
+            break;
+          }
+        }
+        
+        if (!found) {
+          kanaDiv.textContent = "❓ Pas reconnu";
+          addDebug('❌ Aucune correspondance trouvée');
+        }
+        
+      } catch (error) {
+        addDebug('Erreur traitement: ' + error.message, true);
+        errorDiv.textContent = `❌ ${error.message}`;
+        kanaDiv.textContent = "—";
+      } finally {
         micBtn.disabled = false;
         micBtn.textContent = "Parler";
       }
-    };
+    }
 
-    recognition.onstart = () => {
-      addDebug("Reconnaissance démarrée ✓");
-    };
-
-    recognition.onresult = (event) => {
-      addDebug("Résultat reçu");
-      const said = event.results[0][0].transcript.toLowerCase().trim();
-      const confidence = event.results[0][0].confidence;
-
-      addDebug(`Transcript: "${said}", Confiance: ${(confidence * 100).toFixed(0)}%`);
-
-      rawDiv.textContent = `Reconnu : "${said}" (confiance : ${(confidence * 100).toFixed(0)}%)`;
-
-      if (confidence < 0.3) {
-        kanaDiv.textContent = "❓ Confiance trop faible";
-        addDebug("Confiance insuffisante");
-        return;
-      }
-
-      let found = false;
-      for (const [romaji, char] of Object.entries(kanaMap)) {
-        if (
-          said === romaji ||
-          said === `c'est ${romaji}` ||
-          said === `sé ${romaji}` ||
-          said === `${romaji} desu` ||
-          said === `hiragana ${romaji}` ||
-          said.endsWith(romaji)
-        ) {
-          kanaDiv.textContent = char;
-          found = true;
-          addDebug(`Match trouvé: ${romaji} → ${char}`, false);
-          break;
-        }
-      }
-
-      if (!found) {
-        kanaDiv.textContent = "❓ Pas reconnu";
-        addDebug("Aucune correspondance trouvée");
-      }
-    };
-
-    recognition.onerror = (event) => {
-      addDebug(`Erreur: ${event.error}`, true);
-      let message = "";
-      switch (event.error) {
-        case "no-speech":
-          message = "Aucun son détecté. Parlez plus fort.";
-          break;
-        case "audio-capture":
-          message = "Problème avec le micro. Vérifiez qu'il est autorisé.";
-          break;
-        case "not-allowed":
-          message = "Accès au micro refusé. Autorisez-le dans les paramètres.";
-          break;
-        case "service-not-allowed":
-          message = "Service de reconnaissance non autorisé.";
-          break;
-        case "network":
-          message = "Problème de réseau.";
-          break;
-        case "aborted":
-          message = "Reconnaissance interrompue.";
-          break;
-        case "language-not-supported":
-          message = "Langue japonaise non supportée.";
-          break;
-        default:
-          message = `Erreur : ${event.error}`;
-      }
-      errorDiv.textContent = `❌ ${message}`;
-      kanaDiv.textContent = "—";
-    };
-
-    recognition.onend = () => {
-      addDebug("Reconnaissance terminée");
-      micBtn.disabled = false;
-      micBtn.textContent = "Parler";
-    };
-  }
-</script>
+    // Event listener sur le bouton
+    micBtn.onclick = startRecording;
+  </script>
 </body>
 </html>
