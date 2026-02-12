@@ -238,8 +238,9 @@
         <div class="section">
             <h3>🎙️ Enregistrer un hiragana</h3>
             <div id="timerDisplay" class="timer hidden">3</div>
-            <button id="recordBtn" onclick="startRecording()" disabled>🎤 Commencer (2 secondes)</button>
+            <button id="recordBtn" onclick="startRecording()" disabled>🎤 Commencer l'enregistrement</button>
             <div class="debug-info">
+                <div class="debug-line">État: <span id="debugRecording">-</span></div>
                 <div class="debug-line">Durée brute: <span id="debugDuration">-</span></div>
                 <div class="debug-line">Début détecté: <span id="debugStartPoint">-</span></div>
                 <div class="debug-line">Durée nettoyée: <span id="debugTrimmedDuration">-</span></div>
@@ -365,7 +366,9 @@
     </script>
 
     <script>
-        const RECORDING_DURATION = 2000; // 2 secondes
+        // Configuration - EXACTEMENT comme la version qui marchait
+        const RECORDING_DURATION = 2000;
+        const SILENCE_THRESHOLD = 0.01;
         
         let audioContext;
         let mediaRecorder;
@@ -385,10 +388,11 @@
             try {
                 updateStatus('recording', '🎤 Enregistrement...');
                 document.getElementById('recordBtn').disabled = true;
+                document.getElementById('debugRecording').textContent = 'En cours...';
                 document.getElementById('audioPlayerSection').classList.add('hidden');
                 document.getElementById('recognitionResult').classList.add('hidden');
                 
-                // Reset
+                // Reset debug
                 document.getElementById('debugDuration').textContent = '-';
                 document.getElementById('debugStartPoint').textContent = '-';
                 document.getElementById('debugTrimmedDuration').textContent = '-';
@@ -397,14 +401,12 @@
                 // Timer
                 const timerEl = document.getElementById('timerDisplay');
                 timerEl.classList.remove('hidden', 'warning');
-                let countdown = 2;
+                let countdown = 3;
                 timerEl.textContent = countdown;
                 
                 const timerInterval = setInterval(() => {
                     countdown--;
-                    if (countdown > 0) {
-                        timerEl.textContent = countdown;
-                    }
+                    timerEl.textContent = countdown;
                     if (countdown <= 1) timerEl.classList.add('warning');
                     if (countdown <= 0) {
                         clearInterval(timerInterval);
@@ -413,6 +415,7 @@
                     }
                 }, 1000);
                 
+                // Configuration audio optimisée - EXACTEMENT comme avant
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     audio: {
                         echoCancellation: true,
@@ -422,10 +425,16 @@
                     }
                 });
                 
-                let mimeType = 'audio/webm;codecs=opus';
-                if (!MediaRecorder.isTypeSupported(mimeType)) {
-                    mimeType = 'audio/webm';
+                let mimeType = 'audio/webm';
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    mimeType = 'audio/webm;codecs=opus';
+                } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    mimeType = 'audio/mp4';
+                } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                    mimeType = 'audio/ogg;codecs=opus';
                 }
+                
+                console.log('Format utilisé:', mimeType);
                 
                 mediaRecorder = new MediaRecorder(stream, { 
                     mimeType: mimeType,
@@ -459,20 +468,23 @@
         
         async function processRecording() {
             try {
-                updateStatus('processing', '⚙️ Nettoyage audio...');
+                updateStatus('processing', '⚙️ Traitement...');
+                document.getElementById('debugRecording').textContent = 'Traitement...';
                 
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 const arrayBuffer = await audioBlob.arrayBuffer();
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 
                 document.getElementById('debugDuration').textContent = 
-                    (audioBuffer.duration * 1000).toFixed(0) + 'ms';
+                    audioBuffer.duration.toFixed(2) + 's';
                 
-                // TRIM INTELLIGENT
+                // TRIM - fonction originale qui marchait
                 const trimmedBuffer = trimSilence(audioBuffer);
                 
                 document.getElementById('debugTrimmedDuration').textContent = 
-                    (trimmedBuffer.duration * 1000).toFixed(0) + 'ms';
+                    trimmedBuffer.duration.toFixed(2) + 's';
+                
+                document.getElementById('debugRecording').textContent = '✅ Nettoyé';
                 
                 // Convertir en WAV
                 lastAudioBlob = await audioBufferToWavBlob(trimmedBuffer);
@@ -481,7 +493,8 @@
                 audioPlayer.src = URL.createObjectURL(lastAudioBlob);
                 document.getElementById('audioPlayerSection').classList.remove('hidden');
                 
-                // RECONNAISSANCE WHISPER
+                updateStatus('processing', '🤖 Reconnaissance Whisper en cours...');
+                
                 await recognizeAudio();
                 
             } catch (error) {
@@ -491,44 +504,31 @@
             }
         }
         
+        // FONCTION TRIM ORIGINALE - celle qui marchait
         function trimSilence(buffer) {
             const channelData = buffer.getChannelData(0);
             const sampleRate = buffer.sampleRate;
+            const threshold = 0.005;
             
-            // Seuils
-            const noiseFloor = 0.002;      // Bruit de fond
-            const soundThreshold = 0.03;   // Vrai son (augmenté pour être sûr)
-            
-            // 1️⃣ TROUVER LE VRAI DÉBUT
+            // Trouver le PREMIER son
             let start = 0;
-            let peakCount = 0;
-            const minPeaks = Math.floor(0.03 * sampleRate); // 30ms de son fort
-            
             for (let i = 0; i < channelData.length; i++) {
-                const amplitude = Math.abs(channelData[i]);
-                
-                if (amplitude > soundThreshold) {
-                    peakCount++;
-                    if (peakCount >= minPeaks) {
-                        // Trouvé ! Reculer un peu pour garder l'attaque
-                        start = Math.max(0, i - peakCount - Math.floor(0.02 * sampleRate));
-                        break;
-                    }
-                } else if (amplitude < noiseFloor) {
-                    peakCount = 0; // Reset si retour au silence
+                if (Math.abs(channelData[i]) > threshold) {
+                    start = Math.max(0, i - Math.floor(0.05 * sampleRate));
+                    break;
                 }
             }
             
             document.getElementById('debugStartPoint').textContent = 
-                (start / sampleRate * 1000).toFixed(0) + 'ms';
+                `${(start / sampleRate * 1000).toFixed(1)}ms`;
             
-            // 2️⃣ TROUVER LA FIN
+            // Trouver où le son s'ARRÊTE
             let end = start;
             let silentSamples = 0;
-            const maxSilence = Math.floor(0.2 * sampleRate); // 200ms
+            const maxSilence = Math.floor(0.3 * sampleRate);
             
             for (let i = start; i < channelData.length; i++) {
-                if (Math.abs(channelData[i]) > noiseFloor) {
+                if (Math.abs(channelData[i]) > threshold) {
                     silentSamples = 0;
                     end = i;
                 } else {
@@ -540,20 +540,17 @@
             }
             
             if (start >= end) {
-                console.warn('Aucun son détecté, retour buffer original');
+                console.warn('Aucun son détecté');
                 return buffer;
             }
             
             const trimmedLength = end - start + 1;
-            
-            console.log('🔪 Trim:', {
-                original: (buffer.length / sampleRate * 1000).toFixed(0) + 'ms',
-                start: (start / sampleRate * 1000).toFixed(0) + 'ms',
-                trimmed: (trimmedLength / sampleRate * 1000).toFixed(0) + 'ms',
-                removed: ((buffer.length - trimmedLength) / sampleRate * 1000).toFixed(0) + 'ms'
+            console.log('Trim:', {
+                original: (buffer.length / sampleRate).toFixed(2) + 's',
+                trimmed: (trimmedLength / sampleRate).toFixed(2) + 's',
+                removed: ((buffer.length - trimmedLength) / sampleRate).toFixed(2) + 's'
             });
             
-            // Créer buffer nettoyé
             const trimmedBuffer = audioContext.createBuffer(
                 buffer.numberOfChannels,
                 trimmedLength,
@@ -571,8 +568,7 @@
         
         async function recognizeAudio() {
             try {
-                updateStatus('processing', '🤖 Reconnaissance Whisper...');
-                document.getElementById('debugRecognition').textContent = 'En cours...';
+                document.getElementById('debugRecognition').textContent = 'Transcription...';
                 
                 const transcript = await window.recognizeWithWhisper(lastAudioBlob);
                 
@@ -588,7 +584,7 @@
             } catch (error) {
                 console.error('Erreur reconnaissance:', error);
                 document.getElementById('debugRecognition').textContent = 
-                    `❌ ${error.message}`;
+                    `❌ Erreur: ${error.message}`;
                 updateStatus('error', '❌ Erreur reconnaissance');
                 document.getElementById('recordBtn').disabled = false;
             }
