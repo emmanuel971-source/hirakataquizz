@@ -1,139 +1,19 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Reconnaissance Hiragana - Whisper API</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      text-align: center;
-      padding: 2rem;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    button {
-      font-size: 1.2rem;
-      padding: 1rem 2rem;
-      cursor: pointer;
-      border: 2px solid #333;
-      border-radius: 8px;
-      background: #4CAF50;
-      color: white;
-      font-weight: bold;
-      transition: all 0.3s;
-    }
-    button:hover:not(:disabled) {
-      background: #45a049;
-    }
-    button:disabled {
-      background-color: #ccc;
-      border-color: #999;
-      cursor: not-allowed;
-    }
-    #kana {
-      font-size: 4rem;
-      margin-top: 1.5rem;
-      min-height: 5rem;
-    }
-    #raw {
-      margin-top: 1rem;
-      color: #666;
-      font-size: 0.9rem;
-    }
-    #error {
-      margin-top: 1rem;
-      color: red;
-      font-size: 1rem;
-    }
-    #audioSection {
-      margin-top: 2rem;
-      padding: 1.5rem;
-      background: #f8f9fa;
-      border-radius: 10px;
-    }
-    #audioSection.hidden {
-      display: none;
-    }
-    audio {
-      width: 100%;
-      margin: 1rem 0;
-    }
-    #debug {
-      margin-top: 2rem;
-      padding: 1rem;
-      background: #f5f5f5;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      text-align: left;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    .hint {
-      background: #e3f2fd;
-      padding: 1rem;
-      border-radius: 8px;
-      margin: 1rem 0;
-      font-size: 0.9rem;
-    }
-    .recording {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: red;
-      margin-right: 8px;
-      animation: pulse 1s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-  </style>
-</head>
-<body>
-  <h1>🎤 Prononce un hiragana</h1>
+import React, { useState, useRef } from 'react';
+
+export default function HiraganaRecognition() {
+  const [status, setStatus] = useState('idle');
+  const [recognizedKana, setRecognizedKana] = useState('—');
+  const [transcription, setTranscription] = useState('');
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [debugLog, setDebugLog] = useState([]);
   
-  <div class="hint">
-    💡 <strong>Version Whisper API (Cloud)</strong><br>
-    • Fonctionne sur PC et smartphone<br>
-    • Reconnaissance très précise<br>
-    • Prononce un son japonais clairement
-  </div>
-  
-  <button id="mic">🎤 Parler (3s)</button>
-  <div id="kana">—</div>
-  <div id="raw"></div>
-  <div id="error"></div>
-  
-  <div id="audioSection" class="hidden">
-    <h3>🔊 Audio enregistré</h3>
-    <audio id="audioPlayer" controls></audio>
-  </div>
-  
-  <div id="debug"></div>
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const RECORDING_DURATION = 2000; // 2 secondes
 
-<script>
-  const micBtn = document.getElementById("mic");
-  const kanaDiv = document.getElementById("kana");
-  const rawDiv = document.getElementById("raw");
-  const errorDiv = document.getElementById("error");
-  const debugDiv = document.getElementById("debug");
-
-  let mediaRecorder = null;
-  let audioChunks = [];
-  const RECORDING_DURATION = 3000; // 3 secondes
-
-  function addDebug(msg, isError = false) {
-    const time = new Date().toLocaleTimeString();
-    debugDiv.innerHTML += `<div style="color: ${isError ? 'red' : '#333'}">[${time}] ${msg}</div>`;
-    debugDiv.scrollTop = debugDiv.scrollHeight;
-  }
-
-  addDebug("✅ Script chargé - Whisper API prêt");
-
-  // Mapping hiragana
+  // Mapping hiragana complet
   const kanaMap = {
+    // Hiragana direct
     "あ": "あ", "い": "い", "う": "う", "え": "え", "お": "お",
     "か": "か", "き": "き", "く": "く", "け": "け", "こ": "こ",
     "さ": "さ", "し": "し", "す": "す", "せ": "せ", "そ": "そ",
@@ -149,7 +29,7 @@
     "だ": "だ", "ぢ": "ぢ", "づ": "づ", "で": "で", "ど": "ど",
     "ば": "ば", "び": "び", "ぶ": "ぶ", "べ": "べ", "ぼ": "ぼ",
     "ぱ": "ぱ", "ぴ": "ぴ", "ぷ": "ぷ", "ぺ": "ぺ", "ぽ": "ぽ",
-    // Romaji fallback
+    // Romaji
     "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お",
     "ka": "か", "ki": "き", "ku": "く", "ke": "け", "ko": "こ",
     "sa": "さ", "shi": "し", "si": "し", "su": "す", "se": "せ", "so": "そ",
@@ -163,194 +43,204 @@
     "wa": "わ", "wo": "を", "n": "ん"
   };
 
-  // Fonction de reconnaissance Whisper via API
-  async function recognizeWithWhisperAPI(audioBlob) {
+  const addLog = (msg, isError = false) => {
+    const time = new Date().toLocaleTimeString();
+    setDebugLog(prev => [...prev, { time, msg, isError }]);
+  };
+
+  const startRecording = async () => {
     try {
-      addDebug("🤖 Envoi vers Whisper API...");
-      
-      // Convertir le blob en base64
-      const base64Audio = await blobToBase64(audioBlob);
-      
-      // Appel à l'API Anthropic avec Whisper
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "anthropic-version": "2023-06-01"
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1024,
-          messages: [{
-            role: "user",
-            content: [
-              {
-                type: "document",
-                source: {
-                  type: "base64",
-                  media_type: "audio/webm",
-                  data: base64Audio
-                }
-              },
-              {
-                type: "text",
-                text: "Transcribe this audio. It contains a single Japanese hiragana sound. Return ONLY the hiragana character or its romaji equivalent, nothing else."
-              }
-            ]
-          }]
-        })
-      });
+      setStatus('recording');
+      setRecognizedKana('🎧');
+      setTranscription('');
+      setAudioUrl(null);
+      setDebugLog([]);
+      addLog('🎤 Début enregistrement');
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const transcript = data.content[0].text.trim();
-      
-      addDebug(`✅ API réponse: "${transcript}"`);
-      return transcript;
-      
-    } catch (error) {
-      addDebug(`❌ Erreur API: ${error.message}`, true);
-      throw error;
-    }
-  }
-
-  // Convertir Blob en Base64
-  function blobToBase64(blob) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  // Démarrer l'enregistrement
-  async function startRecording() {
-    try {
-      addDebug("🎤 Début enregistrement");
-      kanaDiv.innerHTML = '<span class="recording"></span>🎧 Écoute...';
-      rawDiv.textContent = "";
-      errorDiv.textContent = "";
-      micBtn.disabled = true;
-      micBtn.textContent = "Écoute en cours...";
-      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true
+          autoGainControl: true,
+          sampleRate: 48000
         }
       });
-      
+
       let mimeType = 'audio/webm';
       if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
         mimeType = 'audio/webm;codecs=opus';
       }
-      
-      addDebug(`Format: ${mimeType}`);
-      
-      mediaRecorder = new MediaRecorder(stream, { mimeType });
-      audioChunks = [];
-      
-      mediaRecorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
+
+      addLog(`Format: ${mimeType}`);
+
+      mediaRecorderRef.current = new MediaRecorder(stream, { 
+        mimeType,
+        audioBitsPerSecond: 128000
+      });
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
       };
-      
-      mediaRecorder.onstop = async () => {
+
+      mediaRecorderRef.current.onstop = async () => {
         stream.getTracks().forEach(track => track.stop());
         await processRecording();
       };
-      
-      mediaRecorder.start();
-      
+
+      mediaRecorderRef.current.start();
+
       setTimeout(() => {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-          mediaRecorder.stop();
-          addDebug("⏹️ Enregistrement terminé");
+        if (mediaRecorderRef.current?.state === 'recording') {
+          mediaRecorderRef.current.stop();
+          addLog('⏹️ Enregistrement terminé');
         }
       }, RECORDING_DURATION);
-      
-    } catch (error) {
-      addDebug(`❌ Erreur enregistrement: ${error.message}`, true);
-      errorDiv.textContent = `Erreur: ${error.message}`;
-      micBtn.disabled = false;
-      micBtn.textContent = "🎤 Parler (3s)";
-      kanaDiv.textContent = "—";
-    }
-  }
 
-  // Traiter l'enregistrement
-  async function processRecording() {
+    } catch (error) {
+      addLog(`❌ Erreur: ${error.message}`, true);
+      setStatus('error');
+      setRecognizedKana('—');
+    }
+  };
+
+  const processRecording = async () => {
     try {
-      kanaDiv.textContent = "⚙️ Analyse Whisper...";
+      setStatus('processing');
+      setRecognizedKana('⚙️');
+      addLog('Traitement audio...');
+
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      const url = URL.createObjectURL(audioBlob);
+      setAudioUrl(url);
+
+      addLog('🤖 Appel Whisper via Claude API...');
+
+      // UTILISATION DE L'API WHISPER INTÉGRÉE DANS CLAUDE
+      const result = await window.recognizeWithWhisper(audioBlob);
       
-      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      
-      // Afficher le lecteur audio
-      const audioPlayer = document.getElementById('audioPlayer');
-      audioPlayer.src = URL.createObjectURL(audioBlob);
-      document.getElementById('audioSection').classList.remove('hidden');
-      
-      // Reconnaissance via API
-      const transcript = await recognizeWithWhisperAPI(audioBlob);
-      
-      rawDiv.textContent = `Reconnu : "${transcript}"`;
-      
+      addLog(`✅ Transcription: "${result}"`);
+      setTranscription(result);
+
       // Chercher correspondance
+      const cleanResult = result.toLowerCase().trim();
       let found = false;
-      const cleanTranscript = transcript.toLowerCase().trim();
-      
+
       // Essai 1: Match direct
-      if (kanaMap[cleanTranscript]) {
-        kanaDiv.textContent = kanaMap[cleanTranscript];
+      if (kanaMap[cleanResult]) {
+        setRecognizedKana(kanaMap[cleanResult]);
         found = true;
-        addDebug(`✅ Match: "${cleanTranscript}" → ${kanaMap[cleanTranscript]}`);
+        addLog(`✅ Match direct: "${cleanResult}" → ${kanaMap[cleanResult]}`);
       }
-      
-      // Essai 2: Première lettre
-      if (!found && cleanTranscript.length > 0) {
-        const firstChar = cleanTranscript.charAt(0);
+
+      // Essai 2: Première lettre/caractère
+      if (!found && cleanResult.length > 0) {
+        const firstChar = cleanResult.charAt(0);
         if (kanaMap[firstChar]) {
-          kanaDiv.textContent = kanaMap[firstChar];
+          setRecognizedKana(kanaMap[firstChar]);
           found = true;
-          addDebug(`✅ Match 1er char: "${firstChar}" → ${kanaMap[firstChar]}`);
+          addLog(`✅ Match 1er caractère: "${firstChar}" → ${kanaMap[firstChar]}`);
         }
       }
-      
-      // Essai 3: Chercher dans le texte
+
+      // Essai 3: Contient un hiragana connu
       if (!found) {
         for (const [key, value] of Object.entries(kanaMap)) {
-          if (cleanTranscript.includes(key)) {
-            kanaDiv.textContent = value;
+          if (cleanResult.includes(key) && key.length > 1) {
+            setRecognizedKana(value);
             found = true;
-            addDebug(`✅ Match contient: "${key}" → ${value}`);
+            addLog(`✅ Match contient: "${key}" → ${value}`);
             break;
           }
         }
       }
-      
-      if (!found) {
-        kanaDiv.textContent = "❓ Pas reconnu";
-        addDebug("❌ Aucune correspondance");
-      }
-      
-    } catch (error) {
-      addDebug(`❌ Erreur traitement: ${error.message}`, true);
-      errorDiv.textContent = `❌ ${error.message}`;
-      kanaDiv.textContent = "—";
-    } finally {
-      micBtn.disabled = false;
-      micBtn.textContent = "🎤 Parler (3s)";
-    }
-  }
 
-  micBtn.onclick = startRecording;
-</script>
-</body>
-</html>
+      if (!found) {
+        setRecognizedKana('❓');
+        addLog('❌ Aucune correspondance trouvée');
+      }
+
+      setStatus('ready');
+
+    } catch (error) {
+      addLog(`❌ Erreur Whisper: ${error.message}`, true);
+      setStatus('error');
+      setRecognizedKana('—');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-indigo-600 mb-2">
+            🎤 Reconnaissance Hiragana
+          </h1>
+          <p className="text-gray-600">Version Whisper AI - Artifact Claude</p>
+        </div>
+
+        {/* Hint */}
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
+          <p className="text-sm text-gray-700">
+            💡 <strong>Comment ça marche :</strong><br/>
+            • Clique sur "Parler" et prononce un hiragana (ex: あ, か, し)<br/>
+            • L'enregistrement dure 2 secondes<br/>
+            • Whisper AI reconnaîtra le son isolé !
+          </p>
+        </div>
+
+        {/* Bouton principal */}
+        <div className="text-center mb-6">
+          <button
+            onClick={startRecording}
+            disabled={status === 'recording' || status === 'processing'}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-xl text-xl transition-all transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none"
+          >
+            {status === 'recording' && '🎤 Écoute... (2s)'}
+            {status === 'processing' && '⚙️ Analyse Whisper...'}
+            {(status === 'idle' || status === 'ready' || status === 'error') && '🎤 Parler'}
+          </button>
+        </div>
+
+        {/* Résultat principal */}
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-8 mb-6 text-center border-2 border-indigo-200">
+          <div className="text-8xl mb-4 font-bold">
+            {recognizedKana}
+          </div>
+          {transcription && (
+            <div className="text-gray-600 text-lg">
+              Transcription : <span className="font-semibold">"{transcription}"</span>
+            </div>
+          )}
+        </div>
+
+        {/* Lecteur audio */}
+        {audioUrl && (
+          <div className="bg-gray-50 rounded-xl p-6 mb-6">
+            <h3 className="font-semibold text-gray-700 mb-3">🔊 Audio enregistré</h3>
+            <audio src={audioUrl} controls className="w-full" />
+          </div>
+        )}
+
+        {/* Debug log */}
+        {debugLog.length > 0 && (
+          <div className="bg-gray-900 text-green-400 rounded-xl p-4 font-mono text-sm max-h-60 overflow-y-auto">
+            <div className="font-bold text-green-300 mb-2">📋 Debug Log</div>
+            {debugLog.map((log, i) => (
+              <div key={i} className={log.isError ? 'text-red-400' : 'text-green-400'}>
+                [{log.time}] {log.msg}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Info technique */}
+        <div className="mt-6 text-center text-sm text-gray-500">
+          <p>✨ Utilise Whisper AI via l'API Claude</p>
+          <p>🚀 Fonctionne sur PC et smartphone</p>
+        </div>
+      </div>
+    </div>
+  );
+}
