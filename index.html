@@ -584,13 +584,7 @@
                 
                 document.getElementById('debugRecording').textContent = '✅ Nettoyé';
                 
-               lastAudioBlob = await audioBufferToWavBlob(trimmedBuffer);
-
-const audioPlayer = document.getElementById('audioPlayer');
-audioPlayer.src = URL.createObjectURL(lastAudioBlob);
-document.getElementById('audioPlayerSection').classList.remove('hidden');
-
-await recognizeAudio();
+                await concatenateWithSuffix(trimmedBuffer);
                 
             } catch (error) {
                 console.error('Erreur traitement:', error);
@@ -709,7 +703,45 @@ await recognizeAudio();
             return normalized;
         }
         
-     
+        async function concatenateWithSuffix(userBuffer) {
+            try {
+                const select = document.getElementById('suffixSelect');
+                const selectedSuffix = select.value;
+                const suffixBuffer = suffixBuffers[selectedSuffix];
+                
+                if (!suffixBuffer) {
+                    throw new Error('Suffixe non chargé: ' + selectedSuffix);
+                }
+                
+                document.getElementById('debugNormalization').textContent = 'En cours...';
+                const normalizedUser = normalizeBuffer(userBuffer);
+                const normalizedSuffix = normalizeBuffer(suffixBuffer);
+                document.getElementById('debugNormalization').textContent = '✅ OK';
+                
+                document.getElementById('debugCrossfade').textContent = `${(CROSSFADE_DURATION * 1000).toFixed(0)}ms...`;
+                const concatenatedBuffer = concatenateWithCrossfade(normalizedUser, normalizedSuffix);
+                document.getElementById('debugCrossfade').textContent = `✅ ${(CROSSFADE_DURATION * 1000).toFixed(0)}ms`;
+                
+                document.getElementById('debugFinalDuration').textContent = 
+                    concatenatedBuffer.duration.toFixed(3) + 's';
+                
+                lastConcatenatedBlob = await audioBufferToWavBlob(concatenatedBuffer);
+                
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.src = URL.createObjectURL(lastConcatenatedBlob);
+                document.getElementById('audioPlayerSection').classList.remove('hidden');
+                
+                updateStatus('processing', '🤖 Reconnaissance Whisper en cours...');
+                
+                await recognizeAudio();
+                
+            } catch (error) {
+                console.error('Erreur concaténation:', error);
+                updateStatus('error', '❌ Erreur: ' + error.message);
+                document.getElementById('recordBtn').disabled = false;
+            }
+        }
+        
         // ✨ CROSSFADE AMÉLIORÉ avec courbe logarithmique
         function concatenateWithCrossfade(buffer1, buffer2) {
             const sampleRate = buffer1.sampleRate;
