@@ -1,388 +1,189 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur Voyelles WAV</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-            font-size: 24px;
-        }
-        .info {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        button:hover {
-            background: #45a049;
-        }
-        button:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-        }
-        .test-btn {
-            background: #2196F3;
-        }
-        .test-btn:hover {
-            background: #1976D2;
-        }
-        .progress {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f9f9f9;
-            border-radius: 5px;
-            display: none;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 30px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #8BC34A);
-            width: 0%;
-            transition: width 0.3s;
-        }
-        .log {
-            max-height: 300px;
-            overflow-y: auto;
-            background: #f5f5f5;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 11px;
-            margin-top: 10px;
-        }
-        .log div {
-            padding: 2px 0;
-        }
-        .success {
-            color: #4CAF50;
-        }
-        .error {
-            color: #f44336;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur Voyelles Audio - Mobile</title>
+
+<style>
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background:#f5f5f5;
+    margin:0;
+    padding:10px;
+}
+
+.container {
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+    text-align:center;
+}
+
+button {
+    width:100%;
+    padding:15px;
+    margin:8px 0;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#4CAF50;
+    color:white;
+}
+
+button:disabled {
+    background:#aaa;
+}
+
+.progress {
+    margin-top:15px;
+    background:#eee;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.bar {
+    height:24px;
+    background:linear-gradient(90deg,#4CAF50,#8BC34A);
+    width:0%;
+    transition:.2s;
+}
+
+.log {
+    margin-top:10px;
+    background:#111;
+    color:#0f0;
+    font-family:monospace;
+    font-size:12px;
+    max-height:260px;
+    overflow-y:auto;
+    padding:8px;
+    border-radius:8px;
+}
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>🎙️ Générateur de Voyelles WAV</h1>
-        
-        <div class="info">
-            <strong>ℹ️ Information :</strong><br>
-            Ce générateur crée 150 fichiers audio WAV<br>
-            • 5 voyelles (A, É, I, O, U)<br>
-            • 30 variations par voyelle<br>
-            • Durée : ~1 seconde/fichier<br>
-            • Format : WAV 16-bit (~40 Ko/fichier)<br>
-            • Synthèse basée sur les formants vocaux
-        </div>
+<div class="container">
+<h1>🎙️ Dataset Voyelles Mobile</h1>
 
-        <button id="testBtn" onclick="testSound()" class="test-btn">
-            🔊 Tester un son
-        </button>
+<p>
+150 fichiers audio générés automatiquement.<br>
+Fonctionne directement sur téléphone Android.
+</p>
 
-        <button id="startBtn" onclick="startGeneration()">
-            🚀 Démarrer la génération (150 fichiers)
-        </button>
+<button id="startBtn" onclick="start()">🚀 Démarrer la génération</button>
+<button onclick="testVoice()" style="background:#2196F3;">🔊 Tester voix</button>
 
-        <div class="progress" id="progressDiv">
-            <div>
-                <strong>Progression :</strong> 
-                <span id="progressText">0/150</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="log" id="log"></div>
-        </div>
-    </div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="log" id="log"></div>
 
-    <script>
-        let isGenerating = false;
-        let generatedCount = 0;
-        const totalFiles = 150;
-        
-        // Formants pour chaque voyelle [F1, F2]
-        const voyelles = {
-            'A': [730, 1090],
-            'E': [390, 2300],  // É
-            'I': [240, 2400],
-            'O': [400, 800],
-            'U': [250, 595]
-        };
+</div>
 
-        function log(message, type = '') {
-            const logDiv = document.getElementById('log');
-            const entry = document.createElement('div');
-            const time = new Date().toLocaleTimeString();
-            entry.textContent = `${time} - ${message}`;
-            if (type) entry.className = type;
-            logDiv.appendChild(entry);
-            logDiv.scrollTop = logDiv.scrollHeight;
+<script>
+const voyelles = ['A','É','I','O','U'];
+const total = 150;
+let count = 0;
+let voices = [];
+
+speechSynthesis.onvoiceschanged = () => {
+    voices = speechSynthesis.getVoices().filter(v=>v.lang.startsWith("fr"));
+    log(`Voix détectées : ${voices.length}`);
+};
+
+function log(txt){
+    const l=document.getElementById("log");
+    l.innerHTML+=`<div>${new Date().toLocaleTimeString()} — ${txt}</div>`;
+    l.scrollTop=l.scrollHeight;
+}
+
+function progress(){
+    document.getElementById("bar").style.width=(count/total*100)+"%";
+}
+
+async function captureAndSpeak(text, pitch, rate, filename){
+
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+        video:false,
+        audio:true
+    });
+
+    const recorder = new MediaRecorder(stream);
+    const chunks=[];
+
+    recorder.ondataavailable=e=>chunks.push(e.data);
+
+    recorder.onstop=()=>{
+        const blob=new Blob(chunks,{type:'audio/webm'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a");
+        a.href=url;
+        a.download=filename;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    recorder.start();
+
+    const u=new SpeechSynthesisUtterance(text);
+    u.voice=voices[Math.floor(Math.random()*voices.length)];
+    u.pitch=pitch;
+    u.rate=rate;
+
+    speechSynthesis.speak(u);
+
+    u.onend=()=>setTimeout(()=>recorder.stop(),150);
+
+    await new Promise(r=>u.onend=r);
+}
+
+async function start(){
+
+    if(!voices.length){
+        alert("Voix non chargées");
+        return;
+    }
+
+    document.getElementById("startBtn").disabled=true;
+    count=0;
+    log("Démarrage génération...");
+    progress();
+
+    for(const v of voyelles){
+
+        for(let i=0;i<30;i++){
+
+            const pitch=1+(Math.random()*0.6-0.3);
+            const rate=1+(Math.random()*0.6-0.3);
+
+            const name=`${v}_${i+1}_p${pitch.toFixed(2)}_r${rate.toFixed(2)}.webm`;
+
+            log(`Génération ${name}`);
+
+            await captureAndSpeak(v,pitch,rate,name);
+
+            count++;
+            progress();
+
+            await new Promise(r=>setTimeout(r,300));
         }
+    }
 
-        function updateProgress() {
-            const percent = (generatedCount / totalFiles) * 100;
-            document.getElementById('progressFill').style.width = percent + '%';
-            document.getElementById('progressText').textContent = 
-                `${generatedCount}/${totalFiles} (${Math.round(percent)}%)`;
-        }
+    log("🎉 Génération terminée !");
+    alert("150 fichiers audio générés !");
+    document.getElementById("startBtn").disabled=false;
+}
 
-        // Créer un fichier WAV à partir d'un AudioBuffer
-        function audioBufferToWav(audioBuffer) {
-            const numChannels = 1;
-            const sampleRate = audioBuffer.sampleRate;
-            const format = 1; // PCM
-            const bitDepth = 16;
-            
-            const channelData = audioBuffer.getChannelData(0);
-            const dataLength = channelData.length * 2;
-            const buffer = new ArrayBuffer(44 + dataLength);
-            const view = new DataView(buffer);
-            
-            // Écrire l'en-tête WAV
-            const writeString = (offset, string) => {
-                for (let i = 0; i < string.length; i++) {
-                    view.setUint8(offset + i, string.charCodeAt(i));
-                }
-            };
-            
-            writeString(0, 'RIFF');
-            view.setUint32(4, 36 + dataLength, true);
-            writeString(8, 'WAVE');
-            writeString(12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, format, true);
-            view.setUint16(22, numChannels, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true);
-            view.setUint16(32, 2, true);
-            view.setUint16(34, bitDepth, true);
-            writeString(36, 'data');
-            view.setUint32(40, dataLength, true);
-            
-            // Écrire les données audio
-            let offset = 44;
-            for (let i = 0; i < channelData.length; i++) {
-                const sample = Math.max(-1, Math.min(1, channelData[i]));
-                const intSample = sample < 0 ? sample * 32768 : sample * 32767;
-                view.setInt16(offset, intSample, true);
-                offset += 2;
-            }
-            
-            return new Blob([buffer], { type: 'audio/wav' });
-        }
-
-        // Générer une voyelle synthétique
-        function generateVowel(vowel, variationIndex) {
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                const audioContext = new AudioContext();
-                
-                const sampleRate = audioContext.sampleRate;
-                const duration = 0.9; // 0.9 secondes
-                const numSamples = Math.floor(sampleRate * duration);
-                
-                const audioBuffer = audioContext.createBuffer(1, numSamples, sampleRate);
-                const channelData = audioBuffer.getChannelData(0);
-                
-                const [f1Base, f2Base] = voyelles[vowel];
-                
-                // Variations de pitch
-                const pitchVariation = 1 + ((variationIndex % 10) - 5) * 0.04;
-                const f1 = f1Base * pitchVariation;
-                const f2 = f2Base * pitchVariation;
-                
-                // Fréquence fondamentale (voix)
-                const f0Variation = ((variationIndex % 20) - 10) * 2;
-                const f0 = 120 + f0Variation; // Entre 100 et 140 Hz
-                
-                // Générer le signal audio
-                for (let i = 0; i < numSamples; i++) {
-                    const t = i / sampleRate;
-                    
-                    // Signal de base (onde fondamentale + harmoniques)
-                    let signal = 0;
-                    signal += 0.4 * Math.sin(2 * Math.PI * f0 * t);
-                    signal += 0.25 * Math.sin(2 * Math.PI * f0 * 2 * t);
-                    signal += 0.15 * Math.sin(2 * Math.PI * f0 * 3 * t);
-                    signal += 0.1 * Math.sin(2 * Math.PI * f0 * 4 * t);
-                    
-                    // Ajouter les formants
-                    signal += 0.25 * Math.sin(2 * Math.PI * f1 * t) * Math.exp(-t * 2);
-                    signal += 0.15 * Math.sin(2 * Math.PI * f2 * t) * Math.exp(-t * 3);
-                    
-                    // Enveloppe ADSR
-                    const attackTime = 0.05;
-                    const decayTime = 0.1;
-                    const sustainLevel = 0.7;
-                    const releaseTime = 0.15;
-                    
-                    let envelope = 1;
-                    if (t < attackTime) {
-                        // Attack
-                        envelope = t / attackTime;
-                    } else if (t < attackTime + decayTime) {
-                        // Decay
-                        const decayProgress = (t - attackTime) / decayTime;
-                        envelope = 1 - decayProgress * (1 - sustainLevel);
-                    } else if (t > duration - releaseTime) {
-                        // Release
-                        envelope = sustainLevel * ((duration - t) / releaseTime);
-                    } else {
-                        // Sustain
-                        envelope = sustainLevel;
-                    }
-                    
-                    channelData[i] = signal * envelope * 0.4;
-                }
-                
-                const wavBlob = audioBufferToWav(audioBuffer);
-                audioContext.close();
-                
-                return wavBlob;
-                
-            } catch (error) {
-                log(`Erreur génération: ${error.message}`, 'error');
-                console.error(error);
-                throw error;
-            }
-        }
-
-        // Télécharger un fichier
-        function downloadFile(blob, filename) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
-        }
-
-        // Tester un son
-        async function testSound() {
-            try {
-                log('🔊 Test en cours...', 'success');
-                const blob = await generateVowel('A', 0);
-                const url = URL.createObjectURL(blob);
-                const audio = new Audio(url);
-                
-                audio.onended = () => {
-                    URL.revokeObjectURL(url);
-                    log('✓ Test réussi !', 'success');
-                };
-                
-                audio.onerror = (e) => {
-                    log('✗ Erreur lecture audio', 'error');
-                };
-                
-                await audio.play();
-                
-            } catch (error) {
-                log(`✗ Erreur test: ${error.message}`, 'error');
-                alert('Erreur lors du test. Vérifiez la console.');
-            }
-        }
-
-        // Générer tous les fichiers
-        async function startGeneration() {
-            if (isGenerating) return;
-            
-            isGenerating = true;
-            generatedCount = 0;
-            
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('testBtn').disabled = true;
-            document.getElementById('progressDiv').style.display = 'block';
-            document.getElementById('log').innerHTML = '';
-            
-            log('🚀 Démarrage de la génération...', 'success');
-            updateProgress();
-
-            try {
-                const vowelList = Object.keys(voyelles);
-                
-                for (const vowel of vowelList) {
-                    log(`📝 Génération de "${vowel}"...`);
-                    
-                    for (let i = 0; i < 30; i++) {
-                        try {
-                            const blob = await generateVowel(vowel, i);
-                            const filename = `${vowel.toLowerCase()}_${String(i + 1).padStart(2, '0')}.wav`;
-                            
-                            downloadFile(blob, filename);
-                            
-                            generatedCount++;
-                            updateProgress();
-                            
-                            // Log toutes les 5 générations
-                            if ((i + 1) % 5 === 0) {
-                                log(`✓ ${vowel}: ${i + 1}/30 générés`, 'success');
-                            }
-                            
-                            // Pause pour permettre les téléchargements
-                            await new Promise(resolve => setTimeout(resolve, 150));
-                            
-                        } catch (error) {
-                            log(`✗ Erreur ${vowel}_${i + 1}: ${error.message}`, 'error');
-                        }
-                    }
-                }
-                
-                log('🎉 Génération terminée !', 'success');
-                log(`✓ ${generatedCount} fichiers WAV créés`, 'success');
-                alert(`✅ Terminé !\n${generatedCount} fichiers WAV générés avec succès.`);
-                
-            } catch (error) {
-                log(`❌ Erreur critique: ${error.message}`, 'error');
-                console.error(error);
-                alert(`Erreur: ${error.message}\nVérifiez la console pour plus de détails.`);
-                
-            } finally {
-                isGenerating = false;
-                document.getElementById('startBtn').disabled = false;
-                document.getElementById('testBtn').disabled = false;
-            }
-        }
-    </script>
+function testVoice(){
+    const u=new SpeechSynthesisUtterance("A É I O U");
+    u.voice=voices[0];
+    speechSynthesis.speak(u);
+}
+</script>
 </body>
 </html>
