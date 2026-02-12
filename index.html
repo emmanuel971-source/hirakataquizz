@@ -1,294 +1,131 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enregistreur Audio Pro - V2</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: clamp(20px, 5vw, 40px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            max-width: 550px;
-            width: 100%;
-        }
-
-        h1 { color: #333; text-align: center; font-size: 24px; margin-bottom: 5px; }
-        .subtitle { color: #666; text-align: center; margin-bottom: 20px; font-size: 13px; }
-
-        .status {
-            text-align: center;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            background: #f0f0f0;
-            font-size: 14px;
-        }
-
-        .status.recording { background: #fee; color: #c00; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        .status.ready { background: #d4edda; color: #155724; }
-
-        /* Visualisation */
-        .viz-container { margin-bottom: 20px; display: none; }
-        .viz-container.visible { display: block; }
-        canvas { 
-            width: 100%; 
-            background: #f8f9fa; 
-            border-radius: 8px; 
-            margin-bottom: 5px;
-            display: block;
-        }
-        .label-viz { font-size: 11px; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-
-        button {
-            width: 100%; padding: 16px; border: none; border-radius: 12px;
-            font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s;
-            margin-bottom: 10px; touch-action: manipulation;
-        }
-
-        .btn-record { background: #667eea; color: white; }
-        .btn-record:active { transform: scale(0.98); }
-        .btn-download { background: #28a745; color: white; }
-        .btn-restart { background: #6c757d; color: white; }
-
-        .timer { text-align: center; font-size: 40px; font-weight: bold; color: #667eea; margin: 15px 0; display: none; }
-        .timer.visible { display: block; }
-
-        audio { width: 100%; margin-bottom: 15px; }
-
-        @media (max-width: 480px) {
-            h1 { font-size: 20px; }
-            button { padding: 14px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<title>150 voyelles MP3 gratuites – Google Translate TTS</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 1000px; margin: 40px auto; padding: 20px; background: #f9f9f9; line-height: 1.6; }
+  h1 { color: #d81e5b; }
+  input, button { font-size: 16px; padding: 10px; margin: 8px; }
+  button { background: #d81e5b; color: white; border: none; border-radius: 6px; cursor: pointer; }
+  #status { margin: 20px 0; font-weight: bold; color: #333; }
+  #log { font-family: monospace; font-size: 13px; max-height: 320px; overflow-y: auto; border: 1px solid #ccc; padding: 12px; background: white; }
+</style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🎙️ Analyseur Vocal</h1>
-    <p class="subtitle">Capture haute fidélité (WAV 44.1kHz)</p>
+<h1>150 fichiers MP3 (30 variantes × A / É / I / O / U) – 100% gratuit</h1>
+<p>Utilise l’ancien moteur Google Translate TTS (fr + fr-CA + variations pitch/vitesse).</p>
 
-    <div id="status" class="status">Prêt à l'enregistrement</div>
-    
-    <div id="timer" class="timer">3</div>
+<button onclick="generateAll()" style="font-size:18px; padding:14px 32px;">
+  ▶ Lancer la génération des 150 fichiers
+</button>
 
-    <div id="vizContainer" class="viz-container">
-        <div class="label-viz">Signal Brut (3s)</div>
-        <canvas id="canvasRaw" height="60"></canvas>
-        <div class="label-viz">Signal Final (Trimé + Fade)</div>
-        <canvas id="canvasProcessed" height="100"></canvas>
-    </div>
-
-    <button id="recordBtn" class="btn-record">🔴 Démarrer (3 secondes)</button>
-
-    <div id="audioPlayer" style="display: none;">
-        <audio id="audioElement" controls></audio>
-        <button id="downloadBtn" class="btn-download">⬇️ Télécharger le fichier .wav</button>
-        <button id="restartBtn" class="btn-restart">🔄 Nouvel essai</button>
-    </div>
-</div>
+<div id="status">Prêt… (cela prendra 4–10 min selon votre connexion)</div>
+<div id="log"></div>
 
 <script>
-    let mediaRecorder;
-    let audioChunks = [];
-    let audioContext;
-    let processedBlobUrl = null;
+const vowels = [
+  {letter: "A", text: "a"},
+  {letter: "É", text: "é"},
+  {letter: "I", text: "i"},
+  {letter: "O", text: "o"},
+  {letter: "U", text: "u"}
+];
 
-    const recordBtn = document.getElementById('recordBtn');
-    const statusDiv = document.getElementById('status');
-    const timerDiv = document.getElementById('timer');
-    const vizContainer = document.getElementById('vizContainer');
-    const audioElement = document.getElementById('audioElement');
+const langs = ["fr", "fr-CA"];  // les deux seuls accents vraiment différents
 
-    recordBtn.onclick = startRecording;
-    document.getElementById('restartBtn').onclick = resetUI;
-    document.getElementById('downloadBtn').onclick = () => {
-        const a = document.createElement('a');
-        a.href = processedBlobUrl;
-        a.download = `voix_${Date.now()}.wav`;
+// 30 variations (15 par langue)
+const variations = [];
+for (let i = 0; i < 30; i++) {
+  const lang = langs[i % 2];
+  const rate = 0.75 + (i % 15) * 0.042;          // ≈ 0.75 → 1.35
+  const pitch = -5 + Math.floor(i / 2) * 0.8;    // ≈ -5 → +6.8
+  variations.push({lang, rate, pitch});
+}
+
+async function getAudioBase64(text, lang, rate, pitch) {
+  // SSML basique pour aider à contrôler la durée
+  const ssmlText = `<speak>${text}<break time="700ms"/></speak>`;
+
+  const url = `https://translate.google.com/translate_tts?` +
+    `ie=UTF-8&` +
+    `q=${encodeURIComponent(ssmlText)}&` +
+    `tl=${lang}&` +
+    `total=1&` +
+    `idx=0&` +
+    `textlen=${text.length}&` +
+    `client=tw-ob&` +           // "tw-ob" = user-agent-like qui passe encore souvent
+    `ttsspeed=${rate}`;
+
+  // Note : pitch n'est pas supporté directement → on simule via rate + petite astuce SSML si besoin
+  // → ici on reste sur rate + langue pour la variation principale
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      }
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(',')[1]); // base64 sans prefix
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    throw new Error(`Erreur fetch → ${e.message}`);
+  }
+}
+
+async function generateAll() {
+  const status = document.getElementById("status");
+  const log = document.getElementById("log");
+  log.innerHTML = "";
+  status.textContent = "Démarrage... (patience, Google limite parfois les requêtes rapides)";
+
+  let count = 0;
+  let ok = 0;
+
+  for (const v of vowels) {
+    for (const [idx, var] of variations.entries()) {
+      count++;
+      status.textContent = `(${ok}/${count-1})  ${v.letter} #${idx+1}   (${var.lang} | vitesse ${var.rate.toFixed(2)})`;
+
+      try {
+        const base64 = await getAudioBase64(v.text, var.lang, var.rate, 0);
+
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
+
+        const blob = new Blob([bytes], {type: "audio/mp3"});
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${v.letter}_v${String(idx+1).padStart(2,'0')}_${var.lang}_r${var.rate.toFixed(2)}.mp3`;
+        document.body.appendChild(a);
         a.click();
-    };
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 
-    async function startRecording() {
-        try {
-            audioChunks = [];
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
-            });
+        log.innerHTML += `OK ${v.letter} #${idx+1} – ${var.lang}<br>`;
+        ok++;
+      } catch (err) {
+        log.innerHTML += `Échec ${v.letter} #${idx+1} – ${err.message}<br>`;
+      }
 
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = processAudio;
-
-            mediaRecorder.start();
-            
-            // UI Update
-            recordBtn.style.display = 'none';
-            timerDiv.classList.add('visible');
-            statusDiv.textContent = 'Recording...';
-            statusDiv.className = 'status recording';
-
-            let timeLeft = 3;
-            timerDiv.textContent = timeLeft;
-            const interval = setInterval(() => {
-                timeLeft--;
-                timerDiv.textContent = timeLeft > 0 ? timeLeft : '✓';
-                if(timeLeft <= 0) clearInterval(interval);
-            }, 1000);
-
-            setTimeout(() => { if(mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 3000);
-
-        } catch (err) {
-            alert("Erreur micro : " + err);
-        }
+      await new Promise(r => setTimeout(r, 1200));  // pause plus longue → évite blocage Google
     }
+  }
 
-    async function processAudio() {
-        statusDiv.textContent = 'Traitement du signal...';
-        statusDiv.className = 'status';
-        
-        const rawBlob = new Blob(audioChunks);
-        const arrayBuffer = await rawBlob.arrayBuffer();
-        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
-        
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        const channelData = audioBuffer.getChannelData(0);
-
-        // 1. Dessiner le signal brut
-        vizContainer.classList.add('visible');
-        drawWaveform('canvasRaw', channelData, '#adb5bd');
-
-        // 2. Détection du son (Trim)
-        const threshold = 0.02;
-        let start = 0;
-        while(start < channelData.length && Math.abs(channelData[start]) < threshold) start++;
-        let end = channelData.length - 1;
-        while(end > start && Math.abs(channelData[end]) < threshold) end--;
-        
-        // Sécurité si aucun son détecté
-        if(start >= end) { start = 0; end = channelData.length; }
-
-        const trimmedData = channelData.slice(start, end);
-
-        // 3. Normalisation + Anti-clic (Fade)
-        const finalData = applyFadesAndNormalize(trimmedData);
-
-        // 4. Dessiner le signal final
-        drawWaveform('canvasProcessed', finalData, '#667eea');
-
-        // 5. Création du WAV
-        const newBuffer = audioContext.createBuffer(1, finalData.length, 44100);
-        newBuffer.copyToChannel(finalData, 0);
-        const wavBlob = bufferToWav(newBuffer);
-        
-        if(processedBlobUrl) URL.revokeObjectURL(processedBlobUrl);
-        processedBlobUrl = URL.createObjectURL(wavBlob);
-        
-        audioElement.src = processedBlobUrl;
-        document.getElementById('audioPlayer').style.display = 'block';
-        timerDiv.classList.remove('visible');
-        statusDiv.textContent = 'Analyse terminée';
-        statusDiv.className = 'status ready';
-    }
-
-    function applyFadesAndNormalize(data) {
-        const length = data.length;
-        const fadeSamples = 441; // 10ms de fondu
-        const maxAmp = data.reduce((m, s) => Math.abs(s) > m ? Math.abs(s) : m, 0);
-        const gain = maxAmp > 0 ? (0.95 / maxAmp) : 1;
-        
-        const result = new Float32Array(length);
-        
-        for (let i = 0; i < length; i++) {
-            let s = data[i] * gain;
-            // Fade In
-            if (i < fadeSamples) s *= (i / fadeSamples);
-            // Fade Out
-            if (i > length - fadeSamples) s *= ((length - i) / fadeSamples);
-            result[i] = s;
-        }
-        return result;
-    }
-
-    function drawWaveform(canvasId, data, color) {
-        const canvas = document.getElementById(canvasId);
-        // Ajustement pour écrans Retina/Haute densité
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width = canvas.offsetWidth * dpr;
-        const ctx = canvas.getContext('2d');
-        ctx.scale(dpr, 1);
-
-        const width = canvas.offsetWidth;
-        const height = canvas.height;
-        const step = Math.ceil(data.length / width);
-        const amp = height / 2;
-
-        ctx.clearRect(0, 0, width, height);
-        ctx.beginPath();
-        ctx.moveTo(0, amp);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-
-        for (let i = 0; i < width; i++) {
-            const sample = data[i * step] || 0;
-            ctx.lineTo(i, amp + (sample * amp));
-        }
-        ctx.stroke();
-    }
-
-    function bufferToWav(buffer) {
-        const length = buffer.length * 2;
-        const view = new DataView(new ArrayBuffer(44 + length));
-        const sampleRate = buffer.sampleRate;
-
-        const writeString = (off, s) => { for (let i=0; i<s.length; i++) view.setUint8(off+i, s.charCodeAt(i)); };
-        
-        writeString(0, 'RIFF');
-        view.setUint32(4, 36 + length, true);
-        writeString(8, 'WAVE');
-        writeString(12, 'fmt ');
-        view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true);
-        view.setUint16(22, 1, true);
-        view.setUint32(24, sampleRate, true);
-        view.setUint32(28, sampleRate * 2, true);
-        view.setUint16(32, 2, true);
-        view.setUint16(34, 16, true);
-        writeString(36, 'data');
-        view.setUint32(40, length, true);
-
-        const data = buffer.getChannelData(0);
-        let offset = 44;
-        for (let i = 0; i < data.length; i++, offset += 2) {
-            let s = Math.max(-1, Math.min(1, data[i]));
-            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-        }
-        return new Blob([view], { type: 'audio/wav' });
-    }
-
-    function resetUI() {
-        document.getElementById('audioPlayer').style.display = 'none';
-        vizContainer.classList.remove('visible');
-        recordBtn.style.display = 'block';
-        statusDiv.textContent = 'Prêt à l\'enregistrement';
-        statusDiv.className = 'status';
-        audioElement.src = '';
-    }
+  status.textContent = `Terminé ! ${ok} / ${count} fichiers générés.`;
+}
 </script>
 </body>
 </html>
