@@ -3,457 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enregistreur Audio - Capture Vocale</title>
+    <title>Enregistreur Audio Pro - V2</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
         }
 
         .container {
             background: white;
             border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
+            padding: clamp(20px, 5vw, 40px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-width: 550px;
             width: 100%;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-            text-align: center;
-        }
-
-        .subtitle {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
+        h1 { color: #333; text-align: center; font-size: 24px; margin-bottom: 5px; }
+        .subtitle { color: #666; text-align: center; margin-bottom: 20px; font-size: 13px; }
 
         .status {
             text-align: center;
-            padding: 15px;
+            padding: 12px;
             border-radius: 10px;
-            margin-bottom: 25px;
-            font-weight: 500;
+            margin-bottom: 20px;
+            font-weight: 600;
             background: #f0f0f0;
-            color: #666;
+            font-size: 14px;
         }
 
-        .status.recording {
-            background: #fee;
-            color: #c00;
-            animation: pulse 1s infinite;
-        }
+        .status.recording { background: #fee; color: #c00; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .status.ready { background: #d4edda; color: #155724; }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        /* Visualisation */
+        .viz-container { margin-bottom: 20px; display: none; }
+        .viz-container.visible { display: block; }
+        canvas { 
+            width: 100%; 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            margin-bottom: 5px;
+            display: block;
         }
-
-        .status.processing {
-            background: #fef3cd;
-            color: #856404;
-        }
-
-        .status.ready {
-            background: #d4edda;
-            color: #155724;
-        }
+        .label-viz { font-size: 11px; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
 
         button {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 12px;
+            width: 100%; padding: 16px; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s;
+            margin-bottom: 10px; touch-action: manipulation;
         }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .btn-record { background: #667eea; color: white; }
+        .btn-record:active { transform: scale(0.98); }
+        .btn-download { background: #28a745; color: white; }
+        .btn-restart { background: #6c757d; color: white; }
 
-        .btn-record {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
+        .timer { text-align: center; font-size: 40px; font-weight: bold; color: #667eea; margin: 15px 0; display: none; }
+        .timer.visible { display: block; }
 
-        .btn-record:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
+        audio { width: 100%; margin-bottom: 15px; }
 
-        .btn-restart {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-restart:hover:not(:disabled) {
-            background: #5a6268;
-        }
-
-        .btn-download {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-download:hover:not(:disabled) {
-            background: #218838;
-        }
-
-        .audio-player {
-            margin: 20px 0;
-            display: none;
-        }
-
-        .audio-player.visible {
-            display: block;
-        }
-
-        audio {
-            width: 100%;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        .info {
-            background: #e7f3ff;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-size: 13px;
-            color: #004085;
-            line-height: 1.6;
-        }
-
-        .info strong {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .timer {
-            text-align: center;
-            font-size: 48px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 20px 0;
-            display: none;
-        }
-
-        .timer.visible {
-            display: block;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 25px;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
-
-            button {
-                padding: 14px;
-                font-size: 15px;
-            }
+        @media (max-width: 480px) {
+            h1 { font-size: 20px; }
+            button { padding: 14px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎙️ Enregistreur Audio</h1>
-        <p class="subtitle">Enregistrement haute qualité - 44.1 kHz</p>
 
-        <div id="status" class="status">Prêt à enregistrer</div>
-        
-        <div id="timer" class="timer"></div>
+<div class="container">
+    <h1>🎙️ Analyseur Vocal</h1>
+    <p class="subtitle">Capture haute fidélité (WAV 44.1kHz)</p>
 
-        <button id="recordBtn" class="btn-record">🔴 Enregistrer (3s)</button>
+    <div id="status" class="status">Prêt à l'enregistrement</div>
+    
+    <div id="timer" class="timer">3</div>
 
-        <div id="audioPlayer" class="audio-player">
-            <audio id="audioElement" controls></audio>
-            <button id="downloadBtn" class="btn-download">⬇️ Télécharger WAV</button>
-        </div>
-
-        <button id="restartBtn" class="btn-restart" style="display: none;">🔄 Recommencer</button>
-
-        <div class="info">
-            <strong>Instructions :</strong>
-            1. Cliquez sur "Enregistrer"<br>
-            2. Autorisez l'accès au microphone<br>
-            3. Prononcez votre voyelle/son (3 secondes)<br>
-            4. L'audio sera automatiquement nettoyé<br>
-            5. Écoutez et téléchargez le résultat
-        </div>
+    <div id="vizContainer" class="viz-container">
+        <div class="label-viz">Signal Brut (3s)</div>
+        <canvas id="canvasRaw" height="60"></canvas>
+        <div class="label-viz">Signal Final (Trimé + Fade)</div>
+        <canvas id="canvasProcessed" height="100"></canvas>
     </div>
 
-    <script>
-        let mediaRecorder;
-        let audioChunks = [];
-        let audioContext;
-        let recordingTimeout;
+    <button id="recordBtn" class="btn-record">🔴 Démarrer (3 secondes)</button>
 
-        const recordBtn = document.getElementById('recordBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const restartBtn = document.getElementById('restartBtn');
-        const audioPlayer = document.getElementById('audioPlayer');
-        const audioElement = document.getElementById('audioElement');
-        const statusDiv = document.getElementById('status');
-        const timerDiv = document.getElementById('timer');
+    <div id="audioPlayer" style="display: none;">
+        <audio id="audioElement" controls></audio>
+        <button id="downloadBtn" class="btn-download">⬇️ Télécharger le fichier .wav</button>
+        <button id="restartBtn" class="btn-restart">🔄 Nouvel essai</button>
+    </div>
+</div>
 
-        recordBtn.addEventListener('click', startRecording);
-        downloadBtn.addEventListener('click', downloadAudio);
-        restartBtn.addEventListener('click', restart);
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let audioContext;
+    let processedBlobUrl = null;
 
-        async function startRecording() {
-            try {
-                audioChunks = [];
-                
-                // Demander l'accès au microphone avec haute qualité
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true,
-                        sampleRate: 44100,
-                        channelCount: 1
-                    }
-                });
+    const recordBtn = document.getElementById('recordBtn');
+    const statusDiv = document.getElementById('status');
+    const timerDiv = document.getElementById('timer');
+    const vizContainer = document.getElementById('vizContainer');
+    const audioElement = document.getElementById('audioElement');
 
-                // Utiliser le format le plus compatible
-                const options = { mimeType: 'audio/webm;codecs=opus' };
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options.mimeType = 'audio/webm';
-                }
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options.mimeType = '';
-                }
+    recordBtn.onclick = startRecording;
+    document.getElementById('restartBtn').onclick = resetUI;
+    document.getElementById('downloadBtn').onclick = () => {
+        const a = document.createElement('a');
+        a.href = processedBlobUrl;
+        a.download = `voix_${Date.now()}.wav`;
+        a.click();
+    };
 
-                mediaRecorder = new MediaRecorder(stream, options);
+    async function startRecording() {
+        try {
+            audioChunks = [];
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
+            });
 
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
-                };
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = processAudio;
 
-                mediaRecorder.onstop = async () => {
-                    stream.getTracks().forEach(track => track.stop());
-                    await processAudio();
-                };
-
-                mediaRecorder.start();
-                
-                statusDiv.textContent = '🔴 Enregistrement en cours...';
-                statusDiv.className = 'status recording';
-                recordBtn.disabled = true;
-                timerDiv.classList.add('visible');
-
-                // Countdown
-                let countdown = 3;
-                timerDiv.textContent = countdown;
-                const countdownInterval = setInterval(() => {
-                    countdown--;
-                    if (countdown > 0) {
-                        timerDiv.textContent = countdown;
-                    } else {
-                        clearInterval(countdownInterval);
-                        timerDiv.textContent = '✓';
-                    }
-                }, 1000);
-
-                // Arrêter après 3 secondes
-                recordingTimeout = setTimeout(() => {
-                    if (mediaRecorder.state === 'recording') {
-                        mediaRecorder.stop();
-                    }
-                }, 3000);
-
-            } catch (error) {
-                console.error('Erreur d\'accès au microphone:', error);
-                statusDiv.textContent = '❌ Erreur: Accès au microphone refusé';
-                statusDiv.className = 'status';
-                recordBtn.disabled = false;
-            }
-        }
-
-        async function processAudio() {
-            statusDiv.textContent = '⚙️ Traitement de l\'audio...';
-            statusDiv.className = 'status processing';
-
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            mediaRecorder.start();
             
-            // Convertir en ArrayBuffer
-            const arrayBuffer = await audioBlob.arrayBuffer();
-            
-            // Créer un contexte audio pour le traitement
-            audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
-            
-            try {
-                // Décoder l'audio
-                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                
-                // Extraire les données audio
-                const channelData = audioBuffer.getChannelData(0);
-                
-                // Trouver les points de début et fin du son (retrait des silences)
-                const threshold = 0.02; // Sensibilité moyenne
-                const startIndex = findSoundStart(channelData, threshold);
-                const endIndex = findSoundEnd(channelData, threshold, startIndex);
-                
-                // Extraire uniquement la partie avec du son
-                const trimmedLength = endIndex - startIndex;
-                const trimmedData = channelData.slice(startIndex, endIndex);
-                
-                // Normaliser l'audio (maximiser le volume sans distorsion)
-                const normalizedData = normalizeAudio(trimmedData);
-                
-                // Créer un nouveau buffer avec l'audio nettoyé
-                const newBuffer = audioContext.createBuffer(1, trimmedLength, 44100);
-                newBuffer.copyToChannel(normalizedData, 0);
-                
-                // Convertir en WAV
-                const wavBlob = bufferToWav(newBuffer);
-                const url = URL.createObjectURL(wavBlob);
-                
-                // Afficher le lecteur audio
-                audioElement.src = url;
-                audioPlayer.classList.add('visible');
-                restartBtn.style.display = 'block';
-                recordBtn.style.display = 'none';
-                timerDiv.classList.remove('visible');
-                
-                // Stocker pour le téléchargement
-                window.processedAudioBlob = wavBlob;
-                
-                statusDiv.textContent = '✅ Audio prêt !';
-                statusDiv.className = 'status ready';
-                
-            } catch (error) {
-                console.error('Erreur de traitement:', error);
-                statusDiv.textContent = '❌ Erreur de traitement de l\'audio';
-                statusDiv.className = 'status';
-                recordBtn.disabled = false;
-            }
+            // UI Update
+            recordBtn.style.display = 'none';
+            timerDiv.classList.add('visible');
+            statusDiv.textContent = 'Recording...';
+            statusDiv.className = 'status recording';
+
+            let timeLeft = 3;
+            timerDiv.textContent = timeLeft;
+            const interval = setInterval(() => {
+                timeLeft--;
+                timerDiv.textContent = timeLeft > 0 ? timeLeft : '✓';
+                if(timeLeft <= 0) clearInterval(interval);
+            }, 1000);
+
+            setTimeout(() => { if(mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 3000);
+
+        } catch (err) {
+            alert("Erreur micro : " + err);
         }
+    }
 
-        function findSoundStart(data, threshold) {
-            for (let i = 0; i < data.length; i++) {
-                if (Math.abs(data[i]) > threshold) {
-                    // Reculer un peu pour ne pas couper le début
-                    return Math.max(0, i - 100);
-                }
-            }
-            return 0;
+    async function processAudio() {
+        statusDiv.textContent = 'Traitement du signal...';
+        statusDiv.className = 'status';
+        
+        const rawBlob = new Blob(audioChunks);
+        const arrayBuffer = await rawBlob.arrayBuffer();
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+        
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        const channelData = audioBuffer.getChannelData(0);
+
+        // 1. Dessiner le signal brut
+        vizContainer.classList.add('visible');
+        drawWaveform('canvasRaw', channelData, '#adb5bd');
+
+        // 2. Détection du son (Trim)
+        const threshold = 0.02;
+        let start = 0;
+        while(start < channelData.length && Math.abs(channelData[start]) < threshold) start++;
+        let end = channelData.length - 1;
+        while(end > start && Math.abs(channelData[end]) < threshold) end--;
+        
+        // Sécurité si aucun son détecté
+        if(start >= end) { start = 0; end = channelData.length; }
+
+        const trimmedData = channelData.slice(start, end);
+
+        // 3. Normalisation + Anti-clic (Fade)
+        const finalData = applyFadesAndNormalize(trimmedData);
+
+        // 4. Dessiner le signal final
+        drawWaveform('canvasProcessed', finalData, '#667eea');
+
+        // 5. Création du WAV
+        const newBuffer = audioContext.createBuffer(1, finalData.length, 44100);
+        newBuffer.copyToChannel(finalData, 0);
+        const wavBlob = bufferToWav(newBuffer);
+        
+        if(processedBlobUrl) URL.revokeObjectURL(processedBlobUrl);
+        processedBlobUrl = URL.createObjectURL(wavBlob);
+        
+        audioElement.src = processedBlobUrl;
+        document.getElementById('audioPlayer').style.display = 'block';
+        timerDiv.classList.remove('visible');
+        statusDiv.textContent = 'Analyse terminée';
+        statusDiv.className = 'status ready';
+    }
+
+    function applyFadesAndNormalize(data) {
+        const length = data.length;
+        const fadeSamples = 441; // 10ms de fondu
+        const maxAmp = data.reduce((m, s) => Math.abs(s) > m ? Math.abs(s) : m, 0);
+        const gain = maxAmp > 0 ? (0.95 / maxAmp) : 1;
+        
+        const result = new Float32Array(length);
+        
+        for (let i = 0; i < length; i++) {
+            let s = data[i] * gain;
+            // Fade In
+            if (i < fadeSamples) s *= (i / fadeSamples);
+            // Fade Out
+            if (i > length - fadeSamples) s *= ((length - i) / fadeSamples);
+            result[i] = s;
         }
+        return result;
+    }
 
-        function findSoundEnd(data, threshold, startIndex) {
-            for (let i = data.length - 1; i > startIndex; i--) {
-                if (Math.abs(data[i]) > threshold) {
-                    // Avancer un peu pour ne pas couper la fin
-                    return Math.min(data.length, i + 100);
-                }
-            }
-            return data.length;
+    function drawWaveform(canvasId, data, color) {
+        const canvas = document.getElementById(canvasId);
+        // Ajustement pour écrans Retina/Haute densité
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = canvas.offsetWidth * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, 1);
+
+        const width = canvas.offsetWidth;
+        const height = canvas.height;
+        const step = Math.ceil(data.length / width);
+        const amp = height / 2;
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.beginPath();
+        ctx.moveTo(0, amp);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+
+        for (let i = 0; i < width; i++) {
+            const sample = data[i * step] || 0;
+            ctx.lineTo(i, amp + (sample * amp));
         }
+        ctx.stroke();
+    }
 
-        function normalizeAudio(data) {
-            const maxAmplitude = Math.max(...data.map(Math.abs));
-            if (maxAmplitude === 0) return data;
-            
-            const normalized = new Float32Array(data.length);
-            const gain = 0.95 / maxAmplitude; // 0.95 pour éviter le clipping
-            
-            for (let i = 0; i < data.length; i++) {
-                normalized[i] = data[i] * gain;
-            }
-            
-            return normalized;
+    function bufferToWav(buffer) {
+        const length = buffer.length * 2;
+        const view = new DataView(new ArrayBuffer(44 + length));
+        const sampleRate = buffer.sampleRate;
+
+        const writeString = (off, s) => { for (let i=0; i<s.length; i++) view.setUint8(off+i, s.charCodeAt(i)); };
+        
+        writeString(0, 'RIFF');
+        view.setUint32(4, 36 + length, true);
+        writeString(8, 'WAVE');
+        writeString(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeString(36, 'data');
+        view.setUint32(40, length, true);
+
+        const data = buffer.getChannelData(0);
+        let offset = 44;
+        for (let i = 0; i < data.length; i++, offset += 2) {
+            let s = Math.max(-1, Math.min(1, data[i]));
+            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
         }
+        return new Blob([view], { type: 'audio/wav' });
+    }
 
-        function bufferToWav(buffer) {
-            const length = buffer.length * 2; // 16-bit samples
-            const sampleRate = buffer.sampleRate;
-            const arrayBuffer = new ArrayBuffer(44 + length);
-            const view = new DataView(arrayBuffer);
-            const channelData = buffer.getChannelData(0);
-
-            // WAV header
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, 36 + length, true);
-            writeString(view, 8, 'WAVE');
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true); // format chunk size
-            view.setUint16(20, 1, true); // PCM
-            view.setUint16(22, 1, true); // mono
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true); // byte rate
-            view.setUint16(32, 2, true); // block align
-            view.setUint16(34, 16, true); // bits per sample
-            writeString(view, 36, 'data');
-            view.setUint32(40, length, true);
-
-            // Write audio data
-            let offset = 44;
-            for (let i = 0; i < channelData.length; i++) {
-                const sample = Math.max(-1, Math.min(1, channelData[i]));
-                view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
-                offset += 2;
-            }
-
-            return new Blob([arrayBuffer], { type: 'audio/wav' });
-        }
-
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
-            }
-        }
-
-        function downloadAudio() {
-            if (window.processedAudioBlob) {
-                const url = URL.createObjectURL(window.processedAudioBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `enregistrement_${Date.now()}.wav`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
-        }
-
-        function restart() {
-            audioPlayer.classList.remove('visible');
-            restartBtn.style.display = 'none';
-            recordBtn.style.display = 'block';
-            recordBtn.disabled = false;
-            audioElement.src = '';
-            statusDiv.textContent = 'Prêt à enregistrer';
-            statusDiv.className = 'status';
-            timerDiv.classList.remove('visible');
-            window.processedAudioBlob = null;
-        }
-    </script>
+    function resetUI() {
+        document.getElementById('audioPlayer').style.display = 'none';
+        vizContainer.classList.remove('visible');
+        recordBtn.style.display = 'block';
+        statusDiv.textContent = 'Prêt à l\'enregistrement';
+        statusDiv.className = 'status';
+        audioElement.src = '';
+    }
+</script>
 </body>
 </html>
