@@ -1,131 +1,324 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>150 voyelles MP3 gratuites – Google Translate TTS</title>
-<style>
-  body { font-family: Arial, sans-serif; max-width: 1000px; margin: 40px auto; padding: 20px; background: #f9f9f9; line-height: 1.6; }
-  h1 { color: #d81e5b; }
-  input, button { font-size: 16px; padding: 10px; margin: 8px; }
-  button { background: #d81e5b; color: white; border: none; border-radius: 6px; cursor: pointer; }
-  #status { margin: 20px 0; font-weight: bold; color: #333; }
-  #log { font-family: monospace; font-size: 13px; max-height: 320px; overflow-y: auto; border: 1px solid #ccc; padding: 12px; background: white; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Voyelles Audio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .progress {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .log div {
+            padding: 2px 0;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #f44336;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>🎙️ Générateur de Voyelles Audio</h1>
+        
+        <div class="info">
+            <strong>ℹ️ Information :</strong><br>
+            Ce générateur va créer 150 fichiers audio (30 variations × 5 voyelles).<br>
+            Voyelles : A, É, I, O, U<br>
+            Durée : ~1 seconde par fichier<br>
+            <span id="voiceCount">Chargement des voix...</span>
+        </div>
 
-<h1>150 fichiers MP3 (30 variantes × A / É / I / O / U) – 100% gratuit</h1>
-<p>Utilise l’ancien moteur Google Translate TTS (fr + fr-CA + variations pitch/vitesse).</p>
+        <button id="startBtn" onclick="startGeneration()">
+            🚀 Démarrer la génération
+        </button>
+        
+        <button id="testBtn" onclick="testVoice()" style="background: #2196F3;">
+            🔊 Tester une voix
+        </button>
 
-<button onclick="generateAll()" style="font-size:18px; padding:14px 32px;">
-  ▶ Lancer la génération des 150 fichiers
-</button>
+        <div class="progress" id="progressDiv">
+            <div>
+                <strong>Progression :</strong> 
+                <span id="progressText">0/150</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
 
-<div id="status">Prêt… (cela prendra 4–10 min selon votre connexion)</div>
-<div id="log"></div>
+    <script>
+        let voices = [];
+        let isGenerating = false;
+        const voyelles = ['A', 'É', 'I', 'O', 'U'];
+        const totalFiles = 150; // 30 variations × 5 voyelles
+        let generatedCount = 0;
 
-<script>
-const vowels = [
-  {letter: "A", text: "a"},
-  {letter: "É", text: "é"},
-  {letter: "I", text: "i"},
-  {letter: "O", text: "o"},
-  {letter: "U", text: "u"}
-];
+        // Charger les voix disponibles
+        function loadVoices() {
+            voices = speechSynthesis.getVoices();
+            
+            // Filtrer les voix françaises
+            const frenchVoices = voices.filter(v => v.lang.startsWith('fr'));
+            
+            if (frenchVoices.length > 0) {
+                voices = frenchVoices;
+            }
+            
+            document.getElementById('voiceCount').textContent = 
+                `${voices.length} voix disponibles sur cet appareil`;
+            
+            log(`✓ ${voices.length} voix chargées`, 'success');
+        }
 
-const langs = ["fr", "fr-CA"];  // les deux seuls accents vraiment différents
+        // Charger les voix au démarrage et lors du changement
+        speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
 
-// 30 variations (15 par langue)
-const variations = [];
-for (let i = 0; i < 30; i++) {
-  const lang = langs[i % 2];
-  const rate = 0.75 + (i % 15) * 0.042;          // ≈ 0.75 → 1.35
-  const pitch = -5 + Math.floor(i / 2) * 0.8;    // ≈ -5 → +6.8
-  variations.push({lang, rate, pitch});
-}
+        // Logger les messages
+        function log(message, type = '') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            if (type) entry.className = type;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
 
-async function getAudioBase64(text, lang, rate, pitch) {
-  // SSML basique pour aider à contrôler la durée
-  const ssmlText = `<speak>${text}<break time="700ms"/></speak>`;
+        // Mettre à jour la barre de progression
+        function updateProgress() {
+            const percent = (generatedCount / totalFiles) * 100;
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = 
+                `${generatedCount}/${totalFiles} (${Math.round(percent)}%)`;
+        }
 
-  const url = `https://translate.google.com/translate_tts?` +
-    `ie=UTF-8&` +
-    `q=${encodeURIComponent(ssmlText)}&` +
-    `tl=${lang}&` +
-    `total=1&` +
-    `idx=0&` +
-    `textlen=${text.length}&` +
-    `client=tw-ob&` +           // "tw-ob" = user-agent-like qui passe encore souvent
-    `ttsspeed=${rate}`;
+        // Synthétiser et enregistrer un fichier audio
+        async function synthesizeVowel(vowel, voiceIndex, pitchVariation, rateVariation) {
+            return new Promise((resolve, reject) => {
+                const utterance = new SpeechSynthesisUtterance(vowel);
+                
+                // Sélectionner la voix
+                if (voices.length > 0) {
+                    utterance.voice = voices[voiceIndex % voices.length];
+                }
+                
+                // Varier le pitch (0.1 à 2.0)
+                utterance.pitch = 1.0 + (pitchVariation * 0.15);
+                
+                // Varier la vitesse (0.1 à 10)
+                utterance.rate = 1.0 + (rateVariation * 0.2);
+                
+                // Volume maximum
+                utterance.volume = 1.0;
 
-  // Note : pitch n'est pas supporté directement → on simule via rate + petite astuce SSML si besoin
-  // → ici on reste sur rate + langue pour la variation principale
+                // Capturer l'audio avec Web Audio API
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const destination = audioContext.createMediaStreamDestination();
+                const mediaRecorder = new MediaRecorder(destination.stream);
+                const chunks = [];
 
-  try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-      }
-    });
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        chunks.push(e.data);
+                    }
+                };
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    
+                    // Créer un nom de fichier unique
+                    const voiceName = utterance.voice ? 
+                        utterance.voice.name.replace(/[^a-z0-9]/gi, '_').substring(0, 20) : 
+                        'voix';
+                    const filename = `${vowel.toLowerCase()}_${voiceIndex}_p${pitchVariation.toFixed(1)}_r${rateVariation.toFixed(1)}.webm`;
+                    
+                    // Télécharger le fichier
+                    downloadBlob(blob, filename);
+                    
+                    generatedCount++;
+                    updateProgress();
+                    log(`✓ ${filename} généré`, 'success');
+                    
+                    audioContext.close();
+                    resolve();
+                };
 
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result.split(',')[1]); // base64 sans prefix
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } catch (e) {
-    throw new Error(`Erreur fetch → ${e.message}`);
-  }
-}
+                utterance.onstart = () => {
+                    mediaRecorder.start();
+                };
 
-async function generateAll() {
-  const status = document.getElementById("status");
-  const log = document.getElementById("log");
-  log.innerHTML = "";
-  status.textContent = "Démarrage... (patience, Google limite parfois les requêtes rapides)";
+                utterance.onend = () => {
+                    // Attendre un peu pour être sûr que tout l'audio est capturé
+                    setTimeout(() => {
+                        mediaRecorder.stop();
+                    }, 100);
+                };
 
-  let count = 0;
-  let ok = 0;
+                utterance.onerror = (e) => {
+                    log(`✗ Erreur: ${e.error}`, 'error');
+                    mediaRecorder.stop();
+                    audioContext.close();
+                    reject(e);
+                };
 
-  for (const v of vowels) {
-    for (const [idx, var] of variations.entries()) {
-      count++;
-      status.textContent = `(${ok}/${count-1})  ${v.letter} #${idx+1}   (${var.lang} | vitesse ${var.rate.toFixed(2)})`;
+                speechSynthesis.speak(utterance);
+            });
+        }
 
-      try {
-        const base64 = await getAudioBase64(v.text, var.lang, var.rate, 0);
+        // Télécharger un blob comme fichier
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
 
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
+        // Générer toutes les variations
+        async function startGeneration() {
+            if (isGenerating) return;
+            
+            if (voices.length === 0) {
+                alert('Aucune voix disponible. Veuillez réessayer.');
+                return;
+            }
 
-        const blob = new Blob([bytes], {type: "audio/mp3"});
-        const url = URL.createObjectURL(blob);
+            isGenerating = true;
+            generatedCount = 0;
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('testBtn').disabled = true;
+            document.getElementById('progressDiv').style.display = 'block';
+            document.getElementById('log').innerHTML = '';
+            
+            log('🚀 Démarrage de la génération...', 'success');
+            updateProgress();
 
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${v.letter}_v${String(idx+1).padStart(2,'0')}_${var.lang}_r${var.rate.toFixed(2)}.mp3`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+            try {
+                let fileIndex = 0;
+                
+                // Pour chaque voyelle
+                for (const vowel of voyelles) {
+                    log(`📝 Génération des variations pour "${vowel}"...`);
+                    
+                    // Générer 30 variations par voyelle
+                    for (let i = 0; i < 30; i++) {
+                        const voiceIndex = Math.floor(i / (30 / Math.min(voices.length, 10)));
+                        const pitchVariation = ((i % 6) - 2.5) * 0.5; // -1.25 à +1.25
+                        const rateVariation = ((i % 5) - 2) * 0.5; // -1.0 à +1.0
+                        
+                        await synthesizeVowel(vowel, voiceIndex, pitchVariation, rateVariation);
+                        
+                        // Petite pause pour ne pas surcharger
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                    }
+                }
+                
+                log('🎉 Génération terminée avec succès !', 'success');
+                alert('✅ Génération terminée ! 150 fichiers ont été créés.');
+                
+            } catch (error) {
+                log(`❌ Erreur: ${error.message}`, 'error');
+                alert('Une erreur est survenue. Vérifiez la console.');
+            } finally {
+                isGenerating = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('testBtn').disabled = false;
+            }
+        }
 
-        log.innerHTML += `OK ${v.letter} #${idx+1} – ${var.lang}<br>`;
-        ok++;
-      } catch (err) {
-        log.innerHTML += `Échec ${v.letter} #${idx+1} – ${err.message}<br>`;
-      }
+        // Tester une voix
+        function testVoice() {
+            if (voices.length === 0) {
+                alert('Aucune voix disponible.');
+                return;
+            }
 
-      await new Promise(r => setTimeout(r, 1200));  // pause plus longue → évite blocage Google
-    }
-  }
-
-  status.textContent = `Terminé ! ${ok} / ${count} fichiers générés.`;
-}
-</script>
+            const utterance = new SpeechSynthesisUtterance('A É I O U');
+            utterance.voice = voices[0];
+            utterance.pitch = 1.0;
+            utterance.rate = 1.0;
+            speechSynthesis.speak(utterance);
+            
+            log('🔊 Test vocal : A É I O U', 'success');
+        }
+    </script>
 </body>
 </html>
