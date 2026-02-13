@@ -94,33 +94,34 @@ mediaRecorder.onstop = async () => {
                 
                 const blob = new Blob(chunks);
                 const arrayBuffer = await blob.arrayBuffer();
-                
-                // 1. Décodage (Nom de variable unique : audioBuffer)
                 const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                const rawData = audioBuffer.getChannelData(0);
-                
-                // 2. Préparation des données (9976 points)
-                const SAMPLES_REQUIRED = 9976;
-                const truncatedData = new Float32Array(SAMPLES_REQUIRED);
-                truncatedData.set(rawData.slice(0, SAMPLES_REQUIRED));
-                
-                drawWave(truncatedData);
 
                 try {
-                    status.innerText = "Génération Spectrogramme...";
+                    // 1. CRÉATION D'UN ANALYSEUR DE FRÉQUENCES REEL
+                    const source = audioCtx.createBufferSource();
+                    source.buffer = audioBuffer;
+                    const analyser = audioCtx.createAnalyser();
+                    analyser.fftSize = 512; // Pour obtenir environ 256 bandes de fréquences (proche de 232)
+                    source.connect(analyser);
                     
-                    // 3. TRANSFORMATION (Le moteur interne de l'IA)
-                    // Cette étape transforme l'onde sonore en image fréquentielle
-                    const spectrogram = await recognizer.createSpectrogram(truncatedData, {
-                        fftSize: 1024,
-                        columnCount: 43,
-                        spectrogramElementCount: 232
-                    });
+                    // 2. CAPTURE DE LA "PHOTO" SONORE
+                    // On crée un tableau pour stocker les 9976 points (43 colonnes x 232 fréquences)
+                    const totalElements = 9976;
+                    const spectroData = new Float32Array(totalElements);
+                    const freqData = new Uint8Array(analyser.frequencyBinCount);
 
-                    // 4. Injection dans le Tensor 4D
-                    const inputTensor = tf.tensor4d(spectrogram.data, [1, 43, 232, 1]);
+                    // On simule le passage du temps pour remplir notre grille 43x232
+                    // On prend 43 instantanés des fréquences
+                    for (let t = 0; t < 43; t++) {
+                        analyser.getByteFrequencyData(freqData);
+                        for (let f = 0; f < 232; f++) {
+                            // On normalise entre 0 et 1 (ce que l'IA attend)
+                            spectroData[t * 232 + f] = freqData[f] / 255;
+                        }
+                    }
 
-                    // 5. Prédiction
+                    // 3. ENVOI AU MODÈLE (Format Rank 4 imposé)
+                    const inputTensor = tf.tensor4d(spectroData, [1, 43, 232, 1]);
                     const prediction = await recognizer.model.predict(inputTensor);
                     const scores = await prediction.data();
                     
@@ -129,19 +130,11 @@ mediaRecorder.onstop = async () => {
                     // Nettoyage
                     inputTensor.dispose();
                     prediction.dispose();
+                    source.stop();
 
                 } catch (err) {
-                    console.error("Echec transformation spectro:", err);
-                    
-                    // Tentative de secours avec l'onde brute si le spectro échoue
-                    try {
-                        const rescueTensor = tf.tensor4d(Array.from(truncatedData), [1, 43, 232, 1]);
-                        const rescuePred = await recognizer.model.predict(rescueTensor);
-                        processResult({ scores: await rescuePred.data() });
-                        rescueTensor.dispose();
-                    } catch (err2) {
-                        status.innerText = "Erreur fatale de format";
-                    }
+                    console.error("Erreur Analyseur:", err);
+                    status.innerText = "Echec final de l'analyseur";
                 }
                 
                 btn.disabled = false;
@@ -221,6 +214,7 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
 
