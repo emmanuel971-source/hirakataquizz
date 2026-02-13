@@ -88,32 +88,38 @@
             let chunks = [];
 
             mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = async () => {
+mediaRecorder.onstop = async () => {
                 const blob = new Blob(chunks);
                 const arrayBuffer = await blob.arrayBuffer();
-                // Décodage du son enregistré
                 const fullAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                 
-                // --- CORRECTION CRUCIALE : REDIMENSIONNEMENT ---
-                // Le modèle attend exactement 1 seconde (44100 samples)
-                const samplesRequired = 44100;
+                // --- CALCUL DE LA TAILLE EXACTE REQUISE ---
+                // On récupère la configuration du modèle pour ne plus se tromper
+                const modelWindowSize = recognizer.params().columnCount * recognizer.params().spectrogramElementCount;
+                
+                // Pour Teachable Machine, la fenêtre standard est souvent de 11025 ou 44100 samples
+                // On va forcer un buffer de 1 seconde pile (le standard du recognizer)
+                const samplesRequired = recognizer.params().sampleRateHz || 44100;
+                
                 const newBuffer = audioCtx.createBuffer(1, samplesRequired, 44100);
                 const channelData = fullAudioBuffer.getChannelData(0);
                 
-                // On prend le début de l'enregistrement ou on complète avec du silence
                 const finalData = new Float32Array(samplesRequired);
-                finalData.set(channelData.slice(0, samplesRequired));
+                // On remplit avec le début du son
+                for (let i = 0; i < samplesRequired; i++) {
+                    finalData[i] = channelData[i] || 0; 
+                }
                 newBuffer.copyToChannel(finalData, 0);
 
                 drawWave(finalData);
 
-                // ANALYSE
                 try {
+                    // Utilisation de la méthode de prédiction brute
                     const spectrogram = await recognizer.recognize(newBuffer);
                     processResult(spectrogram);
                 } catch(err) {
-                    console.error(err);
-                    status.innerText = "Erreur format audio";
+                    console.error("Erreur d'analyse détaillée:", err);
+                    status.innerText = "Incompatibilité de format";
                 }
                 
                 btn.disabled = false;
@@ -193,4 +199,5 @@
 </script>
 </body>
 </html>
+
 
