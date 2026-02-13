@@ -96,45 +96,47 @@ mediaRecorder.onstop = async () => {
                 const arrayBuffer = await blob.arrayBuffer();
                 const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
+                let source; // Déclaré ici pour le nettoyage
                 try {
-                    // 1. CRÉATION D'UN ANALYSEUR DE FRÉQUENCES REEL
-                    const source = audioCtx.createBufferSource();
+                    // 1. CONFIGURATION DE L'ANALYSEUR
+                    source = audioCtx.createBufferSource();
                     source.buffer = audioBuffer;
                     const analyser = audioCtx.createAnalyser();
-                    analyser.fftSize = 512; // Pour obtenir environ 256 bandes de fréquences (proche de 232)
+                    analyser.fftSize = 512; 
                     source.connect(analyser);
                     
-                    // 2. CAPTURE DE LA "PHOTO" SONORE
-                    // On crée un tableau pour stocker les 9976 points (43 colonnes x 232 fréquences)
+                    // ON DOIT DEMARRER LA SOURCE POUR QUE L'ANALYSEUR RECOIVE DES DONNÉES
+                    source.start(0);
+
+                    // 2. CAPTURE DE LA "PHOTO" SONORE (Spectrogramme 43x232)
                     const totalElements = 9976;
                     const spectroData = new Float32Array(totalElements);
                     const freqData = new Uint8Array(analyser.frequencyBinCount);
 
-                    // On simule le passage du temps pour remplir notre grille 43x232
-                    // On prend 43 instantanés des fréquences
                     for (let t = 0; t < 43; t++) {
                         analyser.getByteFrequencyData(freqData);
                         for (let f = 0; f < 232; f++) {
-                            // On normalise entre 0 et 1 (ce que l'IA attend)
+                            // Normalisation 0-1
                             spectroData[t * 232 + f] = freqData[f] / 255;
                         }
                     }
 
-                    // 3. ENVOI AU MODÈLE (Format Rank 4 imposé)
+                    // 3. PRÉDICTION
                     const inputTensor = tf.tensor4d(spectroData, [1, 43, 232, 1]);
                     const prediction = await recognizer.model.predict(inputTensor);
                     const scores = await prediction.data();
                     
                     processResult({ scores: scores });
 
-                    // Nettoyage
+                    // 4. NETTOYAGE SÉCURISÉ
                     inputTensor.dispose();
                     prediction.dispose();
                     source.stop();
 
                 } catch (err) {
                     console.error("Erreur Analyseur:", err);
-                    status.innerText = "Echec final de l'analyseur";
+                    status.innerText = "Erreur de traitement";
+                    if(source) try { source.stop(); } catch(e) {}
                 }
                 
                 btn.disabled = false;
@@ -214,6 +216,7 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
 
