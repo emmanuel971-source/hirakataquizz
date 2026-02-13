@@ -95,38 +95,41 @@ mediaRecorder.onstop = async () => {
                 const blob = new Blob(chunks);
                 const arrayBuffer = await blob.arrayBuffer();
                 
-                // On crée un contexte audio temporaire à 44100Hz
-                const offlineCtx = new OfflineAudioContext(1, 44100, 44100);
-                const audioData = await offlineCtx.decodeAudioData(arrayBuffer);
+                // 1. Décodage standard
+                const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
+                const raw = decodedData.getChannelData(0);
                 
                 try {
-                    // On crée un buffer d'exactement 1 seconde (standard Teachable Machine)
-                    const finalBuffer = audioCtx.createBuffer(1, 44100, 44100);
-                    const sourceData = audioData.getChannelData(0);
-                    const targetData = finalBuffer.getChannelData(0);
+                    // 2. Préparation du tableau de 9976 points (le chiffre magique attendu)
+                    const SAMPLES_REQUIRED = 9976;
+                    const finalData = new Float32Array(SAMPLES_REQUIRED);
                     
-                    // On copie les données (max 1 seconde)
-                    for (let i = 0; i < Math.min(sourceData.length, 44100); i++) {
-                        targetData[i] = sourceData[i];
+                    // On remplit les 9976 points
+                    for (let i = 0; i < SAMPLES_REQUIRED; i++) {
+                        finalData[i] = raw[i] || 0;
                     }
 
-                    drawWave(targetData);
+                    drawWave(finalData);
 
-                    // --- LA SEULE MÉTHODE QUI RECONSTRUIT LE SPECTROGRAMME CORRECTEMENT ---
-                    // Si recognize() plante avec "divisible by 9976", on va utiliser 
-                    // la méthode interne de transformation de Teachable Machine.
+                    // 3. CRÉATION MANUELLE DU TENSOR DE RANG 4
+                    // L'erreur précédente venait d'un mauvais formatage. 
+                    // Voici la syntaxe exacte pour un Tensor4D à partir d'un Float32Array :
+                    const inputTensor = tf.tensor4d(Array.from(finalData), [1, 43, 232, 1]);
+
+                    // 4. PRÉDICTION DIRECTE (On ne passe plus par recognizer.recognize)
+                    const prediction = await recognizer.model.predict(inputTensor);
+                    const scores = await prediction.data();
                     
-                    const spectrogram = await recognizer.recognize(finalBuffer);
-                    processResult(spectrogram);
+                    // 5. AFFICHAGE DES RÉSULTATS
+                    processResult({ scores: scores });
+
+                    // Nettoyage
+                    inputTensor.dispose();
+                    prediction.dispose();
 
                 } catch (err) {
-                    // SI L'ERREUR 9976 REVIENT : C'est que ton modèle utilise 
-                    // une fréquence d'échantillonnage spéciale (probablement 11025 ou 16000)
-                    console.log("Tentative fréquence alternative...");
-                    const altBuffer = audioCtx.createBuffer(1, 9976, 44100); // On force la taille pile
-                    altBuffer.copyToChannel(audioData.getChannelData(0).slice(0, 9976), 0);
-                    const result = await recognizer.recognize(altBuffer);
-                    processResult(result);
+                    console.error("Erreur ultime :", err);
+                    status.innerText = "Incompatibilité fatale";
                 }
                 
                 btn.disabled = false;
@@ -206,6 +209,7 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
 
