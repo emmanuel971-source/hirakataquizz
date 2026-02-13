@@ -99,37 +99,44 @@ mediaRecorder.onstop = async () => {
                 const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
                 const raw = decodedData.getChannelData(0);
                 
-                try {
-                    // 2. Préparation du tableau de 9976 points (le chiffre magique attendu)
+try {
                     const SAMPLES_REQUIRED = 9976;
-                    const finalData = new Float32Array(SAMPLES_REQUIRED);
+                    const rawData = fullAudioBuffer.getChannelData(0);
                     
-                    // On remplit les 9976 points
-                    for (let i = 0; i < SAMPLES_REQUIRED; i++) {
-                        finalData[i] = raw[i] || 0;
-                    }
+                    // 1. On prépare les données
+                    const truncatedData = new Float32Array(SAMPLES_REQUIRED);
+                    truncatedData.set(rawData.slice(0, SAMPLES_REQUIRED));
+                    drawWave(truncatedData);
 
-                    drawWave(finalData);
+                    // 2. TRANSFORMATION EN SPECTROGRAMME (Le chaînon manquant)
+                    // On utilise la FFT (Fast Fourier Transform) pour créer l'image attendue
+                    const fftSize = 1024; // Taille standard
+                    const spectrogram = await recognizer.createSpectrogram(truncatedData, {
+                        fftSize: fftSize,
+                        columnCount: 43,
+                        spectrogramElementCount: 232
+                    });
 
-                    // 3. CRÉATION MANUELLE DU TENSOR DE RANG 4
-                    // L'erreur précédente venait d'un mauvais formatage. 
-                    // Voici la syntaxe exacte pour un Tensor4D à partir d'un Float32Array :
-                    const inputTensor = tf.tensor4d(Array.from(finalData), [1, 43, 232, 1]);
+                    // 3. On vérifie si le spectrogramme a la bonne taille
+                    // Sinon on crée un Tensor 4D [batch, height, width, channel]
+                    const inputTensor = tf.tensor4d(spectrogram.data, [1, 43, 232, 1]);
 
-                    // 4. PRÉDICTION DIRECTE (On ne passe plus par recognizer.recognize)
+                    // 4. Prédiction
                     const prediction = await recognizer.model.predict(inputTensor);
                     const scores = await prediction.data();
                     
-                    // 5. AFFICHAGE DES RÉSULTATS
                     processResult({ scores: scores });
 
-                    // Nettoyage
                     inputTensor.dispose();
                     prediction.dispose();
 
                 } catch (err) {
-                    console.error("Erreur ultime :", err);
-                    status.innerText = "Incompatibilité fatale";
+                    console.error("Echec transformation spectro:", err);
+                    // Ultime tentative : envoyer l'onde brute formatée
+                    const brainInput = tf.tensor4d(Array.from(truncatedData), [1, 43, 232, 1]);
+                    const pred = await recognizer.model.predict(brainInput);
+                    processResult({ scores: await pred.data() });
+                    brainInput.dispose();
                 }
                 
                 btn.disabled = false;
@@ -209,6 +216,7 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
 
