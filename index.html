@@ -3,292 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enregistreur Audio Pro - V2</title>
+    <title>Hiragana Quiz - Debug Mode</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1c2c; min-height: 100vh;
+            display: flex; justify-content: center; align-items: center; padding: 10px;
         }
-
         .container {
-            background: white;
-            border-radius: 20px;
-            padding: clamp(20px, 5vw, 40px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            max-width: 550px;
-            width: 100%;
+            background: white; border-radius: 20px; padding: 20px;
+            max-width: 450px; width: 100%; text-align: center;
         }
-
-        h1 { color: #333; text-align: center; font-size: 24px; margin-bottom: 5px; }
-        .subtitle { color: #666; text-align: center; margin-bottom: 20px; font-size: 13px; }
-
-        .status {
-            text-align: center;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            background: #f0f0f0;
-            font-size: 14px;
+        .target-char { font-size: 100px; font-weight: bold; color: #2d3436; line-height: 1.1; }
+        
+        /* Moniteur de Debug */
+        .debug-panel {
+            background: #222; color: #0f0; font-family: monospace;
+            padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 14px;
+            text-align: left; border-left: 4px solid #444;
         }
+        .bar-container { background: #444; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; }
+        .bar-fill { background: #0f0; height: 100%; width: 0%; transition: width 0.1s; }
 
-        .status.recording { background: #fee; color: #c00; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        .status.ready { background: #d4edda; color: #155724; }
+        canvas { width: 100%; height: 60px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; }
 
-        /* Visualisation */
-        .viz-container { margin-bottom: 20px; display: none; }
-        .viz-container.visible { display: block; }
-        canvas { 
-            width: 100%; 
-            background: #f8f9fa; 
-            border-radius: 8px; 
-            margin-bottom: 5px;
-            display: block;
-        }
-        .label-viz { font-size: 11px; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-
+        .status { padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; }
+        .success { background: #d4edda; color: #155724; }
+        
         button {
-            width: 100%; padding: 16px; border: none; border-radius: 12px;
-            font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s;
-            margin-bottom: 10px; touch-action: manipulation;
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;
         }
-
-        .btn-record { background: #667eea; color: white; }
-        .btn-record:active { transform: scale(0.98); }
-        .btn-download { background: #28a745; color: white; }
-        .btn-restart { background: #6c757d; color: white; }
-
-        .timer { text-align: center; font-size: 40px; font-weight: bold; color: #667eea; margin: 15px 0; display: none; }
-        .timer.visible { display: block; }
-
-        audio { width: 100%; margin-bottom: 15px; }
-
-        @media (max-width: 480px) {
-            h1 { font-size: 20px; }
-            button { padding: 14px; }
-        }
+        .btn-main { background: #667eea; color: white; }
+        .btn-next { background: #eee; color: #333; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎙️ Analyseur Vocal</h1>
-    <p class="subtitle">Capture haute fidélité (WAV 44.1kHz)</p>
+    <div style="display: flex; justify-content: space-between; font-weight: bold;">
+        <span>Score: <span id="score">0</span></span>
+        <span>Question: <span id="qCount">0</span></span>
+    </div>
 
-    <div id="status" class="status">Prêt à l'enregistrement</div>
+    <div id="targetDisplay" class="target-char">?</div>
     
-    <div id="timer" class="timer">3</div>
-
-    <div id="vizContainer" class="viz-container">
-        <div class="label-viz">Signal Brut (3s)</div>
-        <canvas id="canvasRaw" height="60"></canvas>
-        <div class="label-viz">Signal Final (Trimé + Fade)</div>
-        <canvas id="canvasProcessed" height="100"></canvas>
+    <div class="debug-panel">
+        <div>Analyse : <span id="bestLabel">---</span></div>
+        <div id="bestScoreText">Confiance : 0%</div>
+        <div class="bar-container"><div id="scoreBar" class="bar-fill"></div></div>
     </div>
 
-    <button id="recordBtn" class="btn-record">🔴 Démarrer (3 secondes)</button>
+    <div id="status" class="status">Chargement...</div>
 
-    <div id="audioPlayer" style="display: none;">
-        <audio id="audioElement" controls></audio>
-        <button id="downloadBtn" class="btn-download">⬇️ Télécharger le fichier .wav</button>
-        <button id="restartBtn" class="btn-restart">🔄 Nouvel essai</button>
-    </div>
+    <canvas id="vizCanvas"></canvas>
+
+    <button id="actionBtn" class="btn-main" disabled>DÉMARRER</button>
+    <button id="skipBtn" class="btn-next" style="display:none">PASSER À LA SUIVANTE</button>
 </div>
 
 <script>
-    let mediaRecorder;
-    let audioChunks = [];
-    let audioContext;
-    let processedBlobUrl = null;
+    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
+    const HIRAGANAS = ['あ', 'い', 'う', 'え', 'お'];
 
-    const recordBtn = document.getElementById('recordBtn');
-    const statusDiv = document.getElementById('status');
-    const timerDiv = document.getElementById('timer');
-    const vizContainer = document.getElementById('vizContainer');
-    const audioElement = document.getElementById('audioElement');
+    let recognizer;
+    let currentTarget = "";
+    let score = 0;
+    let questionCount = 0;
+    let analyser, dataArray, animationId;
 
-    recordBtn.onclick = startRecording;
-    document.getElementById('restartBtn').onclick = resetUI;
-    document.getElementById('downloadBtn').onclick = () => {
-        const a = document.createElement('a');
-        a.href = processedBlobUrl;
-        a.download = `voix_${Date.now()}.wav`;
-        a.click();
-    };
-
-    async function startRecording() {
+    async function init() {
         try {
-            audioChunks = [];
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
-            });
-
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = processAudio;
-
-            mediaRecorder.start();
-            
-            // UI Update
-            recordBtn.style.display = 'none';
-            timerDiv.classList.add('visible');
-            statusDiv.textContent = 'Recording...';
-            statusDiv.className = 'status recording';
-
-            let timeLeft = 3;
-            timerDiv.textContent = timeLeft;
-            const interval = setInterval(() => {
-                timeLeft--;
-                timerDiv.textContent = timeLeft > 0 ? timeLeft : '✓';
-                if(timeLeft <= 0) clearInterval(interval);
-            }, 1000);
-
-            setTimeout(() => { if(mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 3000);
-
-        } catch (err) {
-            alert("Erreur micro : " + err);
-        }
+            recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+            await recognizer.ensureModelLoaded();
+            document.getElementById('status').innerText = "Sensei prêt !";
+            document.getElementById('actionBtn').disabled = false;
+        } catch (e) { document.getElementById('status').innerText = "Erreur chargement."; }
     }
 
-    async function processAudio() {
-        statusDiv.textContent = 'Traitement du signal...';
-        statusDiv.className = 'status';
+    async function startQuiz() {
+        document.getElementById('actionBtn').style.display = "none";
+        document.getElementById('skipBtn').style.display = "block";
         
-        const rawBlob = new Blob(audioChunks);
-        const arrayBuffer = await rawBlob.arrayBuffer();
-        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
-        
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        const channelData = audioBuffer.getChannelData(0);
+        // Setup Visualisation (Oscilloscope)
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const audioContext = new AudioContext();
+        const source = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        source.connect(analyser);
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        draw();
 
-        // 1. Dessiner le signal brut
-        vizContainer.classList.add('visible');
-        drawWaveform('canvasRaw', channelData, '#adb5bd');
+        await recognizer.listen(result => {
+            const labels = recognizer.wordLabels();
+            let maxScore = 0;
+            let winner = "";
 
-        // 2. Détection du son (Trim)
-        const threshold = 0.02;
-        let start = 0;
-        while(start < channelData.length && Math.abs(channelData[start]) < threshold) start++;
-        let end = channelData.length - 1;
-        while(end > start && Math.abs(channelData[end]) < threshold) end--;
-        
-        // Sécurité si aucun son détecté
-        if(start >= end) { start = 0; end = channelData.length; }
+            for (let i = 0; i < labels.length; i++) {
+                if (result.scores[i] > maxScore) {
+                    maxScore = result.scores[i];
+                    winner = labels[i];
+                }
+            }
 
-        const trimmedData = channelData.slice(start, end);
+            // Mise à jour Debug
+            document.getElementById('bestLabel').innerText = winner;
+            const pct = Math.round(maxScore * 100);
+            document.getElementById('bestScoreText').innerText = `Confiance : ${pct}%`;
+            document.getElementById('scoreBar').style.width = pct + "%";
 
-        // 3. Normalisation + Anti-clic (Fade)
-        const finalData = applyFadesAndNormalize(trimmedData);
+            // Vérification si correct
+            if (winner === currentTarget && maxScore > 0.25) {
+                handleWin();
+            }
+        }, { probabilityThreshold: 0.7, overlapFactor: 0.5 });
 
-        // 4. Dessiner le signal final
-        drawWaveform('canvasProcessed', finalData, '#667eea');
-
-        // 5. Création du WAV
-        const newBuffer = audioContext.createBuffer(1, finalData.length, 44100);
-        newBuffer.copyToChannel(finalData, 0);
-        const wavBlob = bufferToWav(newBuffer);
-        
-        if(processedBlobUrl) URL.revokeObjectURL(processedBlobUrl);
-        processedBlobUrl = URL.createObjectURL(wavBlob);
-        
-        audioElement.src = processedBlobUrl;
-        document.getElementById('audioPlayer').style.display = 'block';
-        timerDiv.classList.remove('visible');
-        statusDiv.textContent = 'Analyse terminée';
-        statusDiv.className = 'status ready';
+        nextQuestion();
     }
 
-    function applyFadesAndNormalize(data) {
-        const length = data.length;
-        const fadeSamples = 441; // 10ms de fondu
-        const maxAmp = data.reduce((m, s) => Math.abs(s) > m ? Math.abs(s) : m, 0);
-        const gain = maxAmp > 0 ? (0.95 / maxAmp) : 1;
-        
-        const result = new Float32Array(length);
-        
-        for (let i = 0; i < length; i++) {
-            let s = data[i] * gain;
-            // Fade In
-            if (i < fadeSamples) s *= (i / fadeSamples);
-            // Fade Out
-            if (i > length - fadeSamples) s *= ((length - i) / fadeSamples);
-            result[i] = s;
-        }
-        return result;
+    function nextQuestion() {
+        questionCount++;
+        document.getElementById('qCount').innerText = questionCount;
+        currentTarget = HIRAGANAS[Math.floor(Math.random() * HIRAGANAS.length)];
+        document.getElementById('targetDisplay').innerText = currentTarget;
+        document.getElementById('status').innerText = "Je vous écoute...";
+        document.getElementById('status').className = "status";
     }
 
-    function drawWaveform(canvasId, data, color) {
-        const canvas = document.getElementById(canvasId);
-        // Ajustement pour écrans Retina/Haute densité
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width = canvas.offsetWidth * dpr;
+    function handleWin() {
+        score++;
+        document.getElementById('score').innerText = score;
+        document.getElementById('status').innerText = "BIEN VU !";
+        document.getElementById('status').className = "status success";
+        // On attend un peu avant de passer automatiquement pour laisser le temps de voir
+        setTimeout(nextQuestion, 1500);
+    }
+
+    function draw() {
+        animationId = requestAnimationFrame(draw);
+        analyser.getByteTimeDomainData(dataArray);
+        const canvas = document.getElementById('vizCanvas');
         const ctx = canvas.getContext('2d');
-        ctx.scale(dpr, 1);
-
-        const width = canvas.offsetWidth;
-        const height = canvas.height;
-        const step = Math.ceil(data.length / width);
-        const amp = height / 2;
-
-        ctx.clearRect(0, 0, width, height);
-        ctx.beginPath();
-        ctx.moveTo(0, amp);
-        ctx.strokeStyle = color;
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.lineWidth = 2;
-
-        for (let i = 0; i < width; i++) {
-            const sample = data[i * step] || 0;
-            ctx.lineTo(i, amp + (sample * amp));
+        ctx.strokeStyle = '#667eea';
+        ctx.beginPath();
+        const sliceWidth = canvas.width / dataArray.length;
+        let x = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = v * canvas.height / 2;
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            x += sliceWidth;
         }
         ctx.stroke();
     }
 
-    function bufferToWav(buffer) {
-        const length = buffer.length * 2;
-        const view = new DataView(new ArrayBuffer(44 + length));
-        const sampleRate = buffer.sampleRate;
-
-        const writeString = (off, s) => { for (let i=0; i<s.length; i++) view.setUint8(off+i, s.charCodeAt(i)); };
-        
-        writeString(0, 'RIFF');
-        view.setUint32(4, 36 + length, true);
-        writeString(8, 'WAVE');
-        writeString(12, 'fmt ');
-        view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true);
-        view.setUint16(22, 1, true);
-        view.setUint32(24, sampleRate, true);
-        view.setUint32(28, sampleRate * 2, true);
-        view.setUint16(32, 2, true);
-        view.setUint16(34, 16, true);
-        writeString(36, 'data');
-        view.setUint32(40, length, true);
-
-        const data = buffer.getChannelData(0);
-        let offset = 44;
-        for (let i = 0; i < data.length; i++, offset += 2) {
-            let s = Math.max(-1, Math.min(1, data[i]));
-            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-        }
-        return new Blob([view], { type: 'audio/wav' });
-    }
-
-    function resetUI() {
-        document.getElementById('audioPlayer').style.display = 'none';
-        vizContainer.classList.remove('visible');
-        recordBtn.style.display = 'block';
-        statusDiv.textContent = 'Prêt à l\'enregistrement';
-        statusDiv.className = 'status';
-        audioElement.src = '';
-    }
+    document.getElementById('actionBtn').onclick = startQuiz;
+    document.getElementById('skipBtn').onclick = nextQuestion;
+    init();
 </script>
 </body>
 </html>
