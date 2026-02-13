@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hiragana Quiz - Smartphone Pro</title>
+    <title>Hiragana Quiz - Debug Mode (Android Fix)</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
     <style>
@@ -19,6 +19,7 @@
         }
         .target-char { font-size: 100px; font-weight: bold; color: #2d3436; line-height: 1.1; }
         
+        /* Moniteur de Debug */
         .debug-panel {
             background: #222; color: #0f0; font-family: monospace;
             padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 14px;
@@ -27,9 +28,15 @@
         .bar-container { background: #444; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; }
         .bar-fill { background: #0f0; height: 100%; width: 0%; transition: width 0.1s; }
 
+        /* Indicateur d'énergie audio */
+        .energy-monitor {
+            background: #333; color: #ff0; padding: 5px; border-radius: 5px; 
+            margin-top: 5px; font-size: 12px;
+        }
+
         canvas { width: 100%; height: 60px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; }
 
-        .status { padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; min-height: 45px;}
+        .status { padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; }
         .success { background: #d4edda; color: #155724; }
         
         button {
@@ -54,6 +61,7 @@
         <div>Analyse : <span id="bestLabel">---</span></div>
         <div id="bestScoreText">Confiance : 0%</div>
         <div class="bar-container"><div id="scoreBar" class="bar-fill"></div></div>
+        <div class="energy-monitor">Énergie audio : <span id="energyLevel">0%</span></div>
     </div>
 
     <div id="status" class="status">Chargement...</div>
@@ -65,24 +73,30 @@
 </div>
 
 <script>
-const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
+    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
     const HIRAGANAS = ['あ', 'い', 'う', 'え', 'お'];
 
     let recognizer;
     let currentTarget = "";
     let score = 0;
     let questionCount = 0;
-    let isTransitioning = false;
+    let analyser, dataArray, animationId;
+    
+    // 🔥 NOUVEAUX PARAMÈTRES ANTI-HALLUCINATION
+    let currentAudioEnergy = 0;
+    const ENERGY_THRESHOLD = 0.015; // Seuil minimal d'énergie audio
+    const CONFIDENCE_HALLUCINATION_THRESHOLD = 0.98; // Si > 92% de confiance = suspect
+    const MIN_CONFIDENCE_FOR_MATCH = 0.35; // Augmenté de 0.25 à 0.35 pour plus de sécurité
 
     async function init() {
         try {
-            // Utilisation de la méthode native sans fioritures
             recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
             await recognizer.ensureModelLoaded();
-            document.getElementById('status').innerText = "Sensei prêt !";
+            document.getElementById('status').innerText = "Sensei prêt ! (Protection Android active)";
             document.getElementById('actionBtn').disabled = false;
         } catch (e) { 
-            document.getElementById('status').innerText = "Erreur : " + e.message; 
+            document.getElementById('status').innerText = "Erreur chargement."; 
+            console.error(e);
         }
     }
 
@@ -90,71 +104,125 @@ const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
         document.getElementById('actionBtn').style.display = "none";
         document.getElementById('skipBtn').style.display = "block";
         
-        try {
-            // On laisse Teachable Machine ouvrir le micro elle-même
-            // avec ses propres paramètres internes (souvent plus stables)
-            await recognizer.listen(result => {
-                if (isTransitioning) return;
+        // 🔥 FIX 1: Configuration audio optimisée pour Android
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: false // Important: évite l'amplification du bruit de fond
+            } 
+        });
+        
+        const audioContext = new AudioContext();
+        const source = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.8; // 🔥 FIX 2: Lissage pour réduire variations brutales
+        source.connect(analyser);
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        draw();
 
-                const labels = recognizer.wordLabels();
-                let maxScore = 0;
-                let winner = "";
+        await recognizer.listen(result => {
+            const labels = recognizer.wordLabels();
+            let maxScore = 0;
+            let winner = "";
 
-                for (let i = 0; i < labels.length; i++) {
-                    if (result.scores[i] > maxScore) {
-                        maxScore = result.scores[i];
-                        winner = labels[i];
-                    }
+            for (let i = 0; i < labels.length; i++) {
+                if (result.scores[i] > maxScore) {
+                    maxScore = result.scores[i];
+                    winner = labels[i];
                 }
+            }
 
-                // Affichage Debug
-                document.getElementById('bestLabel').innerText = winner;
-                const pct = Math.round(maxScore * 100);
-                document.getElementById('bestScoreText').innerText = `Confiance : ${pct}%`;
-                document.getElementById('scoreBar').style.width = pct + "%";
+            // 🔥 FIX 3: Triple vérification anti-hallucination
+            const totalEnergy = result.scores.reduce((a, b) => a + b, 0);
+            const avgScore = totalEnergy / labels.length;
+            
+            // Détection d'hallucination Android (3 conditions)
+            const isLowAudioEnergy = currentAudioEnergy < ENERGY_THRESHOLD;
+            const isSuspiciousConfidence = maxScore > CONFIDENCE_HALLUCINATION_THRESHOLD;
+            const hasAbnormalDistribution = (maxScore > 0.9 && avgScore < 0.3);
+            
+            if (isLowAudioEnergy || (isSuspiciousConfidence && hasAbnormalDistribution)) {
+                document.getElementById('bestLabel').innerText = "🚫 Silence / Bruit";
+                document.getElementById('bestScoreText').innerText = "Confiance : 0%";
+                document.getElementById('scoreBar').style.width = "0%";
+                return; // On ignore cette prédiction
+            }
 
-                // SI LE SCORE EST TOUJOURS À 100% SANS RIEN DIRE : 
-                // C'est un problème de buffer circulaire du téléphone.
-                if (winner === currentTarget && maxScore > 0.50) { 
-                    handleWin();
-                }
-            }, { 
-                probabilityThreshold: 0.7, 
-                overlapFactor: 0.5,
-                includeSpectrogram: true,
-                invokeCallbackOnNoiseAndUnknown: true 
-            });
+            // Mise à jour Debug normale
+            document.getElementById('bestLabel').innerText = winner;
+            const pct = Math.round(maxScore * 100);
+            document.getElementById('bestScoreText').innerText = `Confiance : ${pct}%`;
+            document.getElementById('scoreBar').style.width = pct + "%";
 
-            nextQuestion();
-        } catch (err) {
-            alert("Accès micro refusé ou impossible : " + err.message);
-        }
+            // 🔥 FIX 4: Seuil de confiance augmenté
+            if (winner === currentTarget && maxScore > MIN_CONFIDENCE_FOR_MATCH && currentAudioEnergy > ENERGY_THRESHOLD) {
+                handleWin();
+            }
+        }, { 
+            probabilityThreshold: 0.75, // Augmenté de 0.7 à 0.75
+            overlapFactor: 0.5 
+        });
+
+        nextQuestion();
     }
 
     function nextQuestion() {
-        isTransitioning = false;
         questionCount++;
         document.getElementById('qCount').innerText = questionCount;
         currentTarget = HIRAGANAS[Math.floor(Math.random() * HIRAGANAS.length)];
         document.getElementById('targetDisplay').innerText = currentTarget;
-        document.getElementById('status').innerText = "Dites le son...";
+        document.getElementById('status').innerText = "Je vous écoute...";
         document.getElementById('status').className = "status";
     }
 
     function handleWin() {
-        isTransitioning = true;
         score++;
         document.getElementById('score').innerText = score;
-        document.getElementById('status').innerText = "CORRECT !";
+        document.getElementById('status').innerText = "BIEN VU !";
         document.getElementById('status').className = "status success";
         setTimeout(nextQuestion, 1500);
+    }
+
+    function draw() {
+        animationId = requestAnimationFrame(draw);
+        analyser.getByteTimeDomainData(dataArray);
+        
+        // 🔥 FIX 5: Calcul de l'énergie du signal audio en temps réel
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            const normalized = (dataArray[i] - 128) / 128;
+            sum += normalized * normalized;
+        }
+        currentAudioEnergy = Math.sqrt(sum / dataArray.length);
+        
+        // Affichage de l'énergie (debug)
+        const energyPct = Math.min(100, Math.round(currentAudioEnergy * 1000));
+        document.getElementById('energyLevel').innerText = energyPct + "%";
+        
+        // Dessin de l'oscilloscope
+        const canvas = document.getElementById('vizCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = currentAudioEnergy > ENERGY_THRESHOLD ? '#667eea' : '#ccc'; // Gris si silence
+        ctx.beginPath();
+        const sliceWidth = canvas.width / dataArray.length;
+        let x = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = v * canvas.height / 2;
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            x += sliceWidth;
+        }
+        ctx.stroke();
     }
 
     document.getElementById('actionBtn').onclick = startQuiz;
     document.getElementById('skipBtn').onclick = nextQuestion;
     init();
-    
 </script>
 </body>
 </html>
-
