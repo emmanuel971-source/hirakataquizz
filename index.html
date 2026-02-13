@@ -89,51 +89,50 @@
 
             mediaRecorder.ondataavailable = e => chunks.push(e.data);
 mediaRecorder.onstop = async () => {
-    const btn = document.getElementById('micBtn');
-    const status = document.getElementById('status');
-    
-    const blob = new Blob(chunks);
-    const arrayBuffer = await blob.arrayBuffer();
-    const fullAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-    
-    try {
-        const SAMPLES_REQUIRED = 9976; 
-        const rawData = fullAudioBuffer.getChannelData(0); // Tes ~44100 samples
-        const truncatedData = new Float32Array(SAMPLES_REQUIRED);
-        
-        // --- INSERER LE BLOC ICI ---
-        const samplesInOneSecond = 44100;
-        const step = Math.floor(samplesInOneSecond / SAMPLES_REQUIRED); // Calcule le saut (env. 4)
+                const btn = document.getElementById('micBtn');
+                const status = document.getElementById('status');
+                
+                const blob = new Blob(chunks);
+                const arrayBuffer = await blob.arrayBuffer();
+                
+                // On crée un contexte audio temporaire à 44100Hz
+                const offlineCtx = new OfflineAudioContext(1, 44100, 44100);
+                const audioData = await offlineCtx.decodeAudioData(arrayBuffer);
+                
+                try {
+                    // On crée un buffer d'exactement 1 seconde (standard Teachable Machine)
+                    const finalBuffer = audioCtx.createBuffer(1, 44100, 44100);
+                    const sourceData = audioData.getChannelData(0);
+                    const targetData = finalBuffer.getChannelData(0);
+                    
+                    // On copie les données (max 1 seconde)
+                    for (let i = 0; i < Math.min(sourceData.length, 44100); i++) {
+                        targetData[i] = sourceData[i];
+                    }
 
-        for (let i = 0; i < SAMPLES_REQUIRED; i++) {
-            // On "compresse" le temps : on prend 1 point sur 4
-            // pour que 1 seconde de son rentre dans 9976 points
-            truncatedData[i] = rawData[i * step] || 0;
-        }
-        // ---------------------------
+                    drawWave(targetData);
 
-        drawWave(truncatedData);
+                    // --- LA SEULE MÉTHODE QUI RECONSTRUIT LE SPECTROGRAMME CORRECTEMENT ---
+                    // Si recognize() plante avec "divisible by 9976", on va utiliser 
+                    // la méthode interne de transformation de Teachable Machine.
+                    
+                    const spectrogram = await recognizer.recognize(finalBuffer);
+                    processResult(spectrogram);
 
-        // On envoie le spectrogramme compacté au modèle
-        const tensorReshaped = tf.tensor4d(truncatedData, [1, 43, 232, 1]);
-
-        const modelOutput = await recognizer.model.predict(tensorReshaped);
-        const scores = await modelOutput.data();
-        
-        processResult({ scores: scores });
-
-        tensorReshaped.dispose();
-        modelOutput.dispose();
-
-    } catch (err) {
-        console.error("Erreur de dimensionnement :", err);
-        status.innerText = "Erreur de format [43,232]";
-    }
-    
-    btn.disabled = false;
-    btn.classList.remove('active');
-    stream.getTracks().forEach(t => t.stop());
-};
+                } catch (err) {
+                    // SI L'ERREUR 9976 REVIENT : C'est que ton modèle utilise 
+                    // une fréquence d'échantillonnage spéciale (probablement 11025 ou 16000)
+                    console.log("Tentative fréquence alternative...");
+                    const altBuffer = audioCtx.createBuffer(1, 9976, 44100); // On force la taille pile
+                    altBuffer.copyToChannel(audioData.getChannelData(0).slice(0, 9976), 0);
+                    const result = await recognizer.recognize(altBuffer);
+                    processResult(result);
+                }
+                
+                btn.disabled = false;
+                btn.classList.remove('active');
+                stream.getTracks().forEach(t => t.stop());
+            };
             mediaRecorder.start();
             // On enregistre un peu plus d'une seconde pour être sûr
             setTimeout(() => mediaRecorder.stop(), 1100); 
@@ -207,6 +206,7 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
 
