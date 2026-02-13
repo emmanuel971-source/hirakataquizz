@@ -322,7 +322,7 @@ audio: {
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         
         audioContext = new (window.AudioContext || window.webkitAudioContext)({
-            sampleRate: 44100
+            sampleRate: 16000
         });
         
         const source = audioContext.createMediaStreamSource(stream);
@@ -712,4 +712,5 @@ audio: {
 </script>
 </body>
 </html>
+
 
