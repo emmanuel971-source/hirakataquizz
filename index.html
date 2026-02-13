@@ -99,9 +99,9 @@ mediaRecorder.onstop = async () => {
                 
                 // Pour Teachable Machine, la fenêtre standard est souvent de 11025 ou 44100 samples
                 // On va forcer un buffer de 1 seconde pile (le standard du recognizer)
-                const samplesRequired = recognizer.params().sampleRateHz || 44100;
+                const samplesRequired = recognizer.params().sampleRateHz || 39904;
                 
-                const newBuffer = audioCtx.createBuffer(1, samplesRequired, 44100);
+                const newBuffer = audioCtx.createBuffer(1, samplesRequired, 39904);
                 const channelData = fullAudioBuffer.getChannelData(0);
                 
                 const finalData = new Float32Array(samplesRequired);
@@ -199,5 +199,6 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
