@@ -98,7 +98,7 @@ mediaRecorder.onstop = async () => {
                 
                 try {
                     // TAILLE MAGIQUE RÉCLAMÉE PAR TON MODÈLE
-                    const SAMPLES_EXPECTED = 9976; 
+                    const SAMPLES_EXPECTED = 39904; 
                     
                     // On extrait exactement 9976 échantillons
                     const rawData = fullAudioBuffer.getChannelData(0);
@@ -116,7 +116,7 @@ mediaRecorder.onstop = async () => {
                     // pour satisfaire le Rank 4 [batch, height, width, channels]
                     // 9976 est souvent 43 colonnes x 232 fréquences.
                     
-                    const tensorReshaped = tf.tensor4d(truncatedData, [1, 43, 232, 1]);
+                    const tensorReshaped = tf.tensor4d(truncatedData, [1, 172, 232, 1]);
 
                     // On utilise le modèle interne DIRECTEMENT sans passer par recognize()
                     const modelOutput = await recognizer.model.predict(tensorReshaped);
@@ -220,6 +220,7 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
 
