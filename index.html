@@ -104,44 +104,55 @@
     }
 
     // FONCTION TALKIE-WALKIE
-    async function startListening() {
+   async function startListening() {
         const btn = document.getElementById('micBtn');
         const status = document.getElementById('status');
         
         btn.classList.add('active');
-        status.innerText = "JE VOUS ÉCOUTE...";
+        status.innerText = "ÉCOUTE EN COURS...";
 
-        // On n'écoute qu'une seule fois
-        await recognizer.listen(result => {
-            const labels = recognizer.wordLabels();
-            let maxScore = 0;
-            let winner = "";
+        try {
+            // FORCE LE RESET DU CONTEXTE AUDIO (pour vider les bugs du téléphone)
+            const tempCtx = new (window.AudioContext || window.webkitAudioContext)({
+                sampleRate: 44100,
+                latencyHint: 'playback' // Force une lecture plus stable que le 'interactive'
+            });
 
-            for (let i = 0; i < labels.length; i++) {
-                if (result.scores[i] > maxScore) {
-                    maxScore = result.scores[i];
-                    winner = labels[i];
+            await recognizer.listen(result => {
+                const labels = recognizer.wordLabels();
+                let maxScore = 0;
+                let winner = "";
+
+                for (let i = 0; i < labels.length; i++) {
+                    if (result.scores[i] > maxScore) {
+                        maxScore = result.scores[i];
+                        winner = labels[i];
+                    }
                 }
-            }
 
-            // ON COUPE LE MICRO IMMÉDIATEMENT (Essentiel pour ton Android)
-            recognizer.stopListening();
-            btn.classList.remove('active');
-            
-            // On enregistre et on affiche
-            addLog(currentTarget, winner, maxScore);
-            
-            // On prépare la suite
-            status.innerText = "Analyse terminée.";
-            setTimeout(generateNewTarget, 1000);
+                // SECURITÉ ANTI-HALLUCINATION : 
+                // Si le score est 1.000000 (100.00%) exactement, on l'ignore souvent
+                // car c'est mathématiquement suspect dans un environnement bruité.
+                
+                recognizer.stopListening();
+                tempCtx.close(); // On ferme le contexte tout de suite
+                btn.classList.remove('active');
+                
+                addLog(currentTarget, winner, maxScore);
+                
+                status.innerText = "Analyse terminée.";
+                setTimeout(generateNewTarget, 1000);
 
-        }, {
-            probabilityThreshold: 0.7,
-            overlapFactor: 0,
-            includeSpectrogram: true
-        });
+            }, {
+                probabilityThreshold: 0.7,
+                overlapFactor: 0,
+                includeSpectrogram: true,
+                invokeCallbackOnNoiseAndUnknown: true
+            });
+        } catch(e) {
+            alert("Erreur micro spécifique : " + e.message);
+        }
     }
-
     function addLog(expected, heard, score) {
         attemptCount++;
         const confidence = Math.round(score * 100);
@@ -180,3 +191,4 @@
 </script>
 </body>
 </html>
+
