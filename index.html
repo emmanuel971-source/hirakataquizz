@@ -89,49 +89,41 @@
 
             mediaRecorder.ondataavailable = e => chunks.push(e.data);
 mediaRecorder.onstop = async () => {
+                const btn = document.getElementById('micBtn');
+                const status = document.getElementById('status');
+                
                 const blob = new Blob(chunks);
                 const arrayBuffer = await blob.arrayBuffer();
                 const fullAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                 
-                // 1. On récupère les données brutes
-                const rawData = fullAudioBuffer.getChannelData(0);
-                
-                // 2. On crée un tableau de la taille EXACTE réclamée par l'erreur (9976)
-                // ou un multiple si le modèle attend plusieurs frames.
-                // On va utiliser 9976 car c'est ce que le modèle a "avoué" dans l'erreur.
-                const samplesRequired = 9976; 
-                const finalData = new Float32Array(samplesRequired);
-                
-                // On remplit avec le début de l'enregistrement
-                for (let i = 0; i < samplesRequired; i++) {
-                    finalData[i] = rawData[i] || 0;
-                }
-
-                drawWave(finalData);
-
+                // --- LA MAGIE EST ICI ---
+                // Au lieu de deviner la taille, on utilise la méthode "offline" 
+                // qui transforme automatiquement le son en spectrogramme (Rank 4)
                 try {
-                    // TECHNIQUE DE LA DERNIÈRE CHANCE :
-                    // On convertit les données en Tensor manuellement pour éviter 
-                    // que la librairie ne tente de redécouper le son elle-même.
-                    const inputTensor = tf.tensor(finalData, [1, samplesRequired]);
+                    // On s'assure que le buffer fait au moins 1 seconde pour le processeur FFT
+                    const samplesRequired = 44100; 
+                    const finalBuffer = audioCtx.createBuffer(1, samplesRequired, 44100);
+                    const sourceData = fullAudioBuffer.getChannelData(0);
                     
-                    // On utilise le recognizer pour prédire à partir de ce tenseur
-                    const spectrogram = await recognizer.recognize(inputTensor);
-                    processResult(spectrogram);
+                    // On remplit le buffer (on centre le son pour une meilleure reconnaissance)
+                    const targetData = finalBuffer.getChannelData(0);
+                    targetData.set(sourceData.slice(0, samplesRequired));
+
+                    drawWave(targetData);
+
+                    // recognizer.recognize() avec un AudioBuffer s'occupe de la conversion en Rank 4
+                    const prediction = await recognizer.recognize(finalBuffer);
                     
-                    // Nettoyage mémoire
-                    inputTensor.dispose();
-                } catch(err) {
-                    console.error("Erreur Tensor:", err);
-                    // Si le Tensor échoue, on tente une dernière fois la méthode standard
-                    // mais avec la taille forcée
-                    const tinyBuffer = audioCtx.createBuffer(1, samplesRequired, 44100);
-                    tinyBuffer.copyToChannel(finalData, 0);
-                    const result = await recognizer.recognize(tinyBuffer);
-                    processResult(result);
+                    if (prediction) {
+                        processResult(prediction);
+                    }
+                } catch (err) {
+                    console.error("Erreur d'analyse finale:", err);
+                    status.innerText = "Erreur de format interne";
                 }
                 
                 btn.disabled = false;
+                btn.classList.remove('active');
                 stream.getTracks().forEach(t => t.stop());
             };
 
@@ -208,6 +200,7 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
 
