@@ -41,7 +41,7 @@
 </div>
 
 <script>
-    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
+ const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
     const HIRAGANAS = ['あ', 'い', 'う', 'え', 'お'];
     
     let recognizer;
@@ -49,17 +49,22 @@
     let score = 0;
     let attempt = 0;
     let logs = [];
+    // On force l'échantillonnage à 44100Hz
     let audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
 
     async function init() {
         try {
+            // FORCE LE MODE CPU (évite l'erreur WebGL)
+            await tf.setBackend('cpu');
+            
             recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
             await recognizer.ensureModelLoaded();
-            document.getElementById('status').innerText = "Sensei prêt !";
+            
+            document.getElementById('status').innerText = "Sensei prêt (Mode CPU) !";
             document.getElementById('micBtn').disabled = false;
             nextQuestion();
         } catch (e) {
-            document.getElementById('status').innerText = "Erreur de chargement.";
+            document.getElementById('status').innerText = "Erreur : " + e.message;
         }
     }
 
@@ -70,13 +75,11 @@
         document.getElementById('status').className = "status";
     }
 
-    // --- LOGIQUE ENREGISTREMENT ET ANALYSE ---
     async function startCapture() {
         const btn = document.getElementById('micBtn');
         const status = document.getElementById('status');
-        
         btn.disabled = true;
-        status.innerText = "ENREGISTREMENT...";
+        status.innerText = "ÉCOUTE...";
         status.className = "status recording";
 
         try {
@@ -86,32 +89,43 @@
 
             mediaRecorder.ondataavailable = e => chunks.push(e.data);
             mediaRecorder.onstop = async () => {
-                status.innerText = "ANALYSE...";
-                status.className = "status";
-                
                 const blob = new Blob(chunks);
                 const arrayBuffer = await blob.arrayBuffer();
-                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                // Décodage du son enregistré
+                const fullAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                 
-                // On récupère les données et on dessine la waveform
-                const rawData = audioBuffer.getChannelData(0);
-                drawWave(rawData);
+                // --- CORRECTION CRUCIALE : REDIMENSIONNEMENT ---
+                // Le modèle attend exactement 1 seconde (44100 samples)
+                const samplesRequired = 44100;
+                const newBuffer = audioCtx.createBuffer(1, samplesRequired, 44100);
+                const channelData = fullAudioBuffer.getChannelData(0);
+                
+                // On prend le début de l'enregistrement ou on complète avec du silence
+                const finalData = new Float32Array(samplesRequired);
+                finalData.set(channelData.slice(0, samplesRequired));
+                newBuffer.copyToChannel(finalData, 0);
 
-                // EXÉCUTION DE LA PRÉDICTION
-                // Teachable Machine utilise un spectrogramme de 1 sec (43 frames)
-                // On envoie le buffer directement au recognizer
-                const spectrogram = await recognizer.recognize(audioBuffer);
+                drawWave(finalData);
+
+                // ANALYSE
+                try {
+                    const spectrogram = await recognizer.recognize(newBuffer);
+                    processResult(spectrogram);
+                } catch(err) {
+                    console.error(err);
+                    status.innerText = "Erreur format audio";
+                }
                 
-                processResult(spectrogram);
                 btn.disabled = false;
                 stream.getTracks().forEach(t => t.stop());
             };
 
             mediaRecorder.start();
-            setTimeout(() => mediaRecorder.stop(), 1200); // On capte 1.2 sec
+            // On enregistre un peu plus d'une seconde pour être sûr
+            setTimeout(() => mediaRecorder.stop(), 1100); 
 
         } catch (err) {
-            alert("Erreur micro : " + err);
+            alert("Erreur : " + err);
             btn.disabled = false;
         }
     }
@@ -136,16 +150,15 @@
         if(isCorrect) {
             score++;
             document.getElementById('score').innerText = score;
-            document.getElementById('status').innerText = "BRAVO !";
+            document.getElementById('status').innerText = "BRAVO ! (" + confidence + "%)";
             document.getElementById('status').className = "status success";
         } else {
-            document.getElementById('status').innerText = "NON, ENTENDU : " + winner;
+            document.getElementById('status').innerText = "ENTENDU : " + winner + " (" + confidence + "%)";
+            document.getElementById('status').className = "status";
         }
 
-        // Log et UI
-        const logLine = `N°${attempt}: ${currentTarget} | Entendu: ${winner} (${confidence}%) - ${isCorrect ? '✅' : '❌'}`;
         logs.push({id: attempt, target: currentTarget, heard: winner, conf: confidence, ok: isCorrect});
-        document.getElementById('logArea').innerHTML += logLine + "<br>";
+        document.getElementById('logArea').innerHTML = `<b>N°${attempt}:</b> ${currentTarget} -> ${winner} (${confidence}%)<br>` + document.getElementById('logArea').innerHTML;
         
         setTimeout(nextQuestion, 1500);
     }
@@ -155,6 +168,7 @@
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 1;
         ctx.beginPath();
         const step = Math.ceil(data.length / canvas.width);
         const amp = canvas.height / 2;
@@ -170,11 +184,13 @@
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = 'diagnostic_sensei.csv'; a.click();
+        a.href = url; a.download = 'diagnostic.csv'; a.click();
     }
 
     document.getElementById('micBtn').onclick = startCapture;
-    init();
+    init(); 
+    
 </script>
 </body>
 </html>
+
