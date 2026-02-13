@@ -95,48 +95,53 @@ mediaRecorder.onstop = async () => {
                 const blob = new Blob(chunks);
                 const arrayBuffer = await blob.arrayBuffer();
                 
-                // 1. Décodage standard
-                const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
-                const raw = decodedData.getChannelData(0);
+                // 1. Décodage (Nom de variable unique : audioBuffer)
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                const rawData = audioBuffer.getChannelData(0);
                 
-try {
-                    const SAMPLES_REQUIRED = 9976;
-                    const rawData = fullAudioBuffer.getChannelData(0);
-                    
-                    // 1. On prépare les données
-                    const truncatedData = new Float32Array(SAMPLES_REQUIRED);
-                    truncatedData.set(rawData.slice(0, SAMPLES_REQUIRED));
-                    drawWave(truncatedData);
+                // 2. Préparation des données (9976 points)
+                const SAMPLES_REQUIRED = 9976;
+                const truncatedData = new Float32Array(SAMPLES_REQUIRED);
+                truncatedData.set(rawData.slice(0, SAMPLES_REQUIRED));
+                
+                drawWave(truncatedData);
 
-                    // 2. TRANSFORMATION EN SPECTROGRAMME (Le chaînon manquant)
-                    // On utilise la FFT (Fast Fourier Transform) pour créer l'image attendue
-                    const fftSize = 1024; // Taille standard
+                try {
+                    status.innerText = "Génération Spectrogramme...";
+                    
+                    // 3. TRANSFORMATION (Le moteur interne de l'IA)
+                    // Cette étape transforme l'onde sonore en image fréquentielle
                     const spectrogram = await recognizer.createSpectrogram(truncatedData, {
-                        fftSize: fftSize,
+                        fftSize: 1024,
                         columnCount: 43,
                         spectrogramElementCount: 232
                     });
 
-                    // 3. On vérifie si le spectrogramme a la bonne taille
-                    // Sinon on crée un Tensor 4D [batch, height, width, channel]
+                    // 4. Injection dans le Tensor 4D
                     const inputTensor = tf.tensor4d(spectrogram.data, [1, 43, 232, 1]);
 
-                    // 4. Prédiction
+                    // 5. Prédiction
                     const prediction = await recognizer.model.predict(inputTensor);
                     const scores = await prediction.data();
                     
                     processResult({ scores: scores });
 
+                    // Nettoyage
                     inputTensor.dispose();
                     prediction.dispose();
 
                 } catch (err) {
                     console.error("Echec transformation spectro:", err);
-                    // Ultime tentative : envoyer l'onde brute formatée
-                    const brainInput = tf.tensor4d(Array.from(truncatedData), [1, 43, 232, 1]);
-                    const pred = await recognizer.model.predict(brainInput);
-                    processResult({ scores: await pred.data() });
-                    brainInput.dispose();
+                    
+                    // Tentative de secours avec l'onde brute si le spectro échoue
+                    try {
+                        const rescueTensor = tf.tensor4d(Array.from(truncatedData), [1, 43, 232, 1]);
+                        const rescuePred = await recognizer.model.predict(rescueTensor);
+                        processResult({ scores: await rescuePred.data() });
+                        rescueTensor.dispose();
+                    } catch (err2) {
+                        status.innerText = "Erreur fatale de format";
+                    }
                 }
                 
                 btn.disabled = false;
@@ -216,6 +221,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
