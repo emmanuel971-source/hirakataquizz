@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hiragana Quiz - Debug Mode</title>
+    <title>Hiragana Quiz - Smartphone Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
     <style>
@@ -19,7 +19,6 @@
         }
         .target-char { font-size: 100px; font-weight: bold; color: #2d3436; line-height: 1.1; }
         
-        /* Moniteur de Debug */
         .debug-panel {
             background: #222; color: #0f0; font-family: monospace;
             padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 14px;
@@ -30,7 +29,7 @@
 
         canvas { width: 100%; height: 60px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; }
 
-        .status { padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; }
+        .status { padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; min-height: 45px;}
         .success { background: #d4edda; color: #155724; }
         
         button {
@@ -73,6 +72,7 @@
     let currentTarget = "";
     let score = 0;
     let questionCount = 0;
+    let isTransitioning = false; // Empêche de valider 2 fois
     let analyser, dataArray, animationId;
 
     async function init() {
@@ -88,44 +88,66 @@
         document.getElementById('actionBtn').style.display = "none";
         document.getElementById('skipBtn').style.display = "block";
         
-        // Setup Visualisation (Oscilloscope)
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const audioContext = new AudioContext();
-        const source = audioContext.createMediaStreamSource(stream);
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2048;
-        source.connect(analyser);
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        draw();
+        // --- BLOC CONTRAINTES SMARTPHONE ---
+        const constraints = { 
+            audio: { 
+                echoCancellation: false, 
+                noiseSuppression: false, 
+                autoGainControl: false,
+                sampleRate: 44100 // Force le 44.1kHz
+            } 
+        };
 
-        await recognizer.listen(result => {
-            const labels = recognizer.wordLabels();
-            let maxScore = 0;
-            let winner = "";
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+            const source = audioContext.createMediaStreamSource(stream);
+            
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 2048;
+            source.connect(analyser);
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            draw();
 
-            for (let i = 0; i < labels.length; i++) {
-                if (result.scores[i] > maxScore) {
-                    maxScore = result.scores[i];
-                    winner = labels[i];
+            // Lancement de l'écoute Teachable Machine
+            await recognizer.listen(result => {
+                if (isTransitioning) return;
+
+                const labels = recognizer.wordLabels();
+                let maxScore = 0;
+                let winner = "";
+
+                for (let i = 0; i < labels.length; i++) {
+                    if (result.scores[i] > maxScore) {
+                        maxScore = result.scores[i];
+                        winner = labels[i];
+                    }
                 }
-            }
 
-            // Mise à jour Debug
-            document.getElementById('bestLabel').innerText = winner;
-            const pct = Math.round(maxScore * 100);
-            document.getElementById('bestScoreText').innerText = `Confiance : ${pct}%`;
-            document.getElementById('scoreBar').style.width = pct + "%";
+                // Affichage Debug
+                document.getElementById('bestLabel').innerText = winner;
+                const pct = Math.round(maxScore * 100);
+                document.getElementById('bestScoreText').innerText = `Confiance : ${pct}%`;
+                document.getElementById('scoreBar').style.width = pct + "%";
 
-            // Vérification si correct
-            if (winner === currentTarget && maxScore > 0.25) {
-                handleWin();
-            }
-        }, { probabilityThreshold: 0.7, overlapFactor: 0.5 });
+                // Vérification avec seuil de sécurité pour éviter l'hallucination du silence
+                if (winner === currentTarget && maxScore > 0.40) { 
+                    handleWin();
+                }
+            }, { 
+                probabilityThreshold: 0.7, 
+                overlapFactor: 0.5,
+                invokeCallbackOnNoiseAndUnknown: true // Crucial pour mobile
+            });
 
-        nextQuestion();
+            nextQuestion();
+        } catch (err) {
+            alert("Erreur Micro : " + err.message);
+        }
     }
 
     function nextQuestion() {
+        isTransitioning = false;
         questionCount++;
         document.getElementById('qCount').innerText = questionCount;
         currentTarget = HIRAGANAS[Math.floor(Math.random() * HIRAGANAS.length)];
@@ -135,11 +157,11 @@
     }
 
     function handleWin() {
+        isTransitioning = true;
         score++;
         document.getElementById('score').innerText = score;
         document.getElementById('status').innerText = "BIEN VU !";
         document.getElementById('status').className = "status success";
-        // On attend un peu avant de passer automatiquement pour laisser le temps de voir
         setTimeout(nextQuestion, 1500);
     }
 
@@ -148,6 +170,10 @@
         analyser.getByteTimeDomainData(dataArray);
         const canvas = document.getElementById('vizCanvas');
         const ctx = canvas.getContext('2d');
+        
+        // Ajustement taille canvas pour mobile
+        if(canvas.width !== canvas.clientWidth) canvas.width = canvas.clientWidth;
+
         ctx.fillStyle = '#f8f9fa';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.lineWidth = 2;
