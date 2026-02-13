@@ -93,33 +93,42 @@ mediaRecorder.onstop = async () => {
                 const arrayBuffer = await blob.arrayBuffer();
                 const fullAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                 
-                // --- CALCUL DE LA TAILLE EXACTE REQUISE ---
-                // On récupère la configuration du modèle pour ne plus se tromper
-                const modelWindowSize = recognizer.params().columnCount * recognizer.params().spectrogramElementCount;
+                // 1. On récupère les données brutes
+                const rawData = fullAudioBuffer.getChannelData(0);
                 
-                // Pour Teachable Machine, la fenêtre standard est souvent de 11025 ou 44100 samples
-                // On va forcer un buffer de 1 seconde pile (le standard du recognizer)
-                const samplesRequired = recognizer.params().sampleRateHz || 39904;
-                
-                const newBuffer = audioCtx.createBuffer(1, samplesRequired, 39904);
-                const channelData = fullAudioBuffer.getChannelData(0);
-                
+                // 2. On crée un tableau de la taille EXACTE réclamée par l'erreur (9976)
+                // ou un multiple si le modèle attend plusieurs frames.
+                // On va utiliser 9976 car c'est ce que le modèle a "avoué" dans l'erreur.
+                const samplesRequired = 9976; 
                 const finalData = new Float32Array(samplesRequired);
-                // On remplit avec le début du son
+                
+                // On remplit avec le début de l'enregistrement
                 for (let i = 0; i < samplesRequired; i++) {
-                    finalData[i] = channelData[i] || 0; 
+                    finalData[i] = rawData[i] || 0;
                 }
-                newBuffer.copyToChannel(finalData, 0);
 
                 drawWave(finalData);
 
                 try {
-                    // Utilisation de la méthode de prédiction brute
-                    const spectrogram = await recognizer.recognize(newBuffer);
+                    // TECHNIQUE DE LA DERNIÈRE CHANCE :
+                    // On convertit les données en Tensor manuellement pour éviter 
+                    // que la librairie ne tente de redécouper le son elle-même.
+                    const inputTensor = tf.tensor(finalData, [1, samplesRequired]);
+                    
+                    // On utilise le recognizer pour prédire à partir de ce tenseur
+                    const spectrogram = await recognizer.recognize(inputTensor);
                     processResult(spectrogram);
+                    
+                    // Nettoyage mémoire
+                    inputTensor.dispose();
                 } catch(err) {
-                    console.error("Erreur d'analyse détaillée:", err);
-                    status.innerText = "Incompatibilité de format";
+                    console.error("Erreur Tensor:", err);
+                    // Si le Tensor échoue, on tente une dernière fois la méthode standard
+                    // mais avec la taille forcée
+                    const tinyBuffer = audioCtx.createBuffer(1, samplesRequired, 44100);
+                    tinyBuffer.copyToChannel(finalData, 0);
+                    const result = await recognizer.recognize(tinyBuffer);
+                    processResult(result);
                 }
                 
                 btn.disabled = false;
@@ -199,6 +208,7 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
 
