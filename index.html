@@ -89,64 +89,51 @@
 
             mediaRecorder.ondataavailable = e => chunks.push(e.data);
 mediaRecorder.onstop = async () => {
-                const btn = document.getElementById('micBtn');
-                const status = document.getElementById('status');
-                
-                const blob = new Blob(chunks);
-                const arrayBuffer = await blob.arrayBuffer();
-                const fullAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                
-                try {
-                    // TAILLE MAGIQUE RÉCLAMÉE PAR TON MODÈLE
-                    const SAMPLES_EXPECTED = 39904; 
-                    
-                    // On extrait exactement 9976 échantillons
-                    const rawData = fullAudioBuffer.getChannelData(0);
-                    const truncatedData = new Float32Array(SAMPLES_EXPECTED);
-                    
-                    // On prend les données (ou on met du silence si trop court)
-                    for (let i = 0; i < SAMPLES_EXPECTED; i++) {
-                        truncatedData[i] = rawData[i] || 0;
-                    }
+    const btn = document.getElementById('micBtn');
+    const status = document.getElementById('status');
+    
+    const blob = new Blob(chunks);
+    const arrayBuffer = await blob.arrayBuffer();
+    const fullAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    
+    try {
+        const SAMPLES_REQUIRED = 9976; 
+        const rawData = fullAudioBuffer.getChannelData(0); // Tes ~44100 samples
+        const truncatedData = new Float32Array(SAMPLES_REQUIRED);
+        
+        // --- INSERER LE BLOC ICI ---
+        const samplesInOneSecond = 44100;
+        const step = Math.floor(samplesInOneSecond / SAMPLES_REQUIRED); // Calcule le saut (env. 4)
 
-                    drawWave(truncatedData);
+        for (let i = 0; i < SAMPLES_REQUIRED; i++) {
+            // On "compresse" le temps : on prend 1 point sur 4
+            // pour que 1 seconde de son rentre dans 9976 points
+            truncatedData[i] = rawData[i * step] || 0;
+        }
+        // ---------------------------
 
-                    // --- LE HACK ULTIME ---
-                    // On transforme le son en "image" (Spectrogramme) manuellement
-                    // pour satisfaire le Rank 4 [batch, height, width, channels]
-                    // 9976 est souvent 43 colonnes x 232 fréquences.
-                    
-                    const tensorReshaped = tf.tensor4d(truncatedData, [1, 172, 232, 1]);
+        drawWave(truncatedData);
 
-                    // On utilise le modèle interne DIRECTEMENT sans passer par recognize()
-                    const modelOutput = await recognizer.model.predict(tensorReshaped);
-                    const scores = await modelOutput.data();
-                    
-                    // On formate le résultat pour qu'il soit compatible avec notre fonction processResult
-                    processResult({ scores: scores });
+        // On envoie le spectrogramme compacté au modèle
+        const tensorReshaped = tf.tensor4d(truncatedData, [1, 43, 232, 1]);
 
-                    // Nettoyage mémoire obligatoire pour Android
-                    tensorReshaped.dispose();
-                    modelOutput.dispose();
+        const modelOutput = await recognizer.model.predict(tensorReshaped);
+        const scores = await modelOutput.data();
+        
+        processResult({ scores: scores });
 
-                } catch (err) {
-                    console.error("Erreur de dimensionnement :", err);
-                    // Si le 43x232 ne marche pas, on tente le format "Flat"
-                    try {
-                        const flatTensor = tf.tensor4d(truncatedData, [1, SAMPLES_EXPECTED, 1, 1]);
-                        const modelOutput = await recognizer.model.predict(flatTensor);
-                        processResult({ scores: await modelOutput.data() });
-                        flatTensor.dispose();
-                    } catch (err2) {
-                        status.innerText = "Format incompatible : " + SAMPLES_EXPECTED;
-                    }
-                }
-                
-                btn.disabled = false;
-                btn.classList.remove('active');
-                stream.getTracks().forEach(t => t.stop());
-            };
+        tensorReshaped.dispose();
+        modelOutput.dispose();
 
+    } catch (err) {
+        console.error("Erreur de dimensionnement :", err);
+        status.innerText = "Erreur de format [43,232]";
+    }
+    
+    btn.disabled = false;
+    btn.classList.remove('active');
+    stream.getTracks().forEach(t => t.stop());
+};
             mediaRecorder.start();
             // On enregistre un peu plus d'une seconde pour être sûr
             setTimeout(() => mediaRecorder.stop(), 1100); 
@@ -220,6 +207,7 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
 
