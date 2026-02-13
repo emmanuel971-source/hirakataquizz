@@ -306,13 +306,17 @@
     // ==================== AUDIO SETUP (Android Fix) ====================
     async function setupAudio() {
         const constraints = {
-            audio: {
-                echoCancellation: false,        // 🔥 Désactivé pour Android
-                noiseSuppression: false,        // 🔥 Désactivé pour Android
-                autoGainControl: false,
-                sampleRate: { ideal: 44100 },   // 🔥 Forcer 44.1kHz
-                channelCount: { ideal: 1 }
-            }
+audio: {
+    echoCancellation: false,
+    noiseSuppression: false,
+    autoGainControl: false,
+    googEchoCancellation: false,          // ancien flag Chrome/Android
+    googAutoGainControl: false,
+    googNoiseSuppression: false,
+    googHighpassFilter: false,
+    sampleRate: { ideal: 16000 },
+    channelCount: { ideal: 1 }
+}
         };
         
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -708,3 +712,4 @@
 </script>
 </body>
 </html>
+
