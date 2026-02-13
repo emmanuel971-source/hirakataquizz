@@ -96,30 +96,50 @@ mediaRecorder.onstop = async () => {
                 const arrayBuffer = await blob.arrayBuffer();
                 const fullAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                 
-                // --- LA MAGIE EST ICI ---
-                // Au lieu de deviner la taille, on utilise la méthode "offline" 
-                // qui transforme automatiquement le son en spectrogramme (Rank 4)
                 try {
-                    // On s'assure que le buffer fait au moins 1 seconde pour le processeur FFT
-                    const samplesRequired = 44100; 
-                    const finalBuffer = audioCtx.createBuffer(1, samplesRequired, 44100);
-                    const sourceData = fullAudioBuffer.getChannelData(0);
+                    // TAILLE MAGIQUE RÉCLAMÉE PAR TON MODÈLE
+                    const SAMPLES_EXPECTED = 9976; 
                     
-                    // On remplit le buffer (on centre le son pour une meilleure reconnaissance)
-                    const targetData = finalBuffer.getChannelData(0);
-                    targetData.set(sourceData.slice(0, samplesRequired));
-
-                    drawWave(targetData);
-
-                    // recognizer.recognize() avec un AudioBuffer s'occupe de la conversion en Rank 4
-                    const prediction = await recognizer.recognize(finalBuffer);
+                    // On extrait exactement 9976 échantillons
+                    const rawData = fullAudioBuffer.getChannelData(0);
+                    const truncatedData = new Float32Array(SAMPLES_EXPECTED);
                     
-                    if (prediction) {
-                        processResult(prediction);
+                    // On prend les données (ou on met du silence si trop court)
+                    for (let i = 0; i < SAMPLES_EXPECTED; i++) {
+                        truncatedData[i] = rawData[i] || 0;
                     }
+
+                    drawWave(truncatedData);
+
+                    // --- LE HACK ULTIME ---
+                    // On transforme le son en "image" (Spectrogramme) manuellement
+                    // pour satisfaire le Rank 4 [batch, height, width, channels]
+                    // 9976 est souvent 43 colonnes x 232 fréquences.
+                    
+                    const tensorReshaped = tf.tensor4d(truncatedData, [1, 43, 232, 1]);
+
+                    // On utilise le modèle interne DIRECTEMENT sans passer par recognize()
+                    const modelOutput = await recognizer.model.predict(tensorReshaped);
+                    const scores = await modelOutput.data();
+                    
+                    // On formate le résultat pour qu'il soit compatible avec notre fonction processResult
+                    processResult({ scores: scores });
+
+                    // Nettoyage mémoire obligatoire pour Android
+                    tensorReshaped.dispose();
+                    modelOutput.dispose();
+
                 } catch (err) {
-                    console.error("Erreur d'analyse finale:", err);
-                    status.innerText = "Erreur de format interne";
+                    console.error("Erreur de dimensionnement :", err);
+                    // Si le 43x232 ne marche pas, on tente le format "Flat"
+                    try {
+                        const flatTensor = tf.tensor4d(truncatedData, [1, SAMPLES_EXPECTED, 1, 1]);
+                        const modelOutput = await recognizer.model.predict(flatTensor);
+                        processResult({ scores: await modelOutput.data() });
+                        flatTensor.dispose();
+                    } catch (err2) {
+                        status.innerText = "Format incompatible : " + SAMPLES_EXPECTED;
+                    }
                 }
                 
                 btn.disabled = false;
@@ -200,6 +220,7 @@ mediaRecorder.onstop = async () => {
 </script>
 </body>
 </html>
+
 
 
 
