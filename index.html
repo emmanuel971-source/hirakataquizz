@@ -65,51 +65,34 @@
 </div>
 
 <script>
-    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
+const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
     const HIRAGANAS = ['あ', 'い', 'う', 'え', 'お'];
 
     let recognizer;
     let currentTarget = "";
     let score = 0;
     let questionCount = 0;
-    let isTransitioning = false; // Empêche de valider 2 fois
-    let analyser, dataArray, animationId;
+    let isTransitioning = false;
 
     async function init() {
         try {
+            // Utilisation de la méthode native sans fioritures
             recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
             await recognizer.ensureModelLoaded();
             document.getElementById('status').innerText = "Sensei prêt !";
             document.getElementById('actionBtn').disabled = false;
-        } catch (e) { document.getElementById('status').innerText = "Erreur chargement."; }
+        } catch (e) { 
+            document.getElementById('status').innerText = "Erreur : " + e.message; 
+        }
     }
 
     async function startQuiz() {
         document.getElementById('actionBtn').style.display = "none";
         document.getElementById('skipBtn').style.display = "block";
         
-        // --- BLOC CONTRAINTES SMARTPHONE ---
-        const constraints = { 
-            audio: { 
-                echoCancellation: false, 
-                noiseSuppression: false, 
-                autoGainControl: false,
-                sampleRate: 44100 // Force le 44.1kHz
-            } 
-        };
-
         try {
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
-            const source = audioContext.createMediaStreamSource(stream);
-            
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 2048;
-            source.connect(analyser);
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-            draw();
-
-            // Lancement de l'écoute Teachable Machine
+            // On laisse Teachable Machine ouvrir le micro elle-même
+            // avec ses propres paramètres internes (souvent plus stables)
             await recognizer.listen(result => {
                 if (isTransitioning) return;
 
@@ -130,19 +113,21 @@
                 document.getElementById('bestScoreText').innerText = `Confiance : ${pct}%`;
                 document.getElementById('scoreBar').style.width = pct + "%";
 
-                // Vérification avec seuil de sécurité pour éviter l'hallucination du silence
-                if (winner === currentTarget && maxScore > 0.40) { 
+                // SI LE SCORE EST TOUJOURS À 100% SANS RIEN DIRE : 
+                // C'est un problème de buffer circulaire du téléphone.
+                if (winner === currentTarget && maxScore > 0.50) { 
                     handleWin();
                 }
             }, { 
                 probabilityThreshold: 0.7, 
                 overlapFactor: 0.5,
-                invokeCallbackOnNoiseAndUnknown: true // Crucial pour mobile
+                includeSpectrogram: true,
+                invokeCallbackOnNoiseAndUnknown: true 
             });
 
             nextQuestion();
         } catch (err) {
-            alert("Erreur Micro : " + err.message);
+            alert("Accès micro refusé ou impossible : " + err.message);
         }
     }
 
@@ -152,7 +137,7 @@
         document.getElementById('qCount').innerText = questionCount;
         currentTarget = HIRAGANAS[Math.floor(Math.random() * HIRAGANAS.length)];
         document.getElementById('targetDisplay').innerText = currentTarget;
-        document.getElementById('status').innerText = "Je vous écoute...";
+        document.getElementById('status').innerText = "Dites le son...";
         document.getElementById('status').className = "status";
     }
 
@@ -160,39 +145,16 @@
         isTransitioning = true;
         score++;
         document.getElementById('score').innerText = score;
-        document.getElementById('status').innerText = "BIEN VU !";
+        document.getElementById('status').innerText = "CORRECT !";
         document.getElementById('status').className = "status success";
         setTimeout(nextQuestion, 1500);
-    }
-
-    function draw() {
-        animationId = requestAnimationFrame(draw);
-        analyser.getByteTimeDomainData(dataArray);
-        const canvas = document.getElementById('vizCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Ajustement taille canvas pour mobile
-        if(canvas.width !== canvas.clientWidth) canvas.width = canvas.clientWidth;
-
-        ctx.fillStyle = '#f8f9fa';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#667eea';
-        ctx.beginPath();
-        const sliceWidth = canvas.width / dataArray.length;
-        let x = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-            const v = dataArray[i] / 128.0;
-            const y = v * canvas.height / 2;
-            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            x += sliceWidth;
-        }
-        ctx.stroke();
     }
 
     document.getElementById('actionBtn').onclick = startQuiz;
     document.getElementById('skipBtn').onclick = nextQuestion;
     init();
+    
 </script>
 </body>
 </html>
+
