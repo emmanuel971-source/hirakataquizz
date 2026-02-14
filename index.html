@@ -8,39 +8,197 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #1a1c2c; padding: 15px; color: #333; }
-        .main-layout { display: flex; flex-direction: column; gap: 15px; max-width: 600px; margin: auto; }
-        
-        .quiz-card { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        .target-char { font-size: 100px; font-weight: bold; margin: 5px 0; color: #2d3436; }
-        
-        /* Bouton Talkie-Walkie */
-        .mic-button {
-            width: 90px; height: 90px; border-radius: 50%; border: none;
-            background: #667eea; color: white; font-size: 35px; cursor: pointer;
-            margin: 15px 0; transition: all 0.2s;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-            display: inline-flex; align-items: center; justify-content: center;
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #1a1c2c; 
+            padding: 15px; 
+            color: #333;
+            -webkit-tap-highlight-color: transparent;
         }
-        .mic-button:active { transform: scale(0.9); background: #5a67d8; }
-        .mic-button.active { background: #ff4757; animation: pulse 1s infinite; box-shadow: 0 0 20px rgba(255, 71, 87, 0.6); }
+        .main-layout { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            max-width: 600px; 
+            margin: auto; 
+        }
         
-        .status { font-weight: bold; color: #666; min-height: 20px; margin-bottom: 10px; }
+        .quiz-card { 
+            background: white; 
+            border-radius: 20px; 
+            padding: 20px; 
+            text-align: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+        }
+        .target-char { 
+            font-size: 100px; 
+            font-weight: bold; 
+            margin: 5px 0; 
+            color: #2d3436;
+            user-select: none;
+        }
+        
+        /* Bouton Talkie-Walkie amélioré */
+        .mic-button {
+            width: 90px; 
+            height: 90px; 
+            border-radius: 50%; 
+            border: none;
+            background: #667eea; 
+            color: white; 
+            font-size: 35px; 
+            cursor: pointer;
+            margin: 15px 0; 
+            transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            touch-action: manipulation;
+            position: relative;
+        }
+        .mic-button:active:not(:disabled) { 
+            transform: scale(0.9); 
+            background: #5a67d8; 
+        }
+        .mic-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .mic-button.active { 
+            background: #ff4757; 
+            animation: pulse 1.5s infinite; 
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.6); 
+        }
+        
+        .status { 
+            font-weight: bold; 
+            color: #666; 
+            min-height: 24px; 
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .status.success { color: #2ed573; }
+        .status.error { color: #ff4757; }
 
         /* Journal de Log */
-        .log-container { background: white; border-radius: 15px; padding: 15px; }
-        .table-wrapper { max-height: 250px; overflow-y: auto; margin-top: 10px; border: 1px solid #eee; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { background: #f8f9fa; position: sticky; top: 0; padding: 8px; border-bottom: 2px solid #ddd; }
-        td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; }
+        .log-container { 
+            background: white; 
+            border-radius: 15px; 
+            padding: 15px; 
+        }
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .stats {
+            font-size: 0.85em;
+            color: #666;
+        }
+        .table-wrapper { 
+            max-height: 250px; 
+            overflow-y: auto; 
+            margin-top: 10px; 
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 13px; 
+        }
+        th { 
+            background: #f8f9fa; 
+            position: sticky; 
+            top: 0; 
+            padding: 8px; 
+            border-bottom: 2px solid #ddd;
+            z-index: 1;
+        }
+        td { 
+            padding: 8px; 
+            border-bottom: 1px solid #eee; 
+            text-align: center; 
+        }
+        tr:hover { background: #f8f9fa; }
         .match-true { color: #2ed573; font-weight: bold; }
         .match-false { color: #ff4757; }
 
-        .controls { display: flex; gap: 8px; justify-content: center; margin-top: 15px; }
-        .btn-export { background: #27ae60; color: white; padding: 12px; border: none; border-radius: 10px; cursor: pointer; flex: 1; font-weight: bold; }
-        .btn-reset { background: #f1f2f6; color: #57606f; padding: 12px; border: none; border-radius: 10px; cursor: pointer; flex: 1; }
+        .controls { 
+            display: flex; 
+            gap: 8px; 
+            justify-content: center; 
+            margin-top: 15px; 
+        }
+        .btn-export { 
+            background: #27ae60; 
+            color: white; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            flex: 1; 
+            font-weight: bold;
+            touch-action: manipulation;
+        }
+        .btn-export:active { transform: scale(0.97); }
+        .btn-export:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .btn-reset { 
+            background: #f1f2f6; 
+            color: #57606f; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            flex: 1;
+            touch-action: manipulation;
+        }
+        .btn-reset:active { transform: scale(0.97); }
         
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 71, 87, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
+        @keyframes pulse { 
+            0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 
+            70% { box-shadow: 0 0 0 15px rgba(255, 71, 87, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } 
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake { animation: shake 0.3s; }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d3436;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
     </style>
 </head>
 <body>
@@ -54,13 +212,18 @@
         <p id="instruction" style="font-size: 0.9em; color: #777;">Cliquez pour parler</p>
 
         <div class="controls">
-            <button onclick="exportCSV()" class="btn-export">📊 EXPORTER LOGS</button>
-            <button onclick="location.reload()" class="btn-reset">🔄 RESET</button>
+            <button id="exportBtn" onclick="exportCSV()" class="btn-export" disabled>📊 EXPORTER LOGS</button>
+            <button onclick="resetApp()" class="btn-reset">🔄 RESET</button>
         </div>
     </div>
 
     <div class="log-container">
-        <h3 style="font-size: 1em; border-bottom: 1px solid #eee; padding-bottom: 5px;">📜 HISTORIQUE</h3>
+        <div class="log-header">
+            <h3>📜 HISTORIQUE</h3>
+            <div class="stats">
+                <span id="statsDisplay">0 essais</span>
+            </div>
+        </div>
         <div class="table-wrapper">
             <table>
                 <thead>
@@ -72,7 +235,11 @@
                         <th>Rés.</th>
                     </tr>
                 </thead>
-                <tbody id="logBody"></tbody>
+                <tbody id="logBody">
+                    <tr>
+                        <td colspan="5" style="color: #999; padding: 20px;">Aucun essai pour le moment</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
@@ -81,103 +248,274 @@
 <script>
     const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
     const HIRAGANAS = ['あ', 'い', 'う', 'え', 'お'];
+    const MAX_LOGS = 100; // Limite pour éviter les ralentissements
+    
     let recognizer;
     let currentTarget = "";
     let attemptCount = 0;
     let logs = [];
+    let isListening = false;
 
+    // Initialisation avec gestion d'erreur robuste
     async function init() {
+        const statusEl = document.getElementById('status');
+        const micBtn = document.getElementById('micBtn');
+        
         try {
-            recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+            statusEl.innerText = "Chargement du modèle...";
+            
+            recognizer = speechCommands.create(
+                "BROWSER_FFT", 
+                undefined, 
+                MODEL_URL + "model.json", 
+                MODEL_URL + "metadata.json"
+            );
+            
             await recognizer.ensureModelLoaded();
-            document.getElementById('status').innerText = "Prêt !";
-            document.getElementById('micBtn').disabled = false;
+            
+            statusEl.innerText = "Prêt ! ✨";
+            statusEl.className = "status success";
+            micBtn.disabled = false;
+            
             generateNewTarget();
-        } catch (e) {
-            document.getElementById('status').innerText = "Erreur micro/réseau";
+            
+        } catch (error) {
+            console.error("Erreur d'initialisation:", error);
+            statusEl.innerText = "❌ Erreur: Vérifiez votre micro/connexion";
+            statusEl.className = "status error";
+            showToast("Impossible de charger le modèle", "error");
         }
     }
 
+    // Génération d'une nouvelle cible
     function generateNewTarget() {
         currentTarget = HIRAGANAS[Math.floor(Math.random() * HIRAGANAS.length)];
         document.getElementById('targetDisplay').innerText = currentTarget;
     }
 
-    // FONCTION TALKIE-WALKIE
+    // FONCTION TALKIE-WALKIE AMÉLIORÉE
     async function startListening() {
-        const btn = document.getElementById('micBtn');
-        const status = document.getElementById('status');
+        if (isListening) return; // Prévention double-clic
         
+        const btn = document.getElementById('micBtn');
+        const statusEl = document.getElementById('status');
+        
+        isListening = true;
+        btn.disabled = true;
         btn.classList.add('active');
-        status.innerText = "JE VOUS ÉCOUTE...";
+        statusEl.innerText = "🎧 JE VOUS ÉCOUTE...";
+        statusEl.className = "status";
 
-        // On n'écoute qu'une seule fois
-        await recognizer.listen(result => {
-            const labels = recognizer.wordLabels();
-            let maxScore = 0;
-            let winner = "";
+        try {
+            await recognizer.listen(result => {
+                const labels = recognizer.wordLabels();
+                let maxScore = 0;
+                let winner = "";
 
-            for (let i = 0; i < labels.length; i++) {
-                if (result.scores[i] > maxScore) {
-                    maxScore = result.scores[i];
-                    winner = labels[i];
+                for (let i = 0; i < labels.length; i++) {
+                    if (result.scores[i] > maxScore) {
+                        maxScore = result.scores[i];
+                        winner = labels[i];
+                    }
                 }
-            }
 
-            // ON COUPE LE MICRO IMMÉDIATEMENT (Essentiel pour ton Android)
-            recognizer.stopListening();
+                // Arrêt immédiat du micro
+                try {
+                    recognizer.stopListening();
+                } catch (stopError) {
+                    console.warn("Erreur stopListening:", stopError);
+                }
+                
+                // Nettoyage de l'état
+                btn.classList.remove('active');
+                isListening = false;
+                btn.disabled = false;
+                
+                // Enregistrement du résultat
+                const isMatch = (currentTarget === winner);
+                addLog(currentTarget, winner, maxScore, isMatch);
+                
+                // Feedback visuel
+                if (isMatch) {
+                    statusEl.innerText = "✅ Parfait !";
+                    statusEl.className = "status success";
+                    playSuccessSound();
+                } else {
+                    statusEl.innerText = `❌ Entendu: ${winner}`;
+                    statusEl.className = "status error";
+                    document.getElementById('targetDisplay').classList.add('shake');
+                    setTimeout(() => {
+                        document.getElementById('targetDisplay').classList.remove('shake');
+                    }, 300);
+                }
+                
+                // Nouvelle cible après 1.5s
+                setTimeout(() => {
+                    generateNewTarget();
+                    statusEl.innerText = "Prêt pour le suivant ! 🎤";
+                    statusEl.className = "status";
+                }, 1500);
+
+            }, {
+                probabilityThreshold: 0.65,
+                overlapFactor: 0.5,
+                includeSpectrogram: true
+            });
+            
+        } catch (error) {
+            console.error("Erreur d'écoute:", error);
+            statusEl.innerText = "❌ Erreur micro";
+            statusEl.className = "status error";
             btn.classList.remove('active');
-            
-            // On enregistre et on affiche
-            addLog(currentTarget, winner, maxScore);
-            
-            // On prépare la suite
-            status.innerText = "Analyse terminée.";
-            setTimeout(generateNewTarget, 1000);
-
-        }, {
-            probabilityThreshold: 0.7,
-            overlapFactor: 0.5,
-            includeSpectrogram: true
-        });
+            isListening = false;
+            btn.disabled = false;
+            showToast("Problème avec le microphone", "error");
+        }
     }
 
-    function addLog(expected, heard, score) {
+    // Ajout au journal avec limite de logs
+    function addLog(expected, heard, score, isMatch) {
         attemptCount++;
         const confidence = Math.round(score * 100);
-        const isMatch = (expected === heard);
         
-        logs.push({ id: attemptCount, expected, heard, confidence, result: isMatch ? "OK" : "KO" });
+        const logEntry = { 
+            id: attemptCount, 
+            expected, 
+            heard, 
+            confidence, 
+            result: isMatch ? "OK" : "KO",
+            timestamp: new Date().toLocaleTimeString()
+        };
+        
+        logs.unshift(logEntry); // Ajout en tête
+        
+        // Limitation à MAX_LOGS pour la performance
+        if (logs.length > MAX_LOGS) {
+            logs.pop();
+        }
 
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${attemptCount}</td>
-            <td style="font-size:1.4em">${expected}</td>
-            <td style="font-size:1.4em">${heard}</td>
-            <td>${confidence}%</td>
-            <td>${isMatch ? '✅' : '❌'}</td>
-        `;
+        // Mise à jour de l'affichage
+        updateLogDisplay();
+        updateStats();
+        
+        // Activation du bouton export
+        document.getElementById('exportBtn').disabled = false;
+    }
+
+    // Mise à jour de l'affichage du journal
+    function updateLogDisplay() {
         const body = document.getElementById('logBody');
-        body.insertBefore(row, body.firstChild);
+        body.innerHTML = logs.map(log => `
+            <tr>
+                <td>${log.id}</td>
+                <td style="font-size:1.4em">${log.expected}</td>
+                <td style="font-size:1.4em">${log.heard}</td>
+                <td>${log.confidence}%</td>
+                <td>${log.result === 'OK' ? '✅' : '❌'}</td>
+            </tr>
+        `).join('');
     }
 
+    // Mise à jour des statistiques
+    function updateStats() {
+        const successCount = logs.filter(l => l.result === 'OK').length;
+        const totalCount = logs.length;
+        const successRate = totalCount > 0 ? Math.round((successCount / totalCount) * 100) : 0;
+        
+        document.getElementById('statsDisplay').innerHTML = 
+            `${totalCount} essai${totalCount > 1 ? 's' : ''} | ${successRate}% réussite`;
+    }
+
+    // Export CSV amélioré
     function exportCSV() {
-        if (logs.length === 0) return alert("Pas de données.");
-        let csv = "ID,Attendu,Entendu,Confiance,Resultat\n";
-        logs.forEach(l => csv += `${l.id},${l.expected},${l.heard},${l.confidence}%,${l.result}\n`);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute("download", "diagnostic_audio.csv");
-        link.click();
+        if (logs.length === 0) {
+            showToast("Aucune donnée à exporter", "error");
+            return;
+        }
+        
+        try {
+            let csv = "ID,Attendu,Entendu,Confiance,Resultat,Horodatage\n";
+            logs.forEach(l => {
+                csv += `${l.id},${l.expected},${l.heard},${l.confidence}%,${l.result},${l.timestamp}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const filename = `hiragana_diagnostic_${new Date().toISOString().slice(0,10)}.csv`;
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", filename);
+            link.click();
+            
+            showToast(`${logs.length} entrées exportées !`, "success");
+        } catch (error) {
+            showToast("Erreur lors de l'export", "error");
+        }
     }
 
+    // Reset de l'application
+    function resetApp() {
+        if (logs.length > 0 && !confirm("Effacer tous les logs ?")) return;
+        
+        logs = [];
+        attemptCount = 0;
+        
+        const body = document.getElementById('logBody');
+        body.innerHTML = '<tr><td colspan="5" style="color: #999; padding: 20px;">Aucun essai pour le moment</td></tr>';
+        
+        document.getElementById('statsDisplay').innerText = "0 essais";
+        document.getElementById('exportBtn').disabled = true;
+        
+        generateNewTarget();
+        showToast("Application réinitialisée", "success");
+    }
+
+    // Feedback sonore (optionnel, fonctionne sur la plupart des navigateurs)
+    function playSuccessSound() {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        } catch (e) {
+            // Pas grave si le son ne marche pas
+        }
+    }
+
+    // Toast notifications
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.style.background = type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#2d3436';
+        toast.innerText = message;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    }
+
+    // Event listener sur le bouton micro
     document.getElementById('micBtn').onclick = () => {
-        if (!recognizer.isListening()) startListening();
+        if (!isListening) {
+            startListening();
+        }
     };
 
+    // Démarrage
     init();
 </script>
 </body>
 </html>
-
