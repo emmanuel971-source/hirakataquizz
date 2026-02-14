@@ -3,230 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hiragana Sensei - High Fidelity</title>
+    <title>Hiragana Quiz - Diagnostic Mode</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #1a1c2c; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-        .container { background: white; border-radius: 25px; padding: 25px; max-width: 450px; width: 100%; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
-        .target-char { font-size: 100px; font-weight: bold; margin: 10px 0; color: #2d3436; }
-        .status { padding: 12px; border-radius: 12px; margin: 10px 0; font-weight: bold; background: #f1f2f6; }
-        .recording { background: #ff4757; color: white; animation: pulse 1s infinite; }
-        .success { background: #2ed573; color: white; }
-        .mic-btn { width: 90px; height: 90px; border-radius: 50%; border: none; background: #667eea; color: white; font-size: 40px; cursor: pointer; margin: 15px 0; }
-        .mic-btn:disabled { background: #ccc; }
-        canvas { width: 100%; height: 50px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; }
-        .log-area { margin-top: 15px; font-size: 13px; text-align: left; max-height: 150px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1c2c; min-height: 100vh;
+            display: flex; justify-content: center; align-items: center; padding: 10px;
+        }
+        .container {
+            background: white; border-radius: 20px; padding: 20px;
+            max-width: 500px; width: 100%; text-align: center;
+        }
+        .target-char { font-size: 100px; font-weight: bold; color: #2d3436; line-height: 1.1; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab {
+            flex: 1; padding: 10px; border: none; border-radius: 8px;
+            background: #eee; cursor: pointer; font-weight: bold; font-size: 14px;
+        }
+        .tab.active { background: #667eea; color: white; }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .debug-panel {
+            background: #222; color: #0f0; font-family: monospace;
+            padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 13px;
+            text-align: left; border-left: 4px solid #444;
+        }
+        .bar-container { background: #444; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; }
+        .bar-fill { background: #0f0; height: 100%; width: 0%; transition: width 0.1s; }
+        .energy-bar { background: #ff0; }
+        .fft-debug { background: #000; padding: 10px; border-radius: 8px; margin-top: 10px; }
+        .fft-canvas { width: 100%; height: 100px; background: #111; border-radius: 5px; }
+        .slider-group { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; text-align: left; }
+        .slider-item { margin: 10px 0; }
+        .slider-item label { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
+        .slider-item input[type="range"] { width: 100%; height: 8px; border-radius: 5px; background: #ddd; outline: none; }
+        .calibration-step { background: #fff3cd; padding: 20px; border-radius: 12px; margin: 15px 0; border-left: 4px solid #ffc107; }
+        .calibration-char { font-size: 80px; font-weight: bold; color: #2d3436; }
+        .measurements { background: #e9ecef; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 12px; text-align: left; }
+        canvas { width: 100%; height: 60px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; }
+        .status { padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: bold; font-size: 14px; }
+        .success { background: #d4edda; color: #155724; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-main { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-secondary { background: #eee; color: #333; }
+        .btn-small { padding: 8px 15px; width: auto; font-size: 14px; }
+        .btn-capture { background: #ff4757; color: white; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="display: flex; justify-content: space-between; font-weight: bold;">
-        <span>Score: <span id="score">0</span></span>
-        <span>Essai: <span id="attempt">0</span></span>
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('game')">🎮 Jeu</button>
+        <button class="tab" onclick="switchTab('calibration')">⚙️ Calibration</button>
+        <button class="tab" onclick="switchTab('settings')">🎛️ Réglages</button>
     </div>
-    <div id="targetDisplay" class="target-char">?</div>
-    <div id="status" class="status">Chargement...</div>
-    
-    <button id="micBtn" class="mic-btn" disabled>🎤</button>
-    <p>Cliquez, dites l'hiragana, attendez l'analyse</p>
-    
-    <canvas id="vizCanvas"></canvas>
-    
-    <div class="log-area" id="logArea"><b>Historique :</b><br></div>
-    <button onclick="exportCSV()" style="margin-top:10px; width:100%; padding:8px; border-radius:8px; border:none; background:#27ae60; color:white;">📊 Exporter CSV</button>
+
+    <div id="gamePanel" class="panel active">
+        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+            <span>Score: <span id="score">0</span></span>
+            <span>Question: <span id="qCount">0</span></span>
+        </div>
+
+        <div id="targetDisplay" class="target-char">?</div>
+        
+        <div class="debug-panel">
+            <div>🎯 Détecté : <span id="bestLabel">---</span></div>
+            <div id="bestScoreText">Confiance : 0%</div>
+            <div class="bar-container"><div id="scoreBar" class="bar-fill"></div></div>
+            <div style="margin-top: 8px;">🔊 Énergie : <span id="energyLevel">0%</span></div>
+            <div class="bar-container"><div id="energyBar" class="bar-fill energy-bar"></div></div>
+            <div style="margin-top: 8px; color: #888; font-size: 11px;">
+                Sample Rate: <span id="sampleRate">?</span> Hz
+            </div>
+        </div>
+
+        <div class="fft-debug">
+            <div style="color: #0f0; font-family: monospace; font-size: 11px; margin-bottom: 5px;">
+                📊 Spectre FFT (Diagnostic Live)
+            </div>
+            <canvas id="fftCanvas" class="fft-canvas"></canvas>
+            <button id="captureBtn" class="btn-capture btn-small">📸 CAPTURER SPECTRE (JSON)</button>
+        </div>
+
+        <div id="status" class="status info">Chargement...</div>
+        <canvas id="vizCanvas"></canvas>
+
+        <button id="actionBtn" class="btn-main" disabled>DÉMARRER</button>
+        <button id="skipBtn" class="btn-secondary" style="display:none">PASSER</button>
+    </div>
+
+    <div id="calibrationPanel" class="panel">
+        <h3 style="margin-bottom: 15px;">🎯 Calibration Audio</h3>
+        <div class="calibration-step">
+            <div>Prononcez clairement :</div>
+            <div class="calibration-char" id="calibChar">あ</div>
+            <div style="margin-top: 10px; font-size: 14px; color: #666;">Étape <span id="calibStep">1</span>/5</div>
+        </div>
+        <div class="debug-panel">
+            <div>🎯 Détection : <span id="calibDetected">---</span></div>
+            <div>Confiance : <span id="calibConfidence">0%</span></div>
+            <div class="bar-container"><div id="calibConfBar" class="bar-fill"></div></div>
+            <div style="margin-top: 8px;">🔊 Énergie : <span id="calibEnergy">0%</span></div>
+            <div class="bar-container"><div id="calibEnergyBar" class="bar-fill energy-bar"></div></div>
+        </div>
+        <div class="fft-debug">
+            <canvas id="calibFftCanvas" class="fft-canvas"></canvas>
+        </div>
+        <div class="measurements">
+            <strong>📊 Mesures :</strong>
+            <div id="calibResults">Aucune mesure</div>
+        </div>
+        <canvas id="calibCanvas" style="height: 50px;"></canvas>
+        <button id="startCalibBtn" class="btn-main" disabled>LANCER CALIBRATION</button>
+        <button id="nextCalibBtn" class="btn-success" style="display:none">VALIDER & SUIVANT</button>
+        <button id="applyCalibBtn" class="btn-success" style="display:none">APPLIQUER</button>
+    </div>
+
+    <div id="settingsPanel" class="panel">
+        <h3 style="margin-bottom: 15px;">🎛️ Réglages Avancés</h3>
+        <div class="slider-group">
+            <div class="slider-item">
+                <label><span>🔊 Seuil Énergie Audio</span><span id="energyThresholdVal">0.006</span></label>
+                <input type="range" id="energyThreshold" min="0" max="0.01" step="0.0001" value="0.006">
+            </div>
+            <div class="slider-item">
+                <label><span>🎯 Confiance Min.</span><span id="minConfidenceVal">0.30</span></label>
+                <input type="range" id="minConfidence" min="0.1" max="0.9" step="0.05" value="0.30">
+            </div>
+            <div class="slider-item">
+                <label><span>🎚️ Lissage (smoothing)</span><span id="smoothingVal">0.7</span></label>
+                <input type="range" id="smoothing" min="0" max="0.95" step="0.05" value="0.7">
+            </div>
+        </div>
+        <div class="fft-debug">
+            <canvas id="settingsFftCanvas" class="fft-canvas"></canvas>
+        </div>
+        <button class="btn-success btn-small" onclick="saveSettings()">💾 SAUVEGARDER</button>
+    </div>
 </div>
 
 <script>
- const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
+    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
     const HIRAGANAS = ['あ', 'い', 'う', 'え', 'お'];
+
+    let recognizer, analyser, dataArray, freqArray, animationId;
+    let currentTarget = "", score = 0, questionCount = 0, currentAudioEnergy = 0;
+    let audioContext, currentMode = "game";
     
-    let recognizer;
-    let currentTarget = "";
-    let score = 0;
-    let attempt = 0;
-    let logs = [];
-    // On force l'échantillonnage à 44100Hz
-    let audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+    let config = {
+        energyThreshold: 0.006,
+        minConfidence: 0.30,
+        halluThreshold: 0.92,
+        smoothing: 0.7,
+        probThreshold: 0.6
+    };
+
+    let calibrationData = [];
+    let calibrationStep = 0;
 
     async function init() {
         try {
-            // FORCE LE MODE CPU (évite l'erreur WebGL)
-            await tf.setBackend('cpu');
-            
             recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
             await recognizer.ensureModelLoaded();
-            
-            document.getElementById('status').innerText = "Sensei prêt (Mode CPU) !";
-            document.getElementById('micBtn').disabled = false;
-            nextQuestion();
-        } catch (e) {
-            document.getElementById('status').innerText = "Erreur : " + e.message;
+            document.getElementById('status').innerText = "Sensei prêt !";
+            document.getElementById('actionBtn').disabled = false;
+            document.getElementById('startCalibBtn').disabled = false;
+            loadSettings();
+            initSliders();
+        } catch (e) { 
+            document.getElementById('status').innerText = "Erreur chargement."; 
+            console.error(e);
         }
     }
 
-    function nextQuestion() {
-        currentTarget = HIRAGANAS[Math.floor(Math.random() * HIRAGANAS.length)];
-        document.getElementById('targetDisplay').innerText = currentTarget;
-        document.getElementById('status').innerText = "À vous !";
-        document.getElementById('status').className = "status";
-    }
-
-    async function startCapture() {
-        const btn = document.getElementById('micBtn');
-        const status = document.getElementById('status');
-        btn.disabled = true;
-        status.innerText = "ÉCOUTE...";
-        status.className = "status recording";
-
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-            let chunks = [];
-
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-mediaRecorder.onstop = async () => {
-                const btn = document.getElementById('micBtn');
-                const status = document.getElementById('status');
-                
-                const blob = new Blob(chunks);
-                const arrayBuffer = await blob.arrayBuffer();
-                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-
-                let source; // Déclaré ici pour le nettoyage
-                try {
-                    // 1. CONFIGURATION DE L'ANALYSEUR
-                    source = audioCtx.createBufferSource();
-                    source.buffer = audioBuffer;
-                    const analyser = audioCtx.createAnalyser();
-                    analyser.fftSize = 512; 
-                    source.connect(analyser);
-                    
-                    // ON DOIT DEMARRER LA SOURCE POUR QUE L'ANALYSEUR RECOIVE DES DONNÉES
-                    source.start(0);
-
-                    // 2. CAPTURE DE LA "PHOTO" SONORE (Spectrogramme 43x232)
-                    const totalElements = 9976;
-                    const spectroData = new Float32Array(totalElements);
-                    const freqData = new Uint8Array(analyser.frequencyBinCount);
-
-                    for (let t = 0; t < 43; t++) {
-                        analyser.getByteFrequencyData(freqData);
-                        for (let f = 0; f < 232; f++) {
-                            // Normalisation 0-1
-                            spectroData[t * 232 + f] = freqData[f] / 255;
-                        }
-                    }
-
-                    // 3. PRÉDICTION
-                    const inputTensor = tf.tensor4d(spectroData, [1, 43, 232, 1]);
-                    const prediction = await recognizer.model.predict(inputTensor);
-                    const scores = await prediction.data();
-                    
-                    processResult({ scores: scores });
-
-                    // 4. NETTOYAGE SÉCURISÉ
-                    inputTensor.dispose();
-                    prediction.dispose();
-                    source.stop();
-
-                } catch (err) {
-                    console.error("Erreur Analyseur:", err);
-                    status.innerText = "Erreur de traitement";
-                    if(source) try { source.stop(); } catch(e) {}
-                }
-                
-                btn.disabled = false;
-                btn.classList.remove('active');
-                stream.getTracks().forEach(t => t.stop());
-            };
-            mediaRecorder.start();
-            // On enregistre un peu plus d'une seconde pour être sûr
-            setTimeout(() => mediaRecorder.stop(), 1100); 
-
-        } catch (err) {
-            alert("Erreur : " + err);
-            btn.disabled = false;
-        }
-    }
-
-    function processResult(result) {
-        const labels = recognizer.wordLabels();
-        let maxScore = 0;
-        let winner = "";
-
-        for (let i = 0; i < labels.length; i++) {
-            if (result.scores[i] > maxScore) {
-                maxScore = result.scores[i];
-                winner = labels[i];
+    async function setupAudio() {
+        const constraints = {
+            audio: {
+                echoCancellation: false,
+                noiseSuppression: false,
+                autoGainControl: false,
+                sampleRate: { ideal: 44100 }
             }
-        }
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+        const source = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 1024;
+        analyser.smoothingTimeConstant = config.smoothing;
+        source.connect(analyser);
+        dataArray = new Uint8Array(analyser.fftSize);
+        freqArray = new Uint8Array(analyser.frequencyBinCount);
+        return audioContext.sampleRate;
+    }
 
-        attempt++;
-        document.getElementById('attempt').innerText = attempt;
-        const confidence = Math.round(maxScore * 100);
-        const isCorrect = (winner === currentTarget);
-
-        if(isCorrect) {
-            score++;
-            document.getElementById('score').innerText = score;
-            document.getElementById('status').innerText = "BRAVO ! (" + confidence + "%)";
-            document.getElementById('status').className = "status success";
-        } else {
-            document.getElementById('status').innerText = "ENTENDU : " + winner + " (" + confidence + "%)";
-            document.getElementById('status').className = "status";
-        }
-
-        logs.push({id: attempt, target: currentTarget, heard: winner, conf: confidence, ok: isCorrect});
-        document.getElementById('logArea').innerHTML = `<b>N°${attempt}:</b> ${currentTarget} -> ${winner} (${confidence}%)<br>` + document.getElementById('logArea').innerHTML;
+    async function startQuiz() {
+        document.getElementById('actionBtn').style.display = "none";
+        document.getElementById('skipBtn').style.display = "block";
+        currentMode = "game";
+        const sr = await setupAudio();
+        document.getElementById('sampleRate').innerText = sr;
         
+        drawGame();
+
+        await recognizer.listen(result => {
+            const labels = recognizer.wordLabels();
+            let maxScore = 0, winner = "";
+
+            for (let i = 0; i < labels.length; i++) {
+                if (result.scores[i] > maxScore) {
+                    maxScore = result.scores[i];
+                    winner = labels[i];
+                }
+            }
+
+            if (currentAudioEnergy < config.energyThreshold) {
+                document.getElementById('bestLabel').innerText = "🚫 Silence";
+                return;
+            }
+
+            document.getElementById('bestLabel').innerText = winner;
+            const pct = Math.round(maxScore * 100);
+            document.getElementById('bestScoreText').innerText = `Confiance : ${pct}%`;
+            document.getElementById('scoreBar').style.width = pct + "%";
+
+            if (winner === currentTarget && maxScore > config.minConfidence) {
+                handleWin();
+            }
+        }, { probabilityThreshold: config.probThreshold, overlapFactor: 0.5 });
+
+        nextQuestion();
+    }
+
+    // --- LOGIQUE DE CAPTURE POUR DIAGNOSTIC ---
+    document.getElementById('captureBtn').onclick = () => {
+        if (!freqArray) return;
+        const snapshot = {
+            device: navigator.userAgent,
+            sampleRate: audioContext.sampleRate,
+            timestamp: new Date().toISOString(),
+            fftData: Array.from(freqArray)
+        };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(snapshot));
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", "diag_spectre_" + (navigator.platform.replace(/\s/g, '_')) + ".json");
+        dl.click();
+    };
+
+    function handleWin() {
+        score++;
+        document.getElementById('score').innerText = score;
+        document.getElementById('status').innerText = "BIEN VU !";
+        document.getElementById('status').className = "status success";
         setTimeout(nextQuestion, 1500);
     }
 
-    function drawWave(data) {
-        const canvas = document.getElementById('vizCanvas');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = '#667eea';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        const step = Math.ceil(data.length / canvas.width);
-        const amp = canvas.height / 2;
-        for(let i=0; i<canvas.width; i++) {
-            ctx.lineTo(i, amp + (data[i*step] * amp));
+    function nextQuestion() {
+        questionCount++;
+        document.getElementById('qCount').innerText = questionCount;
+        currentTarget = HIRAGANAS[Math.floor(Math.random() * HIRAGANAS.length)];
+        document.getElementById('targetDisplay').innerText = currentTarget;
+        document.getElementById('status').innerText = "Je vous écoute...";
+        document.getElementById('status').className = "status info";
+    }
+
+    function drawGame() {
+        animationId = requestAnimationFrame(drawGame);
+        if (!analyser || currentMode !== "game") return;
+        analyser.getByteTimeDomainData(dataArray);
+        analyser.getByteFrequencyData(freqArray);
+        
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            const normalized = (dataArray[i] - 128) / 128;
+            sum += normalized * normalized;
         }
-        ctx.stroke();
-    }
-
-    function exportCSV() {
-        let csv = "ID,Attendu,Entendu,Confiance,Resultat\n";
-        logs.forEach(l => csv += `${l.id},${l.target},${l.heard},${l.conf}%,${l.ok?'OK':'KO'}\n`);
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'diagnostic.csv'; a.click();
-    }
-
-    document.getElementById('micBtn').onclick = startCapture;
-    init(); 
-    
-</script>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        currentAudioEnergy = Math.sqrt(sum / dataArray.length);
+        const energyPct = Math.min(100, Math.round(currentAudioEnergy * 1000));
+        document.getElementById('energyLevel').innerText = energyPct + "%";
+        document.getElementById('energy
