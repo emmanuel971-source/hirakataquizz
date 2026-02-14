@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hiragana Quiz - Calibration Mode</title>
+    <title>Hiragana Quiz - Complete Android Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
     <style>
@@ -25,7 +25,7 @@
         }
         .tab {
             flex: 1; padding: 10px; border: none; border-radius: 8px;
-            background: #eee; cursor: pointer; font-weight: bold;
+            background: #eee; cursor: pointer; font-weight: bold; font-size: 14px;
         }
         .tab.active { background: #667eea; color: white; }
         
@@ -48,6 +48,16 @@
             transition: width 0.1s; 
         }
         .energy-bar { background: #ff0; }
+        
+        /* FFT Spectrum Visualizer */
+        .fft-debug {
+            background: #000; padding: 10px; border-radius: 8px;
+            margin-top: 10px;
+        }
+        .fft-canvas {
+            width: 100%; height: 100px; background: #111;
+            border-radius: 5px;
+        }
         
         /* Sliders */
         .slider-group {
@@ -86,10 +96,11 @@
 
         .status { 
             padding: 12px; border-radius: 10px; margin: 10px 0; 
-            font-weight: bold; 
+            font-weight: bold; font-size: 14px;
         }
         .success { background: #d4edda; color: #155724; }
         .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
         
         button {
             width: 100%; padding: 15px; border: none; border-radius: 12px;
@@ -121,14 +132,24 @@
         <div id="targetDisplay" class="target-char">?</div>
         
         <div class="debug-panel">
-            <div>Analyse : <span id="bestLabel">---</span></div>
+            <div>🎯 Détecté : <span id="bestLabel">---</span></div>
             <div id="bestScoreText">Confiance : 0%</div>
             <div class="bar-container"><div id="scoreBar" class="bar-fill"></div></div>
-            <div style="margin-top: 8px;">Énergie : <span id="energyLevel">0%</span></div>
+            <div style="margin-top: 8px;">🔊 Énergie : <span id="energyLevel">0%</span></div>
             <div class="bar-container"><div id="energyBar" class="bar-fill energy-bar"></div></div>
+            <div style="margin-top: 8px; color: #888; font-size: 11px;">
+                Sample Rate: <span id="sampleRate">?</span> Hz
+            </div>
         </div>
 
-        <div id="status" class="status">Chargement...</div>
+        <div class="fft-debug">
+            <div style="color: #0f0; font-family: monospace; font-size: 11px; margin-bottom: 5px;">
+                📊 Spectre FFT (Diagnostic Android)
+            </div>
+            <canvas id="fftCanvas" class="fft-canvas"></canvas>
+        </div>
+
+        <div id="status" class="status info">Chargement...</div>
 
         <canvas id="vizCanvas"></canvas>
 
@@ -149,11 +170,21 @@
         </div>
 
         <div class="debug-panel">
-            <div>Détection : <span id="calibDetected">---</span></div>
+            <div>🎯 Détection : <span id="calibDetected">---</span></div>
             <div>Confiance : <span id="calibConfidence">0%</span></div>
             <div class="bar-container"><div id="calibConfBar" class="bar-fill"></div></div>
-            <div style="margin-top: 8px;">Énergie : <span id="calibEnergy">0%</span></div>
+            <div style="margin-top: 8px;">🔊 Énergie : <span id="calibEnergy">0%</span></div>
             <div class="bar-container"><div id="calibEnergyBar" class="bar-fill energy-bar"></div></div>
+            <div style="margin-top: 8px; color: #888; font-size: 11px;">
+                Sample Rate: <span id="calibSampleRate">?</span> Hz
+            </div>
+        </div>
+
+        <div class="fft-debug">
+            <div style="color: #0f0; font-family: monospace; font-size: 11px; margin-bottom: 5px;">
+                📊 Spectre FFT
+            </div>
+            <canvas id="calibFftCanvas" class="fft-canvas"></canvas>
         </div>
 
         <div class="measurements">
@@ -178,17 +209,17 @@
             <div class="slider-item">
                 <label>
                     <span>🔊 Seuil Énergie Audio</span>
-                    <span id="energyThresholdVal">0.0055</span>
+                    <span id="energyThresholdVal">0.0059</span>
                 </label>
-                <input type="range" id="energyThreshold" min="0.001" max="0.009" step="0.0001" value="0.0055">
+                <input type="range" id="energyThreshold" min="0" max="0.009" step="0.00001" value="0.0059">
             </div>
 
             <div class="slider-item">
                 <label>
                     <span>🎯 Confiance Min. (Match)</span>
-                    <span id="minConfidenceVal">0.35</span>
+                    <span id="minConfidenceVal">0.30</span>
                 </label>
-                <input type="range" id="minConfidence" min="0.1" max="0.9" step="0.05" value="0.35">
+                <input type="range" id="minConfidence" min="0.1" max="0.9" step="0.05" value="0.30">
             </div>
 
             <div class="slider-item">
@@ -202,18 +233,25 @@
             <div class="slider-item">
                 <label>
                     <span>🎚️ Lissage Audio (smoothing)</span>
-                    <span id="smoothingVal">0.8</span>
+                    <span id="smoothingVal">0.7</span>
                 </label>
-                <input type="range" id="smoothing" min="0" max="0.95" step="0.05" value="0.8">
+                <input type="range" id="smoothing" min="0" max="0.95" step="0.05" value="0.7">
             </div>
 
             <div class="slider-item">
                 <label>
                     <span>📊 Probabilité Seuil</span>
-                    <span id="probThresholdVal">0.75</span>
+                    <span id="probThresholdVal">0.6</span>
                 </label>
-                <input type="range" id="probThreshold" min="0.5" max="0.95" step="0.05" value="0.75">
+                <input type="range" id="probThreshold" min="0.5" max="0.95" step="0.05" value="0.6">
             </div>
+        </div>
+
+        <div class="fft-debug">
+            <div style="color: #0f0; font-family: monospace; font-size: 11px; margin-bottom: 5px;">
+                📊 Spectre FFT (Live Preview)
+            </div>
+            <canvas id="settingsFftCanvas" class="fft-canvas"></canvas>
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 15px;">
@@ -231,16 +269,17 @@
     const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
     const HIRAGANAS = ['あ', 'い', 'う', 'え', 'お'];
 
-    let recognizer, analyser, dataArray, animationId;
+    let recognizer, analyser, dataArray, freqArray, animationId;
     let currentTarget = "", score = 0, questionCount = 0, currentAudioEnergy = 0;
+    let audioContext, currentMode = "game";
     
     // Paramètres ajustables
     let config = {
-        energyThreshold: 0.015,
-        minConfidence: 0.35,
+        energyThreshold: 0.006,
+        minConfidence: 0.30,
         halluThreshold: 0.92,
-        smoothing: 0.8,
-        probThreshold: 0.75
+        smoothing: 0.7,
+        probThreshold: 0.6
     };
 
     // Calibration
@@ -253,14 +292,45 @@
         try {
             recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
             await recognizer.ensureModelLoaded();
-            document.getElementById('status').innerText = "Sensei prêt !";
+            document.getElementById('status').innerText = "Sensei prêt ! (Mode Android Fix activé)";
             document.getElementById('actionBtn').disabled = false;
             document.getElementById('startCalibBtn').disabled = false;
             loadSettings();
+            initSliders();
         } catch (e) { 
             document.getElementById('status').innerText = "Erreur chargement."; 
             console.error(e);
         }
+    }
+
+    // ==================== AUDIO SETUP (Android Fix) ====================
+    async function setupAudio() {
+        const constraints = {
+            audio: {
+                echoCancellation: false,        // 🔥 Désactivé pour Android
+                noiseSuppression: false,        // 🔥 Désactivé pour Android
+                autoGainControl: false,
+                sampleRate: { ideal: 44100 },   // 🔥 Forcer 44.1kHz
+                channelCount: { ideal: 1 }
+            }
+        };
+        
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({
+            sampleRate: 44100
+        });
+        
+        const source = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = config.smoothing;
+        source.connect(analyser);
+        
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        freqArray = new Uint8Array(analyser.frequencyBinCount);
+        
+        return audioContext.sampleRate;
     }
 
     // ==================== GAME ====================
@@ -268,21 +338,10 @@
         document.getElementById('actionBtn').style.display = "none";
         document.getElementById('skipBtn').style.display = "block";
         
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-            audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: false
-            } 
-        });
+        currentMode = "game";
+        const sampleRate = await setupAudio();
+        document.getElementById('sampleRate').innerText = sampleRate;
         
-        const audioContext = new AudioContext();
-        const source = audioContext.createMediaStreamSource(stream);
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2048;
-        analyser.smoothingTimeConstant = config.smoothing;
-        source.connect(analyser);
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
         drawGame();
 
         await recognizer.listen(result => {
@@ -297,10 +356,7 @@
             }
 
             // Anti-hallucination
-            const isLowEnergy = currentAudioEnergy < config.energyThreshold;
-            const isSuspicious = maxScore > config.halluThreshold;
-            
-            if (isLowEnergy || (isSuspicious && isLowEnergy)) {
+            if (currentAudioEnergy < config.energyThreshold) {
                 document.getElementById('bestLabel').innerText = "🚫 Silence";
                 document.getElementById('bestScoreText').innerText = "Confiance : 0%";
                 document.getElementById('scoreBar').style.width = "0%";
@@ -342,8 +398,12 @@
 
     function drawGame() {
         animationId = requestAnimationFrame(drawGame);
-        analyser.getByteTimeDomainData(dataArray);
+        if (!analyser || currentMode !== "game") return;
         
+        analyser.getByteTimeDomainData(dataArray);
+        analyser.getByteFrequencyData(freqArray);
+        
+        // Calcul énergie
         let sum = 0;
         for (let i = 0; i < dataArray.length; i++) {
             const normalized = (dataArray[i] - 128) / 128;
@@ -355,6 +415,7 @@
         document.getElementById('energyLevel').innerText = energyPct + "%";
         document.getElementById('energyBar').style.width = energyPct + "%";
         
+        // Oscilloscope
         const canvas = document.getElementById('vizCanvas');
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#f8f9fa';
@@ -371,6 +432,9 @@
             x += sliceWidth;
         }
         ctx.stroke();
+
+        // FFT Spectrum
+        drawFFT('fftCanvas', freqArray);
     }
 
     // ==================== CALIBRATION ====================
@@ -378,21 +442,14 @@
         calibrationStep = 0;
         calibrationData = [];
         isCalibrating = true;
+        currentMode = "calibration";
         
         document.getElementById('startCalibBtn').style.display = "none";
         document.getElementById('nextCalibBtn').style.display = "block";
         
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: false } 
-        });
+        const sampleRate = await setupAudio();
+        document.getElementById('calibSampleRate').innerText = sampleRate;
         
-        const audioContext = new AudioContext();
-        const source = audioContext.createMediaStreamSource(stream);
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2048;
-        analyser.smoothingTimeConstant = 0.8;
-        source.connect(analyser);
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
         drawCalibration();
 
         await recognizer.listen(result => {
@@ -454,11 +511,9 @@
         document.getElementById('nextCalibBtn').style.display = "none";
         document.getElementById('applyCalibBtn').style.display = "block";
         
-        // Calcul des réglages optimaux
         const avgEnergy = calibrationData.reduce((sum, d) => sum + d.energy, 0) / calibrationData.length;
         const avgConfidence = calibrationData.reduce((sum, d) => sum + d.confidence, 0) / calibrationData.length;
         
-        // Suggestion automatique
         const suggestedEnergyThreshold = Math.max(0.001, avgEnergy * 0.3);
         const suggestedMinConfidence = Math.max(0.2, avgConfidence * 0.7);
         
@@ -467,7 +522,7 @@
         
         updateSliders();
         
-        alert(`✅ Calibration terminée !\n\nRéglages suggérés :\n- Seuil énergie : ${suggestedEnergyThreshold.toFixed(3)}\n- Confiance min : ${suggestedMinConfidence.toFixed(2)}\n\nVous pouvez ajuster dans l'onglet Réglages.`);
+        alert(`✅ Calibration terminée !\n\nRéglages suggérés :\n- Seuil énergie : ${suggestedEnergyThreshold.toFixed(4)}\n- Confiance min : ${suggestedMinConfidence.toFixed(2)}\n\nVous pouvez ajuster dans l'onglet Réglages.`);
     }
 
     function applyCalibration() {
@@ -478,7 +533,10 @@
 
     function drawCalibration() {
         animationId = requestAnimationFrame(drawCalibration);
+        if (!analyser || currentMode !== "calibration") return;
+        
         analyser.getByteTimeDomainData(dataArray);
+        analyser.getByteFrequencyData(freqArray);
         
         let sum = 0;
         for (let i = 0; i < dataArray.length; i++) {
@@ -507,6 +565,32 @@
             x += sliceWidth;
         }
         ctx.stroke();
+
+        drawFFT('calibFftCanvas', freqArray);
+    }
+
+    // ==================== FFT VISUALIZER ====================
+    function drawFFT(canvasId, freqData) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, width, height);
+
+        const barWidth = width / freqData.length * 2;
+        let x = 0;
+
+        for (let i = 0; i < freqData.length; i++) {
+            const barHeight = (freqData[i] / 255) * height;
+            const hue = (i / freqData.length) * 240;
+            ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+            ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+            x += barWidth;
+        }
     }
 
     // ==================== SETTINGS ====================
@@ -516,7 +600,19 @@
             const slider = document.getElementById(id);
             slider.addEventListener('input', () => {
                 config[id] = parseFloat(slider.value);
-                document.getElementById(id + 'Val').innerText = slider.value;
+                // Format display based on slider type
+                let displayValue = slider.value;
+                if (id === 'energyThreshold') {
+                    displayValue = parseFloat(slider.value).toFixed(4);
+                } else {
+                    displayValue = parseFloat(slider.value).toFixed(2);
+                }
+                document.getElementById(id + 'Val').innerText = displayValue;
+                
+                // Apply smoothing in real-time
+                if (analyser && id === 'smoothing') {
+                    analyser.smoothingTimeConstant = config.smoothing;
+                }
             });
         });
     }
@@ -526,7 +622,14 @@
             const slider = document.getElementById(key);
             if (slider) {
                 slider.value = config[key];
-                document.getElementById(key + 'Val').innerText = config[key];
+                // Format display based on slider type
+                let displayValue;
+                if (key === 'energyThreshold') {
+                    displayValue = parseFloat(config[key]).toFixed(4);
+                } else {
+                    displayValue = parseFloat(config[key]).toFixed(2);
+                }
+                document.getElementById(key + 'Val').innerText = displayValue;
             }
         });
     }
@@ -548,11 +651,11 @@
 
     function resetSettings() {
         config = {
-            energyThreshold: 0.015,
-            minConfidence: 0.35,
+            energyThreshold: 0.006,
+            minConfidence: 0.30,
             halluThreshold: 0.92,
-            smoothing: 0.8,
-            probThreshold: 0.75
+            smoothing: 0.7,
+            probThreshold: 0.6
         };
         updateSliders();
     }
@@ -564,9 +667,34 @@
         
         event.target.classList.add('active');
         
-        if (tab === 'game') document.getElementById('gamePanel').classList.add('active');
-        if (tab === 'calibration') document.getElementById('calibrationPanel').classList.add('active');
-        if (tab === 'settings') document.getElementById('settingsPanel').classList.add('active');
+        if (tab === 'game') {
+            currentMode = 'game';
+            document.getElementById('gamePanel').classList.add('active');
+        }
+        if (tab === 'calibration') {
+            currentMode = 'calibration';
+            document.getElementById('calibrationPanel').classList.add('active');
+        }
+        if (tab === 'settings') {
+            currentMode = 'settings';
+            document.getElementById('settingsPanel').classList.add('active');
+            // Start live preview in settings
+            if (!analyser) {
+                setupAudio().then(() => {
+                    drawSettingsPreview();
+                });
+            }
+        }
+    }
+
+    function drawSettingsPreview() {
+        if (currentMode !== 'settings') return;
+        animationId = requestAnimationFrame(drawSettingsPreview);
+        
+        if (!analyser) return;
+        
+        analyser.getByteFrequencyData(freqArray);
+        drawFFT('settingsFftCanvas', freqArray);
     }
 
     // ==================== EVENT LISTENERS ====================
@@ -577,8 +705,6 @@
     document.getElementById('applyCalibBtn').onclick = applyCalibration;
 
     init();
-    initSliders();
 </script>
 </body>
 </html>
-
