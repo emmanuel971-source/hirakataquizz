@@ -241,21 +241,30 @@
         document.getElementById('targetDisplay').innerText = currentTarget;
     }
 
-    // FONCTION TALKIE-WALKIE (Version originale qui marchait !)
+    // FONCTION TALKIE-WALKIE
     async function startListening() {
-        if (isListening) return; // Protection double-clic
+        if (isListening) return;
         
         const btn = document.getElementById('micBtn');
         const status = document.getElementById('status');
+        
+        // FORCER L'ARRÊT COMPLET avant de redémarrer
+        try {
+            await recognizer.stopListening();
+        } catch(e) {}
         
         isListening = true;
         btn.disabled = true;
         btn.classList.add('active');
         status.innerText = "JE VOUS ÉCOUTE...";
+        
+        let hasProcessed = false; // Flag pour éviter les doubles callbacks
 
         try {
-            // EXACTEMENT comme ton code original
             await recognizer.listen(result => {
+                if (hasProcessed) return; // Ignorer les résultats après le premier
+                hasProcessed = true;
+                
                 const labels = recognizer.wordLabels();
                 let maxScore = 0;
                 let winner = "";
@@ -282,7 +291,7 @@
 
             }, {
                 probabilityThreshold: 0.7,
-                overlapFactor: 0,
+                overlapFactor: 0.5,
                 includeSpectrogram: true
             });
             
@@ -377,4 +386,3 @@
 </script>
 </body>
 </html>
-
