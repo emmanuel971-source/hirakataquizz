@@ -3,264 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hiragana Quiz - Complete Android Fix</title>
+    <title>Hiragana Lab - Diagnostic & Export</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #1a1c2c; min-height: 100vh;
-            display: flex; justify-content: center; align-items: center; padding: 10px;
-        }
-        .container {
-            background: white; border-radius: 20px; padding: 20px;
-            max-width: 500px; width: 100%; text-align: center;
-        }
-        .target-char { font-size: 100px; font-weight: bold; color: #2d3436; line-height: 1.1; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1c2c; padding: 15px; color: #333; }
+        .main-layout { display: flex; flex-direction: column; gap: 15px; max-width: 600px; margin: auto; }
         
-        /* Tabs */
-        .tabs {
-            display: flex; gap: 10px; margin-bottom: 20px;
-        }
-        .tab {
-            flex: 1; padding: 10px; border: none; border-radius: 8px;
-            background: #eee; cursor: pointer; font-weight: bold; font-size: 14px;
-        }
-        .tab.active { background: #667eea; color: white; }
+        .quiz-card { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .target-char { font-size: 100px; font-weight: bold; margin: 5px 0; color: #2d3436; }
         
-        /* Panels */
-        .panel { display: none; }
-        .panel.active { display: block; }
+        /* Bouton Talkie-Walkie */
+        .mic-button {
+            width: 90px; height: 90px; border-radius: 50%; border: none;
+            background: #667eea; color: white; font-size: 35px; cursor: pointer;
+            margin: 15px 0; transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .mic-button:active { transform: scale(0.9); background: #5a67d8; }
+        .mic-button.active { background: #ff4757; animation: pulse 1s infinite; box-shadow: 0 0 20px rgba(255, 71, 87, 0.6); }
         
-        /* Debug Monitor */
-        .debug-panel {
-            background: #222; color: #0f0; font-family: monospace;
-            padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 13px;
-            text-align: left; border-left: 4px solid #444;
-        }
-        .bar-container { 
-            background: #444; height: 10px; border-radius: 5px; 
-            margin-top: 5px; overflow: hidden; 
-        }
-        .bar-fill { 
-            background: #0f0; height: 100%; width: 0%; 
-            transition: width 0.1s; 
-        }
-        .energy-bar { background: #ff0; }
-        
-        /* FFT Spectrum Visualizer */
-        .fft-debug {
-            background: #000; padding: 10px; border-radius: 8px;
-            margin-top: 10px;
-        }
-        .fft-canvas {
-            width: 100%; height: 100px; background: #111;
-            border-radius: 5px;
-        }
-        
-        /* Sliders */
-        .slider-group {
-            background: #f8f9fa; padding: 15px; border-radius: 8px;
-            margin: 10px 0; text-align: left;
-        }
-        .slider-item {
-            margin: 10px 0;
-        }
-        .slider-item label {
-            display: flex; justify-content: space-between;
-            font-size: 13px; font-weight: bold; margin-bottom: 5px;
-        }
-        .slider-item input[type="range"] {
-            width: 100%; height: 8px; border-radius: 5px;
-            background: #ddd; outline: none;
-        }
-        
-        /* Calibration */
-        .calibration-step {
-            background: #fff3cd; padding: 20px; border-radius: 12px;
-            margin: 15px 0; border-left: 4px solid #ffc107;
-        }
-        .calibration-char {
-            font-size: 80px; font-weight: bold; color: #2d3436;
-        }
-        .measurements {
-            background: #e9ecef; padding: 10px; border-radius: 8px;
-            margin-top: 10px; font-size: 12px; text-align: left;
-        }
+        .status { font-weight: bold; color: #666; min-height: 20px; margin-bottom: 10px; }
 
-        canvas { 
-            width: 100%; height: 60px; background: #f8f9fa; 
-            border-radius: 8px; margin-top: 10px; 
-        }
+        /* Journal de Log */
+        .log-container { background: white; border-radius: 15px; padding: 15px; }
+        .table-wrapper { max-height: 250px; overflow-y: auto; margin-top: 10px; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f8f9fa; position: sticky; top: 0; padding: 8px; border-bottom: 2px solid #ddd; }
+        td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; }
+        .match-true { color: #2ed573; font-weight: bold; }
+        .match-false { color: #ff4757; }
 
-        .status { 
-            padding: 12px; border-radius: 10px; margin: 10px 0; 
-            font-weight: bold; font-size: 14px;
-        }
-        .success { background: #d4edda; color: #155724; }
-        .warning { background: #fff3cd; color: #856404; }
-        .info { background: #d1ecf1; color: #0c5460; }
+        .controls { display: flex; gap: 8px; justify-content: center; margin-top: 15px; }
+        .btn-export { background: #27ae60; color: white; padding: 12px; border: none; border-radius: 10px; cursor: pointer; flex: 1; font-weight: bold; }
+        .btn-reset { background: #f1f2f6; color: #57606f; padding: 12px; border: none; border-radius: 10px; cursor: pointer; flex: 1; }
         
-        button {
-            width: 100%; padding: 15px; border: none; border-radius: 12px;
-            font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;
-        }
-        .btn-main { background: #667eea; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-secondary { background: #eee; color: #333; }
-        .btn-small { padding: 8px 15px; width: auto; font-size: 14px; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 71, 87, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- Tabs -->
-    <div class="tabs">
-        <button class="tab active" onclick="switchTab('game')">🎮 Jeu</button>
-        <button class="tab" onclick="switchTab('calibration')">⚙️ Calibration</button>
-        <button class="tab" onclick="switchTab('settings')">🎛️ Réglages</button>
-    </div>
-
-    <!-- PANEL JEU -->
-    <div id="gamePanel" class="panel active">
-        <div style="display: flex; justify-content: space-between; font-weight: bold;">
-            <span>Score: <span id="score">0</span></span>
-            <span>Question: <span id="qCount">0</span></span>
-        </div>
-
+<div class="main-layout">
+    <div class="quiz-card">
         <div id="targetDisplay" class="target-char">?</div>
+        <div id="status" class="status">Chargement du Sensei...</div>
         
-        <div class="debug-panel">
-            <div>🎯 Détecté : <span id="bestLabel">---</span></div>
-            <div id="bestScoreText">Confiance : 0%</div>
-            <div class="bar-container"><div id="scoreBar" class="bar-fill"></div></div>
-            <div style="margin-top: 8px;">🔊 Énergie : <span id="energyLevel">0%</span></div>
-            <div class="bar-container"><div id="energyBar" class="bar-fill energy-bar"></div></div>
-            <div style="margin-top: 8px; color: #888; font-size: 11px;">
-                Sample Rate: <span id="sampleRate">?</span> Hz
-            </div>
+        <button id="micBtn" class="mic-button" disabled>🎤</button>
+        <p id="instruction" style="font-size: 0.9em; color: #777;">Cliquez pour parler</p>
+
+        <div class="controls">
+            <button onclick="exportCSV()" class="btn-export">📊 EXPORTER LOGS</button>
+            <button onclick="location.reload()" class="btn-reset">🔄 RESET</button>
         </div>
-
-        <div class="fft-debug">
-            <div style="color: #0f0; font-family: monospace; font-size: 11px; margin-bottom: 5px;">
-                📊 Spectre FFT (Diagnostic Android)
-            </div>
-            <canvas id="fftCanvas" class="fft-canvas"></canvas>
-        </div>
-
-        <div id="status" class="status info">Chargement...</div>
-
-        <canvas id="vizCanvas"></canvas>
-
-        <button id="actionBtn" class="btn-main" disabled>DÉMARRER</button>
-        <button id="skipBtn" class="btn-secondary" style="display:none">PASSER À LA SUIVANTE</button>
     </div>
 
-    <!-- PANEL CALIBRATION -->
-    <div id="calibrationPanel" class="panel">
-        <h3 style="margin-bottom: 15px;">🎯 Calibration Audio</h3>
-        
-        <div class="calibration-step">
-            <div>Prononcez clairement :</div>
-            <div class="calibration-char" id="calibChar">あ</div>
-            <div style="margin-top: 10px; font-size: 14px; color: #666;">
-                Étape <span id="calibStep">1</span>/5
-            </div>
-        </div>
-
-        <div class="debug-panel">
-            <div>🎯 Détection : <span id="calibDetected">---</span></div>
-            <div>Confiance : <span id="calibConfidence">0%</span></div>
-            <div class="bar-container"><div id="calibConfBar" class="bar-fill"></div></div>
-            <div style="margin-top: 8px;">🔊 Énergie : <span id="calibEnergy">0%</span></div>
-            <div class="bar-container"><div id="calibEnergyBar" class="bar-fill energy-bar"></div></div>
-            <div style="margin-top: 8px; color: #888; font-size: 11px;">
-                Sample Rate: <span id="calibSampleRate">?</span> Hz
-            </div>
-        </div>
-
-        <div class="fft-debug">
-            <div style="color: #0f0; font-family: monospace; font-size: 11px; margin-bottom: 5px;">
-                📊 Spectre FFT
-            </div>
-            <canvas id="calibFftCanvas" class="fft-canvas"></canvas>
-        </div>
-
-        <div class="measurements">
-            <div><strong>📊 Mesures collectées :</strong></div>
-            <div id="calibResults" style="margin-top: 5px;">
-                Aucune mesure pour le moment
-            </div>
-        </div>
-
-        <canvas id="calibCanvas" style="height: 50px;"></canvas>
-
-        <button id="startCalibBtn" class="btn-main" disabled>LANCER CALIBRATION</button>
-        <button id="nextCalibBtn" class="btn-success" style="display:none">VALIDER & SUIVANT</button>
-        <button id="applyCalibBtn" class="btn-success" style="display:none">APPLIQUER LES RÉGLAGES</button>
-    </div>
-
-    <!-- PANEL RÉGLAGES -->
-    <div id="settingsPanel" class="panel">
-        <h3 style="margin-bottom: 15px;">🎛️ Réglages Avancés</h3>
-        
-        <div class="slider-group">
-            <div class="slider-item">
-                <label>
-                    <span>🔊 Seuil Énergie Audio</span>
-                    <span id="energyThresholdVal">0.0059</span>
-                </label>
-                <input type="range" id="energyThreshold" min="0" max="0.009" step="0.00001" value="0.0059">
-            </div>
-
-            <div class="slider-item">
-                <label>
-                    <span>🎯 Confiance Min. (Match)</span>
-                    <span id="minConfidenceVal">0.30</span>
-                </label>
-                <input type="range" id="minConfidence" min="0.1" max="0.9" step="0.05" value="0.30">
-            </div>
-
-            <div class="slider-item">
-                <label>
-                    <span>⚠️ Seuil Hallucination</span>
-                    <span id="halluThresholdVal">0.92</span>
-                </label>
-                <input type="range" id="halluThreshold" min="0.7" max="0.99" step="0.01" value="0.92">
-            </div>
-
-            <div class="slider-item">
-                <label>
-                    <span>🎚️ Lissage Audio (smoothing)</span>
-                    <span id="smoothingVal">0.7</span>
-                </label>
-                <input type="range" id="smoothing" min="0" max="0.95" step="0.05" value="0.7">
-            </div>
-
-            <div class="slider-item">
-                <label>
-                    <span>📊 Probabilité Seuil</span>
-                    <span id="probThresholdVal">0.6</span>
-                </label>
-                <input type="range" id="probThreshold" min="0.5" max="0.95" step="0.05" value="0.6">
-            </div>
-        </div>
-
-        <div class="fft-debug">
-            <div style="color: #0f0; font-family: monospace; font-size: 11px; margin-bottom: 5px;">
-                📊 Spectre FFT (Live Preview)
-            </div>
-            <canvas id="settingsFftCanvas" class="fft-canvas"></canvas>
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button class="btn-secondary btn-small" onclick="resetSettings()">🔄 Défaut</button>
-            <button class="btn-success btn-small" onclick="saveSettings()">💾 Sauvegarder</button>
-        </div>
-
-        <div id="settingsSaved" class="status success" style="display:none; margin-top: 10px;">
-            ✅ Réglages sauvegardés !
+    <div class="log-container">
+        <h3 style="font-size: 1em; border-bottom: 1px solid #eee; padding-bottom: 5px;">📜 HISTORIQUE</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Cible</th>
+                        <th>Reconnu</th>
+                        <th>%</th>
+                        <th>Rés.</th>
+                    </tr>
+                </thead>
+                <tbody id="logBody"></tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -268,193 +81,41 @@
 <script>
     const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
     const HIRAGANAS = ['あ', 'い', 'う', 'え', 'お'];
+    let recognizer;
+    let currentTarget = "";
+    let attemptCount = 0;
+    let logs = [];
 
-    let recognizer, analyser, dataArray, freqArray, animationId;
-    let currentTarget = "", score = 0, questionCount = 0, currentAudioEnergy = 0;
-    let audioContext, currentMode = "game";
-    
-    // Paramètres ajustables
-    let config = {
-        energyThreshold: 0.006,
-        minConfidence: 0.30,
-        halluThreshold: 0.92,
-        smoothing: 0.7,
-        probThreshold: 0.6
-    };
-
-    // Calibration
-    let calibrationData = [];
-    let calibrationStep = 0;
-    let isCalibrating = false;
-
-    // ==================== INIT ====================
     async function init() {
         try {
             recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
             await recognizer.ensureModelLoaded();
-            document.getElementById('status').innerText = "Sensei prêt ! (Mode Android Fix activé)";
-            document.getElementById('actionBtn').disabled = false;
-            document.getElementById('startCalibBtn').disabled = false;
-            loadSettings();
-            initSliders();
-        } catch (e) { 
-            document.getElementById('status').innerText = "Erreur chargement."; 
-            console.error(e);
+            document.getElementById('status').innerText = "Prêt !";
+            document.getElementById('micBtn').disabled = false;
+            generateNewTarget();
+        } catch (e) {
+            document.getElementById('status').innerText = "Erreur micro/réseau";
         }
     }
 
-    // ==================== AUDIO SETUP (Android Fix) ====================
-    async function setupAudio() {
-        const constraints = {
-            audio: {
-                echoCancellation: false,        // 🔥 Désactivé pour Android
-                noiseSuppression: false,        // 🔥 Désactivé pour Android
-                autoGainControl: false,
-                sampleRate: { ideal: 44100 },   // 🔥 Forcer 44.1kHz
-                channelCount: { ideal: 1 }
-            }
-        };
-        
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        
-        audioContext = new (window.AudioContext || window.webkitAudioContext)({
-            sampleRate: 44100
-        });
-        
-        const source = audioContext.createMediaStreamSource(stream);
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2048;
-        analyser.smoothingTimeConstant = config.smoothing;
-        source.connect(analyser);
-        
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        freqArray = new Uint8Array(analyser.frequencyBinCount);
-        
-        return audioContext.sampleRate;
-    }
-
-    // ==================== GAME ====================
-    async function startQuiz() {
-        document.getElementById('actionBtn').style.display = "none";
-        document.getElementById('skipBtn').style.display = "block";
-        
-        currentMode = "game";
-        const sampleRate = await setupAudio();
-        document.getElementById('sampleRate').innerText = sampleRate;
-        
-        drawGame();
-
-        await recognizer.listen(result => {
-            const labels = recognizer.wordLabels();
-            let maxScore = 0, winner = "";
-
-            for (let i = 0; i < labels.length; i++) {
-                if (result.scores[i] > maxScore) {
-                    maxScore = result.scores[i];
-                    winner = labels[i];
-                }
-            }
-
-            // Anti-hallucination
-            if (currentAudioEnergy < config.energyThreshold) {
-                document.getElementById('bestLabel').innerText = "🚫 Silence";
-                document.getElementById('bestScoreText').innerText = "Confiance : 0%";
-                document.getElementById('scoreBar').style.width = "0%";
-                return;
-            }
-
-            document.getElementById('bestLabel').innerText = winner;
-            const pct = Math.round(maxScore * 100);
-            document.getElementById('bestScoreText').innerText = `Confiance : ${pct}%`;
-            document.getElementById('scoreBar').style.width = pct + "%";
-
-            if (winner === currentTarget && maxScore > config.minConfidence && currentAudioEnergy > config.energyThreshold) {
-                handleWin();
-            }
-        }, { 
-            probabilityThreshold: config.probThreshold,
-            overlapFactor: 0.5 
-        });
-
-        nextQuestion();
-    }
-
-    function nextQuestion() {
-        questionCount++;
-        document.getElementById('qCount').innerText = questionCount;
+    function generateNewTarget() {
         currentTarget = HIRAGANAS[Math.floor(Math.random() * HIRAGANAS.length)];
         document.getElementById('targetDisplay').innerText = currentTarget;
-        document.getElementById('status').innerText = "Je vous écoute...";
-        document.getElementById('status').className = "status";
     }
 
-    function handleWin() {
-        score++;
-        document.getElementById('score').innerText = score;
-        document.getElementById('status').innerText = "BIEN VU !";
-        document.getElementById('status').className = "status success";
-        setTimeout(nextQuestion, 1500);
-    }
+    // FONCTION TALKIE-WALKIE
+    async function startListening() {
+        const btn = document.getElementById('micBtn');
+        const status = document.getElementById('status');
+        
+        btn.classList.add('active');
+        status.innerText = "JE VOUS ÉCOUTE...";
 
-    function drawGame() {
-        animationId = requestAnimationFrame(drawGame);
-        if (!analyser || currentMode !== "game") return;
-        
-        analyser.getByteTimeDomainData(dataArray);
-        analyser.getByteFrequencyData(freqArray);
-        
-        // Calcul énergie
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-            const normalized = (dataArray[i] - 128) / 128;
-            sum += normalized * normalized;
-        }
-        currentAudioEnergy = Math.sqrt(sum / dataArray.length);
-        
-        const energyPct = Math.min(100, Math.round(currentAudioEnergy * 1000));
-        document.getElementById('energyLevel').innerText = energyPct + "%";
-        document.getElementById('energyBar').style.width = energyPct + "%";
-        
-        // Oscilloscope
-        const canvas = document.getElementById('vizCanvas');
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#f8f9fa';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = currentAudioEnergy > config.energyThreshold ? '#667eea' : '#ccc';
-        ctx.beginPath();
-        const sliceWidth = canvas.width / dataArray.length;
-        let x = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-            const v = dataArray[i] / 128.0;
-            const y = v * canvas.height / 2;
-            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            x += sliceWidth;
-        }
-        ctx.stroke();
-
-        // FFT Spectrum
-        drawFFT('fftCanvas', freqArray);
-    }
-
-    // ==================== CALIBRATION ====================
-    async function startCalibration() {
-        calibrationStep = 0;
-        calibrationData = [];
-        isCalibrating = true;
-        currentMode = "calibration";
-        
-        document.getElementById('startCalibBtn').style.display = "none";
-        document.getElementById('nextCalibBtn').style.display = "block";
-        
-        const sampleRate = await setupAudio();
-        document.getElementById('calibSampleRate').innerText = sampleRate;
-        
-        drawCalibration();
-
+        // On n'écoute qu'une seule fois
         await recognizer.listen(result => {
             const labels = recognizer.wordLabels();
-            let maxScore = 0, winner = "";
+            let maxScore = 0;
+            let winner = "";
 
             for (let i = 0; i < labels.length; i++) {
                 if (result.scores[i] > maxScore) {
@@ -463,246 +124,57 @@
                 }
             }
 
-            document.getElementById('calibDetected').innerText = winner;
-            const pct = Math.round(maxScore * 100);
-            document.getElementById('calibConfidence').innerText = pct + "%";
-            document.getElementById('calibConfBar').style.width = pct + "%";
-        }, { probabilityThreshold: 0.5, overlapFactor: 0.5 });
+            // ON COUPE LE MICRO IMMÉDIATEMENT (Essentiel pour ton Android)
+            recognizer.stopListening();
+            btn.classList.remove('active');
+            
+            // On enregistre et on affiche
+            addLog(currentTarget, winner, maxScore);
+            
+            // On prépare la suite
+            status.innerText = "Analyse terminée.";
+            setTimeout(generateNewTarget, 1000);
 
-        showCalibrationStep(0);
-    }
-
-    function showCalibrationStep(step) {
-        if (step >= HIRAGANAS.length) {
-            finishCalibration();
-            return;
-        }
-        calibrationStep = step;
-        document.getElementById('calibChar').innerText = HIRAGANAS[step];
-        document.getElementById('calibStep').innerText = (step + 1);
-    }
-
-    function validateCalibrationStep() {
-        const energy = currentAudioEnergy;
-        const detected = document.getElementById('calibDetected').innerText;
-        const confidence = parseFloat(document.getElementById('calibConfidence').innerText) / 100;
-        
-        calibrationData.push({
-            char: HIRAGANAS[calibrationStep],
-            energy: energy,
-            detected: detected,
-            confidence: confidence
-        });
-
-        updateCalibrationResults();
-        showCalibrationStep(calibrationStep + 1);
-    }
-
-    function updateCalibrationResults() {
-        let html = "";
-        calibrationData.forEach(d => {
-            const match = d.char === d.detected ? "✅" : "❌";
-            html += `<div>${match} ${d.char} → ${d.detected} (${Math.round(d.confidence*100)}% | E:${(d.energy*1000).toFixed(1)})</div>`;
-        });
-        document.getElementById('calibResults').innerHTML = html;
-    }
-
-    function finishCalibration() {
-        document.getElementById('nextCalibBtn').style.display = "none";
-        document.getElementById('applyCalibBtn').style.display = "block";
-        
-        const avgEnergy = calibrationData.reduce((sum, d) => sum + d.energy, 0) / calibrationData.length;
-        const avgConfidence = calibrationData.reduce((sum, d) => sum + d.confidence, 0) / calibrationData.length;
-        
-        const suggestedEnergyThreshold = Math.max(0.001, avgEnergy * 0.3);
-        const suggestedMinConfidence = Math.max(0.2, avgConfidence * 0.7);
-        
-        config.energyThreshold = suggestedEnergyThreshold;
-        config.minConfidence = suggestedMinConfidence;
-        
-        updateSliders();
-        
-        alert(`✅ Calibration terminée !\n\nRéglages suggérés :\n- Seuil énergie : ${suggestedEnergyThreshold.toFixed(4)}\n- Confiance min : ${suggestedMinConfidence.toFixed(2)}\n\nVous pouvez ajuster dans l'onglet Réglages.`);
-    }
-
-    function applyCalibration() {
-        saveSettings();
-        switchTab('game');
-        alert("✅ Réglages appliqués ! Vous pouvez lancer le jeu.");
-    }
-
-    function drawCalibration() {
-        animationId = requestAnimationFrame(drawCalibration);
-        if (!analyser || currentMode !== "calibration") return;
-        
-        analyser.getByteTimeDomainData(dataArray);
-        analyser.getByteFrequencyData(freqArray);
-        
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-            const normalized = (dataArray[i] - 128) / 128;
-            sum += normalized * normalized;
-        }
-        currentAudioEnergy = Math.sqrt(sum / dataArray.length);
-        
-        const energyPct = Math.min(100, Math.round(currentAudioEnergy * 1000));
-        document.getElementById('calibEnergy').innerText = energyPct + "%";
-        document.getElementById('calibEnergyBar').style.width = energyPct + "%";
-        
-        const canvas = document.getElementById('calibCanvas');
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#f8f9fa';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#667eea';
-        ctx.beginPath();
-        const sliceWidth = canvas.width / dataArray.length;
-        let x = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-            const v = dataArray[i] / 128.0;
-            const y = v * canvas.height / 2;
-            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            x += sliceWidth;
-        }
-        ctx.stroke();
-
-        drawFFT('calibFftCanvas', freqArray);
-    }
-
-    // ==================== FFT VISUALIZER ====================
-    function drawFFT(canvasId, freqData) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-        
-        const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
-
-        ctx.fillStyle = '#111';
-        ctx.fillRect(0, 0, width, height);
-
-        const barWidth = width / freqData.length * 2;
-        let x = 0;
-
-        for (let i = 0; i < freqData.length; i++) {
-            const barHeight = (freqData[i] / 255) * height;
-            const hue = (i / freqData.length) * 240;
-            ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-            ctx.fillRect(x, height - barHeight, barWidth, barHeight);
-            x += barWidth;
-        }
-    }
-
-    // ==================== SETTINGS ====================
-    function initSliders() {
-        const sliders = ['energyThreshold', 'minConfidence', 'halluThreshold', 'smoothing', 'probThreshold'];
-        sliders.forEach(id => {
-            const slider = document.getElementById(id);
-            slider.addEventListener('input', () => {
-                config[id] = parseFloat(slider.value);
-                // Format display based on slider type
-                let displayValue = slider.value;
-                if (id === 'energyThreshold') {
-                    displayValue = parseFloat(slider.value).toFixed(4);
-                } else {
-                    displayValue = parseFloat(slider.value).toFixed(2);
-                }
-                document.getElementById(id + 'Val').innerText = displayValue;
-                
-                // Apply smoothing in real-time
-                if (analyser && id === 'smoothing') {
-                    analyser.smoothingTimeConstant = config.smoothing;
-                }
-            });
+        }, {
+            probabilityThreshold: 0.7,
+            overlapFactor: 0,
+            includeSpectrogram: true
         });
     }
 
-    function updateSliders() {
-        Object.keys(config).forEach(key => {
-            const slider = document.getElementById(key);
-            if (slider) {
-                slider.value = config[key];
-                // Format display based on slider type
-                let displayValue;
-                if (key === 'energyThreshold') {
-                    displayValue = parseFloat(config[key]).toFixed(4);
-                } else {
-                    displayValue = parseFloat(config[key]).toFixed(2);
-                }
-                document.getElementById(key + 'Val').innerText = displayValue;
-            }
-        });
-    }
-
-    function saveSettings() {
-        localStorage.setItem('hiraganaConfig', JSON.stringify(config));
-        const msg = document.getElementById('settingsSaved');
-        msg.style.display = 'block';
-        setTimeout(() => msg.style.display = 'none', 2000);
-    }
-
-    function loadSettings() {
-        const saved = localStorage.getItem('hiraganaConfig');
-        if (saved) {
-            config = JSON.parse(saved);
-            updateSliders();
-        }
-    }
-
-    function resetSettings() {
-        config = {
-            energyThreshold: 0.006,
-            minConfidence: 0.30,
-            halluThreshold: 0.92,
-            smoothing: 0.7,
-            probThreshold: 0.6
-        };
-        updateSliders();
-    }
-
-    // ==================== TABS ====================
-    function switchTab(tab) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    function addLog(expected, heard, score) {
+        attemptCount++;
+        const confidence = Math.round(score * 100);
+        const isMatch = (expected === heard);
         
-        event.target.classList.add('active');
-        
-        if (tab === 'game') {
-            currentMode = 'game';
-            document.getElementById('gamePanel').classList.add('active');
-        }
-        if (tab === 'calibration') {
-            currentMode = 'calibration';
-            document.getElementById('calibrationPanel').classList.add('active');
-        }
-        if (tab === 'settings') {
-            currentMode = 'settings';
-            document.getElementById('settingsPanel').classList.add('active');
-            // Start live preview in settings
-            if (!analyser) {
-                setupAudio().then(() => {
-                    drawSettingsPreview();
-                });
-            }
-        }
+        logs.push({ id: attemptCount, expected, heard, confidence, result: isMatch ? "OK" : "KO" });
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${attemptCount}</td>
+            <td style="font-size:1.4em">${expected}</td>
+            <td style="font-size:1.4em">${heard}</td>
+            <td>${confidence}%</td>
+            <td>${isMatch ? '✅' : '❌'}</td>
+        `;
+        const body = document.getElementById('logBody');
+        body.insertBefore(row, body.firstChild);
     }
 
-    function drawSettingsPreview() {
-        if (currentMode !== 'settings') return;
-        animationId = requestAnimationFrame(drawSettingsPreview);
-        
-        if (!analyser) return;
-        
-        analyser.getByteFrequencyData(freqArray);
-        drawFFT('settingsFftCanvas', freqArray);
+    function exportCSV() {
+        if (logs.length === 0) return alert("Pas de données.");
+        let csv = "ID,Attendu,Entendu,Confiance,Resultat\n";
+        logs.forEach(l => csv += `${l.id},${l.expected},${l.heard},${l.confidence}%,${l.result}\n`);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", "diagnostic_audio.csv");
+        link.click();
     }
 
-    // ==================== EVENT LISTENERS ====================
-    document.getElementById('actionBtn').onclick = startQuiz;
-    document.getElementById('skipBtn').onclick = nextQuestion;
-    document.getElementById('startCalibBtn').onclick = startCalibration;
-    document.getElementById('nextCalibBtn').onclick = validateCalibrationStep;
-    document.getElementById('applyCalibBtn').onclick = applyCalibration;
+    document.getElementById('micBtn').onclick = () => {
+        if (!recognizer.isListening()) startListening();
+    };
 
     init();
 </script>
