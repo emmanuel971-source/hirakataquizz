@@ -1,107 +1,142 @@
-<!DOCTYPE html>
+
+  <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Journal Audio IA</title>
+    <title>Labo Calibrage Gain & RMS</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f9; }
-        #start-btn { padding: 15px 25px; font-size: 18px; background: #2ecc71; color: white; border: none; border-radius: 8px; cursor: pointer; }
-        #start-btn:disabled { background: #bdc3c7; }
-        #journal { margin-top: 30px; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .log-entry { border-bottom: 1px solid #eee; padding: 8px 0; font-size: 14px; }
-        .log-num { color: #7f8c8d; font-weight: bold; margin-right: 10px; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #eceff1; color: #263238; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .metric { font-size: 1.2rem; margin: 10px 0; }
+        .val { font-weight: bold; color: #1976d2; }
+        input[type=range] { width: 80%; margin: 20px 0; cursor: pointer; }
+        #vumeter { width: 100%; height: 20px; background: #ddd; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        #vulevel { height: 100%; width: 0%; background: #4caf50; transition: width 0.1s; }
+        button { padding: 15px 30px; font-size: 18px; border-radius: 10px; border: none; background: #1976d2; color: white; cursor: pointer; }
+        button:disabled { background: #b0bec5; }
     </style>
 </head>
 <body>
 
-    <h2>Analyse Audio (3 secondes)</h2>
-    
-    <button id="start-btn">🎤 Lancer une analyse</button>
+    <div class="card">
+        <h2>🛠️ Labo de Calibrage</h2>
+        <p>Ajuste le gain pour que ton volume "normal" soit bien perçu par l'IA.</p>
+        <button id="btn-start">🚀 Initialiser le Micro & le Modèle</button>
+    </div>
 
-    <div id="status" style="margin-top: 15px; font-style: italic; color: #34495e;">Prêt.</div>
-    
-    <div id="journal">
-        <strong>Journal des détections :</strong>
-        <div id="log-container"></div>
+    <div class="card">
+        <div class="metric">Gain Logiciel : <span id="gain-val" class="val">1.0</span>x</div>
+        <input type="range" id="gain-slider" min="1" max="20" step="0.5" value="1">
+        
+        <div class="metric">Volume Perçu (RMS) : <span id="rms-val" class="val">0</span></div>
+        <div id="vumeter"><div id="vulevel"></div></div>
+    </div>
+
+    <div class="card">
+        <h3>Résultats IA (Top 2)</h3>
+        <div id="result-1" class="metric" style="font-size: 1.5rem; color: #2e7d32;">1. ---</div>
+        <div id="result-2" class="metric" style="color: #546e7a; font-size: 1rem;">2. ---</div>
     </div>
 
     <script>
-        const URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/"; 
+        // --- REMPLACE PAR TON LIEN ---
+          const URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/"; 
+        
         let recognizer;
-        let logCount = 0;
+        let audioContext, gainNode, source;
 
-        async function initModel() {
-            if (!recognizer) {
-                const checkpointURL = URL + "model.json";
-                const metadataURL = URL + "metadata.json";
-                recognizer = speechCommands.create("BROWSER_FFT", undefined, checkpointURL, metadataURL);
-                await recognizer.ensureModelLoaded();
-            }
+        async function setupAudio() {
+            // Création du contexte audio
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Accès au micro
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            
+            // Création de la chaîne : Source -> Gain -> Destination interne
+            source = audioContext.createMediaStreamSource(stream);
+            gainNode = audioContext.createGain();
+            gainNode.gain.value = 1.0; // Valeur par défaut
+            
+            source.connect(gainNode);
+            // On ne connecte PAS gainNode aux enceintes pour éviter l'effet Larsen (feedback)
+            
+            return stream;
         }
 
-        document.getElementById('start-btn').addEventListener('click', async () => {
-            const btn = document.getElementById('start-btn');
-            const status = document.getElementById('status');
-            const logContainer = document.getElementById('log-container');
-
+        document.getElementById('btn-start').onclick = async () => {
+            const btn = document.getElementById('btn-start');
             btn.disabled = true;
-            status.innerText = "Initialisation...";
-
+            btn.innerText = "Chargement...";
+            
             try {
-                await initModel();
-
-                // Gestion AudioContext pour Mobile
-                const audioContext = tf.backend().audioContext || new (window.AudioContext || window.webkitAudioContext)();
+                // 1. Setup Audio
+                await setupAudio();
                 if (audioContext.state === 'suspended') await audioContext.resume();
 
-                status.innerText = "Écoute en cours (3s)...";
-                
-                let bestDetection = { label: "", score: 0 };
+                // 2. Setup Teachable Machine
+                recognizer = speechCommands.create("BROWSER_FFT", undefined, URL + "model.json", URL + "metadata.json");
+                await recognizer.ensureModelLoaded();
+
+                btn.innerText = "🔴 Micro Actif";
+
+                // 3. Boucle d'analyse
                 const classLabels = recognizer.wordLabels();
-
-                // Démarrage de l'écoute
                 recognizer.listen(result => {
-                    const scores = result.scores;
-                    for (let i = 0; i < scores.length; i++) {
-                        // On ignore la classe "Bruit de fond" (souvent la 1ère ou contient "Background")
-                        // pour ne capturer que les sons significatifs
-                        if (scores[i] > bestDetection.score && !classLabels[i].toLowerCase().includes("background") && !classLabels[i].toLowerCase().includes("bruit")) {
-                            bestDetection.label = classLabels[i];
-                            bestDetection.score = scores[i];
-                        }
-                    }
-                }, { probabilityThreshold: 0.7 });
+                    // Analyse des scores
+                    const scores = Array.from(result.scores).map((s, i) => ({ label: classLabels[i], score: s }));
+                    scores.sort((a, b) => b.score - a.score);
 
-                // On attend 3 secondes
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                    // Affichage des résultats
+                    document.getElementById('result-1').innerHTML = `1. <b>${scores[0].label}</b> (${(scores[0].score * 100).toFixed(1)}%)`;
+                    document.getElementById('result-2').innerHTML = `2. ${scores[1].label} (${(scores[1].score * 100).toFixed(1)}%)`;
 
-                // Arrêt
-                await recognizer.stopListening();
-                
-                // Ajout au journal
-                logCount++;
-                const entry = document.createElement('div');
-                entry.className = 'log-entry';
-                const time = new Date().toLocaleTimeString();
-                
-                if (bestDetection.score > 0) {
-                    entry.innerHTML = `<span class="log-num">#${logCount}</span> [${time}] <b>${bestDetection.label}</b> - ${(bestDetection.score * 100).toFixed(1)}%`;
-                } else {
-                    entry.innerHTML = `<span class="log-num">#${logCount}</span> [${time}] Aucun son significatif détecté.`;
-                }
-                
-                logContainer.prepend(entry); // Ajoute en haut de la liste
-                status.innerText = "Analyse terminée.";
+                    // Mesure du volume (RMS) via le spectrogramme fourni par le modèle
+                    calculateRMS(result.spectrogram);
+
+                }, { 
+                    probabilityThreshold: 0.1, // On baisse le seuil pour voir les hésitations
+                    includeSpectrogram: true, 
+                    overlapFactor: 0.5 
+                });
 
             } catch (err) {
-                status.innerText = "Erreur : " + err.message;
-            } finally {
+                alert("Erreur : " + err.message);
                 btn.disabled = false;
+                btn.innerText = "Réessayer";
             }
-        });
+        };
+
+        // Mise à jour dynamique du gain via le slider
+        document.getElementById('gain-slider').oninput = (e) => {
+            const val = e.target.value;
+            document.getElementById('gain-val').innerText = val;
+            if (gainNode) {
+                gainNode.gain.value = parseFloat(val);
+            }
+        };
+
+        function calculateRMS(spectrogram) {
+            const data = spectrogram.data;
+            let sum = 0;
+            for (let i = 0; i < data.length; i++) {
+                sum += data[i] * data[i];
+            }
+            // Calcul de la moyenne quadratique (RMS)
+            const rms = Math.sqrt(sum / data.length);
+            
+            // Affichage
+            document.getElementById('rms-val').innerText = rms.toFixed(5);
+            
+            // Mise à jour de la barre visuelle (normalisée pour l'affichage)
+            const visualLevel = Math.min(100, rms * 200); 
+            document.getElementById('vulevel').style.width = visualLevel + "%";
+            
+            // Couleur de la barre : change si ça sature
+            document.getElementById('vulevel').style.background = visualLevel > 90 ? "#f44336" : "#4caf50";
+        }
     </script>
 </body>
 </html>
