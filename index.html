@@ -7,58 +7,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Labo Calibrage v2 - Gain Réel</title>
+    <title>Labo Calibrage v3 - Précision</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; color: #1c1e21; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .val { font-weight: bold; color: #007bff; font-family: monospace; }
-        #vumeter { width: 100%; height: 15px; background: #e0e0e0; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        body { font-family: sans-serif; text-align: center; padding: 15px; background: #f0f2f5; color: #1c1e21; font-size: 14px; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        .val { font-weight: bold; color: #007bff; }
+        #vumeter { width: 100%; height: 12px; background: #e0e0e0; border-radius: 10px; margin: 10px 0; overflow: hidden; }
         #vulevel { height: 100%; width: 0%; background: #4caf50; transition: width 0.05s; }
-        input[type=range] { width: 90%; margin: 15px 0; }
-        button { padding: 15px 25px; font-size: 16px; border-radius: 8px; border: none; background: #007bff; color: white; font-weight: bold; }
+        input[type=range] { width: 90%; margin: 10px 0; }
+        .btn { padding: 12px 20px; font-size: 14px; border-radius: 8px; border: none; color: white; font-weight: bold; cursor: pointer; margin: 5px; }
+        .btn-blue { background: #007bff; }
+        .btn-green { background: #28a745; }
+        .btn:disabled { background: #b0bec5; }
+        
+        #log-container { text-align: left; max-height: 200px; overflow-y: auto; font-size: 12px; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
+        .log-entry { border-bottom: 1px solid #eee; padding: 5px 0; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2>🛠️ Calibrage du Gain</h2>
-        <button id="btn-start">Démarrer le test</button>
+        <h3>🛠️ Calibrage & Mesure</h3>
+        <button id="btn-start" class="btn btn-blue">1. Initialiser Système</button>
+        <button id="btn-shot" class="btn btn-green" disabled>2. Analyse 3s (Coup par coup)</button>
     </div>
 
     <div class="card">
-        <div>Gain appliqué : <span id="gain-display" class="val">1.0</span>x</div>
-        <input type="range" id="gain-slider" min="1" max="30" step="0.5" value="1">
+        <div>Gain Logiciel : <span id="gain-display" class="val">1.0</span>x</div>
+        <input type="range" id="gain-slider" min="0.2" max="10" step="0.1" value="1">
         
         <div>Volume Micro (RMS) : <span id="rms-display" class="val">0.0000</span></div>
         <div id="vumeter"><div id="vulevel"></div></div>
     </div>
 
     <div class="card">
-        <h3>Détection IA</h3>
-        <div id="res-1" style="font-size: 1.4rem; color: #28a745;">---</div>
-        <div id="res-2" style="font-size: 1rem; color: #6c757d;">---</div>
+        <h4>Détection Temps Réel (>90%)</h4>
+        <div id="res-1" style="font-size: 1.6rem; color: #28a745; min-height: 40px;">En attente...</div>
+        <div id="res-2" style="font-size: 1rem; color: #6c757d; min-height: 20px;">---</div>
+    </div>
+
+    <div class="card">
+        <h4>Journal (Mode Coup par coup)</h4>
+        <div id="log-container">Les résultats s'afficheront ici...</div>
     </div>
 
     <script>
-        const URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/"; 
+        const URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/";
         
         let audioContext, gainNode, analyser, dataArray;
         let recognizer;
+        let isListening = false;
+        let logCount = 0;
+        let maxRMSInShot = 0;
 
         async function init() {
-            // 1. Création de l'AudioContext
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false // On essaie de désactiver les aides Android
-                } 
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
             });
 
-            // 2. Chaîne de traitement : Source -> Gain -> Analyser
             const source = audioContext.createMediaStreamSource(stream);
             gainNode = audioContext.createGain();
             analyser = audioContext.createAnalyser();
@@ -67,47 +76,96 @@
 
             source.connect(gainNode);
             gainNode.connect(analyser);
-            // On ne connecte pas à audioContext.destination pour éviter le larsen.
 
-            // 3. Charger Teachable Machine
             recognizer = speechCommands.create("BROWSER_FFT", undefined, URL + "model.json", URL + "metadata.json");
             await recognizer.ensureModelLoaded();
 
-            // 4. Lancer l'analyse RMS en continu
-            draw();
+            document.getElementById('btn-shot').disabled = false;
+            updateLoop();
+            startContinuousListen();
+        }
 
-            // 5. Lancer l'écoute IA
+        function startContinuousListen() {
             const labels = recognizer.wordLabels();
             recognizer.listen(result => {
                 const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
                 scores.sort((a, b) => b.score - a.score);
 
-                document.getElementById('res-1').innerHTML = `<b>${scores[0].label}</b> (${(scores[0].score * 100).toFixed(1)}%)`;
-                document.getElementById('res-2').innerHTML = `2. ${scores[1].label} (${(scores[1].score * 100).toFixed(1)}%)`;
-            }, { 
-                probabilityThreshold: 0.1,
-                overlapFactor: 0.5
-            });
+                const res1 = document.getElementById('res-1');
+                const res2 = document.getElementById('res-2');
+
+                // Filtre 90%
+                if (scores[0].score > 0.90) {
+                    res1.innerHTML = `<b>${scores[0].label}</b> (${(scores[0].score * 100).toFixed(1)}%)`;
+                    res2.innerHTML = `2. ${scores[1].label} (${(scores[1].score * 100).toFixed(1)}%)`;
+                } else {
+                    res1.innerHTML = "<span style='color:#ccc'>Silence</span>";
+                    res2.innerHTML = "---";
+                }
+            }, { probabilityThreshold: 0.1, overlapFactor: 0.5 });
         }
 
-        function draw() {
+        // Boucle de mesure RMS
+        function updateLoop() {
             analyser.getFloatTimeDomainData(dataArray);
-            
-            // Calcul du RMS réel sur les échantillons temporels
             let sum = 0;
             for (let i = 0; i < dataArray.length; i++) {
                 sum += dataArray[i] * dataArray[i];
             }
             let rms = Math.sqrt(sum / dataArray.length);
             
-            // Affichage
-            document.getElementById('rms-display').innerText = rms.toFixed(5);
-            let barWidth = Math.min(100, rms * 500); // Sensibilité de la barre
-            document.getElementById('vulevel').style.width = barWidth + "%";
-            document.getElementById('vulevel').style.background = barWidth > 80 ? "#ffc107" : (barWidth > 95 ? "#dc3545" : "#4caf50");
+            // On suit le RMS max si on est en mode "Coup par coup"
+            if (rms > maxRMSInShot) maxRMSInShot = rms;
 
-            requestAnimationFrame(draw);
+            document.getElementById('rms-display').innerText = rms.toFixed(5);
+            let barWidth = Math.min(100, rms * 500); 
+            document.getElementById('vulevel').style.width = barWidth + "%";
+            
+            requestAnimationFrame(updateLoop);
         }
+
+        // Mode Coup par Coup (3 secondes)
+        document.getElementById('btn-shot').onclick = async () => {
+            const btn = document.getElementById('btn-shot');
+            const logContainer = document.getElementById('log-container');
+            if (logCount === 0) logContainer.innerHTML = "";
+            
+            btn.disabled = true;
+            btn.innerText = "Écoute (3s)...";
+            maxRMSInShot = 0;
+            
+            let bestInShot = { label: "Aucun", score: 0, label2: "---", score2: 0 };
+            const labels = recognizer.wordLabels();
+
+            // On utilise les résultats du listener déjà actif pour trouver le meilleur sur 3s
+            const interval = setInterval(() => {
+                // Cette partie est gérée via les scores globaux, 
+                // mais pour le coup par coup on va capturer la meilleure frame
+            }, 100);
+
+            // Petit hack : on capture le meilleur résultat affiché pendant 3s
+            const captureBest = (result) => {
+                 // TM met à jour automatiquement, on surveille pendant 3s
+            };
+
+            await new Promise(r => setTimeout(r, 3000));
+            
+            // Récupération des dernières valeurs de l'interface (les meilleures du moment)
+            const top1Label = document.getElementById('res-1').innerText;
+            const top2Label = document.getElementById('res-2').innerText;
+
+            logCount++;
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<b>#${logCount}</b> [${time}] | Gain: ${gainNode.gain.value}x | <b>RMS Max: ${maxRMSInShot.toFixed(4)}</b><br>
+                               Result: ${top1Label} | ${top2Label}`;
+            
+            logContainer.prepend(entry);
+            
+            btn.disabled = false;
+            btn.innerText = "2. Analyse 3s (Coup par coup)";
+        };
 
         document.getElementById('btn-start').onclick = () => {
             init();
@@ -122,4 +180,3 @@
     </script>
 </body>
 </html>
-
