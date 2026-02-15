@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Labo Calibrage v4 - Master</title>
+    <title>Labo Calibrage v5 - Confort Ultime</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
     <style>
@@ -28,7 +28,7 @@
 <body>
 
     <div class="card">
-        <h3>🛠️ Calibrage & Rafale</h3>
+        <h3>🛠️ Calibrage & Rafale (V5)</h3>
         <button id="btn-start" class="btn btn-blue">1. Initialiser Système</button>
         <button id="btn-shot" class="btn btn-green" disabled>2. Mode Rafale (3s)</button>
     </div>
@@ -46,8 +46,8 @@
 
     <div class="card">
         <h4>Détection Temps Réel</h4>
-        <div id="res-1" style="font-size: 1.6rem; color: #28a745; min-height: 40px;">---</div>
-        <div id="res-2" style="font-size: 1rem; color: #6c757d; min-height: 20px;">---</div>
+        <div id="res-1" style="font-size: 1.8rem; color: #2e7d32; min-height: 45px; font-weight: bold;"></div>
+        <div id="res-2" style="font-size: 1.1rem; color: #546e7a; min-height: 25px;"></div>
     </div>
 
     <div class="card">
@@ -56,7 +56,7 @@
     </div>
 
     <script>
-        const URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/"; 
+        const URL = "URL_DE_TON_MODELE"; 
         
         let audioContext, gainNode, analyser, dataArray;
         let recognizer;
@@ -64,9 +64,8 @@
         let maxRMSInShot = 0;
         let threshold = 0.90;
         
-        // Variables pour capturer le meilleur moment de la rafale
         let isCapturing = false;
-        let tempBest = { label1: "---", score1: 0, label2: "---", score2: 0 };
+        let tempBest = { label1: "Aucun", score1: 0, label2: "---", score2: 0 };
 
         async function init() {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -100,19 +99,23 @@
                 const s1 = scores[0];
                 const s2 = scores[1];
 
-                // 1. Mise à jour de l'affichage Temps Réel (avec filtre threshold)
                 const res1 = document.getElementById('res-1');
                 const res2 = document.getElementById('res-2');
 
-                if (s1.score >= threshold) {
-                    res1.innerHTML = `<b>${s1.label}</b> (${(s1.score * 100).toFixed(1)}%)`;
+                // --- LOGIQUE DE FILTRAGE ULTIME ---
+                // On vérifie si la meilleure classe est "Bruit de fond" (ou "Background noise")
+                const isBackground = s1.label.toLowerCase().includes("bruit") || s1.label.toLowerCase().includes("background");
+
+                if (s1.score >= threshold && !isBackground) {
+                    res1.innerHTML = `${s1.label} (${(s1.score * 100).toFixed(1)}%)`;
                     res2.innerHTML = `2. ${s2.label} (${(s2.score * 100).toFixed(1)}%)`;
                 } else {
-                    res1.innerHTML = "<span style='color:#ccc'>Silence</span>";
-                    res2.innerHTML = "---";
+                    // On laisse vide
+                    res1.innerHTML = "";
+                    res2.innerHTML = "";
                 }
 
-                // 2. Si on est en mode Rafale, on mémorise le meilleur score rencontré
+                // Pour la Rafale, on continue de tout capturer pour avoir le log complet
                 if (isCapturing) {
                     if (s1.score > tempBest.score1) {
                         tempBest.label1 = s1.label;
@@ -141,7 +144,6 @@
             requestAnimationFrame(updateLoop);
         }
 
-        // Action du bouton Rafale
         document.getElementById('btn-shot').onclick = async () => {
             const btn = document.getElementById('btn-shot');
             const logContainer = document.getElementById('log-container');
@@ -150,12 +152,10 @@
             btn.disabled = true;
             btn.innerText = "ÉCOUTE EN COURS...";
             
-            // Reset de la capture
             maxRMSInShot = 0;
             tempBest = { label1: "Aucun", score1: 0, label2: "---", score2: 0 };
             isCapturing = true;
 
-            // On attend 3 secondes pendant que recognizer.listen remplit tempBest
             await new Promise(r => setTimeout(r, 3000));
             
             isCapturing = false;
@@ -165,13 +165,10 @@
             const entry = document.createElement('div');
             entry.className = 'log-entry';
             
-            const s1_txt = `${tempBest.label1} (${(tempBest.score1 * 100).toFixed(1)}%)`;
-            const s2_txt = `${tempBest.label2} (${(tempBest.score2 * 100).toFixed(1)}%)`;
-
             entry.innerHTML = `
                 <span style="color:#7f8c8d">#${logCount} [${time}]</span> | Gain: <b>${gainNode.gain.value}x</b> | RMS Max: <b>${maxRMSInShot.toFixed(4)}</b><br>
-                <span style="color:#2ecc71">🏆 Top 1: ${s1_txt}</span><br>
-                <span style="color:#3498db">🥈 Top 2: ${s2_txt}</span>
+                <span style="color:#2ecc71">🏆 Top 1: ${tempBest.label1} (${(tempBest.score1 * 100).toFixed(1)}%)</span><br>
+                <span style="color:#3498db">🥈 Top 2: ${tempBest.label2} (${(tempBest.score2 * 100).toFixed(1)}%)</span>
             `;
             
             logContainer.prepend(entry);
