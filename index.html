@@ -3,386 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hiragana Lab - Diagnostic & Export</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: #1a1c2c; 
-            padding: 15px; 
-            color: #333;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .main-layout { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            max-width: 600px; 
-            margin: auto; 
-        }
-        
-        .quiz-card { 
-            background: white; 
-            border-radius: 20px; 
-            padding: 20px; 
-            text-align: center; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
-        }
-        .target-char { 
-            font-size: 100px; 
-            font-weight: bold; 
-            margin: 5px 0; 
-            color: #2d3436;
-            user-select: none;
-        }
-        
-        /* Bouton Talkie-Walkie */
-        .mic-button {
-            width: 90px; 
-            height: 90px; 
-            border-radius: 50%; 
-            border: none;
-            background: #667eea; 
-            color: white; 
-            font-size: 35px; 
-            cursor: pointer;
-            margin: 15px 0; 
-            transition: all 0.2s;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center;
-            touch-action: manipulation;
-        }
-        .mic-button:active:not(:disabled) { 
-            transform: scale(0.9); 
-            background: #5a67d8; 
-        }
-        .mic-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .mic-button.active { 
-            background: #ff4757; 
-            animation: pulse 1.5s infinite; 
-            box-shadow: 0 0 20px rgba(255, 71, 87, 0.6); 
-        }
-        
-        .status { 
-            font-weight: bold; 
-            color: #666; 
-            min-height: 24px; 
-            margin-bottom: 10px;
-        }
-
-        /* Journal de Log */
-        .log-container { 
-            background: white; 
-            border-radius: 15px; 
-            padding: 15px; 
-        }
-        .log-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 1em;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-        }
-        .stats {
-            font-size: 0.85em;
-            color: #666;
-        }
-        .table-wrapper { 
-            max-height: 250px; 
-            overflow-y: auto; 
-            margin-top: 10px; 
-            border: 1px solid #eee;
-            border-radius: 8px;
-        }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            font-size: 13px; 
-        }
-        th { 
-            background: #f8f9fa; 
-            position: sticky; 
-            top: 0; 
-            padding: 8px; 
-            border-bottom: 2px solid #ddd;
-            z-index: 1;
-        }
-        td { 
-            padding: 8px; 
-            border-bottom: 1px solid #eee; 
-            text-align: center; 
-        }
-        tr:hover { background: #f8f9fa; }
-
-        .controls { 
-            display: flex; 
-            gap: 8px; 
-            justify-content: center; 
-            margin-top: 15px; 
-        }
-        .btn-export { 
-            background: #27ae60; 
-            color: white; 
-            padding: 12px; 
-            border: none; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            flex: 1; 
-            font-weight: bold;
-            touch-action: manipulation;
-        }
-        .btn-export:active { transform: scale(0.97); }
-        .btn-export:disabled {
-            background: #95a5a6;
-            cursor: not-allowed;
-        }
-        .btn-reset { 
-            background: #f1f2f6; 
-            color: #57606f; 
-            padding: 12px; 
-            border: none; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            flex: 1;
-            touch-action: manipulation;
-        }
-        .btn-reset:active { transform: scale(0.97); }
-        
-        @keyframes pulse { 
-            0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 
-            70% { box-shadow: 0 0 0 15px rgba(255, 71, 87, 0); } 
-            100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } 
-        }
-    </style>
+    <title>Test Audio Mobile IA</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
 </head>
-<body>
+<body style="font-family: sans-serif; text-align: center; padding: 20px;">
 
-<div class="main-layout">
-    <div class="quiz-card">
-        <div id="targetDisplay" class="target-char">?</div>
-        <div id="status" class="status">Chargement du Sensei...</div>
-        
-        <button id="micBtn" class="mic-button" disabled>🎤</button>
-        <p id="instruction" style="font-size: 0.9em; color: #777;">Cliquez pour parler</p>
-
-        <div class="controls">
-            <button id="exportBtn" onclick="exportCSV()" class="btn-export" disabled>📊 EXPORTER LOGS</button>
-            <button onclick="resetApp()" class="btn-reset">🔄 RESET</button>
-        </div>
-    </div>
-
-    <div class="log-container">
-        <div class="log-header">
-            <h3>📜 HISTORIQUE</h3>
-            <div class="stats">
-                <span id="statsDisplay">0 essais</span>
-            </div>
-        </div>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>N°</th>
-                        <th>Cible</th>
-                        <th>Reconnu</th>
-                        <th>%</th>
-                        <th>Rés.</th>
-                    </tr>
-                </thead>
-                <tbody id="logBody">
-                    <tr>
-                        <td colspan="5" style="color: #999; padding: 20px;">Aucun essai pour le moment</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<script>
-    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/33EVLsQd_/";
-    const HIRAGANAS = ['あ', 'い', 'う', 'え', 'お'];
+    <h2>Classificateur Audio Mobile</h2>
     
-    let recognizer;
-    let currentTarget = "";
-    let attemptCount = 0;
-    let logs = [];
-    let isListening = false;
+    <button id="start-btn" style="padding: 15px 30px; font-size: 18px; cursor: pointer;">
+        🎤 Activer le Micro & Lancer
+    </button>
 
-    async function init() {
-        try {
-            recognizer = speechCommands.create(
-                "BROWSER_FFT", 
-                undefined, 
-                MODEL_URL + "model.json", 
-                MODEL_URL + "metadata.json"
+    <div id="status" style="margin-top: 20px; color: gray;">En attente...</div>
+    <div id="result" style="margin-top: 20px; font-weight: bold; font-size: 24px;"></div>
+
+    <script>
+        const URL = "https://teachablemachine.withgoogle.com/models/33EVLsQd_/"; // <--- METS TON LIEN ICI
+        let recognizer;
+
+        async function createModel() {
+            const checkpointURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            const recognizer = speechCommands.create(
+                "BROWSER_FFT",
+                undefined,
+                checkpointURL,
+                metadataURL
             );
+
             await recognizer.ensureModelLoaded();
-            document.getElementById('status').innerText = "Prêt !";
-            document.getElementById('micBtn').disabled = false;
-            generateNewTarget();
-        } catch (e) {
-            document.getElementById('status').innerText = "Erreur micro/réseau";
-            console.error(e);
+            return recognizer;
         }
-    }
 
-    function generateNewTarget() {
-        currentTarget = HIRAGANAS[Math.floor(Math.random() * HIRAGANAS.length)];
-        document.getElementById('targetDisplay').innerText = currentTarget;
-    }
+        document.getElementById('start-btn').addEventListener('click', async () => {
+            const status = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            status.innerText = "Chargement du modèle...";
 
-    // FONCTION TALKIE-WALKIE
-    async function startListening() {
-        if (isListening) return;
-        
-        const btn = document.getElementById('micBtn');
-        const status = document.getElementById('status');
-        
-        // FORCER L'ARRÊT COMPLET avant de redémarrer
-        try {
-            await recognizer.stopListening();
-        } catch(e) {}
-        
-        isListening = true;
-        btn.disabled = true;
-        btn.classList.add('active');
-        status.innerText = "JE VOUS ÉCOUTE...";
-        
-        let hasProcessed = false; // Flag pour éviter les doubles callbacks
-
-        try {
-            await recognizer.listen(result => {
-                if (hasProcessed) return; // Ignorer les résultats après le premier
-                hasProcessed = true;
-                
-                const labels = recognizer.wordLabels();
-                let maxScore = 0;
-                let winner = "";
-
-                for (let i = 0; i < labels.length; i++) {
-                    if (result.scores[i] > maxScore) {
-                        maxScore = result.scores[i];
-                        winner = labels[i];
-                    }
+            try {
+                // 1. Initialisation du modèle
+                if (!recognizer) {
+                    recognizer = await createModel();
                 }
 
-                // ON COUPE LE MICRO IMMÉDIATEMENT
-                recognizer.stopListening();
-                btn.classList.remove('active');
-                btn.disabled = false;
-                isListening = false;
+                // 2. Gestion spécifique au Mobile : Forcer l'AudioContext
+                // On récupère l'AudioContext utilisé par le recognizer
+                const audioContext = tf.backend().audioContext || new (window.AudioContext || window.webkitAudioContext)();
                 
-                // On enregistre et on affiche
-                addLog(currentTarget, winner, maxScore);
-                
-                // On prépare la suite
-                status.innerText = "Analyse terminée.";
-                setTimeout(generateNewTarget, 1000);
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
 
-            }, {
-                probabilityThreshold: 0.7,
-                overlapFactor: 0.5,
-                includeSpectrogram: true
-            });
-            
-        } catch (error) {
-            console.error("Erreur:", error);
-            status.innerText = "Erreur micro";
-            btn.classList.remove('active');
-            btn.disabled = false;
-            isListening = false;
-        }
-    }
+                status.innerText = "Écoute en cours...";
 
-    function addLog(expected, heard, score) {
-        attemptCount++;
-        const confidence = Math.round(score * 100);
-        const isMatch = (expected === heard);
-        
-        logs.push({ 
-            id: attemptCount, 
-            expected, 
-            heard, 
-            confidence, 
-            result: isMatch ? "OK" : "KO" 
+                // 3. Lancement de la reconnaissance
+                const classLabels = recognizer.wordLabels();
+                recognizer.listen(result => {
+                    const scores = result.scores;
+                    // Trouver l'index du score le plus élevé
+                    const maxScore = Math.max(...scores);
+                    const index = scores.indexOf(maxScore);
+                    
+                    resultDiv.innerText = `${classLabels[index]} (${(maxScore * 100).toFixed(0)}%)`;
+                }, {
+                    includeSpectrogram: false,
+                    probabilityThreshold: 0.75,
+                    invokeCallbackOnNoiseAndUnknown: true,
+                    overlapFactor: 0.5
+                });
+
+            } catch (err) {
+                status.innerText = "Erreur : " + err.message;
+                console.error(err);
+            }
         });
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${attemptCount}</td>
-            <td style="font-size:1.4em">${expected}</td>
-            <td style="font-size:1.4em">${heard}</td>
-            <td>${confidence}%</td>
-            <td>${isMatch ? '✅' : '❌'}</td>
-        `;
-        
-        const body = document.getElementById('logBody');
-        
-        // Supprimer le message "Aucun essai" si présent
-        if (body.children.length === 1 && body.children[0].children.length === 1) {
-            body.innerHTML = '';
-        }
-        
-        body.insertBefore(row, body.firstChild);
-        
-        // Mise à jour stats
-        updateStats();
-        document.getElementById('exportBtn').disabled = false;
-    }
-
-    function updateStats() {
-        const successCount = logs.filter(l => l.result === 'OK').length;
-        const totalCount = logs.length;
-        const successRate = totalCount > 0 ? Math.round((successCount / totalCount) * 100) : 0;
-        
-        document.getElementById('statsDisplay').innerHTML = 
-            `${totalCount} essai${totalCount > 1 ? 's' : ''} | ${successRate}% réussite`;
-    }
-
-    function exportCSV() {
-        if (logs.length === 0) return alert("Pas de données.");
-        
-        let csv = "ID,Attendu,Entendu,Confiance,Resultat\n";
-        logs.forEach(l => csv += `${l.id},${l.expected},${l.heard},${l.confidence}%,${l.result}\n`);
-        
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const filename = `hiragana_diagnostic_${new Date().toISOString().slice(0,10)}.csv`;
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute("download", filename);
-        link.click();
-    }
-
-    function resetApp() {
-        if (logs.length > 0 && !confirm("Effacer tous les logs ?")) return;
-        
-        logs = [];
-        attemptCount = 0;
-        
-        const body = document.getElementById('logBody');
-        body.innerHTML = '<tr><td colspan="5" style="color: #999; padding: 20px;">Aucun essai pour le moment</td></tr>';
-        
-        document.getElementById('statsDisplay').innerText = "0 essais";
-        document.getElementById('exportBtn').disabled = true;
-        
-        generateNewTarget();
-    }
-
-    document.getElementById('micBtn').onclick = () => {
-        if (!isListening) startListening();
-    };
-
-    init();
-</script>
+    </script>
 </body>
 </html>
