@@ -1,142 +1,125 @@
-
-  <!DOCTYPE html>
+<script>
+        // --- REMPLACE PAR TON LIEN ---
+      //    const URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/"; 
+</script>        
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Labo Calibrage Gain & RMS</title>
+    <title>Labo Calibrage v2 - Gain Réel</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #eceff1; color: #263238; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .metric { font-size: 1.2rem; margin: 10px 0; }
-        .val { font-weight: bold; color: #1976d2; }
-        input[type=range] { width: 80%; margin: 20px 0; cursor: pointer; }
-        #vumeter { width: 100%; height: 20px; background: #ddd; border-radius: 10px; overflow: hidden; margin-top: 10px; }
-        #vulevel { height: 100%; width: 0%; background: #4caf50; transition: width 0.1s; }
-        button { padding: 15px 30px; font-size: 18px; border-radius: 10px; border: none; background: #1976d2; color: white; cursor: pointer; }
-        button:disabled { background: #b0bec5; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; color: #1c1e21; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .val { font-weight: bold; color: #007bff; font-family: monospace; }
+        #vumeter { width: 100%; height: 15px; background: #e0e0e0; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        #vulevel { height: 100%; width: 0%; background: #4caf50; transition: width 0.05s; }
+        input[type=range] { width: 90%; margin: 15px 0; }
+        button { padding: 15px 25px; font-size: 16px; border-radius: 8px; border: none; background: #007bff; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2>🛠️ Labo de Calibrage</h2>
-        <p>Ajuste le gain pour que ton volume "normal" soit bien perçu par l'IA.</p>
-        <button id="btn-start">🚀 Initialiser le Micro & le Modèle</button>
+        <h2>🛠️ Calibrage du Gain</h2>
+        <button id="btn-start">Démarrer le test</button>
     </div>
 
     <div class="card">
-        <div class="metric">Gain Logiciel : <span id="gain-val" class="val">1.0</span>x</div>
-        <input type="range" id="gain-slider" min="1" max="20" step="0.5" value="1">
+        <div>Gain appliqué : <span id="gain-display" class="val">1.0</span>x</div>
+        <input type="range" id="gain-slider" min="1" max="30" step="0.5" value="1">
         
-        <div class="metric">Volume Perçu (RMS) : <span id="rms-val" class="val">0</span></div>
+        <div>Volume Micro (RMS) : <span id="rms-display" class="val">0.0000</span></div>
         <div id="vumeter"><div id="vulevel"></div></div>
     </div>
 
     <div class="card">
-        <h3>Résultats IA (Top 2)</h3>
-        <div id="result-1" class="metric" style="font-size: 1.5rem; color: #2e7d32;">1. ---</div>
-        <div id="result-2" class="metric" style="color: #546e7a; font-size: 1rem;">2. ---</div>
+        <h3>Détection IA</h3>
+        <div id="res-1" style="font-size: 1.4rem; color: #28a745;">---</div>
+        <div id="res-2" style="font-size: 1rem; color: #6c757d;">---</div>
     </div>
 
     <script>
-        // --- REMPLACE PAR TON LIEN ---
-          const URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/"; 
+        const URL = "https://teachablemachine.withgoogle.com/models/ppaw5UWx4/"; 
         
+        let audioContext, gainNode, analyser, dataArray;
         let recognizer;
-        let audioContext, gainNode, source;
 
-        async function setupAudio() {
-            // Création du contexte audio
+        async function init() {
+            // 1. Création de l'AudioContext
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Accès au micro
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-            
-            // Création de la chaîne : Source -> Gain -> Destination interne
-            source = audioContext.createMediaStreamSource(stream);
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false // On essaie de désactiver les aides Android
+                } 
+            });
+
+            // 2. Chaîne de traitement : Source -> Gain -> Analyser
+            const source = audioContext.createMediaStreamSource(stream);
             gainNode = audioContext.createGain();
-            gainNode.gain.value = 1.0; // Valeur par défaut
-            
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            dataArray = new Float32Array(analyser.fftSize);
+
             source.connect(gainNode);
-            // On ne connecte PAS gainNode aux enceintes pour éviter l'effet Larsen (feedback)
-            
-            return stream;
+            gainNode.connect(analyser);
+            // On ne connecte pas à audioContext.destination pour éviter le larsen.
+
+            // 3. Charger Teachable Machine
+            recognizer = speechCommands.create("BROWSER_FFT", undefined, URL + "model.json", URL + "metadata.json");
+            await recognizer.ensureModelLoaded();
+
+            // 4. Lancer l'analyse RMS en continu
+            draw();
+
+            // 5. Lancer l'écoute IA
+            const labels = recognizer.wordLabels();
+            recognizer.listen(result => {
+                const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
+                scores.sort((a, b) => b.score - a.score);
+
+                document.getElementById('res-1').innerHTML = `<b>${scores[0].label}</b> (${(scores[0].score * 100).toFixed(1)}%)`;
+                document.getElementById('res-2').innerHTML = `2. ${scores[1].label} (${(scores[1].score * 100).toFixed(1)}%)`;
+            }, { 
+                probabilityThreshold: 0.1,
+                overlapFactor: 0.5
+            });
         }
 
-        document.getElementById('btn-start').onclick = async () => {
-            const btn = document.getElementById('btn-start');
-            btn.disabled = true;
-            btn.innerText = "Chargement...";
+        function draw() {
+            analyser.getFloatTimeDomainData(dataArray);
             
-            try {
-                // 1. Setup Audio
-                await setupAudio();
-                if (audioContext.state === 'suspended') await audioContext.resume();
-
-                // 2. Setup Teachable Machine
-                recognizer = speechCommands.create("BROWSER_FFT", undefined, URL + "model.json", URL + "metadata.json");
-                await recognizer.ensureModelLoaded();
-
-                btn.innerText = "🔴 Micro Actif";
-
-                // 3. Boucle d'analyse
-                const classLabels = recognizer.wordLabels();
-                recognizer.listen(result => {
-                    // Analyse des scores
-                    const scores = Array.from(result.scores).map((s, i) => ({ label: classLabels[i], score: s }));
-                    scores.sort((a, b) => b.score - a.score);
-
-                    // Affichage des résultats
-                    document.getElementById('result-1').innerHTML = `1. <b>${scores[0].label}</b> (${(scores[0].score * 100).toFixed(1)}%)`;
-                    document.getElementById('result-2').innerHTML = `2. ${scores[1].label} (${(scores[1].score * 100).toFixed(1)}%)`;
-
-                    // Mesure du volume (RMS) via le spectrogramme fourni par le modèle
-                    calculateRMS(result.spectrogram);
-
-                }, { 
-                    probabilityThreshold: 0.1, // On baisse le seuil pour voir les hésitations
-                    includeSpectrogram: true, 
-                    overlapFactor: 0.5 
-                });
-
-            } catch (err) {
-                alert("Erreur : " + err.message);
-                btn.disabled = false;
-                btn.innerText = "Réessayer";
-            }
-        };
-
-        // Mise à jour dynamique du gain via le slider
-        document.getElementById('gain-slider').oninput = (e) => {
-            const val = e.target.value;
-            document.getElementById('gain-val').innerText = val;
-            if (gainNode) {
-                gainNode.gain.value = parseFloat(val);
-            }
-        };
-
-        function calculateRMS(spectrogram) {
-            const data = spectrogram.data;
+            // Calcul du RMS réel sur les échantillons temporels
             let sum = 0;
-            for (let i = 0; i < data.length; i++) {
-                sum += data[i] * data[i];
+            for (let i = 0; i < dataArray.length; i++) {
+                sum += dataArray[i] * dataArray[i];
             }
-            // Calcul de la moyenne quadratique (RMS)
-            const rms = Math.sqrt(sum / data.length);
+            let rms = Math.sqrt(sum / dataArray.length);
             
             // Affichage
-            document.getElementById('rms-val').innerText = rms.toFixed(5);
-            
-            // Mise à jour de la barre visuelle (normalisée pour l'affichage)
-            const visualLevel = Math.min(100, rms * 200); 
-            document.getElementById('vulevel').style.width = visualLevel + "%";
-            
-            // Couleur de la barre : change si ça sature
-            document.getElementById('vulevel').style.background = visualLevel > 90 ? "#f44336" : "#4caf50";
+            document.getElementById('rms-display').innerText = rms.toFixed(5);
+            let barWidth = Math.min(100, rms * 500); // Sensibilité de la barre
+            document.getElementById('vulevel').style.width = barWidth + "%";
+            document.getElementById('vulevel').style.background = barWidth > 80 ? "#ffc107" : (barWidth > 95 ? "#dc3545" : "#4caf50");
+
+            requestAnimationFrame(draw);
         }
+
+        document.getElementById('btn-start').onclick = () => {
+            init();
+            document.getElementById('btn-start').disabled = true;
+        };
+
+        document.getElementById('gain-slider').oninput = (e) => {
+            const val = e.target.value;
+            document.getElementById('gain-display').innerText = val;
+            if (gainNode) gainNode.gain.value = parseFloat(val);
+        };
     </script>
 </body>
 </html>
+
