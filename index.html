@@ -7,194 +7,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Labo Calibrage v5 - Confort Ultime</title>
+    <title>Marathon Hiragana - Testeur Android</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 15px; background: #f0f2f5; color: #1c1e21; font-size: 14px; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        .val { font-weight: bold; color: #007bff; }
-        #vumeter { width: 100%; height: 12px; background: #e0e0e0; border-radius: 10px; margin: 10px 0; overflow: hidden; }
-        #vulevel { height: 100%; width: 0%; background: #4caf50; transition: width 0.05s; }
-        input[type=range] { width: 90%; margin: 8px 0; cursor: pointer; }
-        .btn { padding: 12px 20px; font-size: 14px; border-radius: 8px; border: none; color: white; font-weight: bold; cursor: pointer; margin: 5px; }
-        .btn-blue { background: #007bff; }
-        .btn-green { background: #28a745; }
-        .btn:disabled { background: #b0bec5; }
-        #log-container { text-align: left; max-height: 250px; overflow-y: auto; font-size: 12px; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
-        .log-entry { border-bottom: 1px solid #eee; padding: 8px 0; line-height: 1.4; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #263238; color: white; }
+        .card { background: #37474f; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .btn { padding: 15px 25px; font-size: 18px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 10px 0; }
+        .btn-start { background: #00e676; color: #1b5e20; }
+        .btn-stop { background: #ff5252; color: white; }
+        #status { font-size: 1.2rem; color: #81d4fa; margin: 15px 0; font-weight: bold; }
+        .metric { font-size: 0.9rem; color: #b0bec5; margin: 5px 0; }
+        .countdown { font-size: 3rem; color: #ffeb3b; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>🛠️ Calibrage & Rafale (V5)</h3>
-        <button id="btn-start" class="btn btn-blue">1. Initialiser Système</button>
-        <button id="btn-shot" class="btn btn-green" disabled>2. Mode Rafale (3s)</button>
+        <h2>🏃 Marathon Hiragana</h2>
+        <div id="status">Système prêt</div>
+        <button id="btn-run" class="btn btn-start">LANCER LE MARATHON</button>
+        <button id="btn-stop" class="btn btn-stop" style="display:none;">ARRÊTER</button>
     </div>
 
     <div class="card">
-        <div>Gain Logiciel : <span id="gain-display" class="val">1.0</span>x</div>
-        <input type="range" id="gain-slider" min="0.2" max="10" step="0.1" value="1">
-        
-        <div>Seuil Affichage : <span id="threshold-display" class="val">90</span>%</div>
-        <input type="range" id="threshold-slider" min="25" max="99" step="1" value="90">
-
-        <div style="margin-top:10px;">RMS Instantané : <span id="rms-display" class="val">0.0000</span></div>
-        <div id="vumeter"><div id="vulevel"></div></div>
+        <div id="countdown-display" class="countdown"></div>
+        <div class="metric">Cible actuelle : <span id="target-label" style="color:white; font-weight:bold;">---</span></div>
+        <div class="metric">Gain actif : <span id="gain-val" style="color:#00e676;">1.0</span>x</div>
     </div>
 
     <div class="card">
-        <h4>Détection Temps Réel</h4>
-        <div id="res-1" style="font-size: 1.8rem; color: #2e7d32; min-height: 45px; font-weight: bold;"></div>
-        <div id="res-2" style="font-size: 1.1rem; color: #546e7a; min-height: 25px;"></div>
-    </div>
-
-    <div class="card">
-        <h4>Journal des Rafales (Top 2 complet)</h4>
-        <div id="log-container">En attente de mesures...</div>
+        <h4>Dernier résultat envoyé au PC :</h4>
+        <div id="last-res" style="font-size: 1.2rem; color: #ffeb3b;">---</div>
     </div>
 
     <script>
-       const URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/"; 
-        
-        let audioContext, gainNode, analyser, dataArray;
-        let recognizer;
-        let logCount = 0;
-        let maxRMSInShot = 0;
-        let threshold = 0.90;
-        
-        let isCapturing = false;
-        let tempBest = { label1: "Aucun", score1: 0, label2: "---", score2: 0 };
+        // --- CONFIGURATION ---
+        const TM_URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/"; 
+        const SERVER_URL = "https://marlitic-demonstratively-euna.ngrok-free.dev"; 
+        // ---------------------
 
-        async function init() {
+        let recognizer;
+        let audioContext, gainNode, analyser, dataArray;
+        let isRunning = false;
+        let currentGain = 1.0; // À ajuster selon tes tests de calibrage d'hier
+
+        async function setupAudio() {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const stream = await navigator.mediaDevices.getUserMedia({ 
                 audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
             });
-
             const source = audioContext.createMediaStreamSource(stream);
             gainNode = audioContext.createGain();
+            gainNode.gain.value = currentGain;
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 256;
             dataArray = new Float32Array(analyser.fftSize);
-
             source.connect(gainNode);
             gainNode.connect(analyser);
-
-            recognizer = speechCommands.create("BROWSER_FFT", undefined, URL + "model.json", URL + "metadata.json");
-            await recognizer.ensureModelLoaded();
-
-            document.getElementById('btn-shot').disabled = false;
-            updateLoop();
-            startContinuousListen();
         }
 
-        function startContinuousListen() {
-            const labels = recognizer.wordLabels();
-            recognizer.listen(result => {
-                const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
-                scores.sort((a, b) => b.score - a.score);
+        async function runCycle() {
+            if (!isRunning) return;
 
-                const s1 = scores[0];
-                const s2 = scores[1];
+            const status = document.getElementById('status');
+            const targetLabel = document.getElementById('target-label');
+            const countdownDisp = document.getElementById('countdown-display');
 
-                const res1 = document.getElementById('res-1');
-                const res2 = document.getElementById('res-2');
+            try {
+                // 1. Demander au PC quel est le prochain test
+                status.innerText = "Attente du PC...";
+                const response = await fetch(`${SERVER_URL}/get_next`);
+                const config = await response.json();
+                
+                targetLabel.innerText = config.expected;
+                
+                // 2. Compte à rebours synchro
+                let timeLeft = config.countdown / 1000;
+                countdownDisp.innerText = timeLeft;
+                
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    countdownDisp.innerText = timeLeft > 0 ? timeLeft : "🎤";
+                    if (timeLeft <= 0) clearInterval(timer);
+                }, 1000);
 
-                // --- LOGIQUE DE FILTRAGE ULTIME ---
-                // On vérifie si la meilleure classe est "Bruit de fond" (ou "Background noise")
-                const isBackground = s1.label.toLowerCase().includes("bruit") || s1.label.toLowerCase().includes("background");
+                // 3. Préparer la capture du meilleur score sur 3s
+                let tempBest = { label1: "---", score1: 0, label2: "---", score2: 0 };
+                let maxRMS = 0;
 
-                if (s1.score >= threshold && !isBackground) {
-                    res1.innerHTML = `${s1.label} (${(s1.score * 100).toFixed(1)}%)`;
-                    res2.innerHTML = `2. ${s2.label} (${(s2.score * 100).toFixed(1)}%)`;
-                } else {
-                    // On laisse vide
-                    res1.innerHTML = "";
-                    res2.innerHTML = "";
-                }
+                // On prévient le PC qu'on commence
+                fetch(`${SERVER_URL}/play`, { method: 'POST' });
 
-                // Pour la Rafale, on continue de tout capturer pour avoir le log complet
-                if (isCapturing) {
-                    if (s1.score > tempBest.score1) {
-                        tempBest.label1 = s1.label;
-                        tempBest.score1 = s1.score;
-                        tempBest.label2 = s2.label;
-                        tempBest.score2 = s2.score;
+                // 4. Lancement de l'écoute pendant 3 secondes
+                const labels = recognizer.wordLabels();
+                recognizer.listen(result => {
+                    // Calcul RMS
+                    analyser.getFloatTimeDomainData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
+                    let rms = Math.sqrt(sum / dataArray.length);
+                    if (rms > maxRMS) maxRMS = rms;
+
+                    const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
+                    scores.sort((a, b) => b.score - a.score);
+
+                    if (scores[0].score > tempBest.score1) {
+                        tempBest = {
+                            label1: scores[0].label, score1: scores[0].score,
+                            label2: scores[1].label, score2: scores[1].score
+                        };
                     }
+                }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
+
+                await new Promise(r => setTimeout(r, 3000));
+                await recognizer.stopListening();
+
+                // 5. Envoyer le résultat final au PC
+                status.innerText = "Envoi du résultat...";
+                await fetch(`${SERVER_URL}/log`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: config.filename,
+                        expected: config.expected,
+                        top1: tempBest.label1,
+                        score1: (tempBest.score1 * 100).toFixed(1),
+                        top2: tempBest.label2,
+                        score2: (tempBest.score2 * 100).toFixed(1),
+                        rms: maxRMS.toFixed(5),
+                        gain: currentGain
+                    })
+                });
+
+                document.getElementById('last-res').innerText = `${tempBest.label1} (${(tempBest.score1 * 100).toFixed(1)}%)`;
+                
+                // 6. Petit repos et on recommence
+                if (isRunning) {
+                    status.innerText = "Repos...";
+                    countdownDisp.innerText = "";
+                    await new Promise(r => setTimeout(r, 1000));
+                    runCycle();
                 }
 
-            }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
+            } catch (err) {
+                status.innerText = "Erreur de connexion !";
+                console.error(err);
+                isRunning = false;
+            }
         }
 
-        function updateLoop() {
-            analyser.getFloatTimeDomainData(dataArray);
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) { sum += dataArray[i] * dataArray[i]; }
-            let rms = Math.sqrt(sum / dataArray.length);
+        document.getElementById('btn-run').onclick = async () => {
+            document.getElementById('btn-run').style.display = 'none';
+            document.getElementById('btn-stop').style.display = 'block';
+            isRunning = true;
             
-            if (isCapturing && rms > maxRMSInShot) maxRMSInShot = rms;
-
-            document.getElementById('rms-display').innerText = rms.toFixed(5);
-            let barWidth = Math.min(100, rms * 600); 
-            document.getElementById('vulevel').style.width = barWidth + "%";
-            document.getElementById('vulevel').style.background = barWidth > 85 ? "#f44336" : "#4caf50";
+            document.getElementById('status').innerText = "Initialisation...";
+            await setupAudio();
+            recognizer = speechCommands.create("BROWSER_FFT", undefined, TM_URL + "model.json", TM_URL + "metadata.json");
+            await recognizer.ensureModelLoaded();
             
-            requestAnimationFrame(updateLoop);
-        }
-
-        document.getElementById('btn-shot').onclick = async () => {
-            const btn = document.getElementById('btn-shot');
-            const logContainer = document.getElementById('log-container');
-            if (logCount === 0) logContainer.innerHTML = "";
-            
-            btn.disabled = true;
-            btn.innerText = "ÉCOUTE EN COURS...";
-            
-            maxRMSInShot = 0;
-            tempBest = { label1: "Aucun", score1: 0, label2: "---", score2: 0 };
-            isCapturing = true;
-
-            await new Promise(r => setTimeout(r, 3000));
-            
-            isCapturing = false;
-            logCount++;
-            
-            const time = new Date().toLocaleTimeString();
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            
-            entry.innerHTML = `
-                <span style="color:#7f8c8d">#${logCount} [${time}]</span> | Gain: <b>${gainNode.gain.value}x</b> | RMS Max: <b>${maxRMSInShot.toFixed(4)}</b><br>
-                <span style="color:#2ecc71">🏆 Top 1: ${tempBest.label1} (${(tempBest.score1 * 100).toFixed(1)}%)</span><br>
-                <span style="color:#3498db">🥈 Top 2: ${tempBest.label2} (${(tempBest.score2 * 100).toFixed(1)}%)</span>
-            `;
-            
-            logContainer.prepend(entry);
-            btn.disabled = false;
-            btn.innerText = "2. Mode Rafale (3s)";
+            runCycle();
         };
 
-        document.getElementById('btn-start').onclick = () => {
-            init();
-            document.getElementById('btn-start').disabled = true;
-        };
-
-        document.getElementById('gain-slider').oninput = (e) => {
-            const val = e.target.value;
-            document.getElementById('gain-display').innerText = val;
-            if (gainNode) gainNode.gain.value = parseFloat(val);
-        };
-
-        document.getElementById('threshold-slider').oninput = (e) => {
-            const val = e.target.value;
-            threshold = val / 100;
-            document.getElementById('threshold-display').innerText = val;
+        document.getElementById('btn-stop').onclick = () => {
+            isRunning = false;
+            location.reload();
         };
     </script>
 </body>
 </html>
+
 
 
 
