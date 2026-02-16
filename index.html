@@ -1,3 +1,8 @@
+   <script>
+//        const SERVER_URL = "https://marlitic-demonstratively-euna.ngrok-free.dev"; 
+//        const MODEL_URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/";
+   </script>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,35 +13,32 @@
     <style>
         body { font-family: sans-serif; background: #121212; color: white; padding: 10px; }
         .card { background: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #333; }
-        button { width: 100%; padding: 15px; margin: 5px 0; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-start { background: #4CAF50; color: white; }
-        .btn-calib { background: #2196F3; color: white; }
-        .btn-stop { background: #f44336; color: white; }
-        #log-container { height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; background: #000; padding: 10px; border-radius: 5px; }
-        .stat-badge { display: inline-block; padding: 5px; background: #333; margin: 2px; border-radius: 4px; font-size: 11px; }
-        .progress-bg { background: #333; height: 10px; border-radius: 5px; margin: 10px 0; }
-        #progress-bar { background: #4CAF50; width: 0%; height: 100%; border-radius: 5px; transition: 0.3s; }
+        button { width: 100%; padding: 15px; margin: 5px 0; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white; }
+        .btn-start { background: #4CAF50; }
+        .btn-calib { background: #2196F3; }
+        .btn-stop { background: #f44336; }
+        #log-container { height: 150px; overflow-y: auto; font-family: monospace; font-size: 11px; background: #000; padding: 10px; margin-top: 10px; border-radius: 5px; }
+        .stat-badge { display: inline-block; padding: 4px; background: #333; margin: 2px; border-radius: 4px; font-size: 10px; border: 1px solid #444; }
+        .progress-bar { width: 100%; background: #333; height: 8px; border-radius: 4px; margin-top: 10px; }
+        #fill { height: 100%; background: #4CAF50; width: 0%; border-radius: 4px; transition: 0.3s; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2>Dashboard Marathon</h2>
-        <div id="stats-summary">Progression : <span id="count">0</span> / <input type="number" id="limit" value="50" style="width:50px"></div>
-        <div class="progress-bg"><div id="progress-bar"></div></div>
-        <div id="timer">Temps restant estimé : --:--</div>
+        <h3>📊 Session : <span id="count">0</span> / <input type="number" id="limit" value="50" style="width:45px; background: #333; color: white; border: none;"></h3>
         <div id="class-stats"></div>
+        <div class="progress-bar"><div id="fill"></div></div>
     </div>
 
     <div class="card">
-        <label>Gain Audio: <input type="range" id="gain" min="1" max="50" value="10"></label><br>
-        <label>Seuil (Sensibilité): <input type="range" id="threshold" min="0" max="100" value="85"></label>
-        <div id="audio-debug">Volume : 0 | Statut : Prêt</div>
+        Gain: <input type="range" id="gain" min="1" max="50" value="10" style="width: 70%;"> <span id="gainVal">10</span><br>
+        Seuil: <input type="range" id="threshold" min="0" max="100" value="80" style="width: 70%;"> <span id="threshVal">80</span>
     </div>
 
-    <button class="btn-calib" onclick="toggleMode('calib')" id="btnCalib">MODE CALIBRAGE (Loop 5)</button>
-    <button class="btn-start" onclick="toggleMode('marathon')" id="btnStart">LANCER LE MARATHON</button>
-    <button class="btn-stop" onclick="stop()">STOP</button>
+    <button class="btn-calib" onclick="startTest('calib')">🔧 MODE CALIBRAGE (Loop 5)</button>
+    <button class="btn-start" onclick="startTest('marathon')">🚀 LANCER LE MARATHON</button>
+    <button class="btn-stop" onclick="stop()">⏹️ STOP</button>
 
     <div id="log-container"></div>
 
@@ -46,113 +48,98 @@
 
         let recognizer;
         let isRunning = false;
-        let mode = ""; // "marathon" ou "calib"
-        let startTime;
+        let currentMode = "";
+
+        // Mise à jour visuelle des sliders
+        document.getElementById('gain').oninput = function() { document.getElementById('gainVal').innerText = this.value; }
+        document.getElementById('threshold').oninput = function() { document.getElementById('threshVal').innerText = this.value; }
 
         async function init() {
             const checkpointURL = MODEL_URL + "model.json";
             const metadataURL = MODEL_URL + "metadata.json";
             recognizer = speechCommands.create("BROWSER_FFT", undefined, checkpointURL, metadataURL);
             await recognizer.ensureModelLoaded();
-            log("Modèle chargé !");
+            log("✅ Modèle Teachable prêt.");
         }
 
-        async function toggleMode(m) {
+        async function startTest(mode) {
             if(isRunning) return;
-            mode = m;
             isRunning = true;
-            startTime = Date.now();
-            log("Démarrage : " + mode);
+            currentMode = mode;
+            log(`▶️ Démarrage : ${mode}`);
             runCycle();
         }
 
         async function runCycle() {
             if(!isRunning) return;
+            const headers = { "ngrok-skip-browser-warning": "true" };
 
             try {
-                // 1. Demander le prochain fichier
-                const res = await fetch(`${SERVER_URL}/get_next`, { headers: {"ngrok-skip-browser-warning": "69"} });
+                const res = await fetch(`${SERVER_URL}/get_next`, { headers });
                 const test = await res.json();
                 
-                // 2. Jouer le son sur le PC
-                await fetch(`${SERVER_URL}/play`, { method: 'POST' });
+                await fetch(`${SERVER_URL}/play`, { method: 'POST', headers });
 
-                // 3. Écouter sur Android
                 const result = await listenOnce();
 
-                // 4. Envoyer le log
                 const logRes = await fetch(`${SERVER_URL}/log`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { ...headers, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         expected: test.expected,
                         filename: test.filename,
                         top1: result.top1,
                         score1: result.score1,
-                        top2: result.top2,
-                        score2: result.score2,
                         rms: result.rms,
                         gain: document.getElementById('gain').value
                     })
                 });
 
-                const sessionData = await logRes.json();
-                updateUI(sessionData);
+                const data = await logRes.json();
+                updateUI(data);
 
-                // Continuer ou Arrêter
-                const limit = document.getElementById('limit').value;
-                if(mode === "marathon" && sessionData.total >= limit) {
+                if(currentMode === "marathon" && data.total >= document.getElementById('limit').value) {
                     stop();
-                    alert("Marathon terminé !");
+                    log("🏁 Marathon terminé !");
                 } else {
-                    setTimeout(runCycle, 1500);
+                    setTimeout(runCycle, 1000);
                 }
 
             } catch (err) {
-                log("Erreur : " + err.message);
+                log("❌ Erreur : " + err.message);
                 stop();
             }
         }
 
         async function listenOnce() {
             return new Promise(resolve => {
-                const gain = document.getElementById('gain').value;
                 const thresh = document.getElementById('threshold').value / 100;
-                
+                // CRUCIAL: includeSpectrogram: true pour éviter l'erreur .data
                 recognizer.listen(result => {
+                    recognizer.stopListening();
                     const scores = Array.from(result.scores);
                     const sorted = scores.map((s, i) => ({name: recognizer.wordLabels()[i], score: s}))
                                          .sort((a,b) => b.score - a.score);
                     
-                    recognizer.stopListening();
-                    
-                    // Calcul simplifié du volume (RMS)
-                    const rms = Math.max(...result.spectrogram.data); 
-                    
+                    let volume = 0;
+                    if(result.spectrogram && result.spectrogram.data) {
+                        volume = Math.max(...result.spectrogram.data).toFixed(2);
+                    }
+
                     resolve({
                         top1: sorted[0].score > thresh ? sorted[0].name : "---",
                         score1: Math.round(sorted[0].score * 100),
-                        top2: sorted[1].name,
-                        score2: Math.round(sorted[1].score * 100),
-                        rms: rms.toFixed(4)
+                        rms: volume
                     });
-                }, { probabilityThreshold: 0.1, overlapFactor: 0, invokeCallbackOnNoiseAndUnknown: true });
+                }, { probabilityThreshold: 0.1, overlapFactor: 0, includeSpectrogram: true });
             });
         }
 
         function updateUI(data) {
             document.getElementById('count').innerText = data.total;
             const limit = document.getElementById('limit').value;
-            const percent = (data.total / limit) * 100;
-            document.getElementById('progress-bar').style.width = percent + "%";
-
-            // Estimation temps
-            const elapsed = (Date.now() - startTime) / 1000;
-            const secPerTest = elapsed / data.total;
-            const remaining = Math.round(secPerTest * (limit - data.total));
-            document.getElementById('timer').innerText = `Reste env. ${Math.floor(remaining/60)}m ${remaining%60}s`;
-
-            // Stats par classe
+            document.getElementById('fill').style.width = Math.min(100, (data.total/limit)*100) + "%";
+            
             let html = "";
             for(let c in data.stats) {
                 let s = data.stats[c];
@@ -160,7 +147,6 @@
                 html += `<span class="stat-badge">${c}: ${pc}% (${s.total})</span>`;
             }
             document.getElementById('class-stats').innerHTML = html;
-            log(`Test ${data.total}: ${data.stats[Object.keys(data.stats)[0]].reussi} réussites`);
         }
 
         function log(m) {
@@ -168,10 +154,9 @@
             c.innerHTML = `> ${m}<br>` + c.innerHTML;
         }
 
-        function stop() { isRunning = false; log("STOPPED"); }
+        function stop() { isRunning = false; log("⏹️ Arrêté."); }
 
         init();
     </script>
 </body>
 </html>
-
