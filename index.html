@@ -77,7 +77,11 @@
             try {
                 // 1. Demander au PC quel est le prochain test
                 status.innerText = "Attente du PC...";
-                const response = await fetch(`${SERVER_URL}/get_next`);
+               const response = await fetch(`${SERVER_URL}/get_next`, {
+    headers: {
+        "ngrok-skip-browser-warning": "69420"
+    }
+});
                 const config = await response.json();
                 
                 targetLabel.innerText = config.expected;
@@ -177,6 +181,7 @@
     </script>
 </body>
 </html>
+
 
 
 
