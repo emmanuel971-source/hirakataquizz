@@ -4,88 +4,185 @@
    </script>
 
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Hiragana Test</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marathon Hiragana - Testeur Android</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
-        #log-container { background: #000; padding: 10px; height: 400px; overflow-y: auto; font-family: monospace; border: 1px solid #444; }
-        button { width: 100%; padding: 20px; background: #4CAF50; color: white; font-weight: bold; border: none; cursor: pointer; }
-        .entry { border-bottom: 1px solid #222; padding: 5px; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #263238; color: white; }
+        .card { background: #37474f; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .btn { padding: 15px 25px; font-size: 18px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 10px 0; }
+        .btn-start { background: #00e676; color: #1b5e20; }
+        .btn-stop { background: #ff5252; color: white; }
+        #status { font-size: 1.2rem; color: #81d4fa; margin: 15px 0; font-weight: bold; }
+        .metric { font-size: 0.9rem; color: #b0bec5; margin: 5px 0; }
+        .countdown { font-size: 3rem; color: #ffeb3b; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <button onclick="start()">LANCER LE TEST</button>
-    <div id="status">Chargement...</div>
-    <div id="log-container"></div>
+    <div class="card">
+        <h2>🏃 Marathon Hiragana</h2>
+        <div id="status">Système prêt</div>
+        <button id="btn-run" class="btn btn-start">LANCER LE MARATHON</button>
+        <button id="btn-stop" class="btn btn-stop" style="display:none;">ARRÊTER</button>
+    </div>
+
+    <div class="card">
+        <div id="countdown-display" class="countdown"></div>
+        <div class="metric">Cible actuelle : <span id="target-label" style="color:white; font-weight:bold;">---</span></div>
+        <div class="metric">Gain actif : <span id="gain-val" style="color:#00e676;">1.0</span>x</div>
+    </div>
+
+    <div class="card">
+        <h4>Dernier résultat envoyé au PC :</h4>
+        <div id="last-res" style="font-size: 1.2rem; color: #ffeb3b;">---</div>
+    </div>
 
     <script>
-        // --- METS TES LIENS ICI ---
+        // --- CONFIGURATION ---
+        const TM_URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/"; 
         const SERVER_URL = "https://marlitic-demonstratively-euna.ngrok-free.dev"; 
-        const MODEL_URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/";
+        // ---------------------
 
         let recognizer;
+        let audioContext, gainNode, analyser, dataArray;
         let isRunning = false;
+        let currentGain = 1.0; // À ajuster selon tes tests de calibrage d'hier
 
-        async function init() {
-            recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
-            await recognizer.ensureModelLoaded();
-            document.getElementById('status').innerText = "Prêt.";
+        async function setupAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
+            });
+            const source = audioContext.createMediaStreamSource(stream);
+            gainNode = audioContext.createGain();
+            gainNode.gain.value = currentGain;
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            dataArray = new Float32Array(analyser.fftSize);
+            source.connect(gainNode);
+            gainNode.connect(analyser);
         }
 
-        async function start() {
-            if(isRunning) return;
-            isRunning = true;
-            run();
-        }
+        async function runCycle() {
+            if (!isRunning) return;
 
-        async function run() {
-            if(!isRunning) return;
+            const status = document.getElementById('status');
+            const targetLabel = document.getElementById('target-label');
+            const countdownDisp = document.getElementById('countdown-display');
+
             try {
-                // 1. Get
-                const res = await fetch(`${SERVER_URL}/get_next`, { headers: {"ngrok-skip-browser-warning": "69"} });
-                const data = await res.json();
+                // 1. Demander au PC quel est le prochain test
+                status.innerText = "Attente du PC...";
+                const response = await fetch(`${SERVER_URL}/get_next`, {
+    headers: {
+        "ngrok-skip-browser-warning": "69420"
+    }
+});
+                const config = await response.json();
                 
-                // 2. Play
-                await fetch(`${SERVER_URL}/play`, { method: 'POST', headers: {"ngrok-skip-browser-warning": "69"} });
+                targetLabel.innerText = config.expected;
+                
+                // 2. Compte à rebours synchro
+                let timeLeft = config.countdown / 1000;
+                countdownDisp.innerText = timeLeft;
+                
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    countdownDisp.innerText = timeLeft > 0 ? timeLeft : "🎤";
+                    if (timeLeft <= 0) clearInterval(timer);
+                }, 1000);
 
-                // 3. Listen
-                const result = await new Promise(resolve => {
-                    recognizer.listen(res => {
-                        recognizer.stopListening();
-                        const scores = Array.from(res.scores);
-                        const idx = scores.indexOf(Math.max(...scores));
-                        resolve({ word: recognizer.wordLabels()[idx], score: Math.round(scores[idx]*100) });
-                    }, { probabilityThreshold: 0.7, overlapFactor: 0 });
-                });
+                // 3. Préparer la capture du meilleur score sur 3s
+                let tempBest = { label1: "---", score1: 0, label2: "---", score2: 0 };
+                let maxRMS = 0;
 
-                // 4. Log
+                // On prévient le PC qu'on commence
+                fetch(`${SERVER_URL}/play`, { method: 'POST' });
+
+                // 4. Lancement de l'écoute pendant 3 secondes
+                const labels = recognizer.wordLabels();
+                recognizer.listen(result => {
+                    // Calcul RMS
+                    analyser.getFloatTimeDomainData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
+                    let rms = Math.sqrt(sum / dataArray.length);
+                    if (rms > maxRMS) maxRMS = rms;
+
+                    const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
+                    scores.sort((a, b) => b.score - a.score);
+
+                    if (scores[0].score > tempBest.score1) {
+                        tempBest = {
+                            label1: scores[0].label, score1: scores[0].score,
+                            label2: scores[1].label, score2: scores[1].score
+                        };
+                    }
+                }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
+
+                await new Promise(r => setTimeout(r, 3000));
+                await recognizer.stopListening();
+
+                // 5. Envoyer le résultat final au PC
+                status.innerText = "Envoi du résultat...";
                 await fetch(`${SERVER_URL}/log`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "69" },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        expected: data.expected,
-                        filename: data.filename,
-                        top1: result.word,
-                        score1: result.score
+                        filename: config.filename,
+                        expected: config.expected,
+                        top1: tempBest.label1,
+                        score1: (tempBest.score1 * 100).toFixed(1),
+                        top2: tempBest.label2,
+                        score2: (tempBest.score2 * 100).toFixed(1),
+                        rms: maxRMS.toFixed(5),
+                        gain: currentGain
                     })
                 });
 
-                const log = document.getElementById('log-container');
-                log.innerHTML = `<div class="entry">${data.expected === result.word ? '✅' : '❌'} ${data.expected} -> ${result.word} (${result.score}%)</div>` + log.innerHTML;
+                document.getElementById('last-res').innerText = `${tempBest.label1} (${(tempBest.score1 * 100).toFixed(1)}%)`;
+                
+                // 6. Petit repos et on recommence
+                if (isRunning) {
+                    status.innerText = "Repos...";
+                    countdownDisp.innerText = "";
+                    await new Promise(r => setTimeout(r, 1000));
+                    runCycle();
+                }
 
-                setTimeout(run, 1000);
-            } catch (e) { isRunning = false; }
+           } catch (err) {
+    status.innerText = "Erreur : " + err.message;
+    console.error(err);
+    isRunning = false;
+}
         }
 
-        init();
+        document.getElementById('btn-run').onclick = async () => {
+            document.getElementById('btn-run').style.display = 'none';
+            document.getElementById('btn-stop').style.display = 'block';
+            isRunning = true;
+            
+            document.getElementById('status').innerText = "Initialisation...";
+            await setupAudio();
+            recognizer = speechCommands.create("BROWSER_FFT", undefined, TM_URL + "model.json", TM_URL + "metadata.json");
+            await recognizer.ensureModelLoaded();
+            
+            runCycle();
+        };
+
+        document.getElementById('btn-stop').onclick = () => {
+            isRunning = false;
+            location.reload();
+        };
     </script>
 </body>
 </html>
+
 
 
 
