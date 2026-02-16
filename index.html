@@ -79,9 +79,41 @@
         
         .hiragana-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
         }
+        
+        /* Compteur global */
+        .global-counter {
+            background: #0f3460;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 12px;
+            border: 2px solid #1a5490;
+        }
+        
+        .global-counter .total-tests {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00d9ff;
+            margin-bottom: 5px;
+        }
+        
+        .global-counter .total-label {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .global-counter .success-rate-global {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        
+        .global-counter .success-rate-global.excellent { color: #00e676; }
+        .global-counter .success-rate-global.good { color: #ffd700; }
+        .global-counter .success-rate-global.poor { color: #ff5252; }
         
         .hiragana-card {
             background: #0f3460;
@@ -253,6 +285,14 @@
     <!-- DASHBOARD STATISTIQUES PAR HIRAGANA -->
     <div class="stats-dashboard">
         <h3>📊 Statistiques par Hiragana</h3>
+        
+        <!-- Compteur global -->
+        <div class="global-counter">
+            <div class="total-tests" id="total-tests">0</div>
+            <div class="total-label">Fichiers joués au total</div>
+            <div class="success-rate-global" id="global-success-rate">---</div>
+        </div>
+        
         <div id="hiragana-grid" class="hiragana-grid">
             <div style="text-align: center; color: #888; padding: 20px; grid-column: 1 / -1;">
                 Aucune donnée pour le moment
@@ -352,6 +392,29 @@
                     headers: { "ngrok-skip-browser-warning": "69420" }
                 });
                 const data = await response.json();
+
+                // Mise à jour du compteur global
+                const totalTests = data.total_tests;
+                document.getElementById('total-tests').innerText = totalTests;
+                
+                // Calculer le taux de réussite global
+                let totalSuccess = 0;
+                let totalCount = 0;
+                
+                for (const [hiragana, info] of Object.entries(data.hiragana_stats)) {
+                    totalSuccess += (info.success_rate * info.total_tests) / 100;
+                    totalCount += info.total_tests;
+                }
+                
+                const globalSuccessRate = totalCount > 0 ? (totalSuccess / totalCount * 100).toFixed(1) : 0;
+                const globalRateElem = document.getElementById('global-success-rate');
+                globalRateElem.innerText = totalCount > 0 ? `Taux de réussite global : ${globalSuccessRate}%` : '---';
+                
+                // Coloration du taux global
+                globalRateElem.className = 'success-rate-global';
+                if (globalSuccessRate >= 80) globalRateElem.classList.add('excellent');
+                else if (globalSuccessRate >= 60) globalRateElem.classList.add('good');
+                else if (totalCount > 0) globalRateElem.classList.add('poor');
 
                 // Mise à jour des stats par hiragana
                 const grid = document.getElementById('hiragana-grid');
