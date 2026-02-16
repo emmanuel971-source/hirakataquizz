@@ -150,11 +150,11 @@
                     runCycle();
                 }
 
-            } catch (err) {
-                status.innerText = "Erreur de connexion !";
-                console.error(err);
-                isRunning = false;
-            }
+       } catch (err) {
+    status.innerText = "Erreur : " + err.message;
+    console.error(err);
+    isRunning = false;
+}
         }
 
         document.getElementById('btn-run').onclick = async () => {
@@ -177,6 +177,7 @@
     </script>
 </body>
 </html>
+
 
 
 
