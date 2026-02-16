@@ -6,40 +6,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test Hiragana Direct</title>
+    <title>Hiragana Test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; text-align: center; }
-        #status { font-weight: bold; font-size: 1.2em; margin: 20px 0; color: #4CAF50; }
-        .controls { background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
-        button { width: 100%; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        #log-container { text-align: left; background: #000; padding: 10px; border-radius: 5px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 13px; margin-top: 20px; border: 1px solid #444; }
-        .log-entry { border-bottom: 1px solid #222; padding: 5px 0; }
-        input[type=range] { width: 80%; margin: 10px 0; }
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+        #log-container { background: #000; padding: 10px; height: 400px; overflow-y: auto; font-family: monospace; border: 1px solid #444; }
+        button { width: 100%; padding: 20px; background: #4CAF50; color: white; font-weight: bold; border: none; cursor: pointer; }
+        .entry { border-bottom: 1px solid #222; padding: 5px; }
     </style>
 </head>
 <body>
 
-    <h1>Marathon Hiragana</h1>
-    
-    <div class="controls">
-        <div id="status">Prêt à commencer</div>
-        
-        <label>Gain (Volume):</label><br>
-        <input type="range" id="gain" min="1" max="50" value="10"><br>
-        
-        <label>Seuil de détection (Threshold):</label><br>
-        <input type="range" id="threshold" min="0" max="100" value="85"><br>
-        
-        <button id="startButton" onclick="startMarathon()">LANCER LE TEST</button>
-    </div>
-
+    <button onclick="start()">LANCER LE TEST</button>
+    <div id="status">Chargement...</div>
     <div id="log-container"></div>
 
     <script>
-        // --- CONFIGURATION ---
+        // --- METS TES LIENS ICI ---
         const SERVER_URL = "https://marlitic-demonstratively-euna.ngrok-free.dev"; 
         const MODEL_URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/";
 
@@ -47,108 +32,60 @@
         let isRunning = false;
 
         async function init() {
-            const checkpointURL = MODEL_URL + "model.json";
-            const metadataURL = MODEL_URL + "metadata.json";
-            recognizer = speechCommands.create("BROWSER_FFT", undefined, checkpointURL, metadataURL);
+            recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
             await recognizer.ensureModelLoaded();
-            document.getElementById('status').innerText = "Modèle chargé ! Appuyez sur Start.";
+            document.getElementById('status').innerText = "Prêt.";
         }
 
-        async function startMarathon() {
-            if (isRunning) return;
+        async function start() {
+            if(isRunning) return;
             isRunning = true;
-            document.getElementById('startButton').disabled = true;
-            document.getElementById('startButton').style.background = "#555";
-            runCycle();
+            run();
         }
 
-        async function runCycle() {
-            if (!isRunning) return;
-
+        async function run() {
+            if(!isRunning) return;
             try {
-                // 1. Demander le prochain fichier
-                const res = await fetch(`${SERVER_URL}/get_next`, {
-                    headers: { "ngrok-skip-browser-warning": "69" }
-                });
+                // 1. Get
+                const res = await fetch(`${SERVER_URL}/get_next`, { headers: {"ngrok-skip-browser-warning": "69"} });
                 const data = await res.json();
                 
-                document.getElementById('status').innerText = "Attente du son : " + data.expected;
+                // 2. Play
+                await fetch(`${SERVER_URL}/play`, { method: 'POST', headers: {"ngrok-skip-browser-warning": "69"} });
 
-                // 2. Faire jouer le son par le PC
-                await fetch(`${SERVER_URL}/play`, { 
-                    method: 'POST',
-                    headers: { "ngrok-skip-browser-warning": "69" }
+                // 3. Listen
+                const result = await new Promise(resolve => {
+                    recognizer.listen(res => {
+                        recognizer.stopListening();
+                        const scores = Array.from(res.scores);
+                        const idx = scores.indexOf(Math.max(...scores));
+                        resolve({ word: recognizer.wordLabels()[idx], score: Math.round(scores[idx]*100) });
+                    }, { probabilityThreshold: 0.7, overlapFactor: 0 });
                 });
 
-                // 3. Écouter sur Android
-                const result = await listenOnce();
-
-                // 4. Envoyer le log au serveur
+                // 4. Log
                 await fetch(`${SERVER_URL}/log`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        "ngrok-skip-browser-warning": "69"
-                    },
+                    headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "69" },
                     body: JSON.stringify({
                         expected: data.expected,
                         filename: data.filename,
                         top1: result.word,
-                        score1: result.score,
-                        rms: result.rms,
-                        gain: document.getElementById('gain').value
+                        score1: result.score
                     })
                 });
 
-                addLog(data.expected, data.filename, result.word, result.score);
+                const log = document.getElementById('log-container');
+                log.innerHTML = `<div class="entry">${data.expected === result.word ? '✅' : '❌'} ${data.expected} -> ${result.word} (${result.score}%)</div>` + log.innerHTML;
 
-                // Recommencer après un petit délai
-                setTimeout(runCycle, 1500);
-
-            } catch (err) {
-                console.error(err);
-                document.getElementById('status').innerText = "Erreur de connexion";
-                isRunning = false;
-            }
-        }
-
-        async function listenOnce() {
-            return new Promise(resolve => {
-                const threshold = document.getElementById('threshold').value / 100;
-                
-                recognizer.listen(result => {
-                    const scores = Array.from(result.scores);
-                    const maxScore = Math.max(...scores);
-                    const wordIndex = scores.indexOf(maxScore);
-                    const word = recognizer.wordLabels()[wordIndex];
-                    
-                    recognizer.stopListening();
-                    
-                    resolve({
-                        word: maxScore > threshold ? word : "---",
-                        score: Math.round(maxScore * 100),
-                        rms: 0 // Simplifié
-                    });
-                }, { 
-                    probabilityThreshold: 0.1, 
-                    overlapFactor: 0,
-                    invokeCallbackOnNoiseAndUnknown: true 
-                });
-            });
-        }
-
-        function addLog(expected, file, got, score) {
-            const container = document.getElementById('log-container');
-            const entry = document.createElement('div');
-            entry.className = "log-entry";
-            const status = (expected === got) ? "✅" : "❌";
-            entry.innerHTML = `${status} <b>${expected}</b> (${file}) -> IA a dit <b>${got}</b> (${score}%)`;
-            container.insertBefore(entry, container.firstChild);
+                setTimeout(run, 1000);
+            } catch (e) { isRunning = false; }
         }
 
         init();
     </script>
 </body>
 </html>
+
 
 
