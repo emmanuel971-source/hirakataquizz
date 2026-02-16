@@ -8,38 +8,315 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marathon Hiragana - Testeur Android</title>
+    <title>Marathon Hiragana - Dashboard Temps Réel</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #263238; color: white; }
-        .card { background: #37474f; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .btn { padding: 15px 25px; font-size: 18px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 10px 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #1a1a2e; 
+            color: #eee; 
+            padding: 15px;
+            font-size: 14px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .header h2 { 
+            font-size: 1.5rem; 
+            margin-bottom: 8px;
+            color: white;
+        }
+        
+        #status { 
+            font-size: 1rem; 
+            color: #fff; 
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .btn { 
+            padding: 12px 20px; 
+            font-size: 16px; 
+            border-radius: 8px; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold; 
+            width: 100%; 
+            margin: 8px 0;
+            transition: transform 0.2s;
+        }
+        
+        .btn:active { transform: scale(0.95); }
         .btn-start { background: #00e676; color: #1b5e20; }
         .btn-stop { background: #ff5252; color: white; }
-        #status { font-size: 1.2rem; color: #81d4fa; margin: 15px 0; font-weight: bold; }
-        .metric { font-size: 0.9rem; color: #b0bec5; margin: 5px 0; }
-        .countdown { font-size: 3rem; color: #ffeb3b; font-weight: bold; }
+        
+        /* DASHBOARD STATISTIQUES PAR HIRAGANA */
+        .stats-dashboard {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #0f3460;
+        }
+        
+        .stats-dashboard h3 {
+            color: #00d9ff;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            text-align: center;
+            border-bottom: 2px solid #0f3460;
+            padding-bottom: 8px;
+        }
+        
+        .hiragana-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .hiragana-card {
+            background: #0f3460;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #1a5490;
+        }
+        
+        .hiragana-card.excellent { border-color: #00e676; }
+        .hiragana-card.good { border-color: #ffd700; }
+        .hiragana-card.poor { border-color: #ff5252; }
+        
+        .hiragana-char {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00d9ff;
+            margin-bottom: 5px;
+        }
+        
+        .hiragana-success {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .hiragana-success.excellent { color: #00e676; }
+        .hiragana-success.good { color: #ffd700; }
+        .hiragana-success.poor { color: #ff5252; }
+        
+        .hiragana-rms {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        .hiragana-tests {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 3px;
+        }
+        
+        /* RÉSULTAT ACTUEL */
+        .current-result {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #0f3460;
+        }
+        
+        .current-result h3 {
+            color: #ffeb3b;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        .countdown { 
+            font-size: 2.5rem; 
+            color: #ffeb3b; 
+            font-weight: bold; 
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .result-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            margin: 5px 0;
+            background: #0f3460;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        
+        .result-label { color: #aaa; }
+        .result-value { 
+            font-weight: bold; 
+            color: #fff;
+        }
+        
+        .result-value.success { color: #00e676; }
+        .result-value.warning { color: #ffd700; }
+        
+        /* MINI TABLEUR */
+        .table-container {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #0f3460;
+        }
+        
+        .table-container h3 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            text-align: center;
+            border-bottom: 2px solid #0f3460;
+            padding-bottom: 8px;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        
+        thead {
+            position: sticky;
+            top: 0;
+            background: #0f3460;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 10px 8px;
+            text-align: left;
+            color: #00d9ff;
+            font-weight: bold;
+            border-bottom: 2px solid #1a5490;
+            font-size: 0.8rem;
+        }
+        
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #0f3460;
+            color: #ddd;
+        }
+        
+        tr:hover {
+            background: #0f3460;
+        }
+        
+        .row-new {
+            background: #1a5490 !important;
+            animation: highlight 1s ease-in-out;
+        }
+        
+        @keyframes highlight {
+            0% { background: #00e676; }
+            100% { background: #1a5490; }
+        }
+        
+        .match-success { color: #00e676; font-weight: bold; }
+        .match-fail { color: #ff5252; font-weight: bold; }
+        
+        .score-high { color: #00e676; }
+        .score-medium { color: #ffd700; }
+        .score-low { color: #ff5252; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>🏃 Marathon Hiragana</h2>
+    <!-- HEADER AVEC CONTRÔLES -->
+    <div class="header">
+        <h2>🏃 Marathon Hiragana - Dashboard</h2>
         <div id="status">Système prêt</div>
         <button id="btn-run" class="btn btn-start">LANCER LE MARATHON</button>
         <button id="btn-stop" class="btn btn-stop" style="display:none;">ARRÊTER</button>
     </div>
 
-    <div class="card">
-        <div id="countdown-display" class="countdown"></div>
-        <div class="metric">Cible actuelle : <span id="target-label" style="color:white; font-weight:bold;">---</span></div>
-        <div class="metric">Gain actif : <span id="gain-val" style="color:#00e676;">1.0</span>x</div>
+    <!-- DASHBOARD STATISTIQUES PAR HIRAGANA -->
+    <div class="stats-dashboard">
+        <h3>📊 Statistiques par Hiragana</h3>
+        <div id="hiragana-grid" class="hiragana-grid">
+            <div style="text-align: center; color: #888; padding: 20px; grid-column: 1 / -1;">
+                Aucune donnée pour le moment
+            </div>
+        </div>
     </div>
 
-    <div class="card">
-        <h4>Dernier résultat envoyé au PC :</h4>
-        <div id="last-res" style="font-size: 1.2rem; color: #ffeb3b;">---</div>
+    <!-- RÉSULTAT ACTUEL -->
+    <div class="current-result">
+        <h3>🎤 Test en cours</h3>
+        <div id="countdown-display" class="countdown"></div>
+        <div class="result-line">
+            <span class="result-label">Cible :</span>
+            <span id="target-label" class="result-value">---</span>
+        </div>
+        <div class="result-line">
+            <span class="result-label">Détecté (Top 1) :</span>
+            <span id="detected-top1" class="result-value">---</span>
+        </div>
+        <div class="result-line">
+            <span class="result-label">Confiance :</span>
+            <span id="confidence-top1" class="result-value">---</span>
+        </div>
+        <div class="result-line">
+            <span class="result-label">Top 2 :</span>
+            <span id="detected-top2" class="result-value">---</span>
+        </div>
+        <div class="result-line">
+            <span class="result-label">Confiance (Top 2) :</span>
+            <span id="confidence-top2" class="result-value">---</span>
+        </div>
+        <div class="result-line">
+            <span class="result-label">Gain actif :</span>
+            <span id="gain-val" class="result-value success">1.0x</span>
+        </div>
+    </div>
+
+    <!-- MINI TABLEUR -->
+    <div class="table-container">
+        <h3>📋 Historique des 10 derniers tests</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Heure</th>
+                        <th>Fichier</th>
+                        <th>Attendu</th>
+                        <th>Top1</th>
+                        <th>Score1</th>
+                        <th>Top2</th>
+                        <th>Score2</th>
+                        <th>RMS</th>
+                        <th>Gain</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table">
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: #888; padding: 20px;">
+                            Aucun test effectué
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
@@ -51,7 +328,7 @@
         let recognizer;
         let audioContext, gainNode, analyser, dataArray;
         let isRunning = false;
-        let currentGain = 1.0; // À ajuster selon tes tests de calibrage d'hier
+        let currentGain = 1.0;
 
         async function setupAudio() {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -68,24 +345,107 @@
             gainNode.connect(analyser);
         }
 
+        // 📊 MISE À JOUR DU DASHBOARD
+        async function updateDashboard() {
+            try {
+                const response = await fetch(`${SERVER_URL}/get_session_stats`, {
+                    headers: { "ngrok-skip-browser-warning": "69420" }
+                });
+                const data = await response.json();
+
+                // Mise à jour des stats par hiragana
+                const grid = document.getElementById('hiragana-grid');
+                const stats = data.hiragana_stats;
+
+                if (Object.keys(stats).length === 0) {
+                    grid.innerHTML = '<div style="text-align: center; color: #888; padding: 20px; grid-column: 1 / -1;">Aucune donnée pour le moment</div>';
+                } else {
+                    grid.innerHTML = '';
+                    for (const [hiragana, info] of Object.entries(stats)) {
+                        const card = document.createElement('div');
+                        card.className = 'hiragana-card';
+                        
+                        // Couleur selon taux de réussite
+                        let rateClass = 'poor';
+                        if (info.success_rate >= 80) rateClass = 'excellent';
+                        else if (info.success_rate >= 60) rateClass = 'good';
+                        
+                        card.classList.add(rateClass);
+                        
+                        card.innerHTML = `
+                            <div class="hiragana-char">${hiragana}</div>
+                            <div class="hiragana-success ${rateClass}">${info.success_rate}%</div>
+                            <div class="hiragana-rms">RMS moy: ${info.avg_rms}</div>
+                            <div class="hiragana-tests">${info.total_tests} tests</div>
+                        `;
+                        
+                        grid.appendChild(card);
+                    }
+                }
+
+                // Mise à jour du tableau historique
+                const tbody = document.getElementById('history-table');
+                const tests = data.last_10_tests;
+
+                if (tests.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #888; padding: 20px;">Aucun test effectué</td></tr>';
+                } else {
+                    tbody.innerHTML = '';
+                    tests.forEach((test, index) => {
+                        const row = document.createElement('tr');
+                        if (index === 0) row.className = 'row-new'; // Highlight dernière ligne
+                        
+                        const time = test.timestamp.split(' ')[1]; // Garder que l'heure
+                        const matchClass = test.top1 === test.expected ? 'match-success' : 'match-fail';
+                        
+                        const scoreClass1 = test.score1 >= 80 ? 'score-high' : (test.score1 >= 60 ? 'score-medium' : 'score-low');
+                        const scoreClass2 = test.score2 >= 80 ? 'score-high' : (test.score2 >= 60 ? 'score-medium' : 'score-low');
+                        
+                        row.innerHTML = `
+                            <td>${time}</td>
+                            <td style="font-size: 0.75rem;">${test.filename}</td>
+                            <td><strong>${test.expected}</strong></td>
+                            <td class="${matchClass}">${test.top1}</td>
+                            <td class="${scoreClass1}">${test.score1}%</td>
+                            <td>${test.top2}</td>
+                            <td class="${scoreClass2}">${test.score2}%</td>
+                            <td>${test.rms}</td>
+                            <td>${test.gain}</td>
+                        `;
+                        
+                        tbody.appendChild(row);
+                    });
+                }
+
+            } catch (err) {
+                console.error("Erreur mise à jour dashboard:", err);
+            }
+        }
+
         async function runCycle() {
             if (!isRunning) return;
 
             const status = document.getElementById('status');
             const targetLabel = document.getElementById('target-label');
             const countdownDisp = document.getElementById('countdown-display');
+            const detectedTop1 = document.getElementById('detected-top1');
+            const confidenceTop1 = document.getElementById('confidence-top1');
+            const detectedTop2 = document.getElementById('detected-top2');
+            const confidenceTop2 = document.getElementById('confidence-top2');
 
             try {
                 // 1. Demander au PC quel est le prochain test
                 status.innerText = "Attente du PC...";
                 const response = await fetch(`${SERVER_URL}/get_next`, {
-    headers: {
-        "ngrok-skip-browser-warning": "69420"
-    }
-});
+                    headers: { "ngrok-skip-browser-warning": "69420" }
+                });
                 const config = await response.json();
                 
                 targetLabel.innerText = config.expected;
+                detectedTop1.innerText = "---";
+                confidenceTop1.innerText = "---";
+                detectedTop2.innerText = "---";
+                confidenceTop2.innerText = "---";
                 
                 // 2. Compte à rebours synchro
                 let timeLeft = config.countdown / 1000;
@@ -122,6 +482,19 @@
                             label1: scores[0].label, score1: scores[0].score,
                             label2: scores[1].label, score2: scores[1].score
                         };
+                        
+                        // Mise à jour temps réel du résultat actuel
+                        detectedTop1.innerText = tempBest.label1;
+                        confidenceTop1.innerText = `${(tempBest.score1 * 100).toFixed(1)}%`;
+                        detectedTop2.innerText = tempBest.label2;
+                        confidenceTop2.innerText = `${(tempBest.score2 * 100).toFixed(1)}%`;
+                        
+                        // Coloration selon match
+                        if (tempBest.label1 === config.expected) {
+                            detectedTop1.className = 'result-value success';
+                        } else {
+                            detectedTop1.className = 'result-value warning';
+                        }
                     }
                 }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
 
@@ -145,9 +518,10 @@
                     })
                 });
 
-                document.getElementById('last-res').innerText = `${tempBest.label1} (${(tempBest.score1 * 100).toFixed(1)}%)`;
+                // 6. Mettre à jour le dashboard après chaque test
+                await updateDashboard();
                 
-                // 6. Petit repos et on recommence
+                // 7. Petit repos et on recommence
                 if (isRunning) {
                     status.innerText = "Repos...";
                     countdownDisp.innerText = "";
@@ -156,10 +530,10 @@
                 }
 
            } catch (err) {
-    status.innerText = "Erreur : " + err.message;
-    console.error(err);
-    isRunning = false;
-}
+                status.innerText = "Erreur : " + err.message;
+                console.error(err);
+                isRunning = false;
+            }
         }
 
         document.getElementById('btn-run').onclick = async () => {
@@ -182,6 +556,7 @@
     </script>
 </body>
 </html>
+
 
 
 
