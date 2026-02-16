@@ -4,178 +4,151 @@
    </script>
 
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marathon Hiragana - Testeur Android</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
+    <title>Test Hiragana Direct</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #263238; color: white; }
-        .card { background: #37474f; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .btn { padding: 15px 25px; font-size: 18px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 10px 0; }
-        .btn-start { background: #00e676; color: #1b5e20; }
-        .btn-stop { background: #ff5252; color: white; }
-        #status { font-size: 1.2rem; color: #81d4fa; margin: 15px 0; font-weight: bold; }
-        .metric { font-size: 0.9rem; color: #b0bec5; margin: 5px 0; }
-        .countdown { font-size: 3rem; color: #ffeb3b; font-weight: bold; }
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; text-align: center; }
+        #status { font-weight: bold; font-size: 1.2em; margin: 20px 0; color: #4CAF50; }
+        .controls { background: #1e1e1e; padding: 20px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
+        button { width: 100%; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #log-container { text-align: left; background: #000; padding: 10px; border-radius: 5px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 13px; margin-top: 20px; border: 1px solid #444; }
+        .log-entry { border-bottom: 1px solid #222; padding: 5px 0; }
+        input[type=range] { width: 80%; margin: 10px 0; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>🏃 Marathon Hiragana</h2>
-        <div id="status">Système prêt</div>
-        <button id="btn-run" class="btn btn-start">LANCER LE MARATHON</button>
-        <button id="btn-stop" class="btn btn-stop" style="display:none;">ARRÊTER</button>
+    <h1>Marathon Hiragana</h1>
+    
+    <div class="controls">
+        <div id="status">Prêt à commencer</div>
+        
+        <label>Gain (Volume):</label><br>
+        <input type="range" id="gain" min="1" max="50" value="10"><br>
+        
+        <label>Seuil de détection (Threshold):</label><br>
+        <input type="range" id="threshold" min="0" max="100" value="85"><br>
+        
+        <button id="startButton" onclick="startMarathon()">LANCER LE TEST</button>
     </div>
 
-    <div class="card">
-        <div id="countdown-display" class="countdown"></div>
-        <div class="metric">Cible actuelle : <span id="target-label" style="color:white; font-weight:bold;">---</span></div>
-        <div class="metric">Gain actif : <span id="gain-val" style="color:#00e676;">1.0</span>x</div>
-    </div>
-
-    <div class="card">
-        <h4>Dernier résultat envoyé au PC :</h4>
-        <div id="last-res" style="font-size: 1.2rem; color: #ffeb3b;">---</div>
-    </div>
+    <div id="log-container"></div>
 
     <script>
         // --- CONFIGURATION ---
-        const TM_URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/"; 
-         const SERVER_URL = "https://marlitic-demonstratively-euna.ngrok-free.dev"; 
-        // ---------------------
+        const SERVER_URL = "https://marlitic-demonstratively-euna.ngrok-free.dev"; 
+        const MODEL_URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/";
 
         let recognizer;
-        let audioContext, gainNode, analyser, dataArray;
         let isRunning = false;
-        let currentGain = 1.0; // À ajuster selon tes tests de calibrage d'hier
 
-        async function setupAudio() {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
-            });
-            const source = audioContext.createMediaStreamSource(stream);
-            gainNode = audioContext.createGain();
-            gainNode.gain.value = currentGain;
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            dataArray = new Float32Array(analyser.fftSize);
-            source.connect(gainNode);
-            gainNode.connect(analyser);
+        async function init() {
+            const checkpointURL = MODEL_URL + "model.json";
+            const metadataURL = MODEL_URL + "metadata.json";
+            recognizer = speechCommands.create("BROWSER_FFT", undefined, checkpointURL, metadataURL);
+            await recognizer.ensureModelLoaded();
+            document.getElementById('status').innerText = "Modèle chargé ! Appuyez sur Start.";
+        }
+
+        async function startMarathon() {
+            if (isRunning) return;
+            isRunning = true;
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('startButton').style.background = "#555";
+            runCycle();
         }
 
         async function runCycle() {
             if (!isRunning) return;
 
-            const status = document.getElementById('status');
-            const targetLabel = document.getElementById('target-label');
-            const countdownDisp = document.getElementById('countdown-display');
-
             try {
-                // 1. Demander au PC quel est le prochain test
-                status.innerText = "Attente du PC...";
-                const response = await fetch(`${SERVER_URL}/get_next`);
-                const config = await response.json();
+                // 1. Demander le prochain fichier
+                const res = await fetch(`${SERVER_URL}/get_next`, {
+                    headers: { "ngrok-skip-browser-warning": "69" }
+                });
+                const data = await res.json();
                 
-                targetLabel.innerText = config.expected;
-                
-                // 2. Compte à rebours synchro
-                let timeLeft = config.countdown / 1000;
-                countdownDisp.innerText = timeLeft;
-                
-                const timer = setInterval(() => {
-                    timeLeft--;
-                    countdownDisp.innerText = timeLeft > 0 ? timeLeft : "🎤";
-                    if (timeLeft <= 0) clearInterval(timer);
-                }, 1000);
+                document.getElementById('status').innerText = "Attente du son : " + data.expected;
 
-                // 3. Préparer la capture du meilleur score sur 3s
-                let tempBest = { label1: "---", score1: 0, label2: "---", score2: 0 };
-                let maxRMS = 0;
+                // 2. Faire jouer le son par le PC
+                await fetch(`${SERVER_URL}/play`, { 
+                    method: 'POST',
+                    headers: { "ngrok-skip-browser-warning": "69" }
+                });
 
-                // On prévient le PC qu'on commence
-                fetch(`${SERVER_URL}/play`, { method: 'POST' });
+                // 3. Écouter sur Android
+                const result = await listenOnce();
 
-                // 4. Lancement de l'écoute pendant 3 secondes
-                const labels = recognizer.wordLabels();
-                recognizer.listen(result => {
-                    // Calcul RMS
-                    analyser.getFloatTimeDomainData(dataArray);
-                    let sum = 0;
-                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
-                    let rms = Math.sqrt(sum / dataArray.length);
-                    if (rms > maxRMS) maxRMS = rms;
-
-                    const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
-                    scores.sort((a, b) => b.score - a.score);
-
-                    if (scores[0].score > tempBest.score1) {
-                        tempBest = {
-                            label1: scores[0].label, score1: scores[0].score,
-                            label2: scores[1].label, score2: scores[1].score
-                        };
-                    }
-                }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
-
-                await new Promise(r => setTimeout(r, 3000));
-                await recognizer.stopListening();
-
-                // 5. Envoyer le résultat final au PC
-                status.innerText = "Envoi du résultat...";
+                // 4. Envoyer le log au serveur
                 await fetch(`${SERVER_URL}/log`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        "ngrok-skip-browser-warning": "69"
+                    },
                     body: JSON.stringify({
-                        filename: config.filename,
-                        expected: config.expected,
-                        top1: tempBest.label1,
-                        score1: (tempBest.score1 * 100).toFixed(1),
-                        top2: tempBest.label2,
-                        score2: (tempBest.score2 * 100).toFixed(1),
-                        rms: maxRMS.toFixed(5),
-                        gain: currentGain
+                        expected: data.expected,
+                        filename: data.filename,
+                        top1: result.word,
+                        score1: result.score,
+                        rms: result.rms,
+                        gain: document.getElementById('gain').value
                     })
                 });
 
-                document.getElementById('last-res').innerText = `${tempBest.label1} (${(tempBest.score1 * 100).toFixed(1)}%)`;
-                
-                // 6. Petit repos et on recommence
-                if (isRunning) {
-                    status.innerText = "Repos...";
-                    countdownDisp.innerText = "";
-                    await new Promise(r => setTimeout(r, 1000));
-                    runCycle();
-                }
+                addLog(data.expected, data.filename, result.word, result.score);
+
+                // Recommencer après un petit délai
+                setTimeout(runCycle, 1500);
 
             } catch (err) {
-                status.innerText = "Erreur de connexion !";
                 console.error(err);
+                document.getElementById('status').innerText = "Erreur de connexion";
                 isRunning = false;
             }
         }
 
-        document.getElementById('btn-run').onclick = async () => {
-            document.getElementById('btn-run').style.display = 'none';
-            document.getElementById('btn-stop').style.display = 'block';
-            isRunning = true;
-            
-            document.getElementById('status').innerText = "Initialisation...";
-            await setupAudio();
-            recognizer = speechCommands.create("BROWSER_FFT", undefined, TM_URL + "model.json", TM_URL + "metadata.json");
-            await recognizer.ensureModelLoaded();
-            
-            runCycle();
-        };
+        async function listenOnce() {
+            return new Promise(resolve => {
+                const threshold = document.getElementById('threshold').value / 100;
+                
+                recognizer.listen(result => {
+                    const scores = Array.from(result.scores);
+                    const maxScore = Math.max(...scores);
+                    const wordIndex = scores.indexOf(maxScore);
+                    const word = recognizer.wordLabels()[wordIndex];
+                    
+                    recognizer.stopListening();
+                    
+                    resolve({
+                        word: maxScore > threshold ? word : "---",
+                        score: Math.round(maxScore * 100),
+                        rms: 0 // Simplifié
+                    });
+                }, { 
+                    probabilityThreshold: 0.1, 
+                    overlapFactor: 0,
+                    invokeCallbackOnNoiseAndUnknown: true 
+                });
+            });
+        }
 
-        document.getElementById('btn-stop').onclick = () => {
-            isRunning = false;
-            location.reload();
-        };
+        function addLog(expected, file, got, score) {
+            const container = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = "log-entry";
+            const status = (expected === got) ? "✅" : "❌";
+            entry.innerHTML = `${status} <b>${expected}</b> (${file}) -> IA a dit <b>${got}</b> (${score}%)`;
+            container.insertBefore(entry, container.firstChild);
+        }
+
+        init();
     </script>
 </body>
 </html>
+
 
