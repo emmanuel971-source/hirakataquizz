@@ -1,191 +1,176 @@
-<script>
-        // --- REMPLACE PAR TON LIEN ---
-      //    const URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/"; 
-</script>        
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marathon Hiragana - Testeur Android</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
+    <title>Marathon Hiragana Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #263238; color: white; }
-        .card { background: #37474f; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .btn { padding: 15px 25px; font-size: 18px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 10px 0; }
-        .btn-start { background: #00e676; color: #1b5e20; }
-        .btn-stop { background: #ff5252; color: white; }
-        #status { font-size: 1.2rem; color: #81d4fa; margin: 15px 0; font-weight: bold; }
-        .metric { font-size: 0.9rem; color: #b0bec5; margin: 5px 0; }
-        .countdown { font-size: 3rem; color: #ffeb3b; font-weight: bold; }
+        body { font-family: sans-serif; background: #121212; color: white; padding: 10px; }
+        .card { background: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #333; }
+        button { width: 100%; padding: 15px; margin: 5px 0; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-start { background: #4CAF50; color: white; }
+        .btn-calib { background: #2196F3; color: white; }
+        .btn-stop { background: #f44336; color: white; }
+        #log-container { height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; background: #000; padding: 10px; border-radius: 5px; }
+        .stat-badge { display: inline-block; padding: 5px; background: #333; margin: 2px; border-radius: 4px; font-size: 11px; }
+        .progress-bg { background: #333; height: 10px; border-radius: 5px; margin: 10px 0; }
+        #progress-bar { background: #4CAF50; width: 0%; height: 100%; border-radius: 5px; transition: 0.3s; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2>🏃 Marathon Hiragana</h2>
-        <div id="status">Système prêt</div>
-        <button id="btn-run" class="btn btn-start">LANCER LE MARATHON</button>
-        <button id="btn-stop" class="btn btn-stop" style="display:none;">ARRÊTER</button>
+        <h2>Dashboard Marathon</h2>
+        <div id="stats-summary">Progression : <span id="count">0</span> / <input type="number" id="limit" value="50" style="width:50px"></div>
+        <div class="progress-bg"><div id="progress-bar"></div></div>
+        <div id="timer">Temps restant estimé : --:--</div>
+        <div id="class-stats"></div>
     </div>
 
     <div class="card">
-        <div id="countdown-display" class="countdown"></div>
-        <div class="metric">Cible actuelle : <span id="target-label" style="color:white; font-weight:bold;">---</span></div>
-        <div class="metric">Gain actif : <span id="gain-val" style="color:#00e676;">1.0</span>x</div>
+        <label>Gain Audio: <input type="range" id="gain" min="1" max="50" value="10"></label><br>
+        <label>Seuil (Sensibilité): <input type="range" id="threshold" min="0" max="100" value="85"></label>
+        <div id="audio-debug">Volume : 0 | Statut : Prêt</div>
     </div>
 
-    <div class="card">
-        <h4>Dernier résultat envoyé au PC :</h4>
-        <div id="last-res" style="font-size: 1.2rem; color: #ffeb3b;">---</div>
-    </div>
+    <button class="btn-calib" onclick="toggleMode('calib')" id="btnCalib">MODE CALIBRAGE (Loop 5)</button>
+    <button class="btn-start" onclick="toggleMode('marathon')" id="btnStart">LANCER LE MARATHON</button>
+    <button class="btn-stop" onclick="stop()">STOP</button>
+
+    <div id="log-container"></div>
 
     <script>
-        // --- CONFIGURATION ---
-        const TM_URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/"; 
-        const SERVER_URL = "https://marlitic-demonstratively-euna.ngrok-free.dev"; 
-        // ---------------------
+        const SERVER_URL = "https://VOTRE_LIEN_NGROK.ngrok-free.dev"; 
+        const MODEL_URL = "https://teachablemachine.withgoogle.com/models/VOTRE_ID/";
 
         let recognizer;
-        let audioContext, gainNode, analyser, dataArray;
         let isRunning = false;
-        let currentGain = 1.0; // À ajuster selon tes tests de calibrage d'hier
+        let mode = ""; // "marathon" ou "calib"
+        let startTime;
 
-        async function setupAudio() {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
-            });
-            const source = audioContext.createMediaStreamSource(stream);
-            gainNode = audioContext.createGain();
-            gainNode.gain.value = currentGain;
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            dataArray = new Float32Array(analyser.fftSize);
-            source.connect(gainNode);
-            gainNode.connect(analyser);
+        async function init() {
+            const checkpointURL = MODEL_URL + "model.json";
+            const metadataURL = MODEL_URL + "metadata.json";
+            recognizer = speechCommands.create("BROWSER_FFT", undefined, checkpointURL, metadataURL);
+            await recognizer.ensureModelLoaded();
+            log("Modèle chargé !");
+        }
+
+        async function toggleMode(m) {
+            if(isRunning) return;
+            mode = m;
+            isRunning = true;
+            startTime = Date.now();
+            log("Démarrage : " + mode);
+            runCycle();
         }
 
         async function runCycle() {
-            if (!isRunning) return;
-
-            const status = document.getElementById('status');
-            const targetLabel = document.getElementById('target-label');
-            const countdownDisp = document.getElementById('countdown-display');
+            if(!isRunning) return;
 
             try {
-                // 1. Demander au PC quel est le prochain test
-                status.innerText = "Attente du PC...";
-               const response = await fetch(`${SERVER_URL}/get_next`, {
-    headers: {
-        "ngrok-skip-browser-warning": "69420"
-    }
-});
-                const config = await response.json();
+                // 1. Demander le prochain fichier
+                const res = await fetch(`${SERVER_URL}/get_next`, { headers: {"ngrok-skip-browser-warning": "69"} });
+                const test = await res.json();
                 
-                targetLabel.innerText = config.expected;
-                
-                // 2. Compte à rebours synchro
-                let timeLeft = config.countdown / 1000;
-                countdownDisp.innerText = timeLeft;
-                
-                const timer = setInterval(() => {
-                    timeLeft--;
-                    countdownDisp.innerText = timeLeft > 0 ? timeLeft : "🎤";
-                    if (timeLeft <= 0) clearInterval(timer);
-                }, 1000);
+                // 2. Jouer le son sur le PC
+                await fetch(`${SERVER_URL}/play`, { method: 'POST' });
 
-                // 3. Préparer la capture du meilleur score sur 3s
-                let tempBest = { label1: "---", score1: 0, label2: "---", score2: 0 };
-                let maxRMS = 0;
+                // 3. Écouter sur Android
+                const result = await listenOnce();
 
-                // On prévient le PC qu'on commence
-                fetch(`${SERVER_URL}/play`, { method: 'POST' });
-
-                // 4. Lancement de l'écoute pendant 3 secondes
-                const labels = recognizer.wordLabels();
-                recognizer.listen(result => {
-                    // Calcul RMS
-                    analyser.getFloatTimeDomainData(dataArray);
-                    let sum = 0;
-                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
-                    let rms = Math.sqrt(sum / dataArray.length);
-                    if (rms > maxRMS) maxRMS = rms;
-
-                    const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
-                    scores.sort((a, b) => b.score - a.score);
-
-                    if (scores[0].score > tempBest.score1) {
-                        tempBest = {
-                            label1: scores[0].label, score1: scores[0].score,
-                            label2: scores[1].label, score2: scores[1].score
-                        };
-                    }
-                }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
-
-                await new Promise(r => setTimeout(r, 3000));
-                await recognizer.stopListening();
-
-                // 5. Envoyer le résultat final au PC
-                status.innerText = "Envoi du résultat...";
-                await fetch(`${SERVER_URL}/log`, {
+                // 4. Envoyer le log
+                const logRes = await fetch(`${SERVER_URL}/log`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        filename: config.filename,
-                        expected: config.expected,
-                        top1: tempBest.label1,
-                        score1: (tempBest.score1 * 100).toFixed(1),
-                        top2: tempBest.label2,
-                        score2: (tempBest.score2 * 100).toFixed(1),
-                        rms: maxRMS.toFixed(5),
-                        gain: currentGain
+                        expected: test.expected,
+                        filename: test.filename,
+                        top1: result.top1,
+                        score1: result.score1,
+                        top2: result.top2,
+                        score2: result.score2,
+                        rms: result.rms,
+                        gain: document.getElementById('gain').value
                     })
                 });
 
-                document.getElementById('last-res').innerText = `${tempBest.label1} (${(tempBest.score1 * 100).toFixed(1)}%)`;
-                
-                // 6. Petit repos et on recommence
-                if (isRunning) {
-                    status.innerText = "Repos...";
-                    countdownDisp.innerText = "";
-                    await new Promise(r => setTimeout(r, 1000));
-                    runCycle();
+                const sessionData = await logRes.json();
+                updateUI(sessionData);
+
+                // Continuer ou Arrêter
+                const limit = document.getElementById('limit').value;
+                if(mode === "marathon" && sessionData.total >= limit) {
+                    stop();
+                    alert("Marathon terminé !");
+                } else {
+                    setTimeout(runCycle, 1500);
                 }
 
-       } catch (err) {
-    status.innerText = "Erreur : " + err.message;
-    console.error(err);
-    isRunning = false;
-}
+            } catch (err) {
+                log("Erreur : " + err.message);
+                stop();
+            }
         }
 
-        document.getElementById('btn-run').onclick = async () => {
-            document.getElementById('btn-run').style.display = 'none';
-            document.getElementById('btn-stop').style.display = 'block';
-            isRunning = true;
-            
-            document.getElementById('status').innerText = "Initialisation...";
-            await setupAudio();
-            recognizer = speechCommands.create("BROWSER_FFT", undefined, TM_URL + "model.json", TM_URL + "metadata.json");
-            await recognizer.ensureModelLoaded();
-            
-            runCycle();
-        };
+        async function listenOnce() {
+            return new Promise(resolve => {
+                const gain = document.getElementById('gain').value;
+                const thresh = document.getElementById('threshold').value / 100;
+                
+                recognizer.listen(result => {
+                    const scores = Array.from(result.scores);
+                    const sorted = scores.map((s, i) => ({name: recognizer.wordLabels()[i], score: s}))
+                                         .sort((a,b) => b.score - a.score);
+                    
+                    recognizer.stopListening();
+                    
+                    // Calcul simplifié du volume (RMS)
+                    const rms = Math.max(...result.spectrogram.data); 
+                    
+                    resolve({
+                        top1: sorted[0].score > thresh ? sorted[0].name : "---",
+                        score1: Math.round(sorted[0].score * 100),
+                        top2: sorted[1].name,
+                        score2: Math.round(sorted[1].score * 100),
+                        rms: rms.toFixed(4)
+                    });
+                }, { probabilityThreshold: 0.1, overlapFactor: 0, invokeCallbackOnNoiseAndUnknown: true });
+            });
+        }
 
-        document.getElementById('btn-stop').onclick = () => {
-            isRunning = false;
-            location.reload();
-        };
+        function updateUI(data) {
+            document.getElementById('count').innerText = data.total;
+            const limit = document.getElementById('limit').value;
+            const percent = (data.total / limit) * 100;
+            document.getElementById('progress-bar').style.width = percent + "%";
+
+            // Estimation temps
+            const elapsed = (Date.now() - startTime) / 1000;
+            const secPerTest = elapsed / data.total;
+            const remaining = Math.round(secPerTest * (limit - data.total));
+            document.getElementById('timer').innerText = `Reste env. ${Math.floor(remaining/60)}m ${remaining%60}s`;
+
+            // Stats par classe
+            let html = "";
+            for(let c in data.stats) {
+                let s = data.stats[c];
+                let pc = s.total > 0 ? Math.round((s.reussi/s.total)*100) : 0;
+                html += `<span class="stat-badge">${c}: ${pc}% (${s.total})</span>`;
+            }
+            document.getElementById('class-stats').innerHTML = html;
+            log(`Test ${data.total}: ${data.stats[Object.keys(data.stats)[0]].reussi} réussites`);
+        }
+
+        function log(m) {
+            const c = document.getElementById('log-container');
+            c.innerHTML = `> ${m}<br>` + c.innerHTML;
+        }
+
+        function stop() { isRunning = false; log("STOPPED"); }
+
+        init();
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
