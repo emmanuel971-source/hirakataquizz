@@ -1,626 +1,367 @@
-   <script>
-//        const SERVER_URL = "https://marlitic-demonstratively-euna.ngrok-free.dev"; 
-//        const MODEL_URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/";
-   </script>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marathon Hiragana - Dashboard Temps Réel</title>
+    <title>Quiz Vocal Hiragana - Protocole de Test</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: #1a1a2e; 
-            color: #eee; 
-            padding: 15px;
-            font-size: 14px;
-        }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; background: #f0f2f5; color: #1c1e21; }
+        .container { max-width: 600px; margin: 0 auto; }
         
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
+        /* Cartes */
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; transition: 0.3s; }
         
-        .header h2 { 
-            font-size: 1.5rem; 
-            margin-bottom: 8px;
-            color: white;
-        }
+        /* Zone Quiz */
+        #quiz-card { display: none; border: 4px solid transparent; }
+        .quiz-active { border-color: #2196f3 !important; }
+        .quiz-success { border-color: #4caf50 !important; background-color: #e8f5e9 !important; }
+        .quiz-fail { border-color: #f44336 !important; background-color: #ffebee !important; }
+
+        .hiragana-big { font-size: 5rem; font-weight: bold; color: #333; margin: 10px 0; }
+        .romaji-hint { font-size: 1.5rem; color: #888; text-transform: uppercase; font-weight: bold; }
         
-        #status { 
-            font-size: 1rem; 
-            color: #fff; 
-            font-weight: 600;
-            margin-top: 5px;
-        }
-        
-        .btn { 
-            padding: 12px 20px; 
-            font-size: 16px; 
-            border-radius: 8px; 
-            border: none; 
-            cursor: pointer; 
-            font-weight: bold; 
-            width: 100%; 
-            margin: 8px 0;
-            transition: transform 0.2s;
-        }
-        
-        .btn:active { transform: scale(0.95); }
-        .btn-start { background: #00e676; color: #1b5e20; }
-        .btn-stop { background: #ff5252; color: white; }
-        
-        /* DASHBOARD STATISTIQUES PAR HIRAGANA */
-        .stats-dashboard {
-            background: #16213e;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border: 2px solid #0f3460;
-        }
-        
-        .stats-dashboard h3 {
-            color: #00d9ff;
-            margin-bottom: 12px;
-            font-size: 1.1rem;
-            text-align: center;
-            border-bottom: 2px solid #0f3460;
-            padding-bottom: 8px;
-        }
-        
-        .hiragana-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-        
-        /* Compteur global */
-        .global-counter {
-            background: #0f3460;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 12px;
-            border: 2px solid #1a5490;
-        }
-        
-        .global-counter .total-tests {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #00d9ff;
-            margin-bottom: 5px;
-        }
-        
-        .global-counter .total-label {
-            font-size: 0.9rem;
-            color: #aaa;
-        }
-        
-        .global-counter .success-rate-global {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-top: 8px;
-        }
-        
-        .global-counter .success-rate-global.excellent { color: #00e676; }
-        .global-counter .success-rate-global.good { color: #ffd700; }
-        .global-counter .success-rate-global.poor { color: #ff5252; }
-        
-        .hiragana-card {
-            background: #0f3460;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            border: 2px solid #1a5490;
-        }
-        
-        .hiragana-card.excellent { border-color: #00e676; }
-        .hiragana-card.good { border-color: #ffd700; }
-        .hiragana-card.poor { border-color: #ff5252; }
-        
-        .hiragana-char {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #00d9ff;
-            margin-bottom: 5px;
-        }
-        
-        .hiragana-success {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-        
-        .hiragana-success.excellent { color: #00e676; }
-        .hiragana-success.good { color: #ffd700; }
-        .hiragana-success.poor { color: #ff5252; }
-        
-        .hiragana-rms {
-            font-size: 0.85rem;
-            color: #aaa;
-            margin-top: 5px;
-        }
-        
-        .hiragana-tests {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 3px;
-        }
-        
-        /* RÉSULTAT ACTUEL */
-        .current-result {
-            background: #16213e;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border: 2px solid #0f3460;
-        }
-        
-        .current-result h3 {
-            color: #ffeb3b;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-            text-align: center;
-        }
-        
-        .countdown { 
-            font-size: 2.5rem; 
-            color: #ffeb3b; 
-            font-weight: bold; 
-            text-align: center;
-            margin: 10px 0;
-        }
-        
-        .result-line {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            margin: 5px 0;
-            background: #0f3460;
-            border-radius: 6px;
-            font-size: 0.95rem;
-        }
-        
-        .result-label { color: #aaa; }
-        .result-value { 
-            font-weight: bold; 
-            color: #fff;
-        }
-        
-        .result-value.success { color: #00e676; }
-        .result-value.warning { color: #ffd700; }
-        
-        /* MINI TABLEUR */
-        .table-container {
-            background: #16213e;
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid #0f3460;
-        }
-        
-        .table-container h3 {
-            color: #ff6b6b;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-            text-align: center;
-            border-bottom: 2px solid #0f3460;
-            padding-bottom: 8px;
-        }
-        
-        .table-wrapper {
-            overflow-x: auto;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-        
-        thead {
-            position: sticky;
-            top: 0;
-            background: #0f3460;
-            z-index: 10;
-        }
-        
-        th {
-            padding: 10px 8px;
-            text-align: left;
-            color: #00d9ff;
-            font-weight: bold;
-            border-bottom: 2px solid #1a5490;
-            font-size: 0.8rem;
-        }
-        
-        td {
-            padding: 8px;
-            border-bottom: 1px solid #0f3460;
-            color: #ddd;
-        }
-        
-        tr:hover {
-            background: #0f3460;
-        }
-        
-        .row-new {
-            background: #1a5490 !important;
-            animation: highlight 1s ease-in-out;
-        }
-        
-        @keyframes highlight {
-            0% { background: #00e676; }
-            100% { background: #1a5490; }
-        }
-        
-        .match-success { color: #00e676; font-weight: bold; }
-        .match-fail { color: #ff5252; font-weight: bold; }
-        
-        .score-high { color: #00e676; }
-        .score-medium { color: #ffd700; }
-        .score-low { color: #ff5252; }
+        /* Timer */
+        .timer-bar { width: 100%; height: 10px; background: #eee; border-radius: 5px; margin-top: 15px; overflow: hidden; }
+        .timer-fill { height: 100%; width: 100%; background: #2196f3; transition: width linear; }
+
+        /* Contrôles */
+        input[type="text"] { padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; width: 70%; margin-bottom: 10px; }
+        .btn { padding: 12px 25px; font-size: 16px; border-radius: 8px; border: none; color: white; font-weight: bold; cursor: pointer; margin: 5px; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.98); }
+        .btn-blue { background: #2196f3; }
+        .btn-green { background: #4caf50; }
+        .btn-red { background: #f44336; }
+        .btn:disabled { background: #b0bec5; cursor: not-allowed; }
+
+        /* Stats et Logs */
+        .stats-mini { display: flex; justify-content: space-around; font-size: 0.9rem; color: #555; margin-top: 10px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- HEADER AVEC CONTRÔLES -->
-    <div class="header">
-        <h2>🏃 Marathon Hiragana - Dashboard</h2>
-        <div id="status">Système prêt</div>
-        <button id="btn-run" class="btn btn-start">LANCER LE MARATHON</button>
-        <button id="btn-stop" class="btn btn-stop" style="display:none;">ARRÊTER</button>
-    </div>
+    <div class="container">
+        <div class="card" id="setup-card">
+            <h1>🎙️ Calibrage Hiragana</h1>
+            <p>Protocole de test v1.0</p>
+            
+            <div style="margin: 20px 0;">
+                <label style="display:block; margin-bottom:5px; font-weight:bold;">Votre Nom / Appareil :</label>
+                <input type="text" id="username" placeholder="ex: Pierre_Android" value="Testeur_01">
+            </div>
 
-    <!-- DASHBOARD STATISTIQUES PAR HIRAGANA -->
-    <div class="stats-dashboard">
-        <h3>📊 Statistiques par Hiragana</h3>
-        
-        <!-- Compteur global -->
-        <div class="global-counter">
-            <div class="total-tests" id="total-tests">0</div>
-            <div class="total-label">Fichiers joués au total</div>
-            <div class="success-rate-global" id="global-success-rate">---</div>
+            <div style="margin: 20px 0;">
+                <label>Sensibilité Micro : <span id="gain-val">1.0</span>x</label>
+                <input type="range" id="gain-slider" min="0.5" max="5" step="0.1" value="1" style="width:100%">
+            </div>
+
+            <button id="btn-start" class="btn btn-blue">🚀 Initialiser & Démarrer</button>
+            <div id="loading" class="hidden">Chargement du modèle...</div>
         </div>
-        
-        <div id="hiragana-grid" class="hiragana-grid">
-            <div style="text-align: center; color: #888; padding: 20px; grid-column: 1 / -1;">
-                Aucune donnée pour le moment
+
+        <div class="card" id="quiz-card">
+            <div style="display:flex; justify-content:space-between; color:#888;">
+                <span>Question: <b id="q-count">0</b></span>
+                <span>RMS: <b id="rms-disp">0.00</b></span>
+            </div>
+
+            <div class="hiragana-big" id="target-char">?</div>
+            <div class="romaji-hint" id="target-romaji">PRÊT ?</div>
+
+            <div class="timer-bar">
+                <div class="timer-fill" id="timer-fill"></div>
+            </div>
+
+            <div class="stats-mini">
+                <span id="feedback-top1">En attente...</span>
             </div>
         </div>
-    </div>
 
-    <!-- RÉSULTAT ACTUEL -->
-    <div class="current-result">
-        <h3>🎤 Test en cours</h3>
-        <div id="countdown-display" class="countdown"></div>
-        <div class="result-line">
-            <span class="result-label">Cible :</span>
-            <span id="target-label" class="result-value">---</span>
-        </div>
-        <div class="result-line">
-            <span class="result-label">Détecté (Top 1) :</span>
-            <span id="detected-top1" class="result-value">---</span>
-        </div>
-        <div class="result-line">
-            <span class="result-label">Confiance :</span>
-            <span id="confidence-top1" class="result-value">---</span>
-        </div>
-        <div class="result-line">
-            <span class="result-label">Top 2 :</span>
-            <span id="detected-top2" class="result-value">---</span>
-        </div>
-        <div class="result-line">
-            <span class="result-label">Confiance (Top 2) :</span>
-            <span id="confidence-top2" class="result-value">---</span>
-        </div>
-        <div class="result-line">
-            <span class="result-label">Gain actif :</span>
-            <span id="gain-val" class="result-value success">1.0x</span>
-        </div>
-    </div>
-
-    <!-- MINI TABLEUR -->
-    <div class="table-container">
-        <h3>📋 Historique des 10 derniers tests</h3>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Heure</th>
-                        <th>Fichier</th>
-                        <th>Attendu</th>
-                        <th>Top1</th>
-                        <th>Score1</th>
-                        <th>Top2</th>
-                        <th>Score2</th>
-                        <th>RMS</th>
-                        <th>Gain</th>
-                    </tr>
-                </thead>
-                <tbody id="history-table">
-                    <tr>
-                        <td colspan="9" style="text-align: center; color: #888; padding: 20px;">
-                            Aucun test effectué
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="card hidden" id="action-card">
+            <button id="btn-next" class="btn btn-blue" onclick="nextQuestion()">Suivant (Auto)</button>
+            <button id="btn-stop" class="btn btn-red" onclick="stopQuiz()">⏹️ Finir & Télécharger CSV</button>
+            <div id="log-count" style="margin-top:10px; color:#666; font-size:0.8rem;">0 résultats enregistrés</div>
         </div>
     </div>
 
     <script>
         // --- CONFIGURATION ---
-        const TM_URL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/"; 
-        const SERVER_URL = "https://marlitic-demonstratively-euna.ngrok-free.dev"; 
-        // ---------------------
+        // Remplace par ton URL Teachable Machine
+        const URL_MODEL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/"; 
+        
+        // Mapping Romaji -> Hiragana pour l'affichage
+        // (Assure-toi que les clés correspondent aux étiquettes de ton modèle Teachable Machine)
+        const HIRAGANA_MAP = {
+            'a': 'あ', 'i': 'い', 'u': 'う', 'e': 'え', 'o': 'お'
+        };
+        const VOWELS = ['あ', 'い', 'う', 'え', 'お'];
 
-        let recognizer;
-        let audioContext, gainNode, analyser, dataArray;
-        let isRunning = false;
-        let currentGain = 1.0;
+        // --- VARIABLES GLOBALES ---
+        let recognizer, audioContext, gainNode, analyser, dataArray;
+        let isListening = false;
+        let currentTarget = "";
+        let logs = [];
+        let questionCount = 0;
+        
+        // Variables de capture pendant les 3 secondes
+        let sessionBest = { label: "", score: 0, label2: "", score2: 0 };
+        let sessionMaxRMS = 0;
+        let sessionAvgRMS = 0;
+        let rmsSum = 0;
+        let rmsCount = 0;
 
-        async function setupAudio() {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
-            });
-            const source = audioContext.createMediaStreamSource(stream);
-            gainNode = audioContext.createGain();
-            gainNode.gain.value = currentGain;
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            dataArray = new Float32Array(analyser.fftSize);
-            source.connect(gainNode);
-            gainNode.connect(analyser);
-        }
+        // --- INITIALISATION ---
+        document.getElementById('btn-start').onclick = async () => {
+            const btn = document.getElementById('btn-start');
+            const name = document.getElementById('username').value.trim();
+            if(!name) { alert("Merci d'entrer un nom !"); return; }
 
-        // 📊 MISE À JOUR DU DASHBOARD
-        async function updateDashboard() {
-            try {
-                const response = await fetch(`${SERVER_URL}/get_session_stats`, {
-                    headers: { "ngrok-skip-browser-warning": "69420" }
-                });
-                const data = await response.json();
-
-                // Mise à jour du compteur global
-                const totalTests = data.total_tests;
-                document.getElementById('total-tests').innerText = totalTests;
-                
-                // Calculer le taux de réussite global
-                let totalSuccess = 0;
-                let totalCount = 0;
-                
-                for (const [hiragana, info] of Object.entries(data.hiragana_stats)) {
-                    totalSuccess += (info.success_rate * info.total_tests) / 100;
-                    totalCount += info.total_tests;
-                }
-                
-                const globalSuccessRate = totalCount > 0 ? (totalSuccess / totalCount * 100).toFixed(1) : 0;
-                const globalRateElem = document.getElementById('global-success-rate');
-                globalRateElem.innerText = totalCount > 0 ? `Taux de réussite global : ${globalSuccessRate}%` : '---';
-                
-                // Coloration du taux global
-                globalRateElem.className = 'success-rate-global';
-                if (globalSuccessRate >= 80) globalRateElem.classList.add('excellent');
-                else if (globalSuccessRate >= 60) globalRateElem.classList.add('good');
-                else if (totalCount > 0) globalRateElem.classList.add('poor');
-
-                // Mise à jour des stats par hiragana
-                const grid = document.getElementById('hiragana-grid');
-                const stats = data.hiragana_stats;
-
-                if (Object.keys(stats).length === 0) {
-                    grid.innerHTML = '<div style="text-align: center; color: #888; padding: 20px; grid-column: 1 / -1;">Aucune donnée pour le moment</div>';
-                } else {
-                    grid.innerHTML = '';
-                    for (const [hiragana, info] of Object.entries(stats)) {
-                        const card = document.createElement('div');
-                        card.className = 'hiragana-card';
-                        
-                        // Couleur selon taux de réussite
-                        let rateClass = 'poor';
-                        if (info.success_rate >= 80) rateClass = 'excellent';
-                        else if (info.success_rate >= 60) rateClass = 'good';
-                        
-                        card.classList.add(rateClass);
-                        
-                        card.innerHTML = `
-                            <div class="hiragana-char">${hiragana}</div>
-                            <div class="hiragana-success ${rateClass}">${info.success_rate}%</div>
-                            <div class="hiragana-rms">RMS moy: ${info.avg_rms}</div>
-                            <div class="hiragana-tests">${info.total_tests} tests</div>
-                        `;
-                        
-                        grid.appendChild(card);
-                    }
-                }
-
-                // Mise à jour du tableau historique
-                const tbody = document.getElementById('history-table');
-                const tests = data.last_10_tests;
-
-                if (tests.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #888; padding: 20px;">Aucun test effectué</td></tr>';
-                } else {
-                    tbody.innerHTML = '';
-                    tests.forEach((test, index) => {
-                        const row = document.createElement('tr');
-                        if (index === 0) row.className = 'row-new'; // Highlight dernière ligne
-                        
-                        const time = test.timestamp.split(' ')[1]; // Garder que l'heure
-                        const matchClass = test.top1 === test.expected ? 'match-success' : 'match-fail';
-                        
-                        const scoreClass1 = test.score1 >= 80 ? 'score-high' : (test.score1 >= 60 ? 'score-medium' : 'score-low');
-                        const scoreClass2 = test.score2 >= 80 ? 'score-high' : (test.score2 >= 60 ? 'score-medium' : 'score-low');
-                        
-                        row.innerHTML = `
-                            <td>${time}</td>
-                            <td style="font-size: 0.75rem;">${test.filename}</td>
-                            <td><strong>${test.expected}</strong></td>
-                            <td class="${matchClass}">${test.top1}</td>
-                            <td class="${scoreClass1}">${test.score1}%</td>
-                            <td>${test.top2}</td>
-                            <td class="${scoreClass2}">${test.score2}%</td>
-                            <td>${test.rms}</td>
-                            <td>${test.gain}</td>
-                        `;
-                        
-                        tbody.appendChild(row);
-                    });
-                }
-
-            } catch (err) {
-                console.error("Erreur mise à jour dashboard:", err);
-            }
-        }
-
-        async function runCycle() {
-            if (!isRunning) return;
-
-            const status = document.getElementById('status');
-            const targetLabel = document.getElementById('target-label');
-            const countdownDisp = document.getElementById('countdown-display');
-            const detectedTop1 = document.getElementById('detected-top1');
-            const confidenceTop1 = document.getElementById('confidence-top1');
-            const detectedTop2 = document.getElementById('detected-top2');
-            const confidenceTop2 = document.getElementById('confidence-top2');
+            btn.disabled = true;
+            document.getElementById('loading').classList.remove('hidden');
 
             try {
-                // 1. Demander au PC quel est le prochain test
-                status.innerText = "Attente du PC...";
-                const response = await fetch(`${SERVER_URL}/get_next`, {
-                    headers: { "ngrok-skip-browser-warning": "69420" }
-                });
-                const config = await response.json();
+                // 1. Audio Setup
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const source = audioContext.createMediaStreamSource(stream);
                 
-                targetLabel.innerText = config.expected;
-                detectedTop1.innerText = "---";
-                confidenceTop1.innerText = "---";
-                detectedTop2.innerText = "---";
-                confidenceTop2.innerText = "---";
+                gainNode = audioContext.createGain();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                dataArray = new Float32Array(analyser.fftSize);
+
+                source.connect(gainNode);
+                gainNode.connect(analyser); // Pour visualisation RMS
+                // On ne connecte pas à destination pour éviter le feedback audio
+
+                // 2. Load Model
+                recognizer = speechCommands.create("BROWSER_FFT", undefined, URL_MODEL + "model.json", URL_MODEL + "metadata.json");
+                await recognizer.ensureModelLoaded();
+
+                // 3. UI Switch
+                document.getElementById('setup-card').classList.add('hidden');
+                document.getElementById('quiz-card').style.display = 'block';
+                document.getElementById('action-card').classList.remove('hidden');
+
+                // 4. Start Loop
+                updateRMSLoop();
+                startContinuousRecognition();
                 
-                // 2. Compte à rebours synchro
-                let timeLeft = config.countdown / 1000;
-                countdownDisp.innerText = timeLeft;
-                
-                const timer = setInterval(() => {
-                    timeLeft--;
-                    countdownDisp.innerText = timeLeft > 0 ? timeLeft : "🎤";
-                    if (timeLeft <= 0) clearInterval(timer);
-                }, 1000);
+                // Lancer la première question après 1s
+                setTimeout(nextQuestion, 1000);
 
-                // 3. Préparer la capture du meilleur score sur 3s
-                let tempBest = { label1: "---", score1: 0, label2: "---", score2: 0 };
-                let maxRMS = 0;
-
-                // On prévient le PC qu'on commence
-                fetch(`${SERVER_URL}/play`, { method: 'POST' });
-
-                // 4. Lancement de l'écoute pendant 3 secondes
-                const labels = recognizer.wordLabels();
-                recognizer.listen(result => {
-                    // Calcul RMS
-                    analyser.getFloatTimeDomainData(dataArray);
-                    let sum = 0;
-                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
-                    let rms = Math.sqrt(sum / dataArray.length);
-                    if (rms > maxRMS) maxRMS = rms;
-
-                    const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
-                    scores.sort((a, b) => b.score - a.score);
-
-                    if (scores[0].score > tempBest.score1) {
-                        tempBest = {
-                            label1: scores[0].label, score1: scores[0].score,
-                            label2: scores[1].label, score2: scores[1].score
-                        };
-                        
-                        // Mise à jour temps réel du résultat actuel
-                        detectedTop1.innerText = tempBest.label1;
-                        confidenceTop1.innerText = `${(tempBest.score1 * 100).toFixed(1)}%`;
-                        detectedTop2.innerText = tempBest.label2;
-                        confidenceTop2.innerText = `${(tempBest.score2 * 100).toFixed(1)}%`;
-                        
-                        // Coloration selon match
-                        if (tempBest.label1 === config.expected) {
-                            detectedTop1.className = 'result-value success';
-                        } else {
-                            detectedTop1.className = 'result-value warning';
-                        }
-                    }
-                }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
-
-                await new Promise(r => setTimeout(r, 3000));
-                await recognizer.stopListening();
-
-                // 5. Envoyer le résultat final au PC
-                status.innerText = "Envoi du résultat...";
-                await fetch(`${SERVER_URL}/log`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        filename: config.filename,
-                        expected: config.expected,
-                        top1: tempBest.label1,
-                        score1: (tempBest.score1 * 100).toFixed(1),
-                        top2: tempBest.label2,
-                        score2: (tempBest.score2 * 100).toFixed(1),
-                        rms: maxRMS.toFixed(5),
-                        gain: currentGain
-                    })
-                });
-
-                // 6. Mettre à jour le dashboard après chaque test
-                await updateDashboard();
-                
-                // 7. Petit repos et on recommence
-                if (isRunning) {
-                    status.innerText = "Repos...";
-                    countdownDisp.innerText = "";
-                    await new Promise(r => setTimeout(r, 1000));
-                    runCycle();
-                }
-
-           } catch (err) {
-                status.innerText = "Erreur : " + err.message;
-                console.error(err);
-                isRunning = false;
+            } catch (e) {
+                alert("Erreur micro ou modèle : " + e);
+                console.error(e);
+                btn.disabled = false;
             }
-        }
-
-        document.getElementById('btn-run').onclick = async () => {
-            document.getElementById('btn-run').style.display = 'none';
-            document.getElementById('btn-stop').style.display = 'block';
-            isRunning = true;
-            
-            document.getElementById('status').innerText = "Initialisation...";
-            await setupAudio();
-            recognizer = speechCommands.create("BROWSER_FFT", undefined, TM_URL + "model.json", TM_URL + "metadata.json");
-            await recognizer.ensureModelLoaded();
-            
-            runCycle();
         };
 
-        document.getElementById('btn-stop').onclick = () => {
-            isRunning = false;
-            location.reload();
+       // --- BOUCLE DE RECONNAISSANCE CONTINUE (CORRIGÉE) ---
+        function startContinuousRecognition() {
+            recognizer.listen(result => {
+                if (!isListening) return;
+
+                const labels = recognizer.wordLabels();
+                const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
+                
+                // Trier par score décroissant
+                scores.sort((a, b) => b.score - a.score);
+
+                const top1 = scores[0];
+                const top2 = scores[1] || {label: "none", score: 0};
+
+                // --- CORRECTION MAGIQUE ICI ---
+                
+                // 1. Détecter si c'est du bruit de fond (adapte les mots-clés si besoin)
+                const isBackground = top1.label.toLowerCase().includes("background") || 
+                                     top1.label.toLowerCase().includes("bruit");
+
+                // 2. Si c'est du bruit de fond, on l'ignore (sauf si on n'a encore rien trouvé)
+                if (isBackground) {
+                    // On ne fait rien, on attend que tu parles
+                    // (Sauf si on veut afficher "Silence" à l'écran)
+                    return; 
+                }
+
+                // 3. LOGIQUE DE PRIORITÉ :
+                // Si on entend la BONNE réponse avec un score correct (> 70%), on la verrouille presque à coup sûr
+                // Sinon, on garde la meilleure réponse entendue qui n'est pas du bruit.
+                
+                // Est-ce que ce qu'on entend correspond à la cible ?
+                const isTarget = top1.label === currentTarget;
+
+                // Cas A : On entend la CIBLE avec un bon score
+                if (isTarget && top1.score > 0.70) {
+                    // On force la mise à jour car c'est ce qu'on voulait entendre
+                    // On privilégie la cible même si un autre bruit bizarre avait eu un score un peu plus haut avant
+                    if (top1.score > sessionBest.score || sessionBest.label !== currentTarget) {
+                         updateSessionBest(top1, top2);
+                    }
+                } 
+                // Cas B : On entend autre chose (une erreur), mais avec un score très fort
+                else if (top1.score > sessionBest.score) {
+                    // On met à jour seulement si c'est mieux que ce qu'on avait avant
+                    // Et on vérifie qu'on n'écrase pas une bonne réponse déjà trouvée avec une confiance similaire
+                    const alreadyFoundTarget = sessionBest.label === currentTarget;
+                    
+                    if (!alreadyFoundTarget) {
+                        updateSessionBest(top1, top2);
+                    }
+                }
+
+            }, { probabilityThreshold: 0.1, overlapFactor: 0.5 });
+        }
+
+        // Petite fonction utilitaire pour éviter de répéter le code
+        function updateSessionBest(s1, s2) {
+            sessionBest.label = s1.label;
+            sessionBest.score = s1.score;
+            sessionBest.label2 = s2.label;
+            sessionBest.score2 = s2.score;
+            
+            // Feedback visuel immédiat (pour rassurer l'utilisateur)
+            const isCorrect = sessionBest.label === currentTarget;
+            const color = isCorrect ? "green" : "#d32f2f";
+            const icon = isCorrect ? "✅" : "👂";
+            
+            document.getElementById('feedback-top1').innerHTML = 
+                `<span style="color:${color}; font-weight:bold;">${icon} Retenu: ${sessionBest.label} (${(sessionBest.score*100).toFixed(0)}%)</span>`;
+        }
+        // --- GESTION DU QUIZ ---
+        function nextQuestion() {
+            // Reset de l'état
+            questionCount++;
+            document.getElementById('q-count').innerText = questionCount;
+            
+            // Choisir une voyelle au hasard
+            const randKey = VOWELS[Math.floor(Math.random() * VOWELS.length)];
+            currentTarget = randKey;
+
+            // UI Reset
+            const card = document.getElementById('quiz-card');
+            card.className = "card quiz-active";
+            document.getElementById('target-char').innerText = HIRAGANA_MAP[randKey] || randKey;
+            document.getElementById('target-romaji').innerText = randKey;
+            document.getElementById('feedback-top1').innerText = "Écoute en cours...";
+            
+            // Reset Stats Session
+            sessionBest = { label: "Silence", score: 0, label2: "-", score2: 0 };
+            sessionMaxRMS = 0;
+            rmsSum = 0;
+            rmsCount = 0;
+            
+            // Animation Timer (3 secondes)
+            const timer = document.getElementById('timer-fill');
+            timer.style.transition = 'none';
+            timer.style.width = '100%';
+            
+            setTimeout(() => {
+                timer.style.transition = 'width 3s linear';
+                timer.style.width = '0%';
+                isListening = true; // Début écoute
+            }, 50);
+
+            // Fin de la question après 3s
+            setTimeout(finishQuestion, 3050);
+        }
+
+        function finishQuestion() {
+            isListening = false;
+            
+            // Calculer Moyenne RMS
+            sessionAvgRMS = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
+
+            // Enregistrer le log
+            const timestamp = new Date().toLocaleString('fr-FR');
+            const username = document.getElementById('username').value.replace(/[^a-zA-Z0-9_-]/g, ""); // Clean name
+            const filenameMock = `LiveTest_${username}`; // Pour matcher ton dashboard
+
+            const logEntry = {
+                timestamp: timestamp,
+                filename: filenameMock,
+                expected: currentTarget, // ex: 'a'
+                top1: sessionBest.label,
+                score1: sessionBest.score.toFixed(4),
+                top2: sessionBest.label2,
+                score2: sessionBest.score2.toFixed(4),
+                rms: sessionAvgRMS.toFixed(6),
+                gain: gainNode.gain.value.toFixed(2)
+            };
+            logs.push(logEntry);
+            document.getElementById('log-count').innerText = `${logs.length} résultats enregistrés`;
+
+            // Feedback Visuel
+            const card = document.getElementById('quiz-card');
+            const isCorrect = sessionBest.label === currentTarget;
+            
+            if (isCorrect) {
+                card.classList.remove('quiz-active');
+                card.classList.add('quiz-success');
+                document.getElementById('feedback-top1').innerHTML = `✅ Bravo ! (${(sessionBest.score*100).toFixed(0)}%)`;
+            } else {
+                card.classList.remove('quiz-active');
+                card.classList.add('quiz-fail');
+                document.getElementById('feedback-top1').innerHTML = `❌ Entendu : ${sessionBest.label}`;
+            }
+
+            // Auto-next rapide
+            setTimeout(nextQuestion, 1500);
+        }
+
+        // --- EXPORT CSV ---
+        function stopQuiz() {
+            isListening = false;
+            if (logs.length === 0) { alert("Aucune donnée à exporter."); return; }
+
+            // En-têtes compatibles avec ton Dashboard
+            let csvContent = "Horodatage,NomFichier,Attendu,Top1,Score1,Top2,Score2,RMS,Gain\n";
+
+            logs.forEach(row => {
+                csvContent += `${row.timestamp},${row.filename},${row.expected},${row.top1},${row.score1},${row.top2},${row.score2},${row.rms},${row.gain}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            // Nom fichier avec date et utilisateur
+            const dateStr = new Date().toISOString().slice(0,10);
+            const user = document.getElementById('username').value;
+            link.setAttribute("href", url);
+            link.setAttribute("download", `resultats_marathon_${user}_${dateStr}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- UTILITAIRES ---
+        function updateRMSLoop() {
+            if (analyser) {
+                analyser.getFloatTimeDomainData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) { sum += dataArray[i] * dataArray[i]; }
+                let rms = Math.sqrt(sum / dataArray.length);
+                
+                document.getElementById('rms-disp').innerText = rms.toFixed(4);
+                
+                if (isListening) {
+                    rmsSum += rms;
+                    rmsCount++;
+                    if (rms > sessionMaxRMS) sessionMaxRMS = rms;
+                }
+            }
+            requestAnimationFrame(updateRMSLoop);
+        }
+
+        document.getElementById('gain-slider').oninput = (e) => {
+            const val = e.target.value;
+            document.getElementById('gain-val').innerText = val;
+            if (gainNode) gainNode.gain.value = parseFloat(val);
         };
     </script>
 </body>
 </html>
-
-
-
-
-
