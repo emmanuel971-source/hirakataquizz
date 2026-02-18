@@ -3,537 +3,661 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Vocal Hiragana - Protocole de Test</title>
+    <title>Quiz Vocal Hiragana</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; background: #f0f2f5; color: #1c1e21; }
-        .container { max-width: 600px; margin: 0 auto; }
-        
-        /* Cartes */
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; transition: 0.3s; }
-        
-        /* Zone Quiz */
-        #quiz-card { display: none; border: 4px solid transparent; }
-        .quiz-active { border-color: #2196f3 !important; }
-        .quiz-success { border-color: #4caf50 !important; background-color: #e8f5e9 !important; }
-        .quiz-fail { border-color: #f44336 !important; background-color: #ffebee !important; }
-
-        .hiragana-big { font-size: 5rem; font-weight: bold; color: #333; margin: 10px 0; }
-        .romaji-hint { font-size: 1.5rem; color: #888; text-transform: uppercase; font-weight: bold; }
-        
-        /* Timer */
-        .timer-bar { width: 100%; height: 10px; background: #eee; border-radius: 5px; margin-top: 15px; overflow: hidden; }
-        .timer-fill { height: 100%; width: 100%; background: #2196f3; transition: width linear; }
-
-        /* Contrôles */
-        input[type="text"] { padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; width: 70%; margin-bottom: 10px; }
-        .btn { padding: 12px 25px; font-size: 16px; border-radius: 8px; border: none; color: white; font-weight: bold; cursor: pointer; margin: 5px; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.98); }
-        .btn-blue { background: #2196f3; }
-        .btn-green { background: #4caf50; }
-        .btn-red { background: #f44336; }
-        .btn:disabled { background: #b0bec5; cursor: not-allowed; }
-
-        /* Stats et Logs */
-        .stats-mini { display: flex; justify-content: space-around; font-size: 0.9rem; color: #555; margin-top: 10px; }
-        .hidden { display: none; }
-
-        /* Page Résultats */
-        #results-page { }
-        .results-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px; padding: 20px; margin-bottom: 15px;
-            color: white; text-align: center;
+        :root {
+            --bg:       #0d1117;
+            --surface:  #161b22;
+            --border:   #30363d;
+            --text:     #e6edf3;
+            --muted:    #8b949e;
+            --accent:   #58a6ff;
+            --green:    #3fb950;
+            --yellow:   #d29922;
+            --red:      #f85149;
+            --purple:   #bc8cff;
+            --radius:   14px;
         }
-        .results-header h2 { font-size: 1.4rem; margin-bottom: 5px; }
-        .results-header .subtitle { opacity: 0.9; font-size: 0.9rem; }
-        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-mini-card {
-            background: #1a1a2e; border-radius: 12px; padding: 14px; text-align: center;
-            border: 2px solid #0f3460; color: #eee;
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            min-height: 100vh;
         }
-        .stat-mini-card .val { font-size: 1.8rem; font-weight: bold; }
-        .stat-mini-card .lbl { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
-        .section-title { font-size: 0.9rem; font-weight: bold; color: #667eea; margin: 15px 0 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .hiragana-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; }
-        .mini-card {
-            background: #1a1a2e; border-radius: 10px; padding: 8px 4px;
-            text-align: center; border: 2px solid #0f3460;
+
+        .container { max-width: 480px; margin: 0 auto; }
+
+        /* ── CARTES GÉNÉRALES ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 14px;
         }
-        .mini-char { font-size: 1.6rem; }
-        .mini-romaji { font-size: 2rem; color: #888; }
-        .mini-pct { font-size: 1rem; font-weight: bold; }
-        .mini-detail { font-size: 0.6rem; color: #666; }
-        .confusions-list { background: #1a1a2e; border-radius: 12px; padding: 12px; border: 2px solid #0f3460; margin-bottom: 20px; }
-        .confusion-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #0f3460; }
-        .confusion-row:last-child { border-bottom: none; }
-        .conf-chars { font-size: 1.2rem; }
-        .conf-label { font-size: 0.8rem; color: #aaa; flex: 1; margin: 0 10px; }
-        .conf-count { font-weight: bold; color: #ff5252; }
-        .results-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-restart { background: #2196f3; padding: 14px; border-radius: 10px; border: none; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; }
-        .btn-export { background: #4caf50; padding: 14px; border-radius: 10px; border: none; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-sub {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        /* ── SETUP ── */
+        .field { margin-bottom: 18px; }
+        .field label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus { border-color: var(--accent); }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            outline: none;
+            margin-top: 8px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
+        .gain-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); }
+        .gain-val { color: var(--accent); font-weight: 700; }
+
+        /* ── BOUTONS ── */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 12px 20px; font-size: 0.95rem; font-weight: 600;
+            border-radius: 10px; border: none; cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+            width: 100%;
+        }
+        .btn:active { transform: scale(0.97); opacity: 0.85; }
+        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        .btn-accent  { background: var(--accent);  color: #0d1117; }
+        .btn-green   { background: var(--green);   color: #0d1117; }
+        .btn-red     { background: var(--red);     color: white; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .btn-sm { padding: 9px 16px; font-size: 0.85rem; width: auto; }
+
+        #loading { color: var(--muted); font-size: 0.85rem; margin-top: 10px; text-align: center; }
+
+        /* ── QUIZ CARD ── */
+        #quiz-card {
+            display: none;
+            border: 2px solid var(--border);
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .quiz-active  { border-color: var(--accent) !important; }
+        .quiz-success { border-color: var(--green)  !important; background: rgba(63,185,80,0.07) !important; }
+        .quiz-fail    { border-color: var(--red)    !important; background: rgba(248,81,73,0.07) !important; }
+
+        .quiz-meta {
+            display: flex; justify-content: space-between;
+            font-size: 0.78rem; color: var(--muted); margin-bottom: 18px;
+        }
+        .quiz-meta span { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; }
+        .quiz-meta b { color: var(--text); }
+
+        .hiragana-big {
+            font-size: 7rem; font-weight: 700;
+            color: var(--text); line-height: 1;
+            margin: 8px 0 6px;
+            text-align: center;
+        }
+        .romaji-hint {
+            font-size: 1.6rem; color: var(--accent);
+            text-transform: uppercase; font-weight: 700;
+            letter-spacing: 4px; text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .timer-bar { width: 100%; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .timer-fill { height: 100%; width: 100%; background: var(--accent); transition: width linear; border-radius: 3px; }
+
+        .feedback-zone {
+            margin-top: 14px; font-size: 0.9rem;
+            color: var(--muted); min-height: 22px; text-align: center;
+        }
+
+        /* ── ACTION CARD ── */
+        #action-card { padding: 16px 24px; }
+        .action-row { display: flex; gap: 10px; }
+        .action-row .btn { flex: 1; }
+        #log-count { text-align: center; margin-top: 10px; font-size: 0.75rem; color: var(--muted); }
+
+        /* ── RÉSULTATS ── */
+        .hidden { display: none !important; }
+
+        .res-header {
+            text-align: center;
+            padding: 22px 24px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 14px;
+        }
+        .res-header .big-score {
+            font-size: 3.5rem; font-weight: 800; line-height: 1;
+            margin: 8px 0 4px;
+        }
+        .res-header .score-label { font-size: 0.82rem; color: var(--muted); }
+        .res-header .user-name { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+
+        .kpi-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 8px;
+            text-align: center;
+        }
+        .kpi-val { font-size: 1.6rem; font-weight: 700; }
+        .kpi-lbl { font-size: 0.7rem; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .section-label {
+            font-size: 0.72rem; font-weight: 700; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 1.5px;
+            margin: 18px 0 10px;
+        }
+
+        /* Grille hiragana — 5 colonnes, grande taille */
+        .hira-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .hira-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 4px 10px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hira-card::after {
+            content: '';
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 3px;
+        }
+        .hira-card.good::after  { background: var(--green); }
+        .hira-card.mid::after   { background: var(--yellow); }
+        .hira-card.poor::after  { background: var(--red); }
+
+        .hira-char { font-size: 2.4rem; line-height: 1.1; }
+        .hira-romaji { font-size: 0.7rem; color: var(--muted); margin: 2px 0; letter-spacing: 1px; text-transform: uppercase; }
+        .hira-pct { font-size: 1.15rem; font-weight: 700; margin: 2px 0; }
+        .hira-sub { font-size: 0.65rem; color: var(--muted); }
+
+        /* Confusions */
+        .conf-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .conf-row {
+            display: flex; align-items: center;
+            padding: 13px 16px;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+        }
+        .conf-row:last-child { border-bottom: none; }
+        .conf-chars { font-size: 1.8rem; line-height: 1; min-width: 80px; }
+        .conf-arrow { color: var(--muted); font-size: 1rem; }
+        .conf-info { flex: 1; }
+        .conf-info .conf-rom { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .conf-bar-wrap { flex: 2; background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; }
+        .conf-bar { height: 100%; background: var(--red); border-radius: 4px; }
+        .conf-count { font-size: 0.85rem; font-weight: 700; color: var(--red); min-width: 28px; text-align: right; }
+        .conf-empty { padding: 18px; text-align: center; color: var(--green); font-size: 0.95rem; }
+
+        /* Boutons résultats */
+        .res-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; padding-bottom: 24px; }
+        .res-btns .btn { padding: 15px; font-size: 1rem; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="card" id="setup-card">
-            <h1>🎙️ Calibrage Hiragana</h1>
-            <p>Protocole de test v1.0</p>
-            
-            <div style="margin: 20px 0;">
-                <label style="display:block; margin-bottom:5px; font-weight:bold;">Votre Nom / Appareil :</label>
-                <input type="text" id="username" placeholder="ex: Pierre_Android" value="Testeur_01">
-            </div>
+<div class="container">
 
-            <div style="margin: 20px 0;">
-                <label>Sensibilité Micro : <span id="gain-val">1.0</span>x</label>
-                <input type="range" id="gain-slider" min="0.5" max="5" step="0.1" value="1" style="width:100%">
-            </div>
+    <!-- ── SETUP ── -->
+    <div class="card" id="setup-card">
+        <div class="card-title">🎙️ Quiz Vocal Hiragana</div>
+        <div class="card-sub">Protocole de test v1.0</div>
 
-            <button id="btn-start" class="btn btn-blue">🚀 Initialiser & Démarrer</button>
-            <div id="loading" class="hidden">Chargement du modèle...</div>
+        <div class="field">
+            <label>Nom / Appareil</label>
+            <input type="text" id="username" placeholder="ex: Pierre_Android" value="Testeur_01">
         </div>
 
-        <div class="card" id="quiz-card">
-            <div style="display:flex; justify-content:space-between; color:#888;">
-                <span>Question: <b id="q-count">0</b></span>
-                <span>RMS: <b id="rms-disp">0.00</b></span>
+        <div class="field">
+            <div class="gain-row">
+                <span>Sensibilité micro</span>
+                <span class="gain-val" id="gain-val">1.0</span>×
             </div>
-
-            <div class="hiragana-big" id="target-char">?</div>
-            <div class="romaji-hint" id="target-romaji">PRÊT ?</div>
-
-            <div class="timer-bar">
-                <div class="timer-fill" id="timer-fill"></div>
-            </div>
-
-            <div class="stats-mini">
-                <span id="feedback-top1">En attente...</span>
-            </div>
+            <input type="range" id="gain-slider" min="0.5" max="5" step="0.1" value="1">
         </div>
 
-        <div class="card hidden" id="action-card">
-            <button id="btn-next" class="btn btn-blue" onclick="nextQuestion()">Suivant (Auto)</button>
-            <button id="btn-stop" class="btn btn-red" onclick="stopQuiz()">⏹️ Finir & Voir Résultats</button>
-            <div id="log-count" style="margin-top:10px; color:#666; font-size:0.8rem;">0 résultats enregistrés</div>
-        </div>
-
-        <div id="results-page" class="hidden">
-            <div class="results-header">
-                <h2>📊 Résultats de la session</h2>
-                <div class="subtitle" id="res-username-display"></div>
-            </div>
-
-            <div class="stats-row">
-                <div class="stat-mini-card">
-                    <div class="val" id="res-accuracy" style="color:#00e676">—</div>
-                    <div class="lbl">Précision globale</div>
-                </div>
-                <div class="stat-mini-card">
-                    <div class="val" style="color:#667eea" id="res-total">—</div>
-                    <div class="lbl">Questions</div>
-                </div>
-                <div class="stat-mini-card">
-                    <div class="val" style="color:#00e676" id="res-correct">—</div>
-                    <div class="lbl">Correctes</div>
-                </div>
-                <div class="stat-mini-card">
-                    <div class="val" style="color:#ffd700; font-size:1.2rem" id="res-rms">—</div>
-                    <div class="lbl">RMS moyen</div>
-                </div>
-            </div>
-
-            <div class="section-title">% de réussite par hiragana</div>
-            <div class="hiragana-grid" id="res-hiragana-grid"></div>
-
-            <div class="section-title">Principales confusions</div>
-            <div class="confusions-list" id="res-confusions"></div>
-
-            <div class="results-btns">
-                <button class="btn-restart" onclick="restartQuiz()">🔄 Recommencer</button>
-                <button class="btn-export" onclick="exportCSV()">💾 Exporter CSV</button>
-            </div>
-        </div>
+        <button id="btn-start" class="btn btn-accent">🚀 Initialiser &amp; Démarrer</button>
+        <div id="loading" class="hidden">⏳ Chargement du modèle…</div>
     </div>
 
-    <script>
-        // --- CONFIGURATION ---
-        // Remplace par ton URL Teachable Machine
-        const URL_MODEL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/"; 
-        
-        // Mapping Romaji -> Hiragana pour l'affichage
-        // (Assure-toi que les clés correspondent aux étiquettes de ton modèle Teachable Machine)
-        const HIRAGANA_MAP = {
-            'a': 'あ', 'i': 'い', 'u': 'う', 'e': 'え', 'o': 'お'
-        };
-        const VOWELS = ['あ', 'い', 'う', 'え', 'お'];
+    <!-- ── QUIZ ── -->
+    <div class="card" id="quiz-card">
+        <div class="quiz-meta">
+            <span>Question <b id="q-count">0</b></span>
+            <span>RMS <b id="rms-disp">0.0000</b></span>
+        </div>
 
-        // --- VARIABLES GLOBALES ---
-        let recognizer, audioContext, gainNode, analyser, dataArray;
-        let isListening = false;
-        let quizStopped = false;
-        let currentTarget = "";
-        let logs = [];
-        let questionCount = 0;
-        
-        // Variables de capture pendant les 3 secondes
-        let sessionBest = { label: "", score: 0, label2: "", score2: 0 };
-        let sessionMaxRMS = 0;
-        let sessionAvgRMS = 0;
-        let rmsSum = 0;
-        let rmsCount = 0;
+        <div class="hiragana-big" id="target-char">?</div>
+        <div class="romaji-hint" id="target-romaji">PRÊT ?</div>
 
-        // --- INITIALISATION ---
-        document.getElementById('btn-start').onclick = async () => {
-            const btn = document.getElementById('btn-start');
-            const name = document.getElementById('username').value.trim();
-            if(!name) { alert("Merci d'entrer un nom !"); return; }
+        <div class="timer-bar">
+            <div class="timer-fill" id="timer-fill"></div>
+        </div>
 
-            btn.disabled = true;
-            document.getElementById('loading').classList.remove('hidden');
+        <div class="feedback-zone" id="feedback-top1">En attente…</div>
+    </div>
 
-            try {
-                // 1. Audio Setup
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const source = audioContext.createMediaStreamSource(stream);
-                
-                gainNode = audioContext.createGain();
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                dataArray = new Float32Array(analyser.fftSize);
+    <!-- ── ACTIONS ── -->
+    <div class="card hidden" id="action-card">
+        <div class="action-row">
+            <button class="btn btn-outline" onclick="nextQuestion()">⏭ Suivant</button>
+            <button class="btn btn-red" onclick="stopQuiz()">⏹ Finir</button>
+        </div>
+        <div id="log-count">0 résultat enregistré</div>
+    </div>
 
-                source.connect(gainNode);
-                gainNode.connect(analyser); // Pour visualisation RMS
-                // On ne connecte pas à destination pour éviter le feedback audio
+    <!-- ── RÉSULTATS ── -->
+    <div id="results-page" class="hidden">
 
-                // 2. Load Model
-                recognizer = speechCommands.create("BROWSER_FFT", undefined, URL_MODEL + "model.json", URL_MODEL + "metadata.json");
-                await recognizer.ensureModelLoaded();
+        <div class="res-header">
+            <div class="score-label">Précision globale</div>
+            <div class="big-score" id="res-accuracy">—</div>
+            <div class="user-name" id="res-username-display"></div>
+        </div>
 
-                // 3. UI Switch
-                document.getElementById('setup-card').classList.add('hidden');
-                document.getElementById('quiz-card').style.display = 'block';
-                document.getElementById('action-card').classList.remove('hidden');
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-val" style="color:var(--accent)" id="res-total">—</div>
+                <div class="kpi-lbl">Questions</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-val" style="color:var(--green)" id="res-correct">—</div>
+                <div class="kpi-lbl">Correctes</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-val" style="color:var(--yellow); font-size:1.1rem" id="res-rms">—</div>
+                <div class="kpi-lbl">RMS moy.</div>
+            </div>
+        </div>
 
-                // 4. Start Loop
-                updateRMSLoop();
-                startContinuousRecognition();
-                
-                // Lancer la première question après 1s
-                setTimeout(nextQuestion, 1000);
+        <div class="section-label">Réussite par hiragana</div>
+        <div class="hira-grid" id="res-hiragana-grid"></div>
 
-            } catch (e) {
-                alert("Erreur micro ou modèle : " + e);
-                console.error(e);
-                btn.disabled = false;
-            }
-        };
+        <div class="section-label">Confusions principales</div>
+        <div class="conf-card" id="res-confusions"></div>
 
-       // --- BOUCLE DE RECONNAISSANCE CONTINUE (CORRIGÉE) ---
-        function startContinuousRecognition() {
-            recognizer.listen(result => {
-                if (!isListening) return;
+        <div class="res-btns">
+            <button class="btn btn-outline" onclick="restartQuiz()">🔄 Recommencer</button>
+            <button class="btn btn-green" onclick="exportCSV()">💾 Exporter CSV</button>
+        </div>
 
-                const labels = recognizer.wordLabels();
-                const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
-                
-                // Trier par score décroissant
-                scores.sort((a, b) => b.score - a.score);
+    </div>
+</div>
 
-                const top1 = scores[0];
-                const top2 = scores[1] || {label: "none", score: 0};
+<script>
+    // --- CONFIGURATION ---
+    const URL_MODEL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/";
 
-                // --- CORRECTION MAGIQUE ICI ---
-                
-                // 1. Détecter si c'est du bruit de fond (adapte les mots-clés si besoin)
-                const isBackground = top1.label.toLowerCase().includes("background") || 
-                                     top1.label.toLowerCase().includes("bruit");
+    const HIRAGANA_MAP = { 'a':'あ','i':'い','u':'う','e':'え','o':'お' };
+    const VOWELS = ['あ','い','う','え','お'];
 
-                // 2. Si c'est du bruit de fond, on l'ignore (sauf si on n'a encore rien trouvé)
-                if (isBackground) {
-                    // On ne fait rien, on attend que tu parles
-                    // (Sauf si on veut afficher "Silence" à l'écran)
-                    return; 
-                }
+    // --- VARIABLES GLOBALES ---
+    let recognizer, audioContext, gainNode, analyser, dataArray;
+    let isListening  = false;
+    let quizStopped  = false;
+    let currentTarget = "";
+    let logs = [];
+    let questionCount = 0;
 
-                // 3. LOGIQUE DE PRIORITÉ :
-                // Si on entend la BONNE réponse avec un score correct (> 70%), on la verrouille presque à coup sûr
-                // Sinon, on garde la meilleure réponse entendue qui n'est pas du bruit.
-                
-                // Est-ce que ce qu'on entend correspond à la cible ?
-                const isTarget = top1.label === currentTarget;
+    let sessionBest   = { label:"", score:0, label2:"", score2:0 };
+    let sessionMaxRMS = 0;
+    let sessionAvgRMS = 0;
+    let rmsSum = 0, rmsCount = 0;
 
-                // Cas A : On entend la CIBLE avec un bon score
-                if (isTarget && top1.score > 0.70) {
-                    // On force la mise à jour car c'est ce qu'on voulait entendre
-                    // On privilégie la cible même si un autre bruit bizarre avait eu un score un peu plus haut avant
-                    if (top1.score > sessionBest.score || sessionBest.label !== currentTarget) {
-                         updateSessionBest(top1, top2);
-                    }
-                } 
-                // Cas B : On entend autre chose (une erreur), mais avec un score très fort
-                else if (top1.score > sessionBest.score) {
-                    // On met à jour seulement si c'est mieux que ce qu'on avait avant
-                    // Et on vérifie qu'on n'écrase pas une bonne réponse déjà trouvée avec une confiance similaire
-                    const alreadyFoundTarget = sessionBest.label === currentTarget;
-                    
-                    if (!alreadyFoundTarget) {
-                        updateSessionBest(top1, top2);
-                    }
-                }
+    // --- INIT ---
+    document.getElementById('btn-start').onclick = async () => {
+        const btn  = document.getElementById('btn-start');
+        const name = document.getElementById('username').value.trim();
+        if (!name) { alert("Merci d'entrer un nom !"); return; }
 
-            }, { probabilityThreshold: 0.1, overlapFactor: 0.5 });
-        }
+        btn.disabled = true;
+        document.getElementById('loading').classList.remove('hidden');
 
-        // Petite fonction utilitaire pour éviter de répéter le code
-        function updateSessionBest(s1, s2) {
-            sessionBest.label = s1.label;
-            sessionBest.score = s1.score;
-            sessionBest.label2 = s2.label;
-            sessionBest.score2 = s2.score;
-            
-            // Feedback visuel immédiat (pour rassurer l'utilisateur)
-            const isCorrect = sessionBest.label === currentTarget;
-            const color = isCorrect ? "green" : "#d32f2f";
-            const icon = isCorrect ? "✅" : "👂";
-            
-            document.getElementById('feedback-top1').innerHTML = 
-                `<span style="color:${color}; font-weight:bold;">${icon} Retenu: ${sessionBest.label} (${(sessionBest.score*100).toFixed(0)}%)</span>`;
-        }
-        // --- GESTION DU QUIZ ---
-        function nextQuestion() {
-            if (quizStopped) return; // Ne pas relancer si arrêté
-            // Reset de l'état
-            questionCount++;
-            document.getElementById('q-count').innerText = questionCount;
-            
-            // Choisir une voyelle au hasard
-            const randKey = VOWELS[Math.floor(Math.random() * VOWELS.length)];
-            currentTarget = randKey;
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const source = audioContext.createMediaStreamSource(stream);
 
-            // UI Reset
-            const card = document.getElementById('quiz-card');
-            card.className = "card quiz-active";
-            document.getElementById('target-char').innerText = HIRAGANA_MAP[randKey] || randKey;
-            document.getElementById('target-romaji').innerText = randKey;
-            document.getElementById('feedback-top1').innerText = "Écoute en cours...";
-            
-            // Reset Stats Session
-            sessionBest = { label: "Silence", score: 0, label2: "-", score2: 0 };
-            sessionMaxRMS = 0;
-            rmsSum = 0;
-            rmsCount = 0;
-            
-            // Animation Timer (3 secondes)
-            const timer = document.getElementById('timer-fill');
-            timer.style.transition = 'none';
-            timer.style.width = '100%';
-            
-            setTimeout(() => {
-                timer.style.transition = 'width 3s linear';
-                timer.style.width = '0%';
-                isListening = true; // Début écoute
-            }, 50);
+            gainNode = audioContext.createGain();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            dataArray = new Float32Array(analyser.fftSize);
 
-            // Fin de la question après 3s
-            setTimeout(finishQuestion, 3050);
-        }
+            source.connect(gainNode);
+            gainNode.connect(analyser);
 
-        function finishQuestion() {
-            isListening = false;
-            
-            // Calculer Moyenne RMS
-            sessionAvgRMS = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
+            recognizer = speechCommands.create("BROWSER_FFT", undefined, URL_MODEL + "model.json", URL_MODEL + "metadata.json");
+            await recognizer.ensureModelLoaded();
 
-            // Enregistrer le log
-            const timestamp = new Date().toLocaleString('fr-FR');
-            const username = document.getElementById('username').value.replace(/[^a-zA-Z0-9_-]/g, ""); // Clean name
-            const filenameMock = `LiveTest_${username}`; // Pour matcher ton dashboard
-
-            const logEntry = {
-                timestamp: timestamp,
-                filename: filenameMock,
-                expected: currentTarget, // ex: 'a'
-                top1: sessionBest.label,
-                score1: sessionBest.score.toFixed(4),
-                top2: sessionBest.label2,
-                score2: sessionBest.score2.toFixed(4),
-                rms: sessionAvgRMS.toFixed(6),
-                gain: gainNode.gain.value.toFixed(2)
-            };
-            logs.push(logEntry);
-            document.getElementById('log-count').innerText = `${logs.length} résultats enregistrés`;
-
-            // Feedback Visuel
-            const card = document.getElementById('quiz-card');
-            const isCorrect = sessionBest.label === currentTarget;
-            
-            if (isCorrect) {
-                card.classList.remove('quiz-active');
-                card.classList.add('quiz-success');
-                document.getElementById('feedback-top1').innerHTML = `✅ Bravo ! (${(sessionBest.score*100).toFixed(0)}%)`;
-            } else {
-                card.classList.remove('quiz-active');
-                card.classList.add('quiz-fail');
-                document.getElementById('feedback-top1').innerHTML = `❌ Entendu : ${sessionBest.label}`;
-            }
-
-            // Auto-next rapide (sauf si le quiz a été arrêté)
-            if (!quizStopped) {
-                setTimeout(nextQuestion, 1500);
-            }
-        }
-
-        // --- STOP & PAGE RÉSULTATS ---
-        function stopQuiz() {
-            if (logs.length === 0) { alert("Aucune donnée à exporter."); return; }
-            
-            // Stopper proprement
-            isListening = false;
-            quizStopped = true;
-
-            // Cacher le quiz, montrer la page résultats
-            document.getElementById('quiz-card').style.display = 'none';
-            document.getElementById('action-card').classList.add('hidden');
-            document.getElementById('results-page').classList.remove('hidden');
-
-            buildResultsPage();
-        }
-
-        function buildResultsPage() {
-            const total = logs.length;
-            const correct = logs.filter(l => l.top1 === l.expected).length;
-            const accuracy = total > 0 ? (correct / total * 100) : 0;
-            const avgRms = logs.reduce((s, l) => s + parseFloat(l.rms), 0) / total;
-            const user = document.getElementById('username').value;
-            document.getElementById('res-username-display').innerText = user;
-
-            // Stats globales
-            document.getElementById('res-total').innerText = total;
-            document.getElementById('res-correct').innerText = correct;
-            document.getElementById('res-accuracy').innerText = accuracy.toFixed(1) + '%';
-            document.getElementById('res-rms').innerText = avgRms.toFixed(4);
-
-            // Couleur accuracy
-            const accEl = document.getElementById('res-accuracy');
-            accEl.style.color = accuracy >= 80 ? '#00e676' : accuracy >= 60 ? '#ffd700' : '#ff5252';
-
-            // Stats par hiragana
-            const hiraganaStats = {};
-            logs.forEach(l => {
-                if (!hiraganaStats[l.expected]) hiraganaStats[l.expected] = { total: 0, correct: 0 };
-                hiraganaStats[l.expected].total++;
-                if (l.top1 === l.expected) hiraganaStats[l.expected].correct++;
-            });
-
-            const hiraganaGrid = document.getElementById('res-hiragana-grid');
-            hiraganaGrid.innerHTML = '';
-            const romajiToHiragana = { 'a':'あ','i':'い','u':'う','e':'え','o':'お' };
-            Object.entries(hiraganaStats).sort().forEach(([key, val]) => {
-                const pct = (val.correct / val.total * 100);
-                const color = pct >= 80 ? '#00e676' : pct >= 60 ? '#ffd700' : '#ff5252';
-                const char = romajiToHiragana[key] || key;
-                hiraganaGrid.innerHTML += `
-                    <div class="mini-card">
-                        <div class="mini-char">${char}</div>
-                        <div class="mini-romaji">${key}</div>
-                        <div class="mini-pct" style="color:${color}">${pct.toFixed(0)}%</div>
-                        <div class="mini-detail">${val.correct}/${val.total}</div>
-                    </div>`;
-            });
-
-            // Confusions principales
-            const confusions = {};
-            logs.filter(l => l.top1 !== l.expected).forEach(l => {
-                const key = `${l.expected}→${l.top1}`;
-                confusions[key] = (confusions[key] || 0) + 1;
-            });
-            const sortedConf = Object.entries(confusions).sort((a,b) => b[1]-a[1]).slice(0, 4);
-            const confEl = document.getElementById('res-confusions');
-            confEl.innerHTML = '';
-            if (sortedConf.length === 0) {
-                confEl.innerHTML = '<p style="color:#00e676; text-align:center">🎉 Aucune confusion !</p>';
-            } else {
-                sortedConf.forEach(([pair, count]) => {
-                    const [exp, got] = pair.split('→');
-                    const expH = romajiToHiragana[exp] || exp;
-                    const gotH = romajiToHiragana[got] || got;
-                    confEl.innerHTML += `
-                        <div class="confusion-row">
-                            <span class="conf-chars">${expH}→${gotH}</span>
-                            <span class="conf-label">${exp}→${got}</span>
-                            <span class="conf-count">${count}×</span>
-                        </div>`;
-                });
-            }
-        }
-
-        // --- EXPORT CSV ---
-        function exportCSV() {
-            let csvContent = "Horodatage,NomFichier,Attendu,Top1,Score1,Top2,Score2,RMS,Gain\n";
-
-            logs.forEach(row => {
-                csvContent += `${row.timestamp},${row.filename},${row.expected},${row.top1},${row.score1},${row.top2},${row.score2},${row.rms},${row.gain}\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            
-            // Nom fichier avec date et utilisateur
-            const dateStr = new Date().toISOString().slice(0,10);
-            const user = document.getElementById('username').value;
-            link.setAttribute("href", url);
-            link.setAttribute("download", `resultats_marathon_${user}_${dateStr}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function restartQuiz() {
-            logs = [];
-            questionCount = 0;
-            quizStopped = false;
-            isListening = false;
-            sessionBest = { label: "", score: 0, label2: "", score2: 0 };
-
-            document.getElementById('results-page').classList.add('hidden');
+            document.getElementById('setup-card').classList.add('hidden');
             document.getElementById('quiz-card').style.display = 'block';
             document.getElementById('action-card').classList.remove('hidden');
-            document.getElementById('log-count').innerText = '0 résultats enregistrés';
 
-            setTimeout(nextQuestion, 500);
+            updateRMSLoop();
+            startContinuousRecognition();
+            setTimeout(nextQuestion, 1000);
+
+        } catch (e) {
+            alert("Erreur micro ou modèle : " + e);
+            console.error(e);
+            btn.disabled = false;
         }
+    };
 
-        // --- UTILITAIRES ---
-        function updateRMSLoop() {
-            if (analyser) {
-                analyser.getFloatTimeDomainData(dataArray);
-                let sum = 0;
-                for (let i = 0; i < dataArray.length; i++) { sum += dataArray[i] * dataArray[i]; }
-                let rms = Math.sqrt(sum / dataArray.length);
-                
-                document.getElementById('rms-disp').innerText = rms.toFixed(4);
-                
-                if (isListening) {
-                    rmsSum += rms;
-                    rmsCount++;
-                    if (rms > sessionMaxRMS) sessionMaxRMS = rms;
+    // --- RECONNAISSANCE ---
+    function startContinuousRecognition() {
+        recognizer.listen(result => {
+            if (!isListening) return;
+
+            const labels = recognizer.wordLabels();
+            const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
+            scores.sort((a, b) => b.score - a.score);
+
+            const top1 = scores[0];
+            const top2 = scores[1] || { label:"none", score:0 };
+
+            const isBackground = top1.label.toLowerCase().includes("background") ||
+                                  top1.label.toLowerCase().includes("bruit");
+            if (isBackground) return;
+
+            const isTarget = top1.label === currentTarget;
+
+            if (isTarget && top1.score > 0.70) {
+                if (top1.score > sessionBest.score || sessionBest.label !== currentTarget) {
+                    updateSessionBest(top1, top2);
+                }
+            } else if (top1.score > sessionBest.score) {
+                if (sessionBest.label !== currentTarget) {
+                    updateSessionBest(top1, top2);
                 }
             }
-            requestAnimationFrame(updateRMSLoop);
-        }
 
-        document.getElementById('gain-slider').oninput = (e) => {
-            const val = e.target.value;
-            document.getElementById('gain-val').innerText = val;
-            if (gainNode) gainNode.gain.value = parseFloat(val);
+        }, { probabilityThreshold: 0.1, overlapFactor: 0.5 });
+    }
+
+    function updateSessionBest(s1, s2) {
+        sessionBest.label  = s1.label;
+        sessionBest.score  = s1.score;
+        sessionBest.label2 = s2.label;
+        sessionBest.score2 = s2.score;
+
+        const isCorrect = sessionBest.label === currentTarget;
+        const color = isCorrect ? "var(--green)" : "var(--red)";
+        const icon  = isCorrect ? "✅" : "👂";
+        document.getElementById('feedback-top1').innerHTML =
+            `<span style="color:${color};font-weight:700">${icon} ${sessionBest.label} · ${(sessionBest.score*100).toFixed(0)}%</span>`;
+    }
+
+    // --- QUIZ FLOW ---
+    function nextQuestion() {
+        if (quizStopped) return;
+
+        questionCount++;
+        document.getElementById('q-count').innerText = questionCount;
+
+        const randKey = VOWELS[Math.floor(Math.random() * VOWELS.length)];
+        currentTarget = randKey;
+
+        const card = document.getElementById('quiz-card');
+        card.className = "card quiz-active";
+        document.getElementById('target-char').innerText   = HIRAGANA_MAP[randKey] || randKey;
+        document.getElementById('target-romaji').innerText = randKey;
+        document.getElementById('feedback-top1').innerText = "Écoute en cours…";
+
+        sessionBest   = { label:"Silence", score:0, label2:"-", score2:0 };
+        sessionMaxRMS = 0;
+        rmsSum = 0; rmsCount = 0;
+
+        const timer = document.getElementById('timer-fill');
+        timer.style.transition = 'none';
+        timer.style.width = '100%';
+        setTimeout(() => {
+            timer.style.transition = 'width 3s linear';
+            timer.style.width = '0%';
+            isListening = true;
+        }, 50);
+
+        setTimeout(finishQuestion, 3050);
+    }
+
+    function finishQuestion() {
+        isListening = false;
+        sessionAvgRMS = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
+
+        const timestamp   = new Date().toLocaleString('fr-FR');
+        const username    = document.getElementById('username').value.replace(/[^a-zA-Z0-9_-]/g, "");
+        const filenameMock = `LiveTest_${username}`;
+
+        const logEntry = {
+            timestamp, filename: filenameMock,
+            expected: currentTarget,
+            top1:  sessionBest.label,  score1: sessionBest.score.toFixed(4),
+            top2:  sessionBest.label2, score2: sessionBest.score2.toFixed(4),
+            rms:   sessionAvgRMS.toFixed(6),
+            gain:  gainNode.gain.value.toFixed(2)
         };
-    </script>
+        logs.push(logEntry);
+
+        const n = logs.length;
+        document.getElementById('log-count').innerText =
+            `${n} résultat${n > 1 ? 's' : ''} enregistré${n > 1 ? 's' : ''}`;
+
+        const card      = document.getElementById('quiz-card');
+        const isCorrect = sessionBest.label === currentTarget;
+
+        card.className = "card " + (isCorrect ? "quiz-success" : "quiz-fail");
+        document.getElementById('feedback-top1').innerHTML = isCorrect
+            ? `<span style="color:var(--green);font-weight:700">✅ Bravo ! (${(sessionBest.score*100).toFixed(0)}%)</span>`
+            : `<span style="color:var(--red);font-weight:700">❌ Entendu : ${sessionBest.label}</span>`;
+
+        if (!quizStopped) setTimeout(nextQuestion, 1500);
+    }
+
+    // --- STOP & RÉSULTATS ---
+    function stopQuiz() {
+        if (logs.length === 0) { alert("Aucune donnée à exporter."); return; }
+
+        isListening = false;
+        quizStopped = true;
+
+        document.getElementById('quiz-card').style.display = 'none';
+        document.getElementById('action-card').classList.add('hidden');
+        document.getElementById('results-page').classList.remove('hidden');
+
+        buildResultsPage();
+    }
+
+    function buildResultsPage() {
+        const r2h = { 'a':'あ','i':'い','u':'う','e':'え','o':'お' };
+        const total   = logs.length;
+        const correct = logs.filter(l => l.top1 === l.expected).length;
+        const accuracy = total > 0 ? (correct / total * 100) : 0;
+        const avgRms  = logs.reduce((s, l) => s + parseFloat(l.rms), 0) / total;
+
+        const user = document.getElementById('username').value;
+        document.getElementById('res-username-display').innerText = user;
+
+        // Score principal
+        const accEl = document.getElementById('res-accuracy');
+        accEl.innerText = accuracy.toFixed(1) + '%';
+        accEl.style.color = accuracy >= 80 ? 'var(--green)' : accuracy >= 60 ? 'var(--yellow)' : 'var(--red)';
+
+        document.getElementById('res-total').innerText   = total;
+        document.getElementById('res-correct').innerText = correct;
+        document.getElementById('res-rms').innerText     = avgRms.toFixed(4);
+
+        // Grille hiragana
+        const hiraganaStats = {};
+        logs.forEach(l => {
+            if (!hiraganaStats[l.expected]) hiraganaStats[l.expected] = { total:0, correct:0 };
+            hiraganaStats[l.expected].total++;
+            if (l.top1 === l.expected) hiraganaStats[l.expected].correct++;
+        });
+
+        const grid = document.getElementById('res-hiragana-grid');
+        grid.innerHTML = '';
+        Object.entries(hiraganaStats).sort().forEach(([key, val]) => {
+            const pct   = val.correct / val.total * 100;
+            const color = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--yellow)' : 'var(--red)';
+            const cls   = pct >= 80 ? 'good' : pct >= 60 ? 'mid' : 'poor';
+            const char  = r2h[key] || key;
+            grid.innerHTML += `
+                <div class="hira-card ${cls}">
+                    <div class="hira-char">${char}</div>
+                    <div class="hira-romaji">${key}</div>
+                    <div class="hira-pct" style="color:${color}">${pct.toFixed(0)}%</div>
+                    <div class="hira-sub">${val.correct}/${val.total}</div>
+                </div>`;
+        });
+
+        // Confusions
+        const confusions = {};
+        const maxConf = logs.filter(l => l.top1 !== l.expected).length;
+
+        logs.filter(l => l.top1 !== l.expected).forEach(l => {
+            const key = `${l.expected}→${l.top1}`;
+            confusions[key] = (confusions[key] || 0) + 1;
+        });
+
+        const sortedConf = Object.entries(confusions).sort((a,b) => b[1]-a[1]).slice(0, 4);
+        const confEl = document.getElementById('res-confusions');
+        confEl.innerHTML = '';
+
+        if (sortedConf.length === 0) {
+            confEl.innerHTML = `<div class="conf-empty">🎉 Aucune confusion !</div>`;
+        } else {
+            const topCount = sortedConf[0][1];
+            sortedConf.forEach(([pair, count]) => {
+                const [exp, got] = pair.split('→');
+                const expH = r2h[exp] || exp;
+                const gotH = r2h[got] || got;
+                const barW = (count / topCount * 100).toFixed(0);
+                confEl.innerHTML += `
+                    <div class="conf-row">
+                        <div class="conf-chars">${expH}<span style="color:var(--muted);font-size:1.2rem">→</span>${gotH}</div>
+                        <div class="conf-info">
+                            <div class="conf-rom">${exp} → ${got}</div>
+                        </div>
+                        <div class="conf-bar-wrap">
+                            <div class="conf-bar" style="width:${barW}%"></div>
+                        </div>
+                        <div class="conf-count">${count}×</div>
+                    </div>`;
+            });
+        }
+    }
+
+    // --- EXPORT CSV ---
+    function exportCSV() {
+        let csv = "Horodatage,NomFichier,Attendu,Top1,Score1,Top2,Score2,RMS,Gain\n";
+        logs.forEach(r => {
+            csv += `${r.timestamp},${r.filename},${r.expected},${r.top1},${r.score1},${r.top2},${r.score2},${r.rms},${r.gain}\n`;
+        });
+        const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const dateStr = new Date().toISOString().slice(0,10);
+        const user = document.getElementById('username').value;
+        link.setAttribute("href", URL.createObjectURL(blob));
+        link.setAttribute("download", `resultats_${user}_${dateStr}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // --- RESTART ---
+    function restartQuiz() {
+        logs = []; questionCount = 0;
+        quizStopped = false; isListening = false;
+        sessionBest = { label:"", score:0, label2:"", score2:0 };
+
+        document.getElementById('results-page').classList.add('hidden');
+        document.getElementById('quiz-card').style.display = 'block';
+        document.getElementById('action-card').classList.remove('hidden');
+        document.getElementById('log-count').innerText = '0 résultat enregistré';
+
+        setTimeout(nextQuestion, 500);
+    }
+
+    // --- RMS LOOP ---
+    function updateRMSLoop() {
+        if (analyser) {
+            analyser.getFloatTimeDomainData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
+            const rms = Math.sqrt(sum / dataArray.length);
+            document.getElementById('rms-disp').innerText = rms.toFixed(4);
+            if (isListening) { rmsSum += rms; rmsCount++; if (rms > sessionMaxRMS) sessionMaxRMS = rms; }
+        }
+        requestAnimationFrame(updateRMSLoop);
+    }
+
+    document.getElementById('gain-slider').oninput = (e) => {
+        const val = e.target.value;
+        document.getElementById('gain-val').innerText = val;
+        if (gainNode) gainNode.gain.value = parseFloat(val);
+    };
+</script>
 </body>
 </html>
