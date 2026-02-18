@@ -38,6 +38,42 @@
         /* Stats et Logs */
         .stats-mini { display: flex; justify-content: space-around; font-size: 0.9rem; color: #555; margin-top: 10px; }
         .hidden { display: none; }
+
+        /* Page Résultats */
+        #results-page { }
+        .results-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px; padding: 20px; margin-bottom: 15px;
+            color: white; text-align: center;
+        }
+        .results-header h2 { font-size: 1.4rem; margin-bottom: 5px; }
+        .results-header .subtitle { opacity: 0.9; font-size: 0.9rem; }
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-mini-card {
+            background: #1a1a2e; border-radius: 12px; padding: 14px; text-align: center;
+            border: 2px solid #0f3460; color: #eee;
+        }
+        .stat-mini-card .val { font-size: 1.8rem; font-weight: bold; }
+        .stat-mini-card .lbl { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+        .section-title { font-size: 0.9rem; font-weight: bold; color: #667eea; margin: 15px 0 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .hiragana-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; }
+        .mini-card {
+            background: #1a1a2e; border-radius: 10px; padding: 8px 4px;
+            text-align: center; border: 2px solid #0f3460;
+        }
+        .mini-char { font-size: 1.6rem; }
+        .mini-romaji { font-size: 2rem; color: #888; }
+        .mini-pct { font-size: 1rem; font-weight: bold; }
+        .mini-detail { font-size: 0.6rem; color: #666; }
+        .confusions-list { background: #1a1a2e; border-radius: 12px; padding: 12px; border: 2px solid #0f3460; margin-bottom: 20px; }
+        .confusion-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #0f3460; }
+        .confusion-row:last-child { border-bottom: none; }
+        .conf-chars { font-size: 1.2rem; }
+        .conf-label { font-size: 0.8rem; color: #aaa; flex: 1; margin: 0 10px; }
+        .conf-count { font-weight: bold; color: #ff5252; }
+        .results-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-restart { background: #2196f3; padding: 14px; border-radius: 10px; border: none; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .btn-export { background: #4caf50; padding: 14px; border-radius: 10px; border: none; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -81,8 +117,45 @@
 
         <div class="card hidden" id="action-card">
             <button id="btn-next" class="btn btn-blue" onclick="nextQuestion()">Suivant (Auto)</button>
-            <button id="btn-stop" class="btn btn-red" onclick="stopQuiz()">⏹️ Finir & Télécharger CSV</button>
+            <button id="btn-stop" class="btn btn-red" onclick="stopQuiz()">⏹️ Finir & Voir Résultats</button>
             <div id="log-count" style="margin-top:10px; color:#666; font-size:0.8rem;">0 résultats enregistrés</div>
+        </div>
+
+        <div id="results-page" class="hidden">
+            <div class="results-header">
+                <h2>📊 Résultats de la session</h2>
+                <div class="subtitle" id="res-username-display"></div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-mini-card">
+                    <div class="val" id="res-accuracy" style="color:#00e676">—</div>
+                    <div class="lbl">Précision globale</div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="val" style="color:#667eea" id="res-total">—</div>
+                    <div class="lbl">Questions</div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="val" style="color:#00e676" id="res-correct">—</div>
+                    <div class="lbl">Correctes</div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="val" style="color:#ffd700; font-size:1.2rem" id="res-rms">—</div>
+                    <div class="lbl">RMS moyen</div>
+                </div>
+            </div>
+
+            <div class="section-title">% de réussite par hiragana</div>
+            <div class="hiragana-grid" id="res-hiragana-grid"></div>
+
+            <div class="section-title">Principales confusions</div>
+            <div class="confusions-list" id="res-confusions"></div>
+
+            <div class="results-btns">
+                <button class="btn-restart" onclick="restartQuiz()">🔄 Recommencer</button>
+                <button class="btn-export" onclick="exportCSV()">💾 Exporter CSV</button>
+            </div>
         </div>
     </div>
 
@@ -101,6 +174,7 @@
         // --- VARIABLES GLOBALES ---
         let recognizer, audioContext, gainNode, analyser, dataArray;
         let isListening = false;
+        let quizStopped = false;
         let currentTarget = "";
         let logs = [];
         let questionCount = 0;
@@ -232,6 +306,7 @@
         }
         // --- GESTION DU QUIZ ---
         function nextQuestion() {
+            if (quizStopped) return; // Ne pas relancer si arrêté
             // Reset de l'état
             questionCount++;
             document.getElementById('q-count').innerText = questionCount;
@@ -307,16 +382,98 @@
                 document.getElementById('feedback-top1').innerHTML = `❌ Entendu : ${sessionBest.label}`;
             }
 
-            // Auto-next rapide
-            setTimeout(nextQuestion, 1500);
+            // Auto-next rapide (sauf si le quiz a été arrêté)
+            if (!quizStopped) {
+                setTimeout(nextQuestion, 1500);
+            }
+        }
+
+        // --- STOP & PAGE RÉSULTATS ---
+        function stopQuiz() {
+            if (logs.length === 0) { alert("Aucune donnée à exporter."); return; }
+            
+            // Stopper proprement
+            isListening = false;
+            quizStopped = true;
+
+            // Cacher le quiz, montrer la page résultats
+            document.getElementById('quiz-card').style.display = 'none';
+            document.getElementById('action-card').classList.add('hidden');
+            document.getElementById('results-page').classList.remove('hidden');
+
+            buildResultsPage();
+        }
+
+        function buildResultsPage() {
+            const total = logs.length;
+            const correct = logs.filter(l => l.top1 === l.expected).length;
+            const accuracy = total > 0 ? (correct / total * 100) : 0;
+            const avgRms = logs.reduce((s, l) => s + parseFloat(l.rms), 0) / total;
+            const user = document.getElementById('username').value;
+            document.getElementById('res-username-display').innerText = user;
+
+            // Stats globales
+            document.getElementById('res-total').innerText = total;
+            document.getElementById('res-correct').innerText = correct;
+            document.getElementById('res-accuracy').innerText = accuracy.toFixed(1) + '%';
+            document.getElementById('res-rms').innerText = avgRms.toFixed(4);
+
+            // Couleur accuracy
+            const accEl = document.getElementById('res-accuracy');
+            accEl.style.color = accuracy >= 80 ? '#00e676' : accuracy >= 60 ? '#ffd700' : '#ff5252';
+
+            // Stats par hiragana
+            const hiraganaStats = {};
+            logs.forEach(l => {
+                if (!hiraganaStats[l.expected]) hiraganaStats[l.expected] = { total: 0, correct: 0 };
+                hiraganaStats[l.expected].total++;
+                if (l.top1 === l.expected) hiraganaStats[l.expected].correct++;
+            });
+
+            const hiraganaGrid = document.getElementById('res-hiragana-grid');
+            hiraganaGrid.innerHTML = '';
+            const romajiToHiragana = { 'a':'あ','i':'い','u':'う','e':'え','o':'お' };
+            Object.entries(hiraganaStats).sort().forEach(([key, val]) => {
+                const pct = (val.correct / val.total * 100);
+                const color = pct >= 80 ? '#00e676' : pct >= 60 ? '#ffd700' : '#ff5252';
+                const char = romajiToHiragana[key] || key;
+                hiraganaGrid.innerHTML += `
+                    <div class="mini-card">
+                        <div class="mini-char">${char}</div>
+                        <div class="mini-romaji">${key}</div>
+                        <div class="mini-pct" style="color:${color}">${pct.toFixed(0)}%</div>
+                        <div class="mini-detail">${val.correct}/${val.total}</div>
+                    </div>`;
+            });
+
+            // Confusions principales
+            const confusions = {};
+            logs.filter(l => l.top1 !== l.expected).forEach(l => {
+                const key = `${l.expected}→${l.top1}`;
+                confusions[key] = (confusions[key] || 0) + 1;
+            });
+            const sortedConf = Object.entries(confusions).sort((a,b) => b[1]-a[1]).slice(0, 4);
+            const confEl = document.getElementById('res-confusions');
+            confEl.innerHTML = '';
+            if (sortedConf.length === 0) {
+                confEl.innerHTML = '<p style="color:#00e676; text-align:center">🎉 Aucune confusion !</p>';
+            } else {
+                sortedConf.forEach(([pair, count]) => {
+                    const [exp, got] = pair.split('→');
+                    const expH = romajiToHiragana[exp] || exp;
+                    const gotH = romajiToHiragana[got] || got;
+                    confEl.innerHTML += `
+                        <div class="confusion-row">
+                            <span class="conf-chars">${expH}→${gotH}</span>
+                            <span class="conf-label">${exp}→${got}</span>
+                            <span class="conf-count">${count}×</span>
+                        </div>`;
+                });
+            }
         }
 
         // --- EXPORT CSV ---
-        function stopQuiz() {
-            isListening = false;
-            if (logs.length === 0) { alert("Aucune donnée à exporter."); return; }
-
-            // En-têtes compatibles avec ton Dashboard
+        function exportCSV() {
             let csvContent = "Horodatage,NomFichier,Attendu,Top1,Score1,Top2,Score2,RMS,Gain\n";
 
             logs.forEach(row => {
@@ -336,6 +493,21 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function restartQuiz() {
+            logs = [];
+            questionCount = 0;
+            quizStopped = false;
+            isListening = false;
+            sessionBest = { label: "", score: 0, label2: "", score2: 0 };
+
+            document.getElementById('results-page').classList.add('hidden');
+            document.getElementById('quiz-card').style.display = 'block';
+            document.getElementById('action-card').classList.remove('hidden');
+            document.getElementById('log-count').innerText = '0 résultats enregistrés';
+
+            setTimeout(nextQuestion, 500);
         }
 
         // --- UTILITAIRES ---
