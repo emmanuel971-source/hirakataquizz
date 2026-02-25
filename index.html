@@ -113,6 +113,56 @@
 
         #loading { color: var(--muted); font-size: 0.85rem; margin-top: 10px; text-align: center; }
 
+        /* ── SÉLECTEUR DE MODE ── */
+        .mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+        .mode-btn {
+            padding: 12px 8px; border-radius: 10px; border: 2px solid var(--border);
+            background: var(--bg); color: var(--muted); font-size: 0.9rem; font-weight: 600;
+            cursor: pointer; text-align: center; transition: all 0.2s;
+        }
+        .mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.08); }
+        .mode-btn .mode-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+
+        /* ── TEST LIBRE ── */
+        #free-card { display: none; }
+
+        .hira-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .hira-btn {
+            background: var(--bg); border: 2px solid var(--border);
+            border-radius: 10px; padding: 10px 4px; cursor: pointer;
+            text-align: center; transition: all 0.15s;
+        }
+        .hira-btn:hover { border-color: var(--muted); }
+        .hira-btn.selected { border-color: var(--accent); background: rgba(88,166,255,0.1); }
+        .hira-btn .hb-char { font-size: 1.8rem; line-height: 1.1; color: var(--text); }
+        .hira-btn .hb-rom  { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        .free-display { text-align: center; padding: 18px 0 10px; }
+        .free-target-char   { font-size: 6rem; font-weight: 700; line-height: 1; }
+        .free-target-romaji { font-size: 1.4rem; color: var(--accent); font-weight: 700;
+                              letter-spacing: 4px; text-transform: uppercase; margin-top: 4px; }
+
+        .scores-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .score-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .score-row.top1     { border-color: var(--accent); background: rgba(88,166,255,0.06); }
+        .score-row.is-match { border-color: var(--green) !important; background: rgba(63,185,80,0.08) !important; }
+        .score-char { font-size: 1.6rem; min-width: 36px; text-align: center; }
+        .score-rom  { font-size: 0.75rem; color: var(--muted); text-transform: uppercase;
+                      letter-spacing: 1px; min-width: 28px; }
+        .score-bar-wrap { flex: 1; background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; }
+        .score-bar  { height: 100%; border-radius: 4px; transition: width 0.15s; }
+        .score-pct  { font-size: 0.95rem; font-weight: 700; min-width: 44px; text-align: right; }
+
         #quiz-card {
             display: none;
             border: 2px solid var(--border);
@@ -266,8 +316,35 @@
             <input type="range" id="gain-slider" min="0.5" max="5" step="0.1" value="1">
         </div>
 
+        <div class="field">
+            <label>Mode</label>
+            <div class="mode-row">
+                <div class="mode-btn active" id="mode-quiz" onclick="selectMode('quiz')">
+                    <span class="mode-icon">🎯</span>Quiz chronométré
+                </div>
+                <div class="mode-btn" id="mode-free" onclick="selectMode('free')">
+                    <span class="mode-icon">🎙️</span>Test libre
+                </div>
+            </div>
+        </div>
+
         <button id="btn-start" class="btn btn-accent">🚀 Initialiser &amp; Démarrer</button>
         <div id="loading" class="hidden">⏳ Chargement du modèle…</div>
+    </div>
+
+    <!-- ── TEST LIBRE ── -->
+    <div class="card" id="free-card">
+        <div class="card-title">🎙️ Test libre</div>
+        <div class="card-sub">Sélectionne un hiragana puis prononce-le</div>
+        <div class="hira-selector" id="hira-selector"></div>
+        <div class="free-display">
+            <div class="free-target-char" id="free-char">—</div>
+            <div class="free-target-romaji" id="free-romaji">choisir</div>
+        </div>
+        <div class="scores-list" id="free-scores"></div>
+        <div style="margin-top:16px">
+            <button class="btn btn-outline" onclick="stopFree()">⬅ Retour au menu</button>
+        </div>
     </div>
 
     <!-- ── QUIZ ── -->
@@ -395,8 +472,13 @@
             document.getElementById('action-card').classList.remove('hidden');
 
             updateRMSLoop();
-            startContinuousRecognition();
-            setTimeout(nextQuestion, 1000);
+
+            if (selectedMode === 'free') {
+                startFreeMode();
+            } else {
+                startContinuousRecognition();
+                setTimeout(nextQuestion, 1000);
+            }
 
         } catch (e) {
             alert("Erreur micro ou modèle : " + e);
@@ -653,6 +735,100 @@
             if (isListening) { rmsSum += rms; rmsCount++; if (rms > sessionMaxRMS) sessionMaxRMS = rms; }
         }
         requestAnimationFrame(updateRMSLoop);
+    }
+
+    // --- MODE SÉLECTION ---
+    let selectedMode = 'quiz';
+    function selectMode(m) {
+        selectedMode = m;
+        document.getElementById('mode-quiz').classList.toggle('active', m === 'quiz');
+        document.getElementById('mode-free').classList.toggle('active', m === 'free');
+    }
+
+    // --- TEST LIBRE ---
+    let freeTarget = null;
+    let freeListening = false;
+
+    function startFreeMode() {
+        // Construire la grille de sélection
+        const sel = document.getElementById('hira-selector');
+        sel.innerHTML = '';
+        SYLLABLES.forEach(h => {
+            const btn = document.createElement('div');
+            btn.className = 'hira-btn';
+            btn.innerHTML = `<div class="hb-char">${h}</div><div class="hb-rom">${HIRAGANA_MAP[h]}</div>`;
+            btn.onclick = () => selectFreeTarget(h);
+            btn.id = 'hbtn-' + h;
+            sel.appendChild(btn);
+        });
+
+        // Construire les 3 lignes de score vides
+        const scoresList = document.getElementById('free-scores');
+        scoresList.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+            scoresList.innerHTML += `
+                <div class="score-row" id="free-row-${i}">
+                    <div class="score-char" id="free-schar-${i}">—</div>
+                    <div class="score-rom"  id="free-srom-${i}"></div>
+                    <div class="score-bar-wrap">
+                        <div class="score-bar" id="free-sbar-${i}" style="width:0%;background:var(--accent)"></div>
+                    </div>
+                    <div class="score-pct"  id="free-spct-${i}">—</div>
+                </div>`;
+        }
+
+        document.getElementById('setup-card').classList.add('hidden');
+        document.getElementById('free-card').style.display = 'block';
+        freeListening = true;
+        startFreeRecognition();
+    }
+
+    function selectFreeTarget(h) {
+        freeTarget = h;
+        document.querySelectorAll('.hira-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById('hbtn-' + h).classList.add('selected');
+        document.getElementById('free-char').innerText   = h;
+        document.getElementById('free-romaji').innerText = HIRAGANA_MAP[h] || h;
+    }
+
+    function startFreeRecognition() {
+        recognizer.listen(result => {
+            if (!freeListening) return;
+
+            const labels = recognizer.wordLabels();
+            const scores = Array.from(result.scores)
+                .map((s, i) => ({ label: labels[i], score: s }))
+                .filter(x => !x.label.toLowerCase().includes('background') && !x.label.toLowerCase().includes('bruit'))
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3);
+
+            scores.forEach((s, i) => {
+                const pct  = (s.score * 100).toFixed(0);
+                const isMatch = freeTarget && s.label === freeTarget;
+                const barColor = i === 0
+                    ? (isMatch ? 'var(--green)' : 'var(--accent)')
+                    : 'var(--border)';
+
+                document.getElementById(`free-schar-${i}`).innerText = s.label;
+                document.getElementById(`free-srom-${i}`).innerText  = HIRAGANA_MAP[s.label] || '';
+                document.getElementById(`free-sbar-${i}`).style.width      = pct + '%';
+                document.getElementById(`free-sbar-${i}`).style.background = isMatch ? 'var(--green)' : (i === 0 ? 'var(--accent)' : 'var(--muted)');
+                document.getElementById(`free-spct-${i}`).innerText  = pct + '%';
+                document.getElementById(`free-spct-${i}`).style.color = isMatch ? 'var(--green)' : (i === 0 ? 'var(--accent)' : 'var(--muted)');
+
+                const row = document.getElementById(`free-row-${i}`);
+                row.classList.toggle('top1',     i === 0 && !isMatch);
+                row.classList.toggle('is-match', isMatch);
+            });
+
+        }, { probabilityThreshold: 0.05, overlapFactor: 0.75 });
+    }
+
+    function stopFree() {
+        freeListening = false;
+        recognizer.stopListening();
+        document.getElementById('free-card').style.display = 'none';
+        document.getElementById('setup-card').classList.remove('hidden');
     }
 
     document.getElementById('gain-slider').oninput = (e) => {
