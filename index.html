@@ -33,7 +33,6 @@
 
         .container { max-width: 480px; margin: 0 auto; }
 
-        /* ── CARTES GÉNÉRALES ── */
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -57,7 +56,6 @@
             margin-bottom: 20px;
         }
 
-        /* ── SETUP ── */
         .field { margin-bottom: 18px; }
         .field label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
 
@@ -94,7 +92,6 @@
         .gain-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); }
         .gain-val { color: var(--accent); font-weight: 700; }
 
-        /* ── BOUTONS ── */
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 6px;
             padding: 12px 20px; font-size: 0.95rem; font-weight: 600;
@@ -113,11 +110,9 @@
             border: 1px solid var(--border);
             color: var(--text);
         }
-        .btn-sm { padding: 9px 16px; font-size: 0.85rem; width: auto; }
 
         #loading { color: var(--muted); font-size: 0.85rem; margin-top: 10px; text-align: center; }
 
-        /* ── QUIZ CARD ── */
         #quiz-card {
             display: none;
             border: 2px solid var(--border);
@@ -155,13 +150,11 @@
             color: var(--muted); min-height: 22px; text-align: center;
         }
 
-        /* ── ACTION CARD ── */
         #action-card { padding: 16px 24px; }
         .action-row { display: flex; gap: 10px; }
         .action-row .btn { flex: 1; }
         #log-count { text-align: center; margin-top: 10px; font-size: 0.75rem; color: var(--muted); }
 
-        /* ── RÉSULTATS ── */
         .hidden { display: none !important; }
 
         .res-header {
@@ -196,7 +189,6 @@
             margin: 18px 0 10px;
         }
 
-        /* Grille hiragana — 5 colonnes, grande taille */
         .hira-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -226,7 +218,6 @@
         .hira-pct { font-size: 1.15rem; font-weight: 700; margin: 2px 0; }
         .hira-sub { font-size: 0.65rem; color: var(--muted); }
 
-        /* Confusions */
         .conf-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -242,7 +233,6 @@
         }
         .conf-row:last-child { border-bottom: none; }
         .conf-chars { font-size: 1.8rem; line-height: 1; min-width: 80px; }
-        .conf-arrow { color: var(--muted); font-size: 1rem; }
         .conf-info { flex: 1; }
         .conf-info .conf-rom { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
         .conf-bar-wrap { flex: 2; background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; }
@@ -250,7 +240,6 @@
         .conf-count { font-size: 0.85rem; font-weight: 700; color: var(--red); min-width: 28px; text-align: right; }
         .conf-empty { padding: 18px; text-align: center; color: var(--green); font-size: 0.95rem; }
 
-        /* Boutons résultats */
         .res-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; padding-bottom: 24px; }
         .res-btns .btn { padding: 15px; font-size: 1rem; }
     </style>
@@ -262,7 +251,7 @@
     <!-- ── SETUP ── -->
     <div class="card" id="setup-card">
         <div class="card-title">🎙️ Quiz Vocal Hiragana</div>
-        <div class="card-sub">Protocole de test v1.0</div>
+        <div class="card-sub">Protocole de test v1.1 — A·I·U·E·O + KA·KI·KU·KE·KO</div>
 
         <div class="field">
             <label>Nom / Appareil</label>
@@ -347,10 +336,20 @@
 
 <script>
     // --- CONFIGURATION ---
-   //   const URL_MODEL = "https://teachablemachine.withgoogle.com/models/SJdR1p2tx/";
     const URL_MODEL = "https://teachablemachine.withgoogle.com/models/LY5AQHCmd/";
-    const HIRAGANA_MAP = { 'a':'あ','i':'い','u':'う','e':'え','o':'お' };
-    const VOWELS = ['あ','い','う','え','お'];
+
+    // Hiragana → Romaji (pour afficher la hint et la grille résultats)
+    // Les clés sont les labels retournés directement par le modèle Teachable
+    const HIRAGANA_MAP = {
+        'あ':'a', 'い':'i', 'う':'u', 'え':'e', 'お':'o',
+        'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko'
+    };
+
+    // Toutes les syllabes tirées aléatoirement (= labels exacts du modèle)
+    const SYLLABLES = ['あ','い','う','え','お','か','き','く','け','こ'];
+
+    // Ordre d'affichage dans la grille résultats
+    const SYLLABLES_ORDER = ['あ','い','う','え','お','か','き','く','け','こ'];
 
     // --- VARIABLES GLOBALES ---
     let recognizer, audioContext, gainNode, analyser, dataArray;
@@ -456,13 +455,14 @@
         questionCount++;
         document.getElementById('q-count').innerText = questionCount;
 
-        const randKey = VOWELS[Math.floor(Math.random() * VOWELS.length)];
+        // Tirage aléatoire parmi les 10 syllabes (A·I·U·E·O + KA·KI·KU·KE·KO)
+        const randKey = SYLLABLES[Math.floor(Math.random() * SYLLABLES.length)];
         currentTarget = randKey;
 
         const card = document.getElementById('quiz-card');
         card.className = "card quiz-active";
-        document.getElementById('target-char').innerText   = HIRAGANA_MAP[randKey] || randKey;
-        document.getElementById('target-romaji').innerText = randKey;
+        document.getElementById('target-char').innerText   = randKey;
+        document.getElementById('target-romaji').innerText = HIRAGANA_MAP[randKey] || randKey;
         document.getElementById('feedback-top1').innerText = "Écoute en cours…";
 
         sessionBest   = { label:"Silence", score:0, label2:"-", score2:0 };
@@ -485,8 +485,8 @@
         isListening = false;
         sessionAvgRMS = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
 
-        const timestamp   = new Date().toLocaleString('fr-FR');
-        const username    = document.getElementById('username').value.replace(/[^a-zA-Z0-9_-]/g, "");
+        const timestamp    = new Date().toLocaleString('fr-FR');
+        const username     = document.getElementById('username').value.replace(/[^a-zA-Z0-9_-]/g, "");
         const filenameMock = `LiveTest_${username}`;
 
         const logEntry = {
@@ -529,7 +529,6 @@
     }
 
     function buildResultsPage() {
-        const r2h = { 'a':'あ','i':'い','u':'う','e':'え','o':'お' };
         const total   = logs.length;
         const correct = logs.filter(l => l.top1 === l.expected).length;
         const accuracy = total > 0 ? (correct / total * 100) : 0;
@@ -538,7 +537,6 @@
         const user = document.getElementById('username').value;
         document.getElementById('res-username-display').innerText = user;
 
-        // Score principal
         const accEl = document.getElementById('res-accuracy');
         accEl.innerText = accuracy.toFixed(1) + '%';
         accEl.style.color = accuracy >= 80 ? 'var(--green)' : accuracy >= 60 ? 'var(--yellow)' : 'var(--red)';
@@ -547,7 +545,7 @@
         document.getElementById('res-correct').innerText = correct;
         document.getElementById('res-rms').innerText     = avgRms.toFixed(4);
 
-        // Grille hiragana
+        // Grille hiragana — statistiques par syllabe
         const hiraganaStats = {};
         logs.forEach(l => {
             if (!hiraganaStats[l.expected]) hiraganaStats[l.expected] = { total:0, correct:0 };
@@ -557,15 +555,18 @@
 
         const grid = document.getElementById('res-hiragana-grid');
         grid.innerHTML = '';
-        Object.entries(hiraganaStats).sort().forEach(([key, val]) => {
+        SYLLABLES_ORDER.forEach(key => {
+            if (!hiraganaStats[key]) return;
+            const val   = hiraganaStats[key];
             const pct   = val.correct / val.total * 100;
             const color = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--yellow)' : 'var(--red)';
             const cls   = pct >= 80 ? 'good' : pct >= 60 ? 'mid' : 'poor';
-            const char  = r2h[key] || key;
+            const char  = key;
+            const rom   = HIRAGANA_MAP[key] || key;
             grid.innerHTML += `
                 <div class="hira-card ${cls}">
                     <div class="hira-char">${char}</div>
-                    <div class="hira-romaji">${key}</div>
+                    <div class="hira-romaji">${rom}</div>
                     <div class="hira-pct" style="color:${color}">${pct.toFixed(0)}%</div>
                     <div class="hira-sub">${val.correct}/${val.total}</div>
                 </div>`;
@@ -573,8 +574,6 @@
 
         // Confusions
         const confusions = {};
-        const maxConf = logs.filter(l => l.top1 !== l.expected).length;
-
         logs.filter(l => l.top1 !== l.expected).forEach(l => {
             const key = `${l.expected}→${l.top1}`;
             confusions[key] = (confusions[key] || 0) + 1;
@@ -590,14 +589,16 @@
             const topCount = sortedConf[0][1];
             sortedConf.forEach(([pair, count]) => {
                 const [exp, got] = pair.split('→');
-                const expH = r2h[exp] || exp;
-                const gotH = r2h[got] || got;
+                const expH = exp;
+                const gotH = got;
+                const expR = HIRAGANA_MAP[exp] || exp;
+                const gotR = HIRAGANA_MAP[got] || got;
                 const barW = (count / topCount * 100).toFixed(0);
                 confEl.innerHTML += `
                     <div class="conf-row">
                         <div class="conf-chars">${expH}<span style="color:var(--muted);font-size:1.2rem">→</span>${gotH}</div>
                         <div class="conf-info">
-                            <div class="conf-rom">${exp} → ${got}</div>
+                            <div class="conf-rom">${expR} → ${gotR}</div>
                         </div>
                         <div class="conf-bar-wrap">
                             <div class="conf-bar" style="width:${barW}%"></div>
@@ -661,4 +662,3 @@
 </script>
 </body>
 </html>
-
