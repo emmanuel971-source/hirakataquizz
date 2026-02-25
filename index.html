@@ -134,13 +134,45 @@
         }
         .hira-btn {
             background: var(--bg); border: 2px solid var(--border);
-            border-radius: 10px; padding: 10px 4px; cursor: pointer;
-            text-align: center; transition: all 0.15s;
+            border-radius: 10px; padding: 10px 4px 6px; cursor: pointer;
+            text-align: center; transition: all 0.15s; position: relative;
         }
         .hira-btn:hover { border-color: var(--muted); }
         .hira-btn.selected { border-color: var(--accent); background: rgba(88,166,255,0.1); }
+        .hira-btn.mastered { border-color: var(--green) !important; background: rgba(63,185,80,0.12) !important; }
         .hira-btn .hb-char { font-size: 1.8rem; line-height: 1.1; color: var(--text); }
         .hira-btn .hb-rom  { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .hira-btn .hb-stars { font-size: 0.7rem; line-height: 1.4; min-height: 14px; letter-spacing: 1px; }
+
+        .free-stats-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: 16px; margin: 6px 0 10px; min-height: 36px;
+        }
+        .free-max-badge {
+            display: flex; flex-direction: column; align-items: center;
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 10px; padding: 6px 16px; font-size: 0.8rem; color: var(--muted);
+        }
+        .free-max-badge .fmb-val { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+        .free-stars-badge {
+            display: flex; flex-direction: column; align-items: center;
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 10px; padding: 6px 16px; font-size: 0.8rem; color: var(--muted);
+        }
+        .free-stars-badge .fsb-stars { font-size: 1.3rem; line-height: 1.2; }
+
+        .mastery-banner {
+            display: none; text-align: center;
+            background: rgba(63,185,80,0.12); border: 1px solid var(--green);
+            border-radius: 10px; padding: 12px; margin: 10px 0;
+            color: var(--green); font-weight: 700; font-size: 0.95rem;
+            animation: pop 0.3s ease;
+        }
+        @keyframes pop {
+            0%   { transform: scale(0.85); opacity: 0; }
+            60%  { transform: scale(1.05); }
+            100% { transform: scale(1);    opacity: 1; }
+        }
 
         .free-display { text-align: center; padding: 18px 0 10px; }
         .free-target-char   { font-size: 6rem; font-weight: 700; line-height: 1; }
@@ -341,6 +373,17 @@
             <div class="free-target-char" id="free-char">—</div>
             <div class="free-target-romaji" id="free-romaji">choisir</div>
         </div>
+        <div class="free-stats-row" id="free-stats-row" style="display:none">
+            <div class="free-max-badge">
+                <div class="fmb-val" id="free-max-val">0%</div>
+                <div>max atteint</div>
+            </div>
+            <div class="free-stars-badge">
+                <div class="fsb-stars" id="free-stars-disp">☆☆☆</div>
+                <div>étoiles</div>
+            </div>
+        </div>
+        <div class="mastery-banner" id="mastery-banner">🎉 Bravo, prononciation maîtrisée !</div>
         <div class="scores-list" id="free-scores"></div>
         <div style="margin-top:16px">
             <button class="btn btn-outline" onclick="stopFree()">⬅ Retour au menu</button>
@@ -749,18 +792,26 @@
     let freeTarget = null;
     let freeListening = false;
 
+    // --- MASTERY (localStorage) ---
+    const MASTERY_KEY = 'hiragana_mastery_v1';
+
+    function loadMastery() {
+        try { return JSON.parse(localStorage.getItem(MASTERY_KEY)) || {}; }
+        catch(e) { return {}; }
+    }
+    function saveMastery(data) {
+        try { localStorage.setItem(MASTERY_KEY, JSON.stringify(data)); } catch(e) {}
+    }
+    function getMasteryFor(h) {
+        const m = loadMastery();
+        return m[h] || { stars: 0, maxPct: 0 };
+    }
+    function starsStr(n) {
+        return '★'.repeat(n) + '☆'.repeat(3 - n);
+    }
+
     function startFreeMode() {
-        // Construire la grille de sélection
-        const sel = document.getElementById('hira-selector');
-        sel.innerHTML = '';
-        SYLLABLES.forEach(h => {
-            const btn = document.createElement('div');
-            btn.className = 'hira-btn';
-            btn.innerHTML = `<div class="hb-char">${h}</div><div class="hb-rom">${HIRAGANA_MAP[h]}</div>`;
-            btn.onclick = () => selectFreeTarget(h);
-            btn.id = 'hbtn-' + h;
-            sel.appendChild(btn);
-        });
+        buildHiraSelector();
 
         // Construire les 3 lignes de score vides
         const scoresList = document.getElementById('free-scores');
@@ -783,56 +834,143 @@
         startFreeRecognition();
     }
 
+    function buildHiraSelector() {
+        const sel = document.getElementById('hira-selector');
+        sel.innerHTML = '';
+        const mastery = loadMastery();
+        SYLLABLES.forEach(h => {
+            const st = mastery[h] ? mastery[h].stars : 0;
+            const isMastered = st >= 3;
+            const btn = document.createElement('div');
+            btn.className = 'hira-btn' + (isMastered ? ' mastered' : '');
+            btn.innerHTML = `<div class="hb-char">${h}</div><div class="hb-rom">${HIRAGANA_MAP[h]}</div><div class="hb-stars">${starsStr(st)}</div>`;
+            btn.onclick = () => selectFreeTarget(h);
+            btn.id = 'hbtn-' + h;
+            sel.appendChild(btn);
+        });
+    }
+
+    function refreshHiraBtn(h) {
+        const m = getMasteryFor(h);
+        const btn = document.getElementById('hbtn-' + h);
+        if (!btn) return;
+        const isMastered = m.stars >= 3;
+        btn.className = 'hira-btn' + (isMastered ? ' mastered' : '') + (freeTarget === h ? ' selected' : '');
+        btn.querySelector('.hb-stars').innerText = starsStr(m.stars);
+    }
+
     function selectFreeTarget(h) {
         freeTarget = h;
         document.querySelectorAll('.hira-btn').forEach(b => b.classList.remove('selected'));
         document.getElementById('hbtn-' + h).classList.add('selected');
         document.getElementById('free-char').innerText   = h;
         document.getElementById('free-romaji').innerText = HIRAGANA_MAP[h] || h;
+
+        // Afficher les stats sauvegardées pour ce hiragana
+        const m = getMasteryFor(h);
+        document.getElementById('free-max-val').innerText = m.maxPct + '%';
+        document.getElementById('free-stars-disp').innerText = starsStr(m.stars);
+        document.getElementById('free-stats-row').style.display = 'flex';
+
+        const banner = document.getElementById('mastery-banner');
+        banner.style.display = m.stars >= 3 ? 'block' : 'none';
     }
 
-   function startFreeRecognition() {
-    recognizer.listen(result => {
-        if (!freeListening) return;
+    function startFreeRecognition() {
+        recognizer.listen(result => {
+            if (!freeListening) return;
 
-        const labels = recognizer.wordLabels();
-        const scores = Array.from(result.scores)
-            .map((s, i) => ({ label: labels[i], score: s }))
-            // ✅ Plus de filtre : on garde TOUTES les classes, y compris bruit de fond
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 3);
+            const labels = recognizer.wordLabels();
+            const scores = Array.from(result.scores)
+                .map((s, i) => ({ label: labels[i], score: s }))
+                // ✅ Toutes les classes incluses (bruit de fond visible)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3);
 
-        scores.forEach((s, i) => {
-            const pct = (s.score * 100).toFixed(0);
+            scores.forEach((s, i) => {
+                const pct = (s.score * 100).toFixed(0);
+                const isSilence = s.label.toLowerCase().includes('background')
+                               || s.label.toLowerCase().includes('bruit');
+                const isMatch = freeTarget && s.label === freeTarget;
 
-            // Détecter si c'est une classe "bruit/background"
-            const isSilence = s.label.toLowerCase().includes('background') 
-                           || s.label.toLowerCase().includes('bruit');
+                const displayChar = isSilence ? '🤫' : s.label;
+                const displayRom  = isSilence ? 'silence' : (HIRAGANA_MAP[s.label] || '');
 
-            const isMatch = freeTarget && s.label === freeTarget;
+                document.getElementById(`free-schar-${i}`).innerText = displayChar;
+                document.getElementById(`free-srom-${i}`).innerText  = displayRom;
+                document.getElementById(`free-sbar-${i}`).style.width      = pct + '%';
+                document.getElementById(`free-sbar-${i}`).style.background = isMatch
+                    ? 'var(--green)'
+                    : (isSilence ? 'var(--muted)' : (i === 0 ? 'var(--accent)' : 'var(--muted)'));
+                document.getElementById(`free-spct-${i}`).innerText  = pct + '%';
+                document.getElementById(`free-spct-${i}`).style.color = isMatch
+                    ? 'var(--green)'
+                    : (i === 0 ? 'var(--accent)' : 'var(--muted)');
 
-            // Label affiché : si silence, afficher 🤫 au lieu du nom de classe brut
-            const displayChar = isSilence ? '🤫' : s.label;
-            const displayRom  = isSilence ? 'silence' : (HIRAGANA_MAP[s.label] || '');
+                const row = document.getElementById(`free-row-${i}`);
+                row.classList.toggle('top1',     i === 0 && !isMatch);
+                row.classList.toggle('is-match', isMatch);
+            });
 
-            document.getElementById(`free-schar-${i}`).innerText = displayChar;
-            document.getElementById(`free-srom-${i}`).innerText  = displayRom;
-            document.getElementById(`free-sbar-${i}`).style.width      = pct + '%';
-            document.getElementById(`free-sbar-${i}`).style.background = isMatch 
-                ? 'var(--green)' 
-                : (isSilence ? 'var(--muted)' : (i === 0 ? 'var(--accent)' : 'var(--muted))'));
-            document.getElementById(`free-spct-${i}`).innerText   = pct + '%';
-            document.getElementById(`free-spct-${i}`).style.color = isMatch 
-                ? 'var(--green)' 
-                : (i === 0 ? 'var(--accent)' : 'var(--muted)');
+            // --- MISE À JOUR MASTERY si on a un target et que c'est le top1 ---
+            if (freeTarget) {
+                const top = scores[0];
+                if (top && top.label === freeTarget) {
+                    const pctNum = Math.round(top.score * 100);
+                    updateMastery(freeTarget, pctNum);
+                }
+            }
 
-            const row = document.getElementById(`free-row-${i}`);
-            row.classList.toggle('top1',     i === 0 && !isMatch);
-            row.classList.toggle('is-match', isMatch);
-        });
+        }, { probabilityThreshold: 0.05, overlapFactor: 0.75 });
+    }
 
-    }, { probabilityThreshold: 0.05, overlapFactor: 0.75 });
-}
+    function updateMastery(h, pctNum) {
+        const mastery = loadMastery();
+        if (!mastery[h]) mastery[h] = { stars: 0, maxPct: 0 };
+        const entry = mastery[h];
+
+        let changed = false;
+
+        // Mettre à jour le max si supérieur
+        if (pctNum > entry.maxPct) {
+            entry.maxPct = pctNum;
+            changed = true;
+            document.getElementById('free-max-val').innerText = pctNum + '%';
+        }
+
+        // Attribuer une étoile si 100% atteint (max 3 étoiles)
+        if (pctNum === 100 && entry.stars < 3) {
+            entry.stars++;
+            entry.maxPct = 0; // reset max pour la prochaine étoile
+            changed = true;
+
+            document.getElementById('free-stars-disp').innerText = starsStr(entry.stars);
+            document.getElementById('free-max-val').innerText = '0%';
+
+            // Afficher le banner si 3 étoiles
+            if (entry.stars >= 3) {
+                const banner = document.getElementById('mastery-banner');
+                banner.style.display = 'block';
+                banner.style.animation = 'none';
+                void banner.offsetWidth; // reflow pour relancer l'animation
+                banner.style.animation = 'pop 0.3s ease';
+            }
+
+            // Flash sur le bouton hiragana
+            const btn = document.getElementById('hbtn-' + h);
+            if (btn) {
+                btn.style.transition = 'background 0.2s';
+                btn.style.background = 'rgba(63,185,80,0.3)';
+                setTimeout(() => { btn.style.background = ''; refreshHiraBtn(h); }, 600);
+            }
+        }
+
+        if (changed) {
+            saveMastery(mastery);
+            refreshHiraBtn(h);
+        }
+    }
+
     function stopFree() {
         freeListening = false;
         recognizer.stopListening();
@@ -848,4 +986,3 @@
 </script>
 </body>
 </html>
-
