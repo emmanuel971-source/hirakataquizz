@@ -791,39 +791,48 @@
         document.getElementById('free-romaji').innerText = HIRAGANA_MAP[h] || h;
     }
 
-    function startFreeRecognition() {
-        recognizer.listen(result => {
-            if (!freeListening) return;
+   function startFreeRecognition() {
+    recognizer.listen(result => {
+        if (!freeListening) return;
 
-            const labels = recognizer.wordLabels();
-            const scores = Array.from(result.scores)
-                .map((s, i) => ({ label: labels[i], score: s }))
-                .filter(x => !x.label.toLowerCase().includes('background') && !x.label.toLowerCase().includes('bruit'))
-                .sort((a, b) => b.score - a.score)
-                .slice(0, 3);
+        const labels = recognizer.wordLabels();
+        const scores = Array.from(result.scores)
+            .map((s, i) => ({ label: labels[i], score: s }))
+            // ✅ Plus de filtre : on garde TOUTES les classes, y compris bruit de fond
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 3);
 
-            scores.forEach((s, i) => {
-                const pct  = (s.score * 100).toFixed(0);
-                const isMatch = freeTarget && s.label === freeTarget;
-                const barColor = i === 0
-                    ? (isMatch ? 'var(--green)' : 'var(--accent)')
-                    : 'var(--border)';
+        scores.forEach((s, i) => {
+            const pct = (s.score * 100).toFixed(0);
 
-                document.getElementById(`free-schar-${i}`).innerText = s.label;
-                document.getElementById(`free-srom-${i}`).innerText  = HIRAGANA_MAP[s.label] || '';
-                document.getElementById(`free-sbar-${i}`).style.width      = pct + '%';
-                document.getElementById(`free-sbar-${i}`).style.background = isMatch ? 'var(--green)' : (i === 0 ? 'var(--accent)' : 'var(--muted)');
-                document.getElementById(`free-spct-${i}`).innerText  = pct + '%';
-                document.getElementById(`free-spct-${i}`).style.color = isMatch ? 'var(--green)' : (i === 0 ? 'var(--accent)' : 'var(--muted)');
+            // Détecter si c'est une classe "bruit/background"
+            const isSilence = s.label.toLowerCase().includes('background') 
+                           || s.label.toLowerCase().includes('bruit');
 
-                const row = document.getElementById(`free-row-${i}`);
-                row.classList.toggle('top1',     i === 0 && !isMatch);
-                row.classList.toggle('is-match', isMatch);
-            });
+            const isMatch = freeTarget && s.label === freeTarget;
 
-        }, { probabilityThreshold: 0.05, overlapFactor: 0.75 });
-    }
+            // Label affiché : si silence, afficher 🤫 au lieu du nom de classe brut
+            const displayChar = isSilence ? '🤫' : s.label;
+            const displayRom  = isSilence ? 'silence' : (HIRAGANA_MAP[s.label] || '');
 
+            document.getElementById(`free-schar-${i}`).innerText = displayChar;
+            document.getElementById(`free-srom-${i}`).innerText  = displayRom;
+            document.getElementById(`free-sbar-${i}`).style.width      = pct + '%';
+            document.getElementById(`free-sbar-${i}`).style.background = isMatch 
+                ? 'var(--green)' 
+                : (isSilence ? 'var(--muted)' : (i === 0 ? 'var(--accent)' : 'var(--muted))'));
+            document.getElementById(`free-spct-${i}`).innerText   = pct + '%';
+            document.getElementById(`free-spct-${i}`).style.color = isMatch 
+                ? 'var(--green)' 
+                : (i === 0 ? 'var(--accent)' : 'var(--muted)');
+
+            const row = document.getElementById(`free-row-${i}`);
+            row.classList.toggle('top1',     i === 0 && !isMatch);
+            row.classList.toggle('is-match', isMatch);
+        });
+
+    }, { probabilityThreshold: 0.05, overlapFactor: 0.75 });
+}
     function stopFree() {
         freeListening = false;
         recognizer.stopListening();
@@ -839,3 +848,4 @@
 </script>
 </body>
 </html>
+
