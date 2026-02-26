@@ -105,11 +105,7 @@
         .btn-accent  { background: var(--accent);  color: #0d1117; }
         .btn-green   { background: var(--green);   color: #0d1117; }
         .btn-red     { background: var(--red);     color: white; }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text);
-        }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
 
         #loading { color: var(--muted); font-size: 0.85rem; margin-top: 10px; text-align: center; }
 
@@ -127,15 +123,11 @@
         #free-card { display: none; }
 
         .hira-selector {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-bottom: 18px;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px;
         }
         .hira-btn {
-            background: var(--bg); border: 2px solid var(--border);
-            border-radius: 10px; padding: 10px 4px 6px; cursor: pointer;
-            text-align: center; transition: all 0.15s; position: relative;
+            background: var(--bg); border: 2px solid var(--border); border-radius: 10px; padding: 10px 4px 6px; 
+            cursor: pointer; text-align: center; transition: all 0.15s; position: relative;
         }
         .hira-btn:hover { border-color: var(--muted); }
         .hira-btn.selected { border-color: var(--accent); background: rgba(88,166,255,0.1); }
@@ -144,28 +136,17 @@
         .hira-btn .hb-rom  { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
         .hira-btn .hb-stars { font-size: 0.7rem; line-height: 1.4; min-height: 14px; letter-spacing: 1px; }
 
-        .free-stats-row {
-            display: flex; align-items: center; justify-content: center;
-            gap: 16px; margin: 6px 0 10px; min-height: 36px;
+        .free-stats-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 6px 0 10px; min-height: 36px; }
+        .free-badge {
+            display: flex; flex-direction: column; align-items: center; background: var(--bg); 
+            border: 1px solid var(--border); border-radius: 10px; padding: 6px 16px; font-size: 0.8rem; color: var(--muted);
         }
-        .free-max-badge {
-            display: flex; flex-direction: column; align-items: center;
-            background: var(--bg); border: 1px solid var(--border);
-            border-radius: 10px; padding: 6px 16px; font-size: 0.8rem; color: var(--muted);
-        }
-        .free-max-badge .fmb-val { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
-        .free-stars-badge {
-            display: flex; flex-direction: column; align-items: center;
-            background: var(--bg); border: 1px solid var(--border);
-            border-radius: 10px; padding: 6px 16px; font-size: 0.8rem; color: var(--muted);
-        }
-        .free-stars-badge .fsb-stars { font-size: 1.3rem; line-height: 1.2; }
+        .free-badge .val { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+        .free-badge .stars { font-size: 1.3rem; line-height: 1.2; }
 
         .mastery-banner {
-            display: none; text-align: center;
-            background: rgba(63,185,80,0.12); border: 1px solid var(--green);
-            border-radius: 10px; padding: 12px; margin: 10px 0;
-            color: var(--green); font-weight: 700; font-size: 0.95rem;
+            display: none; text-align: center; background: rgba(63,185,80,0.12); border: 1px solid var(--green);
+            border-radius: 10px; padding: 12px; margin: 10px 0; color: var(--green); font-weight: 700; font-size: 0.95rem;
             animation: pop 0.3s ease;
         }
         @keyframes pop {
@@ -174,60 +155,37 @@
             100% { transform: scale(1);    opacity: 1; }
         }
 
-        /* ── CORRECTION 4 : animation flash-success ── */
         @keyframes flash-success {
             0%   { color: var(--text); transform: scale(1); }
             30%  { color: var(--green); transform: scale(1.15); text-shadow: 0 0 24px rgba(63,185,80,0.7); }
             70%  { color: var(--green); transform: scale(1.1); }
             100% { color: var(--text); transform: scale(1); text-shadow: none; }
         }
-        .flash-success {
-            animation: flash-success 0.5s ease forwards;
-        }
+        .flash-success { animation: flash-success 0.5s ease forwards; }
 
         .free-display { text-align: center; padding: 18px 0 10px; }
         .free-target-char   { font-size: 6rem; font-weight: 700; line-height: 1; }
-        .free-target-romaji { font-size: 1.4rem; color: var(--accent); font-weight: 700;
-                              letter-spacing: 4px; text-transform: uppercase; margin-top: 4px; }
+        .free-target-romaji { font-size: 1.4rem; color: var(--accent); font-weight: 700; letter-spacing: 4px; text-transform: uppercase; margin-top: 4px; }
 
         .scores-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
 
-        #quiz-card {
-            display: none;
-            border: 2px solid var(--border);
-            transition: border-color 0.3s, background 0.3s;
-        }
+        /* ── QUIZ ── */
+        #quiz-card { display: none; border: 2px solid var(--border); transition: border-color 0.3s, background 0.3s; }
         .quiz-active  { border-color: var(--accent) !important; }
         .quiz-success { border-color: var(--green)  !important; background: rgba(63,185,80,0.07) !important; }
         .quiz-fail    { border-color: var(--red)    !important; background: rgba(248,81,73,0.07) !important; }
 
-        .quiz-meta {
-            display: flex; justify-content: space-between;
-            font-size: 0.78rem; color: var(--muted); margin-bottom: 18px;
-        }
+        .quiz-meta { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 18px; }
         .quiz-meta span { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; }
         .quiz-meta b { color: var(--text); }
 
-        .hiragana-big {
-            font-size: 7rem; font-weight: 700;
-            color: var(--text); line-height: 1;
-            margin: 8px 0 6px;
-            text-align: center;
-        }
-        .romaji-hint {
-            font-size: 1.6rem; color: var(--accent);
-            text-transform: uppercase; font-weight: 700;
-            letter-spacing: 4px; text-align: center;
-            margin-bottom: 18px;
-        }
+        .hiragana-big { font-size: 7rem; font-weight: 700; color: var(--text); line-height: 1; margin: 8px 0 6px; text-align: center; }
+        .romaji-hint { font-size: 1.6rem; color: var(--accent); text-transform: uppercase; font-weight: 700; letter-spacing: 4px; text-align: center; margin-bottom: 18px; }
 
         .timer-bar { width: 100%; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
         .timer-fill { height: 100%; width: 100%; background: var(--accent); transition: width linear; border-radius: 3px; }
 
-        .feedback-zone {
-            margin-top: 14px; font-size: 0.9rem;
-            color: var(--muted); min-height: 22px; text-align: center;
-        }
+        .feedback-zone { margin-top: 14px; font-size: 0.9rem; color: var(--muted); min-height: 22px; text-align: center; }
 
         #action-card { padding: 16px 24px; }
         .action-row { display: flex; gap: 10px; }
@@ -236,98 +194,23 @@
 
         .hidden { display: none !important; }
 
-        .res-header {
-            text-align: center;
-            padding: 22px 24px 18px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            margin-bottom: 14px;
-        }
-        .res-header .big-score {
-            font-size: 3.5rem; font-weight: 800; line-height: 1;
-            margin: 8px 0 4px;
-        }
+        /* ── RÉSULTATS ── */
+        .res-header { text-align: center; padding: 22px 24px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; }
+        .res-header .big-score { font-size: 3.5rem; font-weight: 800; line-height: 1; margin: 8px 0 4px; }
         .res-header .score-label { font-size: 0.82rem; color: var(--muted); }
         .res-header .user-name { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
 
         .kpi-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-        .kpi-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 14px 8px;
-            text-align: center;
-        }
+        .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 8px; text-align: center; }
         .kpi-val { font-size: 1.6rem; font-weight: 700; }
         .kpi-lbl { font-size: 0.7rem; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-        .section-label {
-            font-size: 0.72rem; font-weight: 700; color: var(--muted);
-            text-transform: uppercase; letter-spacing: 1.5px;
-            margin: 18px 0 10px;
-        }
-
-        .hira-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-        .hira-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px 4px 10px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .hira-card::after {
-            content: '';
-            position: absolute; bottom: 0; left: 0; right: 0;
-            height: 3px;
-        }
-        .hira-card.good::after  { background: var(--green); }
-        .hira-card.mid::after   { background: var(--yellow); }
-        .hira-card.poor::after  { background: var(--red); }
-
-        .hira-char { font-size: 2.4rem; line-height: 1.1; }
-        .hira-romaji { font-size: 0.7rem; color: var(--muted); margin: 2px 0; letter-spacing: 1px; text-transform: uppercase; }
-        .hira-pct { font-size: 1.15rem; font-weight: 700; margin: 2px 0; }
-        .hira-sub { font-size: 0.65rem; color: var(--muted); }
-
-        .conf-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            overflow: hidden;
-            margin-bottom: 14px;
-        }
-        .conf-row {
-            display: flex; align-items: center;
-            padding: 13px 16px;
-            border-bottom: 1px solid var(--border);
-            gap: 12px;
-        }
-        .conf-row:last-child { border-bottom: none; }
-        .conf-chars { font-size: 1.8rem; line-height: 1; min-width: 80px; }
-        .conf-info { flex: 1; }
-        .conf-info .conf-rom { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-        .conf-bar-wrap { flex: 2; background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; }
-        .conf-bar { height: 100%; background: var(--red); border-radius: 4px; }
-        .conf-count { font-size: 0.85rem; font-weight: 700; color: var(--red); min-width: 28px; text-align: right; }
-        .conf-empty { padding: 18px; text-align: center; color: var(--green); font-size: 0.95rem; }
-
         .res-btns { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 6px; padding-bottom: 24px; }
-        .res-btns .btn { padding: 15px; font-size: 1rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
 
-    <!-- ── SETUP ── -->
     <div class="card" id="setup-card">
         <div class="card-title">🎙️ Quiz Vocal Hiragana</div>
         <div class="card-sub">Protocole de test v1.2 — A·I·U·E·O + KA·KI·KU·KE·KO</div>
@@ -361,7 +244,6 @@
         <div id="loading" class="hidden">⏳ Chargement du modèle…</div>
     </div>
 
-    <!-- ── TEST LIBRE ── -->
     <div class="card" id="free-card">
         <div class="card-title">🎙️ Test libre</div>
         <div class="card-sub">Sélectionne un hiragana puis prononce-le</div>
@@ -371,12 +253,12 @@
             <div class="free-target-romaji" id="free-romaji">choisir</div>
         </div>
         <div class="free-stats-row" id="free-stats-row" style="display:none">
-            <div class="free-max-badge">
-                <div class="fmb-val" id="free-max-val">0%</div>
+            <div class="free-badge">
+                <div class="val" id="free-max-val">0%</div>
                 <div>max atteint</div>
             </div>
-            <div class="free-stars-badge">
-                <div class="fsb-stars" id="free-stars-disp">☆☆☆</div>
+            <div class="free-badge">
+                <div class="stars" id="free-stars-disp">☆☆☆</div>
                 <div>étoiles</div>
             </div>
         </div>
@@ -387,7 +269,6 @@
         </div>
     </div>
 
-    <!-- ── QUIZ ── -->
     <div class="card" id="quiz-card">
         <div class="quiz-meta">
             <span>Question <b id="q-count">0</b></span>
@@ -404,7 +285,6 @@
         <div class="feedback-zone" id="feedback-top1">En attente…</div>
     </div>
 
-    <!-- ── ACTIONS ── -->
     <div class="card hidden" id="action-card">
         <div class="action-row">
             <button class="btn btn-outline" onclick="nextQuestion()">⏭ Suivant</button>
@@ -413,9 +293,7 @@
         <div id="log-count">0 résultat enregistré</div>
     </div>
 
-    <!-- ── RÉSULTATS ── -->
     <div id="results-page" class="hidden">
-
         <div class="res-header">
             <div class="score-label">Précision globale</div>
             <div class="big-score" id="res-accuracy">—</div>
@@ -438,9 +316,8 @@
         </div>
 
         <div class="res-btns">
-            <button class="btn btn-outline" onclick="restartQuiz()">🔄 Recommencer</button>
+            <button class="btn btn-outline" onclick="restartMenu()">⬅ Retour au menu</button>
         </div>
-
     </div>
 </div>
 
@@ -451,8 +328,7 @@ const HIRAGANA_MAP = {
     'あ':'a', 'い':'i', 'う':'u', 'え':'e', 'お':'o',
     'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko'
 };
-// CORRECTION 5 : suppression de SYLLABLES_ORDER (doublon inutilisé)
-const SYLLABLES = ['あ','い','う','え','お','か','き','く','け','こ'];
+const SYLLABLES = Object.keys(HIRAGANA_MAP);
 const MASTERY_KEY = 'hiragana_mastery_v1';
 const STAR_THRESHOLD = 95;
 
@@ -467,6 +343,62 @@ let sessionBest = { label:"", score:0, label2:"", score2:0 };
 let rmsSum = 0, rmsCount = 0;
 let selectedMode = 'quiz';
 
+// Stats de session pour algorithme d'apprentissage intelligent (Quiz)
+let sessionStats = {}; 
+SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
+
+// ─── FONCTIONS UTILITAIRES & MICRO ───────────────────────────────────────────
+document.getElementById('gain-slider').oninput = (e) => {
+    const val = e.target.value;
+    document.getElementById('gain-val').innerText = val;
+    if (gainNode) gainNode.gain.value = val;
+};
+
+function selectMode(mode) {
+    selectedMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('mode-' + mode).classList.add('active');
+}
+
+async function stopAllRecognition() {
+    isListening = false;
+    freeListening = false;
+    if (recognizer && recognizer.isListening()) {
+        await recognizer.stopListening();
+    }
+}
+
+function updateRMSLoop() {
+    if (!analyser) return;
+    analyser.getFloatTimeDomainData(dataArray);
+    let sumSquares = 0.0;
+    for (const amplitude of dataArray) { sumSquares += amplitude * amplitude; }
+    const rms = Math.sqrt(sumSquares / dataArray.length);
+    
+    if (isListening) {
+        rmsSum += rms;
+        rmsCount++;
+        document.getElementById('rms-disp').innerText = rms.toFixed(4);
+    }
+    requestAnimationFrame(updateRMSLoop);
+}
+
+// ─── SAUVEGARDE & MASTERY ───────────────────────────────────────────────────
+function loadMastery() {
+    const data = localStorage.getItem(MASTERY_KEY);
+    return data ? JSON.parse(data) : {};
+}
+function saveMastery(data) {
+    localStorage.setItem(MASTERY_KEY, JSON.stringify(data));
+}
+function getMasteryFor(h) {
+    const m = loadMastery();
+    return m[h] || { stars: 0, maxPct: 0 };
+}
+function starsStr(count) {
+    return '★'.repeat(count) + '☆'.repeat(3 - count);
+}
+
 // ─── INITIALISATION ───────────────────────────────────────────────────────────
 document.getElementById('btn-start').onclick = async () => {
     const btn = document.getElementById('btn-start');
@@ -477,11 +409,19 @@ document.getElementById('btn-start').onclick = async () => {
     document.getElementById('loading').classList.remove('hidden');
 
     try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        // AMELIORATION : Assurer que l'audio context reprend proprement
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } else if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const source = audioContext.createMediaStreamSource(stream);
 
         gainNode = audioContext.createGain();
+        gainNode.gain.value = document.getElementById('gain-slider').value;
+        
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 256;
         dataArray = new Float32Array(analyser.fftSize);
@@ -489,17 +429,22 @@ document.getElementById('btn-start').onclick = async () => {
         source.connect(gainNode);
         gainNode.connect(analyser);
 
-        recognizer = speechCommands.create("BROWSER_FFT", undefined, URL_MODEL + "model.json", URL_MODEL + "metadata.json");
-        await recognizer.ensureModelLoaded();
+        if (!recognizer) {
+            recognizer = speechCommands.create("BROWSER_FFT", undefined, URL_MODEL + "model.json", URL_MODEL + "metadata.json");
+            await recognizer.ensureModelLoaded();
+            updateRMSLoop();
+        }
 
         document.getElementById('setup-card').classList.add('hidden');
-        updateRMSLoop();
+        document.getElementById('loading').classList.add('hidden');
+        btn.disabled = false;
 
         if (selectedMode === 'free') {
             startFreeMode();
         } else {
             document.getElementById('quiz-card').style.display = 'block';
             document.getElementById('action-card').classList.remove('hidden');
+            quizStopped = false;
             startContinuousRecognition();
             setTimeout(nextQuestion, 1000);
         }
@@ -516,7 +461,6 @@ let freeListening = false;
 let freeTarget = null;
 let isStarLocked = false;
 
-// Cache des références DOM du mode libre pour éviter les requêtes répétées
 const freeDom = {
     char:         () => document.getElementById('free-char'),
     romaji:       () => document.getElementById('free-romaji'),
@@ -526,7 +470,6 @@ const freeDom = {
     maxVal:       () => document.getElementById('free-max-val'),
     starsDisp:    () => document.getElementById('free-stars-disp'),
     masteryBanner:() => document.getElementById('mastery-banner'),
-    statsRow:     () => document.getElementById('free-stats-row'),
 };
 
 function startFreeMode() {
@@ -577,14 +520,13 @@ function autoSelectNext() {
 }
 
 function selectFreeTarget(h) {
+    if (freeTarget === h) return; // AMELIORATION: Eviter le spam de clics
     freeTarget = h;
 
-    // Mise à jour de la sélection visuelle
     document.querySelectorAll('.hira-btn').forEach(b => b.classList.remove('selected'));
     const btn = document.getElementById('hbtn-' + h);
     if (btn) btn.classList.add('selected');
 
-    // CORRECTION 3 : mise à jour ciblée des éléments DOM (pas de rebuild global)
     freeDom.char().innerText   = h;
     freeDom.romaji().innerText = HIRAGANA_MAP[h];
     const gaugeLabel = freeDom.gaugeLabel();
@@ -594,6 +536,9 @@ function selectFreeTarget(h) {
     freeDom.maxVal().innerText        = m.maxPct + '%';
     freeDom.starsDisp().innerHTML     = starsStr(m.stars);
     freeDom.masteryBanner().style.display = m.stars >= 3 ? 'block' : 'none';
+    
+    if(freeDom.gaugeFill()) freeDom.gaugeFill().style.width = '0%';
+    if(freeDom.gaugePct()) freeDom.gaugePct().innerText = '0%';
 }
 
 function startFreeRecognition() {
@@ -602,10 +547,11 @@ function startFreeRecognition() {
 
         const labels   = recognizer.wordLabels();
         const targetIdx = labels.indexOf(freeTarget);
+        if (targetIdx === -1) return;
+        
         const score    = result.scores[targetIdx];
         const pctNum   = Math.round(score * 100);
 
-        // CORRECTION 3 : mise à jour ciblée de la jauge uniquement
         const gauge  = freeDom.gaugeFill();
         const pctEl  = freeDom.gaugePct();
         if (gauge)  gauge.style.width      = pctNum + '%';
@@ -620,7 +566,7 @@ function startFreeRecognition() {
         if (pctNum >= STAR_THRESHOLD) {
             updateMastery(freeTarget, pctNum);
         }
-    }, { probabilityThreshold: 0.05, overlapFactor: 0.7 });
+    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 }); // overlap 0.5 pour meilleures perfs
 }
 
 function updateMastery(h, pctNum) {
@@ -629,28 +575,21 @@ function updateMastery(h, pctNum) {
     const entry = mastery[h];
     let changed = false;
 
-    // Mise à jour du record personnel
-    if (pctNum > entry.maxPct) {
-        entry.maxPct = pctNum;
-        changed = true;
-    }
+    if (pctNum > entry.maxPct) { entry.maxPct = pctNum; changed = true; }
 
-    // Gain d'étoile avec debounce
     if (pctNum >= STAR_THRESHOLD && entry.stars < 3 && !isStarLocked) {
         isStarLocked = true;
         entry.stars++;
         entry.maxPct = 0;
         changed = true;
 
-        // CORRECTION 4 : animation flash-success sur le grand caractère
         const charDisp = freeDom.char();
         charDisp.classList.remove('flash-success');
-        void charDisp.offsetWidth; // force le reflow pour redémarrer l'animation
+        void charDisp.offsetWidth; 
         charDisp.classList.add('flash-success');
 
         setTimeout(() => { isStarLocked = false; }, 1200);
 
-        // Passage automatique au suivant si 3 étoiles atteintes
         if (entry.stars === 3) {
             setTimeout(() => { if (freeListening) autoSelectNext(); }, 1500);
         }
@@ -658,16 +597,11 @@ function updateMastery(h, pctNum) {
 
     if (changed) {
         saveMastery(mastery);
-
-        // CORRECTION 3 : mise à jour ciblée — seulement le bouton du hiragana concerné
-        // et les badges de stats, sans reconstruire tout le sélecteur
         const hBtn = document.getElementById('hbtn-' + h);
         if (hBtn) {
             hBtn.className = 'hira-btn selected' + (entry.stars >= 3 ? ' mastered' : '');
             hBtn.querySelector('.hb-stars').innerHTML = starsStr(entry.stars);
         }
-
-        // Mise à jour des badges de stats
         freeDom.maxVal().innerText    = entry.maxPct + '%';
         freeDom.starsDisp().innerHTML = starsStr(entry.stars);
         freeDom.masteryBanner().style.display = entry.stars >= 3 ? 'block' : 'none';
@@ -677,21 +611,54 @@ function updateMastery(h, pctNum) {
 function resetAllMastery() {
     if (confirm("Effacer toute la progression ?")) {
         localStorage.removeItem(MASTERY_KEY);
-        buildHiraSelector();   // Rebuild complet justifié ici (reset global)
+        buildHiraSelector();
         autoSelectNext();
     }
 }
 
+async function stopFree() {
+    await stopAllRecognition();
+    document.getElementById('free-card').style.display = 'none';
+    document.getElementById('setup-card').classList.remove('hidden');
+}
+
 // ─── MODE QUIZ ────────────────────────────────────────────────────────────────
+
+// AMELIORATION: Algorithme de répétition espacée (favorise les erreurs)
+function getSmartRandomChar() {
+    let lowestScore = 1.0;
+    let candidates = [];
+    
+    for (let s of SYLLABLES) {
+        let stats = sessionStats[s];
+        let score = stats.asked === 0 ? 0 : (stats.correct / stats.asked);
+        
+        if (score < lowestScore) {
+            lowestScore = score;
+            candidates = [s];
+        } else if (score === lowestScore) {
+            candidates.push(s);
+        }
+    }
+    // Choisir aléatoirement parmi ceux qui ont le score le plus bas
+    return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
 function startContinuousRecognition() {
     recognizer.listen(result => {
         if (!isListening) return;
         const labels = recognizer.wordLabels();
         const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
         scores.sort((a, b) => b.score - a.score);
-        const top1 = scores[0];
-        const top2 = scores[1] || { label:"none", score:0 };
-        if (top1.label.toLowerCase().includes("background")) return;
+        
+        // Filtre de bruit de fond
+        let top1 = scores[0];
+        let top2 = scores[1] || { label:"none", score:0 };
+        
+        if (top1.label.toLowerCase().includes("background")) {
+            top1 = scores[1];
+            top2 = scores[2];
+        }
 
         if (top1.label === currentTarget && top1.score > 0.70) {
             if (top1.score > sessionBest.score || sessionBest.label !== currentTarget) {
@@ -709,21 +676,26 @@ function updateSessionBest(s1, s2) {
     const isCorrect = sessionBest.label === currentTarget;
     const color = isCorrect ? "var(--green)" : "var(--red)";
     document.getElementById('feedback-top1').innerHTML =
-        `<span style="color:${color};font-weight:700">${isCorrect ? "✅" : "👂"} ${sessionBest.label} · ${(sessionBest.score*100).toFixed(0)}%</span>`;
+        `<span style="color:${color};font-weight:700">${isCorrect ? "✅" : "❌ On a entendu : "} ${sessionBest.label} · ${(sessionBest.score*100).toFixed(0)}%</span>`;
 }
 
 function nextQuestion() {
     if (quizStopped) return;
     questionCount++;
     document.getElementById('q-count').innerText = questionCount;
-    const randKey = SYLLABLES[Math.floor(Math.random() * SYLLABLES.length)];
-    currentTarget = randKey;
+    
+    // Remplacement du Math.random pur par l'algo intelligent
+    currentTarget = getSmartRandomChar(); 
+    sessionStats[currentTarget].asked++;
+
     document.getElementById('quiz-card').className = "card quiz-active";
-    document.getElementById('target-char').innerText  = randKey;
-    document.getElementById('target-romaji').innerText = HIRAGANA_MAP[randKey];
+    document.getElementById('target-char').innerText  = currentTarget;
+    document.getElementById('target-romaji').innerText = HIRAGANA_MAP[currentTarget];
     document.getElementById('feedback-top1').innerText = "Écoute...";
+    
     sessionBest = { label:"Silence", score:0, label2:"-", score2:0 };
     rmsSum = 0; rmsCount = 0;
+    
     const timer = document.getElementById('timer-fill');
     timer.style.transition = 'none'; timer.style.width = '100%';
     setTimeout(() => {
@@ -737,28 +709,28 @@ function nextQuestion() {
 function finishQuestion() {
     isListening = false;
     const sessionAvgRMS = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
+    const isCorrect = sessionBest.label === currentTarget;
+    
+    if (isCorrect) sessionStats[currentTarget].correct++;
+
     logs.push({
         timestamp: new Date().toLocaleString('fr-FR'),
         expected: currentTarget,
         top1:     sessionBest.label,
         score1:   sessionBest.score.toFixed(4),
         rms:      sessionAvgRMS.toFixed(6),
-        gain:     gainNode.gain.value.toFixed(2)
+        gain:     gainNode ? gainNode.gain.value.toFixed(2) : "1.0"
     });
+
     document.getElementById('log-count').innerText = `${logs.length} résultat(s) enregistré(s)`;
-    const isCorrect = sessionBest.label === currentTarget;
     document.getElementById('quiz-card').className = "card " + (isCorrect ? "quiz-success" : "quiz-fail");
+    
     if (!quizStopped) setTimeout(nextQuestion, 1500);
 }
 
-function stopQuiz() {
+async function stopQuiz() {
     quizStopped = true;
-    isListening = false;
-
-    // CORRECTION 2 : arrêt propre du recognizer pour libérer le micro
-    if (recognizer && recognizer.isListening()) {
-        recognizer.stopListening();
-    }
+    await stopAllRecognition();
 
     document.getElementById('quiz-card').style.display  = 'none';
     document.getElementById('action-card').classList.add('hidden');
@@ -766,21 +738,15 @@ function stopQuiz() {
     buildResultsPage();
 }
 
-function restartQuiz() {
-    // Réinitialisation de l'état pour relancer un quiz
-    logs          = [];
+function restartMenu() {
+    // Reset stats
+    logs = [];
     questionCount = 0;
-    quizStopped   = false;
-    sessionBest   = { label:"", score:0, label2:"", score2:0 };
-
+    SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
+    
     document.getElementById('results-page').classList.add('hidden');
-    document.getElementById('quiz-card').style.display = 'block';
-    document.getElementById('action-card').classList.remove('hidden');
+    document.getElementById('setup-card').classList.remove('hidden');
     document.getElementById('log-count').innerText = "0 résultat enregistré";
-
-    // Redémarrage de l'écoute
-    startContinuousRecognition();
-    setTimeout(nextQuestion, 500);
 }
 
 // ─── PAGE DE RÉSULTATS ────────────────────────────────────────────────────────
@@ -792,64 +758,14 @@ function buildResultsPage() {
         ? (logs.reduce((s, l) => s + parseFloat(l.rms), 0) / total)
         : 0;
 
-    document.getElementById('res-accuracy').innerText       = accuracy.toFixed(1) + '%';
-    document.getElementById('res-username-display').innerText = document.getElementById('username').value.trim();
-    document.getElementById('res-total').innerText          = total;
-    document.getElementById('res-correct').innerText        = correct;
-    document.getElementById('res-rms').innerText            = avgRMS.toFixed(5);
-
-    // Colorisation du score global
-    const scoreEl = document.getElementById('res-accuracy');
-    scoreEl.style.color = accuracy >= 80 ? 'var(--green)' : accuracy >= 50 ? 'var(--yellow)' : 'var(--red)';
+    document.getElementById('res-accuracy').innerText        = accuracy.toFixed(1) + '%';
+    // CORRECTION APPLIQUEE ICI :
+    document.getElementById('res-username-display').innerText = document.getElementById('username').value;
+    
+    document.getElementById('res-total').innerText = total;
+    document.getElementById('res-correct').innerText = correct;
+    document.getElementById('res-rms').innerText = avgRMS.toFixed(4);
 }
-
-// ─── UTILITAIRES ─────────────────────────────────────────────────────────────
-function loadMastery()       { try { return JSON.parse(localStorage.getItem(MASTERY_KEY)) || {}; } catch(e) { return {}; } }
-function saveMastery(data)   { localStorage.setItem(MASTERY_KEY, JSON.stringify(data)); }
-function getMasteryFor(h)    { const m = loadMastery(); return m[h] || { stars: 0, maxPct: 0 }; }
-
-function starsStr(n) {
-    let html = '';
-    for (let i = 0; i < 3; i++) {
-        html += i < n ? '<span class="star-animated">★</span>' : '☆';
-    }
-    return html;
-}
-
-function updateRMSLoop() {
-    if (analyser) {
-        analyser.getFloatTimeDomainData(dataArray);
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
-        const rms = Math.sqrt(sum / dataArray.length);
-        const rmsEl = document.getElementById('rms-disp');
-        if (rmsEl) rmsEl.innerText = rms.toFixed(4);
-        if (isListening || freeListening) { rmsSum += rms; rmsCount++; }
-    }
-    requestAnimationFrame(updateRMSLoop);
-}
-
-function selectMode(m) {
-    selectedMode = m;
-    document.getElementById('mode-quiz').classList.toggle('active', m === 'quiz');
-    document.getElementById('mode-free').classList.toggle('active', m === 'free');
-}
-
-function stopFree() {
-    freeListening = false;
-    // CORRECTION 2 : arrêt propre du recognizer
-    if (recognizer && recognizer.isListening()) {
-        recognizer.stopListening();
-    }
-    document.getElementById('free-card').style.display = 'none';
-    document.getElementById('setup-card').classList.remove('hidden');
-}
-
-document.getElementById('gain-slider').oninput = (e) => {
-    const val = e.target.value;
-    document.getElementById('gain-val').innerText = val;
-    if (gainNode) gainNode.gain.value = parseFloat(val);
-};
 </script>
 </body>
 </html>
