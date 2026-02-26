@@ -576,22 +576,22 @@
         selectFreeTarget(target);
     }
 
-    function selectFreeTarget(h) {
-        freeTarget = h;
-        document.querySelectorAll('.hira-btn').forEach(b => b.classList.remove('selected'));
-        const btn = document.getElementById('hbtn-' + h);
-        if(btn) btn.classList.add('selected');
-        
-        document.getElementById('free-char').innerText = h;
-        document.getElementById('free-romaji').innerText = HIRAGANA_MAP[h];
-        document.getElementById('gauge-label').innerText = h;
+function selectFreeTarget(h) {
+    freeTarget = h;
+    document.querySelectorAll('.hira-btn').forEach(b => b.classList.remove('selected'));
+    const btn = document.getElementById('hbtn-' + h);
+    if(btn) btn.classList.add('selected');
+    
+    document.getElementById('free-char').innerText = h;
+    document.getElementById('free-romaji').innerText = HIRAGANA_MAP[h];
+    document.getElementById('gauge-label').innerText = h;
 
-        const m = getMasteryFor(h);
-        document.getElementById('free-max-val').innerText = m.maxPct + '%';
-        document.getElementById('free-stars-disp').innerText = starsStr(m.stars);
-        document.getElementById('free-stats-row').style.display = 'flex';
-        document.getElementById('mastery-banner').style.display = m.stars >= 3 ? 'block' : 'none';
-    }
+    const m = getMasteryFor(h);
+    document.getElementById('free-max-val').innerText = m.maxPct + '%';
+    // Utilisation de innerHTML pour rendre les spans animés
+    document.getElementById('free-stars-disp').innerHTML = starsStr(m.stars); 
+    document.getElementById('mastery-banner').style.display = m.stars >= 3 ? 'block' : 'none';
+}
 
     function startFreeRecognition() {
         recognizer.listen(result => {
@@ -620,33 +620,51 @@
         }, { probabilityThreshold: 0.05, overlapFactor: 0.7 });
     }
 
-    function updateMastery(h, pctNum) {
-        const mastery = loadMastery();
-        if (!mastery[h]) mastery[h] = { stars: 0, maxPct: 0 };
-        const entry = mastery[h];
-        let changed = false;
+   let isStarLocked = false; // Verrou pour éviter le cumul trop rapide
 
-        if (pctNum > entry.maxPct) {
-            entry.maxPct = pctNum;
-            changed = true;
-        }
+function updateMastery(h, pctNum) {
+    const mastery = loadMastery();
+    if (!mastery[h]) mastery[h] = { stars: 0, maxPct: 0 };
+    const entry = mastery[h];
+    let changed = false;
 
-        if (pctNum >= STAR_THRESHOLD && entry.stars < 3) {
-            entry.stars++;
-            entry.maxPct = 0;
-            changed = true;
-            
-            if(entry.stars === 3) {
-                setTimeout(() => { if(freeListening) autoSelectNext(); }, 1200);
-            }
-        }
+    // Mise à jour du record personnel
+    if (pctNum > entry.maxPct) {
+        entry.maxPct = pctNum;
+        changed = true;
+    }
 
-        if (changed) {
-            saveMastery(mastery);
-            buildHiraSelector();
-            selectFreeTarget(h); 
+    // Gain d'étoile avec temporisation (Debounce)
+    if (pctNum >= STAR_THRESHOLD && entry.stars < 3 && !isStarLocked) {
+        isStarLocked = true;
+        entry.stars++;
+        entry.maxPct = 0;
+        changed = true;
+
+        // --- ANIMATIONS ---
+        // 1. Flash sur le gros caractère
+        const charDisp = document.getElementById('free-char');
+        charDisp.classList.remove('flash-success');
+        void charDisp.offsetWidth; // Force le redémarrage de l'animation
+        charDisp.classList.add('flash-success');
+
+        // 2. Temporisation avant de pouvoir gagner la suivante (1.2 seconde)
+        setTimeout(() => { isStarLocked = false; }, 1200);
+
+        // Passage automatique au suivant si 3 étoiles
+        if(entry.stars === 3) {
+            setTimeout(() => { 
+                if(freeListening) autoSelectNext(); 
+            }, 1500);
         }
     }
+
+    if (changed) {
+        saveMastery(mastery);
+        buildHiraSelector();
+        selectFreeTarget(h); 
+    }
+}
 
     function resetAllMastery() {
         if(confirm("Effacer toute la progression ?")) {
@@ -729,7 +747,14 @@
     function loadMastery() { try { return JSON.parse(localStorage.getItem(MASTERY_KEY)) || {}; } catch(e) { return {}; } }
     function saveMastery(data) { localStorage.setItem(MASTERY_KEY, JSON.stringify(data)); }
     function getMasteryFor(h) { const m = loadMastery(); return m[h] || { stars: 0, maxPct: 0 }; }
-    function starsStr(n) { return '★'.repeat(n) + '☆'.repeat(3 - n); }
+   function starsStr(n) {
+    let html = '';
+    for(let i=0; i<3; i++) {
+        if(i < n) html += '<span class="star-animated">★</span>';
+        else html += '☆';
+    }
+    return html;
+}
 
     function updateRMSLoop() {
         if (analyser) {
@@ -776,4 +801,5 @@
 </script>
 </body>
 </html>
+
 
