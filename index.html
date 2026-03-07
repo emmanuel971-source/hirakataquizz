@@ -109,6 +109,7 @@
 
         #loading { color: var(--muted); font-size: 0.85rem; margin-top: 10px; text-align: center; }
 
+        /* ── SÉLECTEUR DE MODE ── */
         .mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
         .mode-btn {
             padding: 12px 8px; border-radius: 10px; border: 2px solid var(--border);
@@ -118,13 +119,14 @@
         .mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.08); }
         .mode-btn .mode-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
 
+        /* ── TEST LIBRE ── */
         #free-card { display: none; }
 
         .hira-selector {
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px;
         }
         .hira-btn {
-            background: var(--bg); border: 2px solid var(--border); border-radius: 10px; padding: 10px 4px 6px;
+            background: var(--bg); border: 2px solid var(--border); border-radius: 10px; padding: 10px 4px 6px; 
             cursor: pointer; text-align: center; transition: all 0.15s; position: relative;
         }
         .hira-btn:hover { border-color: var(--muted); }
@@ -136,7 +138,7 @@
 
         .free-stats-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 6px 0 10px; min-height: 36px; }
         .free-badge {
-            display: flex; flex-direction: column; align-items: center; background: var(--bg);
+            display: flex; flex-direction: column; align-items: center; background: var(--bg); 
             border: 1px solid var(--border); border-radius: 10px; padding: 6px 16px; font-size: 0.8rem; color: var(--muted);
         }
         .free-badge .val { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
@@ -167,6 +169,7 @@
 
         .scores-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
 
+        /* ── QUIZ ── */
         #quiz-card { display: none; border: 2px solid var(--border); transition: border-color 0.3s, background 0.3s; }
         .quiz-active  { border-color: var(--accent) !important; }
         .quiz-success { border-color: var(--green)  !important; background: rgba(63,185,80,0.07) !important; }
@@ -191,6 +194,7 @@
 
         .hidden { display: none !important; }
 
+        /* ── RÉSULTATS ── */
         .res-header { text-align: center; padding: 22px 24px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; }
         .res-header .big-score { font-size: 3.5rem; font-weight: 800; line-height: 1; margin: 8px 0 4px; }
         .res-header .score-label { font-size: 0.82rem; color: var(--muted); }
@@ -209,7 +213,7 @@
 
     <div class="card" id="setup-card">
         <div class="card-title">🎙️ Quiz Vocal Hiragana</div>
-        <div class="card-sub">Protocole de test v1.4 — A·I·U·E·O + KA·KI·KU·KE·KO</div>
+        <div class="card-sub">Protocole de test v1.2 — A·I·U·E·O + KA·KI·KU·KE·KO</div>
 
         <div class="field">
             <label>Nom / Appareil</label>
@@ -270,11 +274,14 @@
             <span>Question <b id="q-count">0</b></span>
             <span>RMS <b id="rms-disp">0.0000</b></span>
         </div>
+
         <div class="hiragana-big" id="target-char">?</div>
         <div class="romaji-hint" id="target-romaji">PRÊT ?</div>
+
         <div class="timer-bar">
             <div class="timer-fill" id="timer-fill"></div>
         </div>
+
         <div class="feedback-zone" id="feedback-top1">En attente…</div>
     </div>
 
@@ -292,6 +299,7 @@
             <div class="big-score" id="res-accuracy">—</div>
             <div class="user-name" id="res-username-display"></div>
         </div>
+
         <div class="kpi-row">
             <div class="kpi-card">
                 <div class="kpi-val" style="color:var(--accent)" id="res-total">—</div>
@@ -306,6 +314,7 @@
                 <div class="kpi-lbl">RMS moy.</div>
             </div>
         </div>
+
         <div class="res-btns">
             <button class="btn btn-outline" onclick="restartMenu()">⬅ Retour au menu</button>
         </div>
@@ -313,44 +322,36 @@
 </div>
 
 <script>
-// ─── CONFIGURATION ────────────────────────────────────────────────────────────
-const URL_MODEL       = "https://teachablemachine.withgoogle.com/models/LY5AQHCmd/";
-const HIRAGANA_MAP    = {
-    'あ':'a','い':'i','う':'u','え':'e','お':'o',
+// ─── CONFIGURATION ───────────────────────────────────────────────────────────
+const URL_MODEL = "https://teachablemachine.withgoogle.com/models/LY5AQHCmd/";
+const HIRAGANA_MAP = {
+    'あ':'a', 'い':'i', 'う':'u', 'え':'e', 'お':'o',
     'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko'
 };
-const SYLLABLES       = Object.keys(HIRAGANA_MAP);
-const MASTERY_KEY     = 'hiragana_mastery_v1';
-const STAR_THRESHOLD  = 80;       // seuil étoile mode libre (%)
-const QUIZ_DURATION_MS = 5000;    // durée timer quiz (ms)
-const QUIZ_HIT_THRESHOLD = 0.65;  // seuil validation quiz (0-1)
+const SYLLABLES = Object.keys(HIRAGANA_MAP);
+const MASTERY_KEY = 'hiragana_mastery_v1';
+const STAR_THRESHOLD = 75;
 
-// ─── ÉTAT GLOBAL ──────────────────────────────────────────────────────────────
+// ─── VARIABLES GLOBALES ───────────────────────────────────────────────────────
 let recognizer, audioContext, gainNode, analyser, dataArray;
-let isListening   = false;
-let quizStopped   = false;
+let isListening = false;
+let quizStopped = false;
 let currentTarget = "";
-let logs          = [];
+let logs = [];
 let questionCount = 0;
-let sessionBest   = { label:"", score:0 };
+let sessionBest = { label:"", score:0, label2:"", score2:0 };
 let rmsSum = 0, rmsCount = 0;
-let selectedMode  = 'quiz';
+let selectedMode = 'quiz';
+let lastAsked = ""; // À placer avec tes autres variables globales (isListening, etc.)
+// Stats de session pour algorithme d'apprentissage intelligent (Quiz)
+let sessionStats = {}; 
+SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
 
-let questionPeakTargetScore = 0;
-let questionValidated       = false;
-
-const BASE_WEIGHT  = 1.0;
-const ERROR_WEIGHT = 3.0;
-const MAX_EXTRA    = 6.0;
-let lastAsked = null;
-
-let sessionStats = {};
-SYLLABLES.forEach(s => sessionStats[s] = { asked:0, correct:0 });
-
-// ─── MICRO / UTILITAIRES ──────────────────────────────────────────────────────
-document.getElementById('gain-slider').oninput = e => {
-    document.getElementById('gain-val').innerText = e.target.value;
-    if (gainNode) gainNode.gain.value = e.target.value;
+// ─── FONCTIONS UTILITAIRES & MICRO ───────────────────────────────────────────
+document.getElementById('gain-slider').oninput = (e) => {
+    const val = e.target.value;
+    document.getElementById('gain-val').innerText = val;
+    if (gainNode) gainNode.gain.value = val;
 };
 
 function selectMode(mode) {
@@ -360,61 +361,84 @@ function selectMode(mode) {
 }
 
 async function stopAllRecognition() {
-    isListening   = false;
+    isListening = false;
     freeListening = false;
-    if (recognizer && recognizer.isListening()) await recognizer.stopListening();
+    if (recognizer && recognizer.isListening()) {
+        await recognizer.stopListening();
+    }
 }
 
 function updateRMSLoop() {
     if (!analyser) return;
     analyser.getFloatTimeDomainData(dataArray);
-    let sum = 0;
-    for (const a of dataArray) sum += a * a;
-    const rms = Math.sqrt(sum / dataArray.length);
+    let sumSquares = 0.0;
+    for (const amplitude of dataArray) { sumSquares += amplitude * amplitude; }
+    const rms = Math.sqrt(sumSquares / dataArray.length);
+    
     if (isListening) {
-        rmsSum += rms; rmsCount++;
+        rmsSum += rms;
+        rmsCount++;
         document.getElementById('rms-disp').innerText = rms.toFixed(4);
     }
     requestAnimationFrame(updateRMSLoop);
 }
 
-// ─── MASTERY ──────────────────────────────────────────────────────────────────
-function loadMastery()      { const d = localStorage.getItem(MASTERY_KEY); return d ? JSON.parse(d) : {}; }
-function saveMastery(data)  { localStorage.setItem(MASTERY_KEY, JSON.stringify(data)); }
-function getMasteryFor(h)   { const m = loadMastery(); return m[h] || { stars:0, maxPct:0 }; }
-function starsStr(n)        { return '★'.repeat(n) + '☆'.repeat(3-n); }
+// ─── SAUVEGARDE & MASTERY ───────────────────────────────────────────────────
+function loadMastery() {
+    const data = localStorage.getItem(MASTERY_KEY);
+    return data ? JSON.parse(data) : {};
+}
+function saveMastery(data) {
+    localStorage.setItem(MASTERY_KEY, JSON.stringify(data));
+}
+function getMasteryFor(h) {
+    const m = loadMastery();
+    return m[h] || { stars: 0, maxPct: 0 };
+}
+function starsStr(count) {
+    return '★'.repeat(count) + '☆'.repeat(3 - count);
+}
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+// ─── INITIALISATION ───────────────────────────────────────────────────────────
 document.getElementById('btn-start').onclick = async () => {
-    const btn  = document.getElementById('btn-start');
+    const btn = document.getElementById('btn-start');
     const name = document.getElementById('username').value.trim();
     if (!name) { alert("Merci d'entrer un nom !"); return; }
+
     btn.disabled = true;
     document.getElementById('loading').classList.remove('hidden');
+
     try {
+        // AMELIORATION : Assurer que l'audio context reprend proprement
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         } else if (audioContext.state === 'suspended') {
             await audioContext.resume();
         }
+
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const source = audioContext.createMediaStreamSource(stream);
+
         gainNode = audioContext.createGain();
         gainNode.gain.value = document.getElementById('gain-slider').value;
+        
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 256;
         dataArray = new Float32Array(analyser.fftSize);
+
         source.connect(gainNode);
         gainNode.connect(analyser);
+
         if (!recognizer) {
-            recognizer = speechCommands.create("BROWSER_FFT", undefined,
-                URL_MODEL + "model.json", URL_MODEL + "metadata.json");
+            recognizer = speechCommands.create("BROWSER_FFT", undefined, URL_MODEL + "model.json", URL_MODEL + "metadata.json");
             await recognizer.ensureModelLoaded();
             updateRMSLoop();
         }
+
         document.getElementById('setup-card').classList.add('hidden');
         document.getElementById('loading').classList.add('hidden');
         btn.disabled = false;
+
         if (selectedMode === 'free') {
             startFreeMode();
         } else {
@@ -424,44 +448,47 @@ document.getElementById('btn-start').onclick = async () => {
             startContinuousRecognition();
             setTimeout(nextQuestion, 1000);
         }
-    } catch(e) {
+
+    } catch (e) {
         alert("Erreur micro ou modèle : " + e);
         btn.disabled = false;
         document.getElementById('loading').classList.add('hidden');
     }
 };
 
-// ─── MODE LIBRE ───────────────────────────────────────────────────────────────
+// ─── MODE TEST LIBRE ──────────────────────────────────────────────────────────
 let freeListening = false;
-let freeTarget    = null;
-let isStarLocked  = false;
+let freeTarget = null;
+let isStarLocked = false;
 
 const freeDom = {
-    char:          () => document.getElementById('free-char'),
-    romaji:        () => document.getElementById('free-romaji'),
-    gaugeLabel:    () => document.getElementById('gauge-label'),
-    gaugeFill:     () => document.getElementById('gauge-fill'),
-    gaugePct:      () => document.getElementById('gauge-pct'),
-    maxVal:        () => document.getElementById('free-max-val'),
-    starsDisp:     () => document.getElementById('free-stars-disp'),
-    masteryBanner: () => document.getElementById('mastery-banner'),
+    char:         () => document.getElementById('free-char'),
+    romaji:       () => document.getElementById('free-romaji'),
+    gaugeLabel:   () => document.getElementById('gauge-label'),
+    gaugeFill:    () => document.getElementById('gauge-fill'),
+    gaugePct:     () => document.getElementById('gauge-pct'),
+    maxVal:       () => document.getElementById('free-max-val'),
+    starsDisp:    () => document.getElementById('free-stars-disp'),
+    masteryBanner:() => document.getElementById('mastery-banner'),
 };
 
 function startFreeMode() {
     document.getElementById('free-card').style.display = 'block';
     document.getElementById('free-stats-row').style.display = 'flex';
+
     document.getElementById('free-scores').innerHTML = `
         <div class="field" style="margin-top:20px">
             <div class="gain-row">
                 <span>Confiance pour <b id="gauge-label">?</b></span>
                 <span id="gauge-pct" class="gain-val">0%</span>
             </div>
-            <div class="timer-bar" style="height:12px;margin-top:10px;background:var(--border)">
-                <div id="gauge-fill" style="width:0%;height:100%;background:var(--red);transition:width 0.1s,background 0.3s"></div>
+            <div class="timer-bar" style="height:12px; margin-top:10px; background:var(--border)">
+                <div id="gauge-fill" style="width:0%; height:100%; background:var(--red); transition: width 0.1s, background 0.3s"></div>
             </div>
         </div>
-        <button class="btn btn-outline" style="margin-top:25px;border-color:var(--red);color:var(--red);font-size:0.8rem"
-            onclick="resetAllMastery()">🗑 Réinitialiser la progression</button>`;
+        <button class="btn btn-outline" style="margin-top:25px; border-color:var(--red); color:var(--red); font-size:0.8rem" onclick="resetAllMastery()">🗑 Réinitialiser la progression</button>
+    `;
+
     buildHiraSelector();
     autoSelectNext();
     freeListening = true;
@@ -472,8 +499,8 @@ function buildHiraSelector() {
     const sel = document.getElementById('hira-selector');
     sel.innerHTML = '';
     const mastery = loadMastery();
-    SYLLABLES.forEach(h => {
-        const st  = mastery[h] ? mastery[h].stars : 0;
+    SYLLABLES.forEach((h) => {
+        const st = mastery[h] ? mastery[h].stars : 0;
         const btn = document.createElement('div');
         btn.className = 'hira-btn' + (st >= 3 ? ' mastered' : '');
         btn.innerHTML = `<div class="hb-char">${h}</div><div class="hb-rom">${HIRAGANA_MAP[h]}</div><div class="hb-stars">${starsStr(st)}</div>`;
@@ -486,57 +513,88 @@ function buildHiraSelector() {
 function autoSelectNext() {
     const mastery = loadMastery();
     let target = SYLLABLES[0];
-    for (const s of SYLLABLES) { if (!mastery[s] || mastery[s].stars < 3) { target = s; break; } }
+    for (let s of SYLLABLES) {
+        if (!mastery[s] || mastery[s].stars < 3) { target = s; break; }
+    }
     selectFreeTarget(target);
 }
 
 function selectFreeTarget(h) {
-    if (freeTarget === h) return;
+    if (freeTarget === h) return; // AMELIORATION: Eviter le spam de clics
     freeTarget = h;
+
     document.querySelectorAll('.hira-btn').forEach(b => b.classList.remove('selected'));
     const btn = document.getElementById('hbtn-' + h);
     if (btn) btn.classList.add('selected');
+
     freeDom.char().innerText   = h;
     freeDom.romaji().innerText = HIRAGANA_MAP[h];
-    const gl = freeDom.gaugeLabel(); if (gl) gl.innerText = h;
-    const m  = getMasteryFor(h);
-    freeDom.maxVal().innerText    = m.maxPct + '%';
-    freeDom.starsDisp().innerHTML = starsStr(m.stars);
+    const gaugeLabel = freeDom.gaugeLabel();
+    if (gaugeLabel) gaugeLabel.innerText = h;
+
+    const m = getMasteryFor(h);
+    freeDom.maxVal().innerText        = m.maxPct + '%';
+    freeDom.starsDisp().innerHTML     = starsStr(m.stars);
     freeDom.masteryBanner().style.display = m.stars >= 3 ? 'block' : 'none';
-    const gf = freeDom.gaugeFill(); if (gf) gf.style.width = '0%';
-    const gp = freeDom.gaugePct();  if (gp) gp.innerText   = '0%';
+    
+    if(freeDom.gaugeFill()) freeDom.gaugeFill().style.width = '0%';
+    if(freeDom.gaugePct()) freeDom.gaugePct().innerText = '0%';
 }
 
 function startFreeRecognition() {
     recognizer.listen(result => {
         if (!freeListening || !freeTarget) return;
-        const labels    = recognizer.wordLabels();
+
+        const labels   = recognizer.wordLabels();
         const targetIdx = labels.indexOf(freeTarget);
         if (targetIdx === -1) return;
-        const score  = result.scores[targetIdx];
-        const pctNum = Math.round(score * 100);
-        const gf = freeDom.gaugeFill(), gp = freeDom.gaugePct();
-        if (gf) { gf.style.width = pctNum + '%';
-            gf.style.background = pctNum > 70 ? 'var(--green)' : pctNum > 40 ? 'var(--yellow)' : 'var(--red)'; }
-        if (gp) gp.innerText = pctNum + '%';
-        if (pctNum >= STAR_THRESHOLD) updateMastery(freeTarget, pctNum);
-    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
+        
+        const score    = result.scores[targetIdx];
+        const pctNum   = Math.round(score * 100);
+
+        const gauge  = freeDom.gaugeFill();
+        const pctEl  = freeDom.gaugePct();
+        if (gauge)  gauge.style.width      = pctNum + '%';
+        if (pctEl)  pctEl.innerText        = pctNum + '%';
+        if (gauge) {
+            gauge.style.background =
+                pctNum > 85 ? 'var(--green)' :
+                pctNum > 50 ? 'var(--yellow)' :
+                              'var(--red)';
+        }
+
+        if (pctNum >= STAR_THRESHOLD) {
+            updateMastery(freeTarget, pctNum);
+        }
+    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 }); // overlap 0.5 pour meilleures perfs
 }
 
 function updateMastery(h, pctNum) {
     const mastery = loadMastery();
-    if (!mastery[h]) mastery[h] = { stars:0, maxPct:0 };
+    if (!mastery[h]) mastery[h] = { stars: 0, maxPct: 0 };
     const entry = mastery[h];
     let changed = false;
+
     if (pctNum > entry.maxPct) { entry.maxPct = pctNum; changed = true; }
+
     if (pctNum >= STAR_THRESHOLD && entry.stars < 3 && !isStarLocked) {
         isStarLocked = true;
-        entry.stars++; entry.maxPct = 0; changed = true;
-        const cd = freeDom.char();
-        cd.classList.remove('flash-success'); void cd.offsetWidth; cd.classList.add('flash-success');
+        entry.stars++;
+        entry.maxPct = 0;
+        changed = true;
+
+        const charDisp = freeDom.char();
+        charDisp.classList.remove('flash-success');
+        void charDisp.offsetWidth; 
+        charDisp.classList.add('flash-success');
+
         setTimeout(() => { isStarLocked = false; }, 1200);
-        if (entry.stars === 3) setTimeout(() => { if (freeListening) autoSelectNext(); }, 1500);
+
+        if (entry.stars === 3) {
+            setTimeout(() => { if (freeListening) autoSelectNext(); }, 1500);
+        }
     }
+
     if (changed) {
         saveMastery(mastery);
         const hBtn = document.getElementById('hbtn-' + h);
@@ -553,7 +611,8 @@ function updateMastery(h, pctNum) {
 function resetAllMastery() {
     if (confirm("Effacer toute la progression ?")) {
         localStorage.removeItem(MASTERY_KEY);
-        buildHiraSelector(); autoSelectNext();
+        buildHiraSelector();
+        autoSelectNext();
     }
 }
 
@@ -563,149 +622,168 @@ async function stopFree() {
     document.getElementById('setup-card').classList.remove('hidden');
 }
 
-// ─── MODE QUIZ ─────────────────────────────────────────────────────────────────
+// ─── MODE QUIZ ────────────────────────────────────────────────────────────────
+
+
+
 function getSmartRandomChar() {
-    const weights = SYLLABLES.map(s => {
-        if (s === lastAsked) return 0;
-        const st     = sessionStats[s];
-        const errors = st.asked - st.correct;
-        return BASE_WEIGHT + Math.min(errors * ERROR_WEIGHT, MAX_EXTRA);
-    });
-    const total = weights.reduce((a, b) => a + b, 0);
-    if (total === 0) return SYLLABLES[Math.floor(Math.random() * SYLLABLES.length)];
-    let r = Math.random() * total;
-    for (let i = 0; i < SYLLABLES.length; i++) { r -= weights[i]; if (r <= 0) return SYLLABLES[i]; }
-    return SYLLABLES[SYLLABLES.length - 1];
+    let lowestScore = 1.0;
+    let candidates = [];
+    
+    for (let s of SYLLABLES) {
+        if (s === lastAsked) continue; // Empêche le même item deux fois de suite
+        
+        let stats = sessionStats[s];
+        let score = stats.asked === 0 ? 0 : (stats.correct / stats.asked);
+        
+        if (score < lowestScore) {
+            lowestScore = score;
+            candidates = [s];
+        } else if (score === lowestScore) {
+            candidates.push(s);
+        }
+    }
+    
+    // Sécurité au cas où tout est filtré
+    if (candidates.length === 0) candidates = SYLLABLES.filter(s => s !== lastAsked);
+
+    // 25% de chance de prendre un item totalement au hasard pour casser la monotonie
+    if (Math.random() < 0.25) {
+        candidates = SYLLABLES.filter(s => s !== lastAsked);
+    }
+    
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+    lastAsked = chosen; // On mémorise le choix
+    return chosen;
 }
 
-// Écoute Quiz — architecture identique au mode libre :
-// • lecture directe du score de la cible à chaque frame
-// • validation IMMÉDIATE dès QUIZ_HIT_THRESHOLD dépassé  → finishQuestion(true)
-// • peak-hold sur la cible pour fallback à expiration du timer → finishQuestion(false)
 function startContinuousRecognition() {
     recognizer.listen(result => {
         if (!isListening) return;
-        const labels    = recognizer.wordLabels();
+        
+        const labels = recognizer.wordLabels();
+        
+        // On récupère le score de la cible de la même manière qu'en test libre
         const targetIdx = labels.indexOf(currentTarget);
-
-        // Score direct sur la cible — même logique que mode libre
         const targetScore = targetIdx !== -1 ? result.scores[targetIdx] : 0;
-        const targetPct   = Math.round(targetScore * 100);
 
-        // Peak holding
-        if (targetScore > questionPeakTargetScore) questionPeakTargetScore = targetScore;
-
-        // Meilleur label non-background pour affichage seulement
-        const sorted = Array.from(result.scores)
-            .map((s, i) => ({ label: labels[i], score: s }))
-            .filter(s => !s.label.toLowerCase().includes("background"))
-            .sort((a, b) => b.score - a.score);
-        const top1 = sorted[0] || { label:"—", score:0 };
-
-        // Feedback temps réel
-        const onTarget = top1.label === currentTarget;
-        document.getElementById('feedback-top1').innerHTML =
-            `<span style="color:${onTarget ? 'var(--green)' : 'var(--muted)'};font-weight:${onTarget ? 700 : 400}">` +
-            `${currentTarget} : ${targetPct}%` +
-            (onTarget ? '' : ` &nbsp;|&nbsp; entendu : ${top1.label} ${(top1.score*100).toFixed(0)}%`) +
-            `</span>`;
-
-        // Validation immédiate
-        if (!questionValidated && targetScore >= QUIZ_HIT_THRESHOLD) {
-            questionValidated = true;
-            finishQuestion(true);
+        // On cherche aussi le son le plus fort entendu (hors bruit de fond)
+        let maxScore = 0;
+        let maxLabel = "";
+        for (let i = 0; i < labels.length; i++) {
+            if (!labels[i].toLowerCase().includes("background") && result.scores[i] > maxScore) {
+                maxScore = result.scores[i];
+                maxLabel = labels[i];
+            }
         }
-    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
+
+        // Si on entend la cible correctement, on la valide (plus tolérant que l'ancien 0.70)
+        if (targetScore > 0.40 && targetScore > sessionBest.score) {
+            updateSessionBest({ label: currentTarget, score: targetScore }, { label: "-", score: 0 });
+        } 
+        // Sinon, on enregistre l'erreur entendue
+        else if (maxScore > sessionBest.score && maxScore > 0.50) {
+            updateSessionBest({ label: maxLabel, score: maxScore }, { label: "-", score: 0 });
+        }
+
+    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 }); // Sensibilité alignée sur le mode libre
+}
+
+function updateSessionBest(s1, s2) {
+    sessionBest.label  = s1.label; sessionBest.score  = s1.score;
+    sessionBest.label2 = s2.label; sessionBest.score2 = s2.score;
+    const isCorrect = sessionBest.label === currentTarget;
+    const color = isCorrect ? "var(--green)" : "var(--red)";
+    document.getElementById('feedback-top1').innerHTML =
+        `<span style="color:${color};font-weight:700">${isCorrect ? "✅" : "❌ On a entendu : "} ${sessionBest.label} · ${(sessionBest.score*100).toFixed(0)}%</span>`;
 }
 
 function nextQuestion() {
     if (quizStopped) return;
     questionCount++;
     document.getElementById('q-count').innerText = questionCount;
-
-    currentTarget = getSmartRandomChar();
-    lastAsked     = currentTarget;
+    
+    // Remplacement du Math.random pur par l'algo intelligent
+    currentTarget = getSmartRandomChar(); 
     sessionStats[currentTarget].asked++;
 
-    document.getElementById('quiz-card').className      = "card quiz-active";
-    document.getElementById('target-char').innerText    = currentTarget;
-    document.getElementById('target-romaji').innerText  = HIRAGANA_MAP[currentTarget];
-    document.getElementById('feedback-top1').innerText  = "Écoute...";
-
-    sessionBest             = { label:"Silence", score:0 };
-    questionPeakTargetScore = 0;
-    questionValidated       = false;
-    rmsSum = 0; rmsCount    = 0;
-
+    document.getElementById('quiz-card').className = "card quiz-active";
+    document.getElementById('target-char').innerText  = currentTarget;
+    document.getElementById('target-romaji').innerText = HIRAGANA_MAP[currentTarget];
+    document.getElementById('feedback-top1').innerText = "Écoute...";
+    
+    sessionBest = { label:"Silence", score:0, label2:"-", score2:0 };
+    rmsSum = 0; rmsCount = 0;
+    
     const timer = document.getElementById('timer-fill');
     timer.style.transition = 'none'; timer.style.width = '100%';
     setTimeout(() => {
-        timer.style.transition = `width ${QUIZ_DURATION_MS / 1000}s linear`;
+        timer.style.transition = 'width 3s linear';
         timer.style.width = '0%';
         isListening = true;
     }, 50);
-    // Fin de timer → finishQuestion(false) si pas encore validé
-    setTimeout(() => finishQuestion(false), QUIZ_DURATION_MS + 50);
+    setTimeout(finishQuestion, 4050);
 }
 
-function finishQuestion(earlyHit) {
-    // Guard : si déjà validé en avance et appel provient du timer, on ignore
-    if (questionValidated && !earlyHit) return;
-    questionValidated = true; // verrouiller dans tous les cas
+function finishQuestion() {
     isListening = false;
-
     const sessionAvgRMS = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
-    // earlyHit → correct garanti ; sinon peak >= seuil
-    const isCorrect = earlyHit || (questionPeakTargetScore >= QUIZ_HIT_THRESHOLD);
-
+    const isCorrect = sessionBest.label === currentTarget;
+    
     if (isCorrect) sessionStats[currentTarget].correct++;
-
-    document.getElementById('quiz-card').className = "card " + (isCorrect ? "quiz-success" : "quiz-fail");
-    document.getElementById('feedback-top1').innerHTML = isCorrect
-        ? `<span style="color:var(--green);font-weight:700">✅ Correct ! (${(questionPeakTargetScore*100).toFixed(0)}%)</span>`
-        : `<span style="color:var(--red);font-weight:700">❌ Pas reconnu (max ${(questionPeakTargetScore*100).toFixed(0)}% sur la cible)</span>`;
 
     logs.push({
         timestamp: new Date().toLocaleString('fr-FR'),
-        expected:  currentTarget,
-        top1:      isCorrect ? currentTarget : "—",
-        score1:    questionPeakTargetScore.toFixed(4),
-        rms:       sessionAvgRMS.toFixed(6),
-        gain:      gainNode ? gainNode.gain.value.toFixed(2) : "1.0"
+        expected: currentTarget,
+        top1:     sessionBest.label,
+        score1:   sessionBest.score.toFixed(4),
+        rms:      sessionAvgRMS.toFixed(6),
+        gain:     gainNode ? gainNode.gain.value.toFixed(2) : "1.0"
     });
-    document.getElementById('log-count').innerText = `${logs.length} résultat(s) enregistré(s)`;
 
-    if (!quizStopped) setTimeout(nextQuestion, earlyHit ? 800 : 1500);
+    document.getElementById('log-count').innerText = `${logs.length} résultat(s) enregistré(s)`;
+    document.getElementById('quiz-card').className = "card " + (isCorrect ? "quiz-success" : "quiz-fail");
+    
+    if (!quizStopped) setTimeout(nextQuestion, 1500);
 }
 
 async function stopQuiz() {
     quizStopped = true;
     await stopAllRecognition();
-    document.getElementById('quiz-card').style.display = 'none';
+
+    document.getElementById('quiz-card').style.display  = 'none';
     document.getElementById('action-card').classList.add('hidden');
     document.getElementById('results-page').classList.remove('hidden');
     buildResultsPage();
 }
 
 function restartMenu() {
-    logs = []; questionCount = 0; lastAsked = null;
-    SYLLABLES.forEach(s => sessionStats[s] = { asked:0, correct:0 });
+    // Reset stats
+    logs = [];
+    questionCount = 0;
+    SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
+    
     document.getElementById('results-page').classList.add('hidden');
     document.getElementById('setup-card').classList.remove('hidden');
     document.getElementById('log-count').innerText = "0 résultat enregistré";
 }
 
-// ─── RÉSULTATS ────────────────────────────────────────────────────────────────
+// ─── PAGE DE RÉSULTATS ────────────────────────────────────────────────────────
 function buildResultsPage() {
     const total    = logs.length;
     const correct  = logs.filter(l => l.top1 === l.expected).length;
     const accuracy = total > 0 ? (correct / total * 100) : 0;
-    const avgRMS   = total > 0 ? (logs.reduce((s, l) => s + parseFloat(l.rms), 0) / total) : 0;
+    const avgRMS   = total > 0
+        ? (logs.reduce((s, l) => s + parseFloat(l.rms), 0) / total)
+        : 0;
+
     document.getElementById('res-accuracy').innerText        = accuracy.toFixed(1) + '%';
+    // CORRECTION APPLIQUEE ICI :
     document.getElementById('res-username-display').innerText = document.getElementById('username').value;
-    document.getElementById('res-total').innerText   = total;
+    
+    document.getElementById('res-total').innerText = total;
     document.getElementById('res-correct').innerText = correct;
-    document.getElementById('res-rms').innerText     = avgRMS.toFixed(4);
+    document.getElementById('res-rms').innerText = avgRMS.toFixed(4);
 }
 </script>
 </body>
