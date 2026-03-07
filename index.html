@@ -109,7 +109,6 @@
 
         #loading { color: var(--muted); font-size: 0.85rem; margin-top: 10px; text-align: center; }
 
-        /* ── SÉLECTEUR DE MODE ── */
         .mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
         .mode-btn {
             padding: 12px 8px; border-radius: 10px; border: 2px solid var(--border);
@@ -119,14 +118,13 @@
         .mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.08); }
         .mode-btn .mode-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
 
-        /* ── TEST LIBRE ── */
         #free-card { display: none; }
 
         .hira-selector {
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px;
         }
         .hira-btn {
-            background: var(--bg); border: 2px solid var(--border); border-radius: 10px; padding: 10px 4px 6px; 
+            background: var(--bg); border: 2px solid var(--border); border-radius: 10px; padding: 10px 4px 6px;
             cursor: pointer; text-align: center; transition: all 0.15s; position: relative;
         }
         .hira-btn:hover { border-color: var(--muted); }
@@ -138,7 +136,7 @@
 
         .free-stats-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 6px 0 10px; min-height: 36px; }
         .free-badge {
-            display: flex; flex-direction: column; align-items: center; background: var(--bg); 
+            display: flex; flex-direction: column; align-items: center; background: var(--bg);
             border: 1px solid var(--border); border-radius: 10px; padding: 6px 16px; font-size: 0.8rem; color: var(--muted);
         }
         .free-badge .val { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
@@ -169,7 +167,6 @@
 
         .scores-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
 
-        /* ── QUIZ ── */
         #quiz-card { display: none; border: 2px solid var(--border); transition: border-color 0.3s, background 0.3s; }
         .quiz-active  { border-color: var(--accent) !important; }
         .quiz-success { border-color: var(--green)  !important; background: rgba(63,185,80,0.07) !important; }
@@ -194,7 +191,6 @@
 
         .hidden { display: none !important; }
 
-        /* ── RÉSULTATS ── */
         .res-header { text-align: center; padding: 22px 24px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; }
         .res-header .big-score { font-size: 3.5rem; font-weight: 800; line-height: 1; margin: 8px 0 4px; }
         .res-header .score-label { font-size: 0.82rem; color: var(--muted); }
@@ -213,7 +209,7 @@
 
     <div class="card" id="setup-card">
         <div class="card-title">🎙️ Quiz Vocal Hiragana</div>
-        <div class="card-sub">Protocole de test v1.3 — A·I·U·E·O + KA·KI·KU·KE·KO</div>
+        <div class="card-sub">Protocole de test v1.4 — A·I·U·E·O + KA·KI·KU·KE·KO</div>
 
         <div class="field">
             <label>Nom / Appareil</label>
@@ -274,14 +270,11 @@
             <span>Question <b id="q-count">0</b></span>
             <span>RMS <b id="rms-disp">0.0000</b></span>
         </div>
-
         <div class="hiragana-big" id="target-char">?</div>
         <div class="romaji-hint" id="target-romaji">PRÊT ?</div>
-
         <div class="timer-bar">
             <div class="timer-fill" id="timer-fill"></div>
         </div>
-
         <div class="feedback-zone" id="feedback-top1">En attente…</div>
     </div>
 
@@ -299,7 +292,6 @@
             <div class="big-score" id="res-accuracy">—</div>
             <div class="user-name" id="res-username-display"></div>
         </div>
-
         <div class="kpi-row">
             <div class="kpi-card">
                 <div class="kpi-val" style="color:var(--accent)" id="res-total">—</div>
@@ -314,7 +306,6 @@
                 <div class="kpi-lbl">RMS moy.</div>
             </div>
         </div>
-
         <div class="res-btns">
             <button class="btn btn-outline" onclick="restartMenu()">⬅ Retour au menu</button>
         </div>
@@ -322,41 +313,44 @@
 </div>
 
 <script>
-// ─── CONFIGURATION ───────────────────────────────────────────────────────────
-const URL_MODEL = "https://teachablemachine.withgoogle.com/models/LY5AQHCmd/";
-const HIRAGANA_MAP = {
-    'あ':'a', 'い':'i', 'う':'u', 'え':'e', 'お':'o',
+// ─── CONFIGURATION ────────────────────────────────────────────────────────────
+const URL_MODEL       = "https://teachablemachine.withgoogle.com/models/LY5AQHCmd/";
+const HIRAGANA_MAP    = {
+    'あ':'a','い':'i','う':'u','え':'e','お':'o',
     'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko'
 };
-const SYLLABLES = Object.keys(HIRAGANA_MAP);
-const MASTERY_KEY = 'hiragana_mastery_v1';
+const SYLLABLES       = Object.keys(HIRAGANA_MAP);
+const MASTERY_KEY     = 'hiragana_mastery_v1';
+const STAR_THRESHOLD  = 80;       // seuil étoile mode libre (%)
+const QUIZ_DURATION_MS = 5000;    // durée timer quiz (ms)
+const QUIZ_HIT_THRESHOLD = 0.65;  // seuil validation quiz (0-1)
 
-// FIX #3 — seuil de maîtrise abaissé à 80% en mode libre
-const STAR_THRESHOLD = 80;
-
-// Durée du timer Quiz portée à 5 secondes
-const QUIZ_DURATION_MS = 5000;
-
-// ─── VARIABLES GLOBALES ───────────────────────────────────────────────────────
+// ─── ÉTAT GLOBAL ──────────────────────────────────────────────────────────────
 let recognizer, audioContext, gainNode, analyser, dataArray;
-let isListening = false;
-let quizStopped = false;
+let isListening   = false;
+let quizStopped   = false;
 let currentTarget = "";
-let logs = [];
+let logs          = [];
 let questionCount = 0;
-let sessionBest = { label:"", score:0, label2:"", score2:0 };
+let sessionBest   = { label:"", score:0 };
 let rmsSum = 0, rmsCount = 0;
-let selectedMode = 'quiz';
+let selectedMode  = 'quiz';
 
-// Stats de session pour algorithme d'apprentissage (Quiz)
-let sessionStats = {}; 
-SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
+let questionPeakTargetScore = 0;
+let questionValidated       = false;
 
-// ─── FONCTIONS UTILITAIRES & MICRO ───────────────────────────────────────────
-document.getElementById('gain-slider').oninput = (e) => {
-    const val = e.target.value;
-    document.getElementById('gain-val').innerText = val;
-    if (gainNode) gainNode.gain.value = val;
+const BASE_WEIGHT  = 1.0;
+const ERROR_WEIGHT = 3.0;
+const MAX_EXTRA    = 6.0;
+let lastAsked = null;
+
+let sessionStats = {};
+SYLLABLES.forEach(s => sessionStats[s] = { asked:0, correct:0 });
+
+// ─── MICRO / UTILITAIRES ──────────────────────────────────────────────────────
+document.getElementById('gain-slider').oninput = e => {
+    document.getElementById('gain-val').innerText = e.target.value;
+    if (gainNode) gainNode.gain.value = e.target.value;
 };
 
 function selectMode(mode) {
@@ -366,83 +360,61 @@ function selectMode(mode) {
 }
 
 async function stopAllRecognition() {
-    isListening = false;
+    isListening   = false;
     freeListening = false;
-    if (recognizer && recognizer.isListening()) {
-        await recognizer.stopListening();
-    }
+    if (recognizer && recognizer.isListening()) await recognizer.stopListening();
 }
 
 function updateRMSLoop() {
     if (!analyser) return;
     analyser.getFloatTimeDomainData(dataArray);
-    let sumSquares = 0.0;
-    for (const amplitude of dataArray) { sumSquares += amplitude * amplitude; }
-    const rms = Math.sqrt(sumSquares / dataArray.length);
-    
+    let sum = 0;
+    for (const a of dataArray) sum += a * a;
+    const rms = Math.sqrt(sum / dataArray.length);
     if (isListening) {
-        rmsSum += rms;
-        rmsCount++;
+        rmsSum += rms; rmsCount++;
         document.getElementById('rms-disp').innerText = rms.toFixed(4);
     }
     requestAnimationFrame(updateRMSLoop);
 }
 
-// ─── SAUVEGARDE & MASTERY ───────────────────────────────────────────────────
-function loadMastery() {
-    const data = localStorage.getItem(MASTERY_KEY);
-    return data ? JSON.parse(data) : {};
-}
-function saveMastery(data) {
-    localStorage.setItem(MASTERY_KEY, JSON.stringify(data));
-}
-function getMasteryFor(h) {
-    const m = loadMastery();
-    return m[h] || { stars: 0, maxPct: 0 };
-}
-function starsStr(count) {
-    return '★'.repeat(count) + '☆'.repeat(3 - count);
-}
+// ─── MASTERY ──────────────────────────────────────────────────────────────────
+function loadMastery()      { const d = localStorage.getItem(MASTERY_KEY); return d ? JSON.parse(d) : {}; }
+function saveMastery(data)  { localStorage.setItem(MASTERY_KEY, JSON.stringify(data)); }
+function getMasteryFor(h)   { const m = loadMastery(); return m[h] || { stars:0, maxPct:0 }; }
+function starsStr(n)        { return '★'.repeat(n) + '☆'.repeat(3-n); }
 
-// ─── INITIALISATION ───────────────────────────────────────────────────────────
+// ─── INIT ─────────────────────────────────────────────────────────────────────
 document.getElementById('btn-start').onclick = async () => {
-    const btn = document.getElementById('btn-start');
+    const btn  = document.getElementById('btn-start');
     const name = document.getElementById('username').value.trim();
     if (!name) { alert("Merci d'entrer un nom !"); return; }
-
     btn.disabled = true;
     document.getElementById('loading').classList.remove('hidden');
-
     try {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         } else if (audioContext.state === 'suspended') {
             await audioContext.resume();
         }
-
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const source = audioContext.createMediaStreamSource(stream);
-
         gainNode = audioContext.createGain();
         gainNode.gain.value = document.getElementById('gain-slider').value;
-        
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 256;
         dataArray = new Float32Array(analyser.fftSize);
-
         source.connect(gainNode);
         gainNode.connect(analyser);
-
         if (!recognizer) {
-            recognizer = speechCommands.create("BROWSER_FFT", undefined, URL_MODEL + "model.json", URL_MODEL + "metadata.json");
+            recognizer = speechCommands.create("BROWSER_FFT", undefined,
+                URL_MODEL + "model.json", URL_MODEL + "metadata.json");
             await recognizer.ensureModelLoaded();
             updateRMSLoop();
         }
-
         document.getElementById('setup-card').classList.add('hidden');
         document.getElementById('loading').classList.add('hidden');
         btn.disabled = false;
-
         if (selectedMode === 'free') {
             startFreeMode();
         } else {
@@ -452,47 +424,44 @@ document.getElementById('btn-start').onclick = async () => {
             startContinuousRecognition();
             setTimeout(nextQuestion, 1000);
         }
-
-    } catch (e) {
+    } catch(e) {
         alert("Erreur micro ou modèle : " + e);
         btn.disabled = false;
         document.getElementById('loading').classList.add('hidden');
     }
 };
 
-// ─── MODE TEST LIBRE ──────────────────────────────────────────────────────────
+// ─── MODE LIBRE ───────────────────────────────────────────────────────────────
 let freeListening = false;
-let freeTarget = null;
-let isStarLocked = false;
+let freeTarget    = null;
+let isStarLocked  = false;
 
 const freeDom = {
-    char:         () => document.getElementById('free-char'),
-    romaji:       () => document.getElementById('free-romaji'),
-    gaugeLabel:   () => document.getElementById('gauge-label'),
-    gaugeFill:    () => document.getElementById('gauge-fill'),
-    gaugePct:     () => document.getElementById('gauge-pct'),
-    maxVal:       () => document.getElementById('free-max-val'),
-    starsDisp:    () => document.getElementById('free-stars-disp'),
-    masteryBanner:() => document.getElementById('mastery-banner'),
+    char:          () => document.getElementById('free-char'),
+    romaji:        () => document.getElementById('free-romaji'),
+    gaugeLabel:    () => document.getElementById('gauge-label'),
+    gaugeFill:     () => document.getElementById('gauge-fill'),
+    gaugePct:      () => document.getElementById('gauge-pct'),
+    maxVal:        () => document.getElementById('free-max-val'),
+    starsDisp:     () => document.getElementById('free-stars-disp'),
+    masteryBanner: () => document.getElementById('mastery-banner'),
 };
 
 function startFreeMode() {
     document.getElementById('free-card').style.display = 'block';
     document.getElementById('free-stats-row').style.display = 'flex';
-
     document.getElementById('free-scores').innerHTML = `
         <div class="field" style="margin-top:20px">
             <div class="gain-row">
                 <span>Confiance pour <b id="gauge-label">?</b></span>
                 <span id="gauge-pct" class="gain-val">0%</span>
             </div>
-            <div class="timer-bar" style="height:12px; margin-top:10px; background:var(--border)">
-                <div id="gauge-fill" style="width:0%; height:100%; background:var(--red); transition: width 0.1s, background 0.3s"></div>
+            <div class="timer-bar" style="height:12px;margin-top:10px;background:var(--border)">
+                <div id="gauge-fill" style="width:0%;height:100%;background:var(--red);transition:width 0.1s,background 0.3s"></div>
             </div>
         </div>
-        <button class="btn btn-outline" style="margin-top:25px; border-color:var(--red); color:var(--red); font-size:0.8rem" onclick="resetAllMastery()">🗑 Réinitialiser la progression</button>
-    `;
-
+        <button class="btn btn-outline" style="margin-top:25px;border-color:var(--red);color:var(--red);font-size:0.8rem"
+            onclick="resetAllMastery()">🗑 Réinitialiser la progression</button>`;
     buildHiraSelector();
     autoSelectNext();
     freeListening = true;
@@ -503,8 +472,8 @@ function buildHiraSelector() {
     const sel = document.getElementById('hira-selector');
     sel.innerHTML = '';
     const mastery = loadMastery();
-    SYLLABLES.forEach((h) => {
-        const st = mastery[h] ? mastery[h].stars : 0;
+    SYLLABLES.forEach(h => {
+        const st  = mastery[h] ? mastery[h].stars : 0;
         const btn = document.createElement('div');
         btn.className = 'hira-btn' + (st >= 3 ? ' mastered' : '');
         btn.innerHTML = `<div class="hb-char">${h}</div><div class="hb-rom">${HIRAGANA_MAP[h]}</div><div class="hb-stars">${starsStr(st)}</div>`;
@@ -517,89 +486,57 @@ function buildHiraSelector() {
 function autoSelectNext() {
     const mastery = loadMastery();
     let target = SYLLABLES[0];
-    for (let s of SYLLABLES) {
-        if (!mastery[s] || mastery[s].stars < 3) { target = s; break; }
-    }
+    for (const s of SYLLABLES) { if (!mastery[s] || mastery[s].stars < 3) { target = s; break; } }
     selectFreeTarget(target);
 }
 
 function selectFreeTarget(h) {
     if (freeTarget === h) return;
     freeTarget = h;
-
     document.querySelectorAll('.hira-btn').forEach(b => b.classList.remove('selected'));
     const btn = document.getElementById('hbtn-' + h);
     if (btn) btn.classList.add('selected');
-
     freeDom.char().innerText   = h;
     freeDom.romaji().innerText = HIRAGANA_MAP[h];
-    const gaugeLabel = freeDom.gaugeLabel();
-    if (gaugeLabel) gaugeLabel.innerText = h;
-
-    const m = getMasteryFor(h);
-    freeDom.maxVal().innerText        = m.maxPct + '%';
-    freeDom.starsDisp().innerHTML     = starsStr(m.stars);
+    const gl = freeDom.gaugeLabel(); if (gl) gl.innerText = h;
+    const m  = getMasteryFor(h);
+    freeDom.maxVal().innerText    = m.maxPct + '%';
+    freeDom.starsDisp().innerHTML = starsStr(m.stars);
     freeDom.masteryBanner().style.display = m.stars >= 3 ? 'block' : 'none';
-    
-    if(freeDom.gaugeFill()) freeDom.gaugeFill().style.width = '0%';
-    if(freeDom.gaugePct()) freeDom.gaugePct().innerText = '0%';
+    const gf = freeDom.gaugeFill(); if (gf) gf.style.width = '0%';
+    const gp = freeDom.gaugePct();  if (gp) gp.innerText   = '0%';
 }
 
 function startFreeRecognition() {
-    // FIX #2 — même probabilityThreshold bas (0.05) et même overlapFactor (0.5) que le quiz
     recognizer.listen(result => {
         if (!freeListening || !freeTarget) return;
-
         const labels    = recognizer.wordLabels();
         const targetIdx = labels.indexOf(freeTarget);
         if (targetIdx === -1) return;
-        
         const score  = result.scores[targetIdx];
         const pctNum = Math.round(score * 100);
-
-        const gauge = freeDom.gaugeFill();
-        const pctEl = freeDom.gaugePct();
-        if (gauge)  gauge.style.width  = pctNum + '%';
-        if (pctEl)  pctEl.innerText    = pctNum + '%';
-        if (gauge) {
-            gauge.style.background =
-                pctNum > 70 ? 'var(--green)' :
-                pctNum > 40 ? 'var(--yellow)' :
-                              'var(--red)';
-        }
-
-        if (pctNum >= STAR_THRESHOLD) {
-            updateMastery(freeTarget, pctNum);
-        }
+        const gf = freeDom.gaugeFill(), gp = freeDom.gaugePct();
+        if (gf) { gf.style.width = pctNum + '%';
+            gf.style.background = pctNum > 70 ? 'var(--green)' : pctNum > 40 ? 'var(--yellow)' : 'var(--red)'; }
+        if (gp) gp.innerText = pctNum + '%';
+        if (pctNum >= STAR_THRESHOLD) updateMastery(freeTarget, pctNum);
     }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
 }
 
 function updateMastery(h, pctNum) {
     const mastery = loadMastery();
-    if (!mastery[h]) mastery[h] = { stars: 0, maxPct: 0 };
+    if (!mastery[h]) mastery[h] = { stars:0, maxPct:0 };
     const entry = mastery[h];
     let changed = false;
-
     if (pctNum > entry.maxPct) { entry.maxPct = pctNum; changed = true; }
-
     if (pctNum >= STAR_THRESHOLD && entry.stars < 3 && !isStarLocked) {
         isStarLocked = true;
-        entry.stars++;
-        entry.maxPct = 0;
-        changed = true;
-
-        const charDisp = freeDom.char();
-        charDisp.classList.remove('flash-success');
-        void charDisp.offsetWidth; 
-        charDisp.classList.add('flash-success');
-
+        entry.stars++; entry.maxPct = 0; changed = true;
+        const cd = freeDom.char();
+        cd.classList.remove('flash-success'); void cd.offsetWidth; cd.classList.add('flash-success');
         setTimeout(() => { isStarLocked = false; }, 1200);
-
-        if (entry.stars === 3) {
-            setTimeout(() => { if (freeListening) autoSelectNext(); }, 1500);
-        }
+        if (entry.stars === 3) setTimeout(() => { if (freeListening) autoSelectNext(); }, 1500);
     }
-
     if (changed) {
         saveMastery(mastery);
         const hBtn = document.getElementById('hbtn-' + h);
@@ -616,8 +553,7 @@ function updateMastery(h, pctNum) {
 function resetAllMastery() {
     if (confirm("Effacer toute la progression ?")) {
         localStorage.removeItem(MASTERY_KEY);
-        buildHiraSelector();
-        autoSelectNext();
+        buildHiraSelector(); autoSelectNext();
     }
 }
 
@@ -627,105 +563,80 @@ async function stopFree() {
     document.getElementById('setup-card').classList.remove('hidden');
 }
 
-// ─── MODE QUIZ ────────────────────────────────────────────────────────────────
-
-/*
- * FIX #1 — Algorithme de sélection revu : tirage pondéré (weighted random)
- *
- * Chaque syllabe reçoit un poids inversement proportionnel à son taux de
- * succès, avec un minimum garanti (BASE_WEIGHT) pour qu'une syllabe bien
- * maîtrisée reste quand même tirée de temps en temps.
- * Un item venant d'être posé (lastAsked) est temporairement exclu pour
- * éviter les répétitions consécutives.
- *
- * Exemple avec 3 syllabes et taux [100%, 50%, 0%] :
- *   poids = [1, 1.5, 2]  → proportion 1:1.5:2 au lieu de 0:0.5:1
- */
-const BASE_WEIGHT  = 1.0;   // poids plancher — les "bonnes" syllabes restent dans le tirage
-const ERROR_WEIGHT = 3.0;   // poids supplémentaire par tentative ratée (capé)
-const MAX_EXTRA    = 6.0;   // plafond du bonus d'erreur pour éviter le blocage
-
-let lastAsked = null;       // syllabe posée juste avant (exclue du prochain tirage)
-
+// ─── MODE QUIZ ─────────────────────────────────────────────────────────────────
 function getSmartRandomChar() {
-    // Calcul des poids
     const weights = SYLLABLES.map(s => {
-        if (s === lastAsked) return 0; // exclure la précédente
-        const st = sessionStats[s];
+        if (s === lastAsked) return 0;
+        const st     = sessionStats[s];
         const errors = st.asked - st.correct;
-        const extra  = Math.min(errors * ERROR_WEIGHT, MAX_EXTRA);
-        return BASE_WEIGHT + extra;
+        return BASE_WEIGHT + Math.min(errors * ERROR_WEIGHT, MAX_EXTRA);
     });
-
     const total = weights.reduce((a, b) => a + b, 0);
-    if (total === 0) {
-        // Cas rare : toutes les syllabes ont poids 0 (= 1 seule syllabe dans le jeu)
-        return SYLLABLES[Math.floor(Math.random() * SYLLABLES.length)];
-    }
-
+    if (total === 0) return SYLLABLES[Math.floor(Math.random() * SYLLABLES.length)];
     let r = Math.random() * total;
-    for (let i = 0; i < SYLLABLES.length; i++) {
-        r -= weights[i];
-        if (r <= 0) return SYLLABLES[i];
-    }
+    for (let i = 0; i < SYLLABLES.length; i++) { r -= weights[i]; if (r <= 0) return SYLLABLES[i]; }
     return SYLLABLES[SYLLABLES.length - 1];
 }
 
-/*
- * FIX #2 — Écoute en mode Quiz alignée sur le mode libre :
- *   - probabilityThreshold abaissé de 0.1 à 0.05 (même sensibilité)
- *   - overlapFactor conservé à 0.5
- *   - Suppression du filtre "score > 0.70" pour accepter la bonne réponse
- *     même à confiance modérée (le modèle choisit quand même le label le
- *     plus probable, le seuil servait juste à le bloquer inutilement)
- *   - On garde le filtre "background noise" mais on prend le meilleur
- *     label non-background quel que soit son score
- */
+// Écoute Quiz — architecture identique au mode libre :
+// • lecture directe du score de la cible à chaque frame
+// • validation IMMÉDIATE dès QUIZ_HIT_THRESHOLD dépassé  → finishQuestion(true)
+// • peak-hold sur la cible pour fallback à expiration du timer → finishQuestion(false)
 function startContinuousRecognition() {
     recognizer.listen(result => {
         if (!isListening) return;
-        const labels = recognizer.wordLabels();
-        const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
-        scores.sort((a, b) => b.score - a.score);
+        const labels    = recognizer.wordLabels();
+        const targetIdx = labels.indexOf(currentTarget);
 
-        // Sauter les labels "background noise"
-        let top1 = scores.find(s => !s.label.toLowerCase().includes("background")) || scores[0];
-        let top2 = scores.filter(s => s !== top1)[0] || { label:"—", score:0 };
+        // Score direct sur la cible — même logique que mode libre
+        const targetScore = targetIdx !== -1 ? result.scores[targetIdx] : 0;
+        const targetPct   = Math.round(targetScore * 100);
 
-        // On retient toujours le meilleur résultat de la fenêtre (peak holding)
-        if (top1.score > sessionBest.score) {
-            updateSessionBest(top1, top2);
+        // Peak holding
+        if (targetScore > questionPeakTargetScore) questionPeakTargetScore = targetScore;
+
+        // Meilleur label non-background pour affichage seulement
+        const sorted = Array.from(result.scores)
+            .map((s, i) => ({ label: labels[i], score: s }))
+            .filter(s => !s.label.toLowerCase().includes("background"))
+            .sort((a, b) => b.score - a.score);
+        const top1 = sorted[0] || { label:"—", score:0 };
+
+        // Feedback temps réel
+        const onTarget = top1.label === currentTarget;
+        document.getElementById('feedback-top1').innerHTML =
+            `<span style="color:${onTarget ? 'var(--green)' : 'var(--muted)'};font-weight:${onTarget ? 700 : 400}">` +
+            `${currentTarget} : ${targetPct}%` +
+            (onTarget ? '' : ` &nbsp;|&nbsp; entendu : ${top1.label} ${(top1.score*100).toFixed(0)}%`) +
+            `</span>`;
+
+        // Validation immédiate
+        if (!questionValidated && targetScore >= QUIZ_HIT_THRESHOLD) {
+            questionValidated = true;
+            finishQuestion(true);
         }
     }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
-}
-
-function updateSessionBest(s1, s2) {
-    sessionBest.label  = s1.label; sessionBest.score  = s1.score;
-    sessionBest.label2 = s2.label; sessionBest.score2 = s2.score;
-    const isCorrect = sessionBest.label === currentTarget;
-    const color = isCorrect ? "var(--green)" : "var(--red)";
-    document.getElementById('feedback-top1').innerHTML =
-        `<span style="color:${color};font-weight:700">${isCorrect ? "✅" : "❌ On a entendu : "} ${sessionBest.label} · ${(sessionBest.score*100).toFixed(0)}%</span>`;
 }
 
 function nextQuestion() {
     if (quizStopped) return;
     questionCount++;
     document.getElementById('q-count').innerText = questionCount;
-    
+
     currentTarget = getSmartRandomChar();
-    lastAsked     = currentTarget;          // mémoriser pour éviter la répétition suivante
+    lastAsked     = currentTarget;
     sessionStats[currentTarget].asked++;
 
-    document.getElementById('quiz-card').className = "card quiz-active";
-    document.getElementById('target-char').innerText   = currentTarget;
-    document.getElementById('target-romaji').innerText = HIRAGANA_MAP[currentTarget];
-    document.getElementById('feedback-top1').innerText = "Écoute...";
-    
-    sessionBest = { label:"Silence", score:0, label2:"-", score2:0 };
-    rmsSum = 0; rmsCount = 0;
-    
-    // FIX timer → 5 secondes (QUIZ_DURATION_MS)
+    document.getElementById('quiz-card').className      = "card quiz-active";
+    document.getElementById('target-char').innerText    = currentTarget;
+    document.getElementById('target-romaji').innerText  = HIRAGANA_MAP[currentTarget];
+    document.getElementById('feedback-top1').innerText  = "Écoute...";
+
+    sessionBest             = { label:"Silence", score:0 };
+    questionPeakTargetScore = 0;
+    questionValidated       = false;
+    rmsSum = 0; rmsCount    = 0;
+
     const timer = document.getElementById('timer-fill');
     timer.style.transition = 'none'; timer.style.width = '100%';
     setTimeout(() => {
@@ -733,62 +644,64 @@ function nextQuestion() {
         timer.style.width = '0%';
         isListening = true;
     }, 50);
-    setTimeout(finishQuestion, QUIZ_DURATION_MS + 50);
+    // Fin de timer → finishQuestion(false) si pas encore validé
+    setTimeout(() => finishQuestion(false), QUIZ_DURATION_MS + 50);
 }
 
-function finishQuestion() {
+function finishQuestion(earlyHit) {
+    // Guard : si déjà validé en avance et appel provient du timer, on ignore
+    if (questionValidated && !earlyHit) return;
+    questionValidated = true; // verrouiller dans tous les cas
     isListening = false;
+
     const sessionAvgRMS = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
-    const isCorrect = sessionBest.label === currentTarget;
-    
+    // earlyHit → correct garanti ; sinon peak >= seuil
+    const isCorrect = earlyHit || (questionPeakTargetScore >= QUIZ_HIT_THRESHOLD);
+
     if (isCorrect) sessionStats[currentTarget].correct++;
+
+    document.getElementById('quiz-card').className = "card " + (isCorrect ? "quiz-success" : "quiz-fail");
+    document.getElementById('feedback-top1').innerHTML = isCorrect
+        ? `<span style="color:var(--green);font-weight:700">✅ Correct ! (${(questionPeakTargetScore*100).toFixed(0)}%)</span>`
+        : `<span style="color:var(--red);font-weight:700">❌ Pas reconnu (max ${(questionPeakTargetScore*100).toFixed(0)}% sur la cible)</span>`;
 
     logs.push({
         timestamp: new Date().toLocaleString('fr-FR'),
-        expected: currentTarget,
-        top1:     sessionBest.label,
-        score1:   sessionBest.score.toFixed(4),
-        rms:      sessionAvgRMS.toFixed(6),
-        gain:     gainNode ? gainNode.gain.value.toFixed(2) : "1.0"
+        expected:  currentTarget,
+        top1:      isCorrect ? currentTarget : "—",
+        score1:    questionPeakTargetScore.toFixed(4),
+        rms:       sessionAvgRMS.toFixed(6),
+        gain:      gainNode ? gainNode.gain.value.toFixed(2) : "1.0"
     });
-
     document.getElementById('log-count').innerText = `${logs.length} résultat(s) enregistré(s)`;
-    document.getElementById('quiz-card').className = "card " + (isCorrect ? "quiz-success" : "quiz-fail");
-    
-    if (!quizStopped) setTimeout(nextQuestion, 1500);
+
+    if (!quizStopped) setTimeout(nextQuestion, earlyHit ? 800 : 1500);
 }
 
 async function stopQuiz() {
     quizStopped = true;
     await stopAllRecognition();
-
-    document.getElementById('quiz-card').style.display  = 'none';
+    document.getElementById('quiz-card').style.display = 'none';
     document.getElementById('action-card').classList.add('hidden');
     document.getElementById('results-page').classList.remove('hidden');
     buildResultsPage();
 }
 
 function restartMenu() {
-    logs = [];
-    questionCount = 0;
-    lastAsked = null;
-    SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
-    
+    logs = []; questionCount = 0; lastAsked = null;
+    SYLLABLES.forEach(s => sessionStats[s] = { asked:0, correct:0 });
     document.getElementById('results-page').classList.add('hidden');
     document.getElementById('setup-card').classList.remove('hidden');
     document.getElementById('log-count').innerText = "0 résultat enregistré";
 }
 
-// ─── PAGE DE RÉSULTATS ────────────────────────────────────────────────────────
+// ─── RÉSULTATS ────────────────────────────────────────────────────────────────
 function buildResultsPage() {
     const total    = logs.length;
     const correct  = logs.filter(l => l.top1 === l.expected).length;
     const accuracy = total > 0 ? (correct / total * 100) : 0;
-    const avgRMS   = total > 0
-        ? (logs.reduce((s, l) => s + parseFloat(l.rms), 0) / total)
-        : 0;
-
-    document.getElementById('res-accuracy').innerText         = accuracy.toFixed(1) + '%';
+    const avgRMS   = total > 0 ? (logs.reduce((s, l) => s + parseFloat(l.rms), 0) / total) : 0;
+    document.getElementById('res-accuracy').innerText        = accuracy.toFixed(1) + '%';
     document.getElementById('res-username-display').innerText = document.getElementById('username').value;
     document.getElementById('res-total').innerText   = total;
     document.getElementById('res-correct').innerText = correct;
