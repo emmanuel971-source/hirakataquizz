@@ -213,7 +213,7 @@
 
     <div class="card" id="setup-card">
         <div class="card-title">🎙️ Quiz Vocal Hiragana</div>
-        <div class="card-sub">Protocole de test v1.2 — A·I·U·E·O + KA·KI·KU·KE·KO</div>
+        <div class="card-sub">Protocole de test v1.3 — A·I·U·E·O + KA·KI·KU·KE·KO</div>
 
         <div class="field">
             <label>Nom / Appareil</label>
@@ -330,7 +330,12 @@ const HIRAGANA_MAP = {
 };
 const SYLLABLES = Object.keys(HIRAGANA_MAP);
 const MASTERY_KEY = 'hiragana_mastery_v1';
-const STAR_THRESHOLD = 95;
+
+// FIX #3 — seuil de maîtrise abaissé à 80% en mode libre
+const STAR_THRESHOLD = 80;
+
+// Durée du timer Quiz portée à 5 secondes
+const QUIZ_DURATION_MS = 5000;
 
 // ─── VARIABLES GLOBALES ───────────────────────────────────────────────────────
 let recognizer, audioContext, gainNode, analyser, dataArray;
@@ -343,7 +348,7 @@ let sessionBest = { label:"", score:0, label2:"", score2:0 };
 let rmsSum = 0, rmsCount = 0;
 let selectedMode = 'quiz';
 
-// Stats de session pour algorithme d'apprentissage intelligent (Quiz)
+// Stats de session pour algorithme d'apprentissage (Quiz)
 let sessionStats = {}; 
 SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
 
@@ -409,7 +414,6 @@ document.getElementById('btn-start').onclick = async () => {
     document.getElementById('loading').classList.remove('hidden');
 
     try {
-        // AMELIORATION : Assurer que l'audio context reprend proprement
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         } else if (audioContext.state === 'suspended') {
@@ -520,7 +524,7 @@ function autoSelectNext() {
 }
 
 function selectFreeTarget(h) {
-    if (freeTarget === h) return; // AMELIORATION: Eviter le spam de clics
+    if (freeTarget === h) return;
     freeTarget = h;
 
     document.querySelectorAll('.hira-btn').forEach(b => b.classList.remove('selected'));
@@ -542,31 +546,32 @@ function selectFreeTarget(h) {
 }
 
 function startFreeRecognition() {
+    // FIX #2 — même probabilityThreshold bas (0.05) et même overlapFactor (0.5) que le quiz
     recognizer.listen(result => {
         if (!freeListening || !freeTarget) return;
 
-        const labels   = recognizer.wordLabels();
+        const labels    = recognizer.wordLabels();
         const targetIdx = labels.indexOf(freeTarget);
         if (targetIdx === -1) return;
         
-        const score    = result.scores[targetIdx];
-        const pctNum   = Math.round(score * 100);
+        const score  = result.scores[targetIdx];
+        const pctNum = Math.round(score * 100);
 
-        const gauge  = freeDom.gaugeFill();
-        const pctEl  = freeDom.gaugePct();
-        if (gauge)  gauge.style.width      = pctNum + '%';
-        if (pctEl)  pctEl.innerText        = pctNum + '%';
+        const gauge = freeDom.gaugeFill();
+        const pctEl = freeDom.gaugePct();
+        if (gauge)  gauge.style.width  = pctNum + '%';
+        if (pctEl)  pctEl.innerText    = pctNum + '%';
         if (gauge) {
             gauge.style.background =
-                pctNum > 85 ? 'var(--green)' :
-                pctNum > 50 ? 'var(--yellow)' :
+                pctNum > 70 ? 'var(--green)' :
+                pctNum > 40 ? 'var(--yellow)' :
                               'var(--red)';
         }
 
         if (pctNum >= STAR_THRESHOLD) {
             updateMastery(freeTarget, pctNum);
         }
-    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 }); // overlap 0.5 pour meilleures perfs
+    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
 }
 
 function updateMastery(h, pctNum) {
@@ -624,50 +629,74 @@ async function stopFree() {
 
 // ─── MODE QUIZ ────────────────────────────────────────────────────────────────
 
-// AMELIORATION: Algorithme de répétition espacée (favorise les erreurs)
+/*
+ * FIX #1 — Algorithme de sélection revu : tirage pondéré (weighted random)
+ *
+ * Chaque syllabe reçoit un poids inversement proportionnel à son taux de
+ * succès, avec un minimum garanti (BASE_WEIGHT) pour qu'une syllabe bien
+ * maîtrisée reste quand même tirée de temps en temps.
+ * Un item venant d'être posé (lastAsked) est temporairement exclu pour
+ * éviter les répétitions consécutives.
+ *
+ * Exemple avec 3 syllabes et taux [100%, 50%, 0%] :
+ *   poids = [1, 1.5, 2]  → proportion 1:1.5:2 au lieu de 0:0.5:1
+ */
+const BASE_WEIGHT  = 1.0;   // poids plancher — les "bonnes" syllabes restent dans le tirage
+const ERROR_WEIGHT = 3.0;   // poids supplémentaire par tentative ratée (capé)
+const MAX_EXTRA    = 6.0;   // plafond du bonus d'erreur pour éviter le blocage
+
+let lastAsked = null;       // syllabe posée juste avant (exclue du prochain tirage)
+
 function getSmartRandomChar() {
-    let lowestScore = 1.0;
-    let candidates = [];
-    
-    for (let s of SYLLABLES) {
-        let stats = sessionStats[s];
-        let score = stats.asked === 0 ? 0 : (stats.correct / stats.asked);
-        
-        if (score < lowestScore) {
-            lowestScore = score;
-            candidates = [s];
-        } else if (score === lowestScore) {
-            candidates.push(s);
-        }
+    // Calcul des poids
+    const weights = SYLLABLES.map(s => {
+        if (s === lastAsked) return 0; // exclure la précédente
+        const st = sessionStats[s];
+        const errors = st.asked - st.correct;
+        const extra  = Math.min(errors * ERROR_WEIGHT, MAX_EXTRA);
+        return BASE_WEIGHT + extra;
+    });
+
+    const total = weights.reduce((a, b) => a + b, 0);
+    if (total === 0) {
+        // Cas rare : toutes les syllabes ont poids 0 (= 1 seule syllabe dans le jeu)
+        return SYLLABLES[Math.floor(Math.random() * SYLLABLES.length)];
     }
-    // Choisir aléatoirement parmi ceux qui ont le score le plus bas
-    return candidates[Math.floor(Math.random() * candidates.length)];
+
+    let r = Math.random() * total;
+    for (let i = 0; i < SYLLABLES.length; i++) {
+        r -= weights[i];
+        if (r <= 0) return SYLLABLES[i];
+    }
+    return SYLLABLES[SYLLABLES.length - 1];
 }
 
+/*
+ * FIX #2 — Écoute en mode Quiz alignée sur le mode libre :
+ *   - probabilityThreshold abaissé de 0.1 à 0.05 (même sensibilité)
+ *   - overlapFactor conservé à 0.5
+ *   - Suppression du filtre "score > 0.70" pour accepter la bonne réponse
+ *     même à confiance modérée (le modèle choisit quand même le label le
+ *     plus probable, le seuil servait juste à le bloquer inutilement)
+ *   - On garde le filtre "background noise" mais on prend le meilleur
+ *     label non-background quel que soit son score
+ */
 function startContinuousRecognition() {
     recognizer.listen(result => {
         if (!isListening) return;
         const labels = recognizer.wordLabels();
         const scores = Array.from(result.scores).map((s, i) => ({ label: labels[i], score: s }));
         scores.sort((a, b) => b.score - a.score);
-        
-        // Filtre de bruit de fond
-        let top1 = scores[0];
-        let top2 = scores[1] || { label:"none", score:0 };
-        
-        if (top1.label.toLowerCase().includes("background")) {
-            top1 = scores[1];
-            top2 = scores[2];
-        }
 
-        if (top1.label === currentTarget && top1.score > 0.70) {
-            if (top1.score > sessionBest.score || sessionBest.label !== currentTarget) {
-                updateSessionBest(top1, top2);
-            }
-        } else if (top1.score > sessionBest.score) {
-            if (sessionBest.label !== currentTarget) updateSessionBest(top1, top2);
+        // Sauter les labels "background noise"
+        let top1 = scores.find(s => !s.label.toLowerCase().includes("background")) || scores[0];
+        let top2 = scores.filter(s => s !== top1)[0] || { label:"—", score:0 };
+
+        // On retient toujours le meilleur résultat de la fenêtre (peak holding)
+        if (top1.score > sessionBest.score) {
+            updateSessionBest(top1, top2);
         }
-    }, { probabilityThreshold: 0.1, overlapFactor: 0.5 });
+    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
 }
 
 function updateSessionBest(s1, s2) {
@@ -684,26 +713,27 @@ function nextQuestion() {
     questionCount++;
     document.getElementById('q-count').innerText = questionCount;
     
-    // Remplacement du Math.random pur par l'algo intelligent
-    currentTarget = getSmartRandomChar(); 
+    currentTarget = getSmartRandomChar();
+    lastAsked     = currentTarget;          // mémoriser pour éviter la répétition suivante
     sessionStats[currentTarget].asked++;
 
     document.getElementById('quiz-card').className = "card quiz-active";
-    document.getElementById('target-char').innerText  = currentTarget;
+    document.getElementById('target-char').innerText   = currentTarget;
     document.getElementById('target-romaji').innerText = HIRAGANA_MAP[currentTarget];
     document.getElementById('feedback-top1').innerText = "Écoute...";
     
     sessionBest = { label:"Silence", score:0, label2:"-", score2:0 };
     rmsSum = 0; rmsCount = 0;
     
+    // FIX timer → 5 secondes (QUIZ_DURATION_MS)
     const timer = document.getElementById('timer-fill');
     timer.style.transition = 'none'; timer.style.width = '100%';
     setTimeout(() => {
-        timer.style.transition = 'width 3s linear';
+        timer.style.transition = `width ${QUIZ_DURATION_MS / 1000}s linear`;
         timer.style.width = '0%';
         isListening = true;
     }, 50);
-    setTimeout(finishQuestion, 3050);
+    setTimeout(finishQuestion, QUIZ_DURATION_MS + 50);
 }
 
 function finishQuestion() {
@@ -739,9 +769,9 @@ async function stopQuiz() {
 }
 
 function restartMenu() {
-    // Reset stats
     logs = [];
     questionCount = 0;
+    lastAsked = null;
     SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
     
     document.getElementById('results-page').classList.add('hidden');
@@ -758,13 +788,11 @@ function buildResultsPage() {
         ? (logs.reduce((s, l) => s + parseFloat(l.rms), 0) / total)
         : 0;
 
-    document.getElementById('res-accuracy').innerText        = accuracy.toFixed(1) + '%';
-    // CORRECTION APPLIQUEE ICI :
+    document.getElementById('res-accuracy').innerText         = accuracy.toFixed(1) + '%';
     document.getElementById('res-username-display').innerText = document.getElementById('username').value;
-    
-    document.getElementById('res-total').innerText = total;
+    document.getElementById('res-total').innerText   = total;
     document.getElementById('res-correct').innerText = correct;
-    document.getElementById('res-rms').innerText = avgRMS.toFixed(4);
+    document.getElementById('res-rms').innerText     = avgRMS.toFixed(4);
 }
 </script>
 </body>
