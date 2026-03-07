@@ -282,6 +282,20 @@
             <div class="timer-fill" id="timer-fill"></div>
         </div>
 
+        <div class="timer-bar">
+            <div class="timer-fill" id="timer-fill"></div>
+        </div>
+
+        <div class="field" style="margin-top:20px; text-align: center;">
+            <div class="gain-row" style="justify-content: center; gap: 10px;">
+                <span>Confiance :</span>
+                <span id="quiz-gauge-pct" class="gain-val" style="font-size: 1.2rem;">0%</span>
+            </div>
+            <div class="timer-bar" style="height:12px; margin-top:10px; background:var(--border)">
+                <div id="quiz-gauge-fill" style="width:0%; height:100%; background:var(--red); transition: width 0.1s, background 0.3s"></div>
+            </div>
+        </div>
+
         <div class="feedback-zone" id="feedback-top1">En attente…</div>
     </div>
 
@@ -343,6 +357,7 @@ let sessionBest = { label:"", score:0, label2:"", score2:0 };
 let rmsSum = 0, rmsCount = 0;
 let selectedMode = 'quiz';
 let lastAsked = ""; // À placer avec tes autres variables globales (isListening, etc.)
+let quizTimer;    
 // Stats de session pour algorithme d'apprentissage intelligent (Quiz)
 let sessionStats = {}; 
 SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
@@ -656,37 +671,44 @@ function getSmartRandomChar() {
     lastAsked = chosen; // On mémorise le choix
     return chosen;
 }
-
 function startContinuousRecognition() {
     recognizer.listen(result => {
-        if (!isListening) return;
-        
+        if (!isListening || quizStopped) return;
+
         const labels = recognizer.wordLabels();
-        
-        // On récupère le score de la cible de la même manière qu'en test libre
+        // Exactement comme le test libre : on ne cherche que la cible !
         const targetIdx = labels.indexOf(currentTarget);
-        const targetScore = targetIdx !== -1 ? result.scores[targetIdx] : 0;
+        if (targetIdx === -1) return;
+        
+        const score = result.scores[targetIdx];
+        const pctNum = Math.round(score * 100);
 
-        // On cherche aussi le son le plus fort entendu (hors bruit de fond)
-        let maxScore = 0;
-        let maxLabel = "";
-        for (let i = 0; i < labels.length; i++) {
-            if (!labels[i].toLowerCase().includes("background") && result.scores[i] > maxScore) {
-                maxScore = result.scores[i];
-                maxLabel = labels[i];
-            }
+        // Mise à jour de la barre visuelle en temps réel
+        const gauge = document.getElementById('quiz-gauge-fill');
+        const pctEl = document.getElementById('quiz-gauge-pct');
+        if (gauge) gauge.style.width = pctNum + '%';
+        if (pctEl) pctEl.innerText = pctNum + '%';
+        
+        if (gauge) {
+            gauge.style.background =
+                pctNum > 80 ? 'var(--green)' :
+                pctNum > 50 ? 'var(--yellow)' :
+                              'var(--red)';
         }
 
-        // Si on entend la cible correctement, on la valide (plus tolérant que l'ancien 0.70)
-        if (targetScore > 0.40 && targetScore > sessionBest.score) {
-            updateSessionBest({ label: currentTarget, score: targetScore }, { label: "-", score: 0 });
-        } 
-        // Sinon, on enregistre l'erreur entendue
-        else if (maxScore > sessionBest.score && maxScore > 0.50) {
-            updateSessionBest({ label: maxLabel, score: maxScore }, { label: "-", score: 0 });
+        // On sauvegarde le meilleur score de la session
+        if (score > sessionBest.score) {
+            sessionBest.score = score;
+            sessionBest.label = currentTarget;
         }
 
-    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 }); // Sensibilité alignée sur le mode libre
+        // VALIDATION INSTANTANÉE : si on atteint le seuil (80%), on gagne sans attendre la fin du chrono !
+        if (pctNum >= STAR_THRESHOLD) {
+            isListening = false;
+            finishQuestion(true); // "true" signifie qu'on a validé avant la fin
+        }
+
+    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 }); // Mêmes réglages parfaits que le mode libre
 }
 
 function updateSessionBest(s1, s2) {
@@ -703,39 +725,51 @@ function nextQuestion() {
     questionCount++;
     document.getElementById('q-count').innerText = questionCount;
     
-    // Remplacement du Math.random pur par l'algo intelligent
     currentTarget = getSmartRandomChar(); 
     sessionStats[currentTarget].asked++;
 
     document.getElementById('quiz-card').className = "card quiz-active";
     document.getElementById('target-char').innerText  = currentTarget;
     document.getElementById('target-romaji').innerText = HIRAGANA_MAP[currentTarget];
-    document.getElementById('feedback-top1').innerText = "Écoute...";
+    document.getElementById('feedback-top1').innerText = "Parlez maintenant...";
     
+    // Réinitialisation de la jauge
+    document.getElementById('quiz-gauge-fill').style.width = '0%';
+    document.getElementById('quiz-gauge-pct').innerText = '0%';
+
     sessionBest = { label:"Silence", score:0, label2:"-", score2:0 };
     rmsSum = 0; rmsCount = 0;
     
-    const timer = document.getElementById('timer-fill');
-    timer.style.transition = 'none'; timer.style.width = '100%';
+    const timerBar = document.getElementById('timer-fill');
+    timerBar.style.transition = 'none'; timerBar.style.width = '100%';
+    
+    clearTimeout(quizTimer); // On coupe l'ancien chrono au cas où
+
     setTimeout(() => {
-        timer.style.transition = 'width 3s linear';
-        timer.style.width = '0%';
+        timerBar.style.transition = 'width 5s linear';
+        timerBar.style.width = '0%';
         isListening = true;
     }, 50);
-    setTimeout(finishQuestion, 4050);
+    
+    // Lancement du chrono de 5 secondes
+    quizTimer = setTimeout(() => finishQuestion(false), 5050);
 }
 
-function finishQuestion() {
+function finishQuestion(isEarlySuccess = false) {
     isListening = false;
+    clearTimeout(quizTimer); // On arrête la barre de temps si on a réussi en avance
+
     const sessionAvgRMS = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
-    const isCorrect = sessionBest.label === currentTarget;
+    
+    // C'est validé soit par le déclencheur instantané, soit si le meilleur score enregistré dépasse le seuil
+    const isCorrect = isEarlySuccess || (sessionBest.score * 100 >= STAR_THRESHOLD);
     
     if (isCorrect) sessionStats[currentTarget].correct++;
 
     logs.push({
         timestamp: new Date().toLocaleString('fr-FR'),
         expected: currentTarget,
-        top1:     sessionBest.label,
+        top1:     isCorrect ? currentTarget : "Échec",
         score1:   sessionBest.score.toFixed(4),
         rms:      sessionAvgRMS.toFixed(6),
         gain:     gainNode ? gainNode.gain.value.toFixed(2) : "1.0"
@@ -744,9 +778,15 @@ function finishQuestion() {
     document.getElementById('log-count').innerText = `${logs.length} résultat(s) enregistré(s)`;
     document.getElementById('quiz-card').className = "card " + (isCorrect ? "quiz-success" : "quiz-fail");
     
-    if (!quizStopped) setTimeout(nextQuestion, 1500);
-}
+    if (isCorrect) {
+        document.getElementById('feedback-top1').innerHTML = `<span style="color:var(--green);font-weight:700">✅ Parfait !</span>`;
+    } else {
+        document.getElementById('feedback-top1').innerHTML = `<span style="color:var(--red);font-weight:700">❌ Temps écoulé (Max atteint: ${(sessionBest.score*100).toFixed(0)}%)</span>`;
+    }
 
+    if (!quizStopped) setTimeout(nextQuestion, 1500); // Passe à la suivante après 1.5s
+}
+    
 async function stopQuiz() {
     quizStopped = true;
     await stopAllRecognition();
@@ -788,3 +828,4 @@ function buildResultsPage() {
 </script>
 </body>
 </html>
+
