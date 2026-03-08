@@ -667,7 +667,7 @@ let selectedMode = 'quiz';
 let lastAsked = "";
 let quizTimer;
 let sessionStats = {};
-SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
+SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0, confSum: 0, confCount: 0 });
 
 // ─── SLIDER ───────────────────────────────────────────────────────────────────
 document.getElementById('gain-slider').oninput = (e) => {
@@ -971,6 +971,7 @@ function startContinuousRecognition() {
         if (score > sessionBest.score) {
             sessionBest.score = score;
             sessionBest.label = currentTarget;
+            sessionBest.peakPct = pctNum;
         }
 
         if (pctNum >= QUIZ_THRESHOLD) {
@@ -1027,6 +1028,11 @@ function finishQuestion(isEarlySuccess = false) {
         playFail();
     }
 
+    // Accumulate peak confidence for stats
+    const peakPct = sessionBest.peakPct || 0;
+    sessionStats[currentTarget].confSum += peakPct;
+    sessionStats[currentTarget].confCount++;
+
     logs.push({
         timestamp: new Date().toLocaleString('fr-FR'),
         expected: currentTarget,
@@ -1060,7 +1066,7 @@ async function stopQuiz() {
 function restartMenu() {
     logs = [];
     questionCount = 0;
-    SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0 });
+    SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0, confSum: 0, confCount: 0 });
     document.getElementById('results-page').classList.add('hidden');
     document.getElementById('setup-card').classList.remove('hidden');
     document.getElementById('log-count').innerText = "0 résultat enregistré";
@@ -1088,11 +1094,12 @@ function buildAccuracyBars() {
     const container = document.getElementById('stats-accuracy-bars');
     container.innerHTML = '';
 
-    // Calcul par hiragana
+    // Calcul par hiragana avec confiance moyenne
     const perChar = SYLLABLES.map(h => {
         const s = sessionStats[h];
-        const pct = s.asked > 0 ? Math.round(s.correct / s.asked * 100) : null;
-        return { h, pct, asked: s.asked, correct: s.correct };
+        const pct     = s.asked > 0 ? Math.round(s.correct / s.asked * 100) : null;
+        const avgConf = s.confCount > 0 ? Math.round(s.confSum / s.confCount) : 0;
+        return { h, pct, asked: s.asked, correct: s.correct, avgConf };
     }).filter(x => x.asked > 0);
 
     if (perChar.length === 0) {
@@ -1100,16 +1107,19 @@ function buildAccuracyBars() {
         return;
     }
 
-    // Tri par % décroissant
-    perChar.sort((a, b) => b.pct - a.pct);
+    // Tri : % réussite décroissant, puis confiance moyenne décroissante en départage
+    perChar.sort((a, b) => b.pct - a.pct || b.avgConf - a.avgConf);
 
     perChar.forEach((item, i) => {
         const color = item.pct >= 80 ? 'var(--green)' :
                       item.pct >= 50 ? 'var(--yellow)' : 'var(--red)';
+        const confColor = item.avgConf >= 70 ? 'var(--green)' :
+                          item.avgConf >= 40 ? 'var(--yellow)' : 'var(--muted)';
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
 
         const el = document.createElement('div');
         el.className = 'bar-item';
+        el.style.cssText = 'flex-wrap:wrap; row-gap:3px;';
         el.innerHTML = `
             <div class="bar-char">${item.h}</div>
             <div class="bar-rom">${HIRAGANA_MAP[item.h]}</div>
@@ -1119,6 +1129,15 @@ function buildAccuracyBars() {
             <div class="bar-pct" style="color:${color}">${item.pct}%</div>
             <div class="bar-asked" title="${item.correct}/${item.asked}">${item.asked}×</div>
             <div style="width:18px;text-align:center;font-size:0.85rem">${medal}</div>
+            <div style="width:36px"></div>
+            <div style="width:22px"></div>
+            <div style="flex:1;display:flex;align-items:center;gap:6px">
+                <div style="flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden">
+                    <div class="bar-fill-conf" style="width:0%;height:100%;background:${confColor};border-radius:2px;transition:width 1s ease 0.3s" data-w="${item.avgConf}"></div>
+                </div>
+            </div>
+            <div style="width:36px;text-align:right;font-size:0.7rem;font-family:var(--font-mono);font-weight:700;color:${confColor}">${item.avgConf}%</div>
+            <div style="width:18px;text-align:center;font-size:0.65rem;color:var(--muted)">conf</div>
         `;
         container.appendChild(el);
     });
@@ -1127,6 +1146,9 @@ function buildAccuracyBars() {
     setTimeout(() => {
         container.querySelectorAll('.bar-fill').forEach(b => {
             b.style.transition = 'width 0.8s ease';
+            b.style.width = b.dataset.w + '%';
+        });
+        container.querySelectorAll('.bar-fill-conf').forEach(b => {
             b.style.width = b.dataset.w + '%';
         });
     }, 80);
@@ -1138,9 +1160,10 @@ function buildPodium() {
 
     const perChar = SYLLABLES.map(h => {
         const s = sessionStats[h];
-        const pct = s.asked > 0 ? Math.round(s.correct / s.asked * 100) : null;
-        const fails = s.asked - s.correct;
-        return { h, pct, asked: s.asked, correct: s.correct, fails };
+        const pct     = s.asked > 0 ? Math.round(s.correct / s.asked * 100) : null;
+        const avgConf = s.confCount > 0 ? Math.round(s.confSum / s.confCount) : 0;
+        const fails   = s.asked - s.correct;
+        return { h, pct, asked: s.asked, correct: s.correct, fails, avgConf };
     }).filter(x => x.asked > 0);
 
     if (perChar.length === 0) {
@@ -1148,9 +1171,9 @@ function buildPodium() {
         return;
     }
 
-    // Top 3 réussites et top 3 échecs
-    const bySuccess = [...perChar].sort((a, b) => b.pct - a.pct);
-    const byFails   = [...perChar].sort((a, b) => b.fails - a.fails || a.pct - b.pct);
+    // Tri réussite desc, puis confiance moy desc en départage
+    const bySuccess = [...perChar].sort((a, b) => b.pct - a.pct || b.avgConf - a.avgConf);
+    const byFails   = [...perChar].sort((a, b) => b.fails - a.fails || a.pct - b.pct || a.avgConf - b.avgConf);
 
     // Section top 3
     const topLabel = document.createElement('div');
@@ -1169,6 +1192,7 @@ function buildPodium() {
             <div class="fail-char">${item.h}</div>
             <div class="fail-rom">${HIRAGANA_MAP[item.h]}</div>
             <div class="fail-count" style="color:var(--green)">${item.pct}%</div>
+            <div style="font-size:0.6rem;color:var(--muted);font-family:var(--font-mono);margin-top:1px">${item.avgConf}% conf</div>
         `;
         topGrid.appendChild(div);
     });
