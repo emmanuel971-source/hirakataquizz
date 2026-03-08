@@ -45,107 +45,48 @@
         .container { max-width: 480px; margin: 0 auto; }
 
         /* ── HEADER ── */
-        .app-header {
-            text-align: center;
-            padding: 28px 0 20px;
-            margin-bottom: 6px;
-        }
+        .app-header { text-align: center; padding: 28px 0 20px; margin-bottom: 6px; }
         .app-header .logo-text {
-            font-size: 0.7rem;
-            font-family: var(--font-mono);
-            color: var(--accent);
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            opacity: 0.8;
-            margin-bottom: 6px;
+            font-size: 0.7rem; font-family: var(--font-mono); color: var(--accent);
+            letter-spacing: 6px; text-transform: uppercase; opacity: 0.8; margin-bottom: 6px;
         }
-        .app-header h1 {
-            font-size: 1.7rem;
-            font-weight: 900;
-            color: var(--text);
-            letter-spacing: -0.5px;
-        }
+        .app-header h1 { font-size: 1.7rem; font-weight: 900; color: var(--text); letter-spacing: -0.5px; }
         .app-header h1 span { color: var(--accent); }
 
         /* ── CARDS ── */
         .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 22px 20px;
-            margin-bottom: 12px;
-            position: relative;
-            overflow: hidden;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 22px 20px; margin-bottom: 12px;
+            position: relative; overflow: hidden;
         }
         .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            opacity: 0.3;
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.3;
         }
-
-        .card-title {
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 3px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text);
-        }
-        .card-sub {
-            font-size: 0.78rem;
-            color: var(--muted);
-            margin-bottom: 20px;
-            font-family: var(--font-mono);
-        }
+        .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 3px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+        .card-sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 20px; font-family: var(--font-mono); }
 
         .field { margin-bottom: 18px; }
         .field label {
-            display: block;
-            font-size: 0.78rem;
-            color: var(--muted);
-            margin-bottom: 7px;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 7px;
+            font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px;
         }
 
         input[type="text"] {
-            width: 100%;
-            padding: 11px 14px;
-            background: var(--bg);
-            border: 1px solid var(--border2);
-            border-radius: 10px;
-            color: var(--text);
-            font-size: 0.95rem;
-            font-family: var(--font-jp);
-            outline: none;
+            width: 100%; padding: 11px 14px; background: var(--bg);
+            border: 1px solid var(--border2); border-radius: 10px; color: var(--text);
+            font-size: 0.95rem; font-family: var(--font-jp); outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        input[type="text"]:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(0,200,255,0.1);
-        }
+        input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,200,255,0.1); }
 
         input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 4px;
-            background: var(--border2);
-            border-radius: 2px;
-            outline: none;
-            margin-top: 8px;
+            -webkit-appearance: none; width: 100%; height: 4px;
+            background: var(--border2); border-radius: 2px; outline: none; margin-top: 8px;
         }
         input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px; height: 18px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(0,200,255,0.5);
+            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--accent); cursor: pointer; box-shadow: 0 0 8px rgba(0,200,255,0.5);
         }
         .gain-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--muted); }
         .gain-val { color: var(--accent); font-weight: 700; font-family: var(--font-mono); }
@@ -154,69 +95,89 @@
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
             padding: 13px 20px; font-size: 0.92rem; font-weight: 700;
-            border-radius: 12px; border: none; cursor: pointer;
-            transition: all 0.15s;
-            width: 100%;
-            font-family: var(--font-jp);
-            letter-spacing: 0.3px;
+            border-radius: 12px; border: none; cursor: pointer; transition: all 0.15s;
+            width: 100%; font-family: var(--font-jp); letter-spacing: 0.3px;
         }
         .btn:active { transform: scale(0.97); opacity: 0.85; }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        .btn-accent {
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            color: #050a0e;
-            box-shadow: 0 4px 20px rgba(0,200,255,0.25);
-        }
+        .btn-accent { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #050a0e; box-shadow: 0 4px 20px rgba(0,200,255,0.25); }
         .btn-accent:hover:not(:disabled) { box-shadow: 0 4px 28px rgba(0,200,255,0.45); }
         .btn-green  { background: linear-gradient(135deg, var(--green), var(--green2)); color: #050a0e; }
         .btn-red    { background: linear-gradient(135deg, var(--red), #bb2040); color: white; }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border2);
-            color: var(--muted);
-        }
+        .btn-outline { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
         .btn-outline:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 
-        #loading { color: var(--muted); font-size: 0.8rem; margin-top: 10px; text-align: center; font-family: var(--font-mono); }
+        /* ── LOADING ── */
+        #loading { color: var(--muted); font-size: 0.8rem; margin-top: 10px; font-family: var(--font-mono); }
+        .load-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+        .load-dot {
+            width: 8px; height: 8px; border-radius: 50%; background: var(--border2);
+            flex-shrink: 0; transition: background 0.3s;
+        }
+        .load-dot.loading { background: var(--yellow); animation: pulse 0.8s ease-in-out infinite; }
+        .load-dot.done    { background: var(--green); }
+        .load-dot.error   { background: var(--red); }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .load-label { font-size: 0.75rem; font-family: var(--font-mono); color: var(--muted); }
+        .load-label b { color: var(--text); }
+
+        /* ── MODEL 2 BANNER ── */
+        #model2-banner {
+            display: none; align-items: center; gap: 10px;
+            background: rgba(0,229,122,0.07); border: 1px solid var(--green2);
+            border-radius: 12px; padding: 12px 16px; margin-bottom: 12px;
+            font-size: 0.85rem; color: var(--green); font-weight: 700;
+            animation: pop 0.4s ease;
+        }
+        #model2-banner.visible { display: flex; }
+
+        /* ── MODEL 2 LOADING INDICATOR (in-quiz) ── */
+        #m2-status-bar {
+            display: none; align-items: center; gap: 8px;
+            background: var(--surface2); border: 1px solid var(--border2);
+            border-radius: 10px; padding: 8px 14px; margin-bottom: 12px;
+            font-size: 0.72rem; font-family: var(--font-mono); color: var(--muted);
+        }
+        #m2-status-bar.visible { display: flex; }
+        #m2-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); animation: pulse 0.8s infinite; flex-shrink: 0; }
+        #m2-status-dot.done { background: var(--green); animation: none; }
 
         /* ── MODE SELECTOR ── */
         .mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
         .mode-btn {
-            padding: 14px 8px; border-radius: 12px;
-            border: 1px solid var(--border2);
-            background: var(--bg); color: var(--muted);
-            font-size: 0.88rem; font-weight: 700;
-            cursor: pointer; text-align: center; transition: all 0.2s;
-            font-family: var(--font-jp);
+            padding: 14px 8px; border-radius: 12px; border: 1px solid var(--border2);
+            background: var(--bg); color: var(--muted); font-size: 0.88rem; font-weight: 700;
+            cursor: pointer; text-align: center; transition: all 0.2s; font-family: var(--font-jp);
         }
-        .mode-btn.active {
-            border-color: var(--accent); color: var(--accent);
-            background: rgba(0,200,255,0.07);
-            box-shadow: inset 0 0 20px rgba(0,200,255,0.05);
-        }
+        .mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,200,255,0.07); box-shadow: inset 0 0 20px rgba(0,200,255,0.05); }
         .mode-btn .mode-icon { font-size: 1.5rem; display: block; margin-bottom: 5px; }
 
         /* ── FREE MODE ── */
         #free-card { display: none; }
-
-        .hira-selector {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px;
-        }
+        .hira-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px; }
         .hira-btn {
             background: var(--bg); border: 1px solid var(--border2);
             border-radius: 12px; padding: 10px 4px 7px;
             cursor: pointer; text-align: center; transition: all 0.15s;
         }
         .hira-btn:hover { border-color: var(--muted); }
-        .hira-btn.selected { border-color: var(--accent); background: rgba(0,200,255,0.08); }
-        .hira-btn.mastered { border-color: var(--green) !important; background: rgba(0,229,122,0.08) !important; }
-        .hira-btn .hb-char { font-size: 1.8rem; line-height: 1.1; color: var(--text); }
-        .hira-btn .hb-rom  { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); }
+        .hira-btn.selected  { border-color: var(--accent); background: rgba(0,200,255,0.08); }
+        .hira-btn.mastered  { border-color: var(--green) !important; background: rgba(0,229,122,0.08) !important; }
+        .hira-btn.pending   { opacity: 0.4; cursor: not-allowed; border-style: dashed; }
+        .hira-btn .hb-char  { font-size: 1.8rem; line-height: 1.1; color: var(--text); }
+        .hira-btn .hb-rom   { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); }
         .hira-btn .hb-stars { font-size: 0.65rem; line-height: 1.6; min-height: 14px; }
 
+        /* Group separator in free mode */
+        .hira-group-label {
+            grid-column: 1 / -1; font-size: 0.65rem; font-family: var(--font-mono);
+            text-transform: uppercase; letter-spacing: 2px; color: var(--muted);
+            padding: 4px 0 2px; border-bottom: 1px solid var(--border2); margin-bottom: 2px;
+        }
+        .hira-group-label.group2 { color: var(--purple); border-color: rgba(167,139,250,0.3); }
+
         .free-display { text-align: center; padding: 18px 0 10px; }
-        .free-target-char { font-size: 6rem; font-weight: 900; line-height: 1; }
+        .free-target-char   { font-size: 6rem; font-weight: 900; line-height: 1; }
         .free-target-romaji { font-size: 1.3rem; color: var(--accent); font-weight: 700; letter-spacing: 6px; text-transform: uppercase; margin-top: 4px; font-family: var(--font-mono); }
 
         .free-stats-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 6px 0 10px; min-height: 36px; }
@@ -226,8 +187,17 @@
             border-radius: 10px; padding: 8px 16px; font-size: 0.75rem; color: var(--muted);
             font-family: var(--font-mono);
         }
-        .free-badge .val { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+        .free-badge .val   { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
         .free-badge .stars { font-size: 1.2rem; line-height: 1.3; }
+
+        /* Model tag on free display */
+        .model-tag {
+            display: inline-block; font-size: 0.6rem; font-family: var(--font-mono);
+            text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px;
+            border-radius: 4px; margin-bottom: 8px; font-weight: 700;
+        }
+        .model-tag.m1 { background: rgba(0,200,255,0.12); color: var(--accent); border: 1px solid rgba(0,200,255,0.3); }
+        .model-tag.m2 { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
 
         .mastery-banner {
             display: none; text-align: center; background: rgba(0,229,122,0.08);
@@ -236,11 +206,7 @@
             animation: pop 0.3s ease;
         }
 
-        @keyframes pop {
-            0%   { transform: scale(0.85); opacity: 0; }
-            60%  { transform: scale(1.05); }
-            100% { transform: scale(1);    opacity: 1; }
-        }
+        @keyframes pop { 0% { transform: scale(0.85); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
         @keyframes flash-success {
             0%   { color: var(--text); transform: scale(1); }
             30%  { color: var(--green); transform: scale(1.15); text-shadow: 0 0 32px rgba(0,229,122,0.8); }
@@ -251,45 +217,33 @@
 
         /* ── QUIZ CARD ── */
         #quiz-card {
-            display: none;
-            border: 1px solid var(--border);
+            display: none; border: 1px solid var(--border);
             transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
         }
-        .quiz-active  {
-            border-color: var(--accent) !important;
-            box-shadow: 0 0 30px rgba(0,200,255,0.1) !important;
-        }
-        .quiz-success {
-            border-color: var(--green) !important;
-            background: rgba(0,229,122,0.04) !important;
-            box-shadow: 0 0 30px rgba(0,229,122,0.12) !important;
-        }
-        .quiz-fail {
-            border-color: var(--red) !important;
-            background: rgba(255,69,96,0.04) !important;
-            box-shadow: 0 0 30px rgba(255,69,96,0.12) !important;
-        }
+        .quiz-active  { border-color: var(--accent) !important; box-shadow: 0 0 30px rgba(0,200,255,0.1) !important; }
+        .quiz-success { border-color: var(--green) !important; background: rgba(0,229,122,0.04) !important; box-shadow: 0 0 30px rgba(0,229,122,0.12) !important; }
+        .quiz-fail    { border-color: var(--red) !important; background: rgba(255,69,96,0.04) !important; box-shadow: 0 0 30px rgba(255,69,96,0.12) !important; }
 
-        .quiz-meta {
-            display: flex; justify-content: space-between;
-            font-size: 0.72rem; color: var(--muted);
-            margin-bottom: 20px;
-            font-family: var(--font-mono);
-        }
-        .quiz-meta span {
-            background: var(--bg); border: 1px solid var(--border2);
-            border-radius: 6px; padding: 4px 10px;
-        }
+        .quiz-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); margin-bottom: 20px; font-family: var(--font-mono); }
+        .quiz-meta span { background: var(--bg); border: 1px solid var(--border2); border-radius: 6px; padding: 4px 10px; }
         .quiz-meta b { color: var(--text); }
 
+        /* Model indicator badge inside quiz */
+        #quiz-model-badge {
+            display: inline-block; font-size: 0.6rem; font-family: var(--font-mono);
+            text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px;
+            border-radius: 4px; font-weight: 700; margin-bottom: 6px;
+        }
+        #quiz-model-badge.m1 { background: rgba(0,200,255,0.12); color: var(--accent); border: 1px solid rgba(0,200,255,0.3); }
+        #quiz-model-badge.m2 { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+
         .hiragana-big {
-            font-size: 8rem; font-weight: 900; color: var(--text);
-            line-height: 1; margin: 4px 0 4px; text-align: center;
-            text-shadow: 0 0 60px rgba(0,200,255,0.15);
-            transition: text-shadow 0.3s;
+            font-size: 8rem; font-weight: 900; color: var(--text); line-height: 1;
+            margin: 4px 0 4px; text-align: center;
+            text-shadow: 0 0 60px rgba(0,200,255,0.15); transition: text-shadow 0.3s;
         }
         .quiz-success .hiragana-big { text-shadow: 0 0 60px rgba(0,229,122,0.4); }
-        .quiz-fail .hiragana-big    { text-shadow: 0 0 60px rgba(255,69,96,0.3); }
+        .quiz-fail    .hiragana-big { text-shadow: 0 0 60px rgba(255,69,96,0.3); }
 
         .romaji-hint {
             font-size: 1.4rem; color: var(--accent); text-transform: uppercase;
@@ -297,155 +251,69 @@
             margin-bottom: 20px; font-family: var(--font-mono);
         }
 
-        /* Timer bar */
         .timer-bar { width: 100%; height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; }
-        .timer-fill {
-            height: 100%; width: 100%;
-            background: linear-gradient(90deg, var(--accent2), var(--accent));
-            transition: width linear;
-            border-radius: 2px;
-        }
+        .timer-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width linear; border-radius: 2px; }
 
-        /* Confidence gauge */
         .gauge-section { margin-top: 18px; }
         .gauge-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
         .gauge-label-text { font-size: 0.72rem; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; }
         .gauge-pct-text { font-size: 1.4rem; font-weight: 700; font-family: var(--font-mono); transition: color 0.2s; }
 
         .gauge-track {
-            width: 100%; height: 14px;
-            background: var(--bg);
-            border-radius: 7px;
-            border: 1px solid var(--border2);
-            overflow: hidden;
-            position: relative;
+            width: 100%; height: 14px; background: var(--bg); border-radius: 7px;
+            border: 1px solid var(--border2); overflow: hidden; position: relative;
         }
         .gauge-track::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 0; bottom: 0;
-            width: 1px;
-            background: var(--border2);
-            z-index: 2;
+            content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+            width: 1px; background: var(--border2); z-index: 2;
         }
-        .gauge-fill-bar {
-            height: 100%;
-            width: 0%;
-            border-radius: 7px;
-            transition: width 0.1s, background 0.2s;
-            position: relative;
-        }
+        .gauge-fill-bar { height: 100%; width: 0%; border-radius: 7px; transition: width 0.1s, background 0.2s; position: relative; }
 
-        .feedback-zone {
-            margin-top: 14px; font-size: 0.9rem; color: var(--muted);
-            min-height: 26px; text-align: center; font-family: var(--font-jp);
-        }
+        .feedback-zone { margin-top: 14px; font-size: 0.9rem; color: var(--muted); min-height: 26px; text-align: center; font-family: var(--font-jp); }
 
         #action-card { padding: 14px 20px; }
         .action-row { display: flex; gap: 10px; }
         .action-row .btn { flex: 1; }
-        #log-count {
-            text-align: center; margin-top: 10px;
-            font-size: 0.7rem; color: var(--muted);
-            font-family: var(--font-mono);
-        }
+        #log-count { text-align: center; margin-top: 10px; font-size: 0.7rem; color: var(--muted); font-family: var(--font-mono); }
 
         .hidden { display: none !important; }
 
-        /* ── RESULTS PAGE ── */
+        /* ── RESULTS ── */
         .res-header {
-            text-align: center; padding: 28px 24px 22px;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); margin-bottom: 12px;
+            text-align: center; padding: 28px 24px 22px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px;
             position: relative; overflow: hidden;
         }
-        .res-header::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--green), var(--accent), transparent);
-        }
-        .res-header .score-label {
-            font-size: 0.7rem; color: var(--muted);
-            font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 2px;
-        }
-        .res-header .big-score {
-            font-size: 4rem; font-weight: 900; line-height: 1;
-            margin: 8px 0 4px;
-            background: linear-gradient(135deg, var(--green), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .res-header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--green), var(--accent), transparent); }
+        .res-header .score-label { font-size: 0.7rem; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 2px; }
+        .res-header .big-score { font-size: 4rem; font-weight: 900; line-height: 1; margin: 8px 0 4px; background: linear-gradient(135deg, var(--green), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .res-header .user-name { font-size: 0.82rem; color: var(--muted); margin-top: 6px; font-family: var(--font-mono); }
 
         .kpi-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .kpi-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 14px 8px; text-align: center;
-        }
+        .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 8px; text-align: center; }
         .kpi-val { font-size: 1.6rem; font-weight: 700; font-family: var(--font-mono); }
         .kpi-lbl { font-size: 0.65rem; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); }
 
-        /* Stats charts */
-        .stats-section {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 18px 18px 14px; margin-bottom: 12px;
-        }
-        .stats-title {
-            font-size: 0.72rem; font-family: var(--font-mono); text-transform: uppercase;
-            letter-spacing: 2px; color: var(--accent); margin-bottom: 14px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .stats-title::after {
-            content: ''; flex: 1; height: 1px; background: var(--border2);
-        }
+        .stats-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 18px 14px; margin-bottom: 12px; }
+        .stats-title { font-size: 0.72rem; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .stats-title::after { content: ''; flex: 1; height: 1px; background: var(--border2); }
 
-        .bar-item {
-            display: flex; align-items: center; gap: 10px;
-            margin-bottom: 10px;
-        }
-        .bar-char {
-            font-size: 1.5rem; font-weight: 700; width: 36px; text-align: center; flex-shrink: 0;
-        }
-        .bar-rom {
-            font-size: 0.65rem; color: var(--muted); font-family: var(--font-mono);
-            text-transform: uppercase; width: 22px; flex-shrink: 0; text-align: center;
-        }
-        .bar-track {
-            flex: 1; height: 10px; background: var(--bg);
-            border-radius: 5px; border: 1px solid var(--border2); overflow: hidden;
-        }
-        .bar-fill { height: 100%; border-radius: 5px; transition: width 0.8s ease; }
-        .bar-pct {
-            font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700;
-            width: 36px; text-align: right; flex-shrink: 0;
-        }
-        .bar-asked {
-            font-size: 0.65rem; color: var(--muted); font-family: var(--font-mono);
-            width: 28px; text-align: right; flex-shrink: 0;
-        }
+        .bar-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .bar-char { font-size: 1.5rem; font-weight: 700; width: 36px; text-align: center; flex-shrink: 0; }
+        .bar-rom  { font-size: 0.65rem; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; width: 22px; flex-shrink: 0; text-align: center; }
+        .bar-track { flex: 1; height: 10px; background: var(--bg); border-radius: 5px; border: 1px solid var(--border2); overflow: hidden; }
+        .bar-fill  { height: 100%; border-radius: 5px; transition: width 0.8s ease; }
+        .bar-pct   { font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700; width: 36px; text-align: right; flex-shrink: 0; }
+        .bar-asked { font-size: 0.65rem; color: var(--muted); font-family: var(--font-mono); width: 28px; text-align: right; flex-shrink: 0; }
 
-        /* Fail badges */
         .fail-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-        .fail-item {
-            background: var(--bg); border-radius: 10px; padding: 10px 6px 8px;
-            text-align: center; border: 1px solid var(--border2);
-            position: relative;
-        }
-        .fail-item.best-item { border-color: var(--green2); background: rgba(0,229,122,0.06); }
+        .fail-item { background: var(--bg); border-radius: 10px; padding: 10px 6px 8px; text-align: center; border: 1px solid var(--border2); position: relative; }
+        .fail-item.best-item  { border-color: var(--green2); background: rgba(0,229,122,0.06); }
         .fail-item.worst-item { border-color: var(--red); background: rgba(255,69,96,0.06); }
-        .fail-char { font-size: 1.7rem; font-weight: 700; }
-        .fail-rom { font-size: 0.58rem; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; }
-        .fail-count {
-            font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700;
-            margin-top: 3px;
-        }
-        .fail-badge-tag {
-            position: absolute; top: -8px; right: -4px;
-            font-size: 0.58rem; font-family: var(--font-mono); font-weight: 700;
-            padding: 2px 6px; border-radius: 4px;
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
+        .fail-char  { font-size: 1.7rem; font-weight: 700; }
+        .fail-rom   { font-size: 0.58rem; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; }
+        .fail-count { font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700; margin-top: 3px; }
+        .fail-badge-tag { position: absolute; top: -8px; right: -4px; font-size: 0.58rem; font-family: var(--font-mono); font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
         .res-btns { margin-top: 8px; padding-bottom: 24px; }
     </style>
@@ -459,10 +327,15 @@
         <h1>Quiz <span>Hiragana</span></h1>
     </div>
 
+    <!-- MODEL 2 READY BANNER (affiché pendant le quiz quand M2 se débloque) -->
+    <div id="model2-banner">
+        🎉 Modèle 2 chargé — が行 maintenant disponible !
+    </div>
+
     <!-- SETUP -->
     <div class="card" id="setup-card">
         <div class="card-title">🎙️ Configuration</div>
-        <div class="card-sub">protocole v1.4 — A·I·U·E·O + KA·KI·KU·KE·KO + GA·GI·GU·GE·GO</div>
+        <div class="card-sub">multi-modèles v2.0 — M1: あ〜こ · M2: が〜ご</div>
 
         <div class="field">
             <label>Nom / Appareil</label>
@@ -490,15 +363,33 @@
         </div>
 
         <button id="btn-start" class="btn btn-accent">🚀 Initialiser &amp; Démarrer</button>
-        <div id="loading" class="hidden">⏳ Chargement du modèle…</div>
+
+        <div id="loading" class="hidden" style="margin-top:16px">
+            <div class="load-row">
+                <div class="load-dot loading" id="dot-m1"></div>
+                <div class="load-label">Modèle 1 — <b>あ い う え お · か き く け こ</b></div>
+            </div>
+            <div class="load-row">
+                <div class="load-dot loading" id="dot-m2"></div>
+                <div class="load-label">Modèle 2 — <b>が ぎ ぐ げ ご</b> (arrière-plan)</div>
+            </div>
+        </div>
     </div>
 
     <!-- FREE MODE -->
     <div class="card" id="free-card">
         <div class="card-title">🎙️ Test libre</div>
         <div class="card-sub">Sélectionne un hiragana puis prononce-le</div>
+
+        <!-- Status bar modèle 2 -->
+        <div id="m2-status-bar">
+            <div id="m2-status-dot"></div>
+            <span id="m2-status-text">Modèle 2 en cours de chargement… が行 indisponibles</span>
+        </div>
+
         <div class="hira-selector" id="hira-selector"></div>
         <div class="free-display">
+            <div id="free-model-tag" class="model-tag m1">modèle 1</div>
             <div class="free-target-char" id="free-char">—</div>
             <div class="free-target-romaji" id="free-romaji">choisir</div>
         </div>
@@ -524,6 +415,16 @@
         <div class="quiz-meta">
             <span>Question <b id="q-count">0</b></span>
             <span>RMS <b id="rms-disp">0.0000</b></span>
+        </div>
+
+        <div style="text-align:center">
+            <div id="quiz-model-badge" class="m1">modèle 1</div>
+        </div>
+
+        <!-- Status bar M2 pendant quiz -->
+        <div id="m2-status-bar-quiz" style="display:none;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;margin-bottom:10px;font-size:0.68rem;font-family:var(--font-mono);color:var(--muted)">
+            <div id="m2-dot-quiz" style="width:6px;height:6px;border-radius:50%;background:var(--yellow);animation:pulse 0.8s infinite;flex-shrink:0"></div>
+            <span>Modèle 2 en chargement — が行 exclues pour l'instant</span>
         </div>
 
         <div class="hiragana-big" id="target-char">?</div>
@@ -562,7 +463,6 @@
             <div class="big-score" id="res-accuracy">—</div>
             <div class="user-name" id="res-username-display"></div>
         </div>
-
         <div class="kpi-row">
             <div class="kpi-card">
                 <div class="kpi-val" style="color:var(--accent)" id="res-total">—</div>
@@ -577,19 +477,14 @@
                 <div class="kpi-lbl">RMS moy.</div>
             </div>
         </div>
-
-        <!-- Bar chart: % réussite par hiragana -->
         <div class="stats-section" id="stats-accuracy-section">
             <div class="stats-title">📊 Réussite par hiragana</div>
             <div id="stats-accuracy-bars"></div>
         </div>
-
-        <!-- Podium succès / difficultés -->
         <div class="stats-section" id="stats-detail-section">
             <div class="stats-title">🏆 Podium de la session</div>
             <div id="stats-podium"></div>
         </div>
-
         <div class="res-btns">
             <button class="btn btn-outline" onclick="restartMenu()">⬅ Retour au menu</button>
         </div>
@@ -598,84 +493,108 @@
 </div>
 
 <script>
-// ─── AUDIO FEEDBACK ──────────────────────────────────────────────────────────
-let sfxContext;
-function getSfxContext() {
-    if (!sfxContext) sfxContext = new (window.AudioContext || window.webkitAudioContext)();
-    return sfxContext;
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONFIGURATION MULTI-MODÈLES
+// ═══════════════════════════════════════════════════════════════════════════════
 
-function playDing() {
-    try {
-        const ctx = getSfxContext();
-        const t = ctx.currentTime;
-        // Note 1
-        const o1 = ctx.createOscillator(); const g1 = ctx.createGain();
-        o1.connect(g1); g1.connect(ctx.destination);
-        o1.frequency.setValueAtTime(880, t);
-        o1.frequency.exponentialRampToValueAtTime(1320, t + 0.08);
-        g1.gain.setValueAtTime(0.25, t);
-        g1.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-        o1.start(t); o1.stop(t + 0.35);
-        // Note 2
-        const o2 = ctx.createOscillator(); const g2 = ctx.createGain();
-        o2.connect(g2); g2.connect(ctx.destination);
-        o2.frequency.setValueAtTime(1320, t + 0.1);
-        o2.frequency.exponentialRampToValueAtTime(1760, t + 0.2);
-        g2.gain.setValueAtTime(0.15, t + 0.1);
-        g2.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-        o2.start(t + 0.1); o2.stop(t + 0.5);
-    } catch(e) {}
-}
+const MODELS = {
+    m1: {
+        url: "https://teachablemachine.withgoogle.com/models/LY5AQHCmd/",
+        syllables: ['あ','い','う','え','お','か','き','く','け','こ'],
+        label: "Modèle 1",
+        color: "var(--accent)",
+        cssClass: "m1"
+    },
+    m2: {
+        url: "https://teachablemachine.withgoogle.com/models/QFLq-mimn/",
+        syllables: ['が','ぎ','ぐ','げ','ご'],
+        label: "Modèle 2",
+        color: "var(--purple)",
+        cssClass: "m2"
+    }
+};
 
-function playFail() {
-    try {
-        const ctx = getSfxContext();
-        const t = ctx.currentTime;
-        const o = ctx.createOscillator(); const g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.type = 'sawtooth';
-        o.frequency.setValueAtTime(280, t);
-        o.frequency.exponentialRampToValueAtTime(140, t + 0.25);
-        g.gain.setValueAtTime(0.15, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-        o.start(t); o.stop(t + 0.3);
-    } catch(e) {}
-}
-
-// ─── CONFIGURATION ───────────────────────────────────────────────────────────
-// const URL_MODEL = "https://teachablemachine.withgoogle.com/models/LY5AQHCmd/";
-const URL_MODEL = "https://teachablemachine.withgoogle.com/models/QFLq-mimn/";    
 const HIRAGANA_MAP = {
     'あ':'a', 'い':'i', 'う':'u', 'え':'e', 'お':'o',
     'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko',
     'が':'ga','ぎ':'gi','ぐ':'gu','げ':'ge','ご':'go'
 };
-const SYLLABLES = Object.keys(HIRAGANA_MAP);
-const MASTERY_KEY = 'hiragana_mastery_v1';
+
+// Lookup rapide : quel modèle pour quel hiragana ?
+const HIRAGANA_TO_MODEL = {};
+for (const [key, cfg] of Object.entries(MODELS)) {
+    cfg.syllables.forEach(s => HIRAGANA_TO_MODEL[s] = key);
+}
+
+const ALL_SYLLABLES  = [...MODELS.m1.syllables, ...MODELS.m2.syllables];
+const MASTERY_KEY    = 'hiragana_mastery_v2';
 const STAR_THRESHOLD = 75;
-const QUIZ_THRESHOLD = 50; // seuil réduit pour le quiz
+const QUIZ_THRESHOLD = 50;
 
-// ─── VARIABLES GLOBALES ───────────────────────────────────────────────────────
-let recognizer, audioContext, gainNode, analyser, dataArray;
-let isListening = false;
-let quizStopped = false;
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let recognizers   = { m1: null, m2: null };
+let modelReady    = { m1: false, m2: false };
+let audioContext, gainNode, analyser, dataArray;
+let isListening   = false;
+let quizStopped   = false;
 let currentTarget = "";
-let logs = [];
+let activeModelKey = null;   // clé du recognizer actuellement en écoute
+let logs          = [];
 let questionCount = 0;
-let sessionBest = { label:"", score:0 };
+let sessionBest   = { label:"", score:0 };
 let rmsSum = 0, rmsCount = 0;
-let selectedMode = 'quiz';
-let lastAsked = "";
+let selectedMode  = 'quiz';
+let lastAsked     = "";
 let quizTimer;
-let sessionStats = {};
-SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0, confSum: 0, confCount: 0 });
+let sessionStats  = {};
+ALL_SYLLABLES.forEach(s => sessionStats[s] = { asked:0, correct:0, confSum:0, confCount:0 });
 
-// ─── SLIDER ───────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUDIO FEEDBACK
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let sfxContext;
+function getSfxCtx() {
+    if (!sfxContext) sfxContext = new (window.AudioContext || window.webkitAudioContext)();
+    return sfxContext;
+}
+function playDing() {
+    try {
+        const ctx = getSfxCtx(), t = ctx.currentTime;
+        const o1=ctx.createOscillator(), g1=ctx.createGain();
+        o1.connect(g1); g1.connect(ctx.destination);
+        o1.frequency.setValueAtTime(880,t); o1.frequency.exponentialRampToValueAtTime(1320,t+0.08);
+        g1.gain.setValueAtTime(0.25,t); g1.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+        o1.start(t); o1.stop(t+0.35);
+        const o2=ctx.createOscillator(), g2=ctx.createGain();
+        o2.connect(g2); g2.connect(ctx.destination);
+        o2.frequency.setValueAtTime(1320,t+0.1); o2.frequency.exponentialRampToValueAtTime(1760,t+0.2);
+        g2.gain.setValueAtTime(0.15,t+0.1); g2.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+        o2.start(t+0.1); o2.stop(t+0.5);
+    } catch(e){}
+}
+function playFail() {
+    try {
+        const ctx = getSfxCtx(), t = ctx.currentTime;
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type='sawtooth';
+        o.frequency.setValueAtTime(280,t); o.frequency.exponentialRampToValueAtTime(140,t+0.25);
+        g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+        o.start(t); o.stop(t+0.3);
+    } catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SLIDER & MODE
+// ═══════════════════════════════════════════════════════════════════════════════
+
 document.getElementById('gain-slider').oninput = (e) => {
-    const val = e.target.value;
-    document.getElementById('gain-val').innerText = val;
-    if (gainNode) gainNode.gain.value = val;
+    document.getElementById('gain-val').innerText = e.target.value;
+    if (gainNode) gainNode.gain.value = e.target.value;
 };
 
 function selectMode(mode) {
@@ -684,70 +603,68 @@ function selectMode(mode) {
     document.getElementById('mode-' + mode).classList.add('active');
 }
 
-async function stopAllRecognition() {
-    isListening = false;
-    freeListening = false;
-    if (recognizer && recognizer.isListening()) await recognizer.stopListening();
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+// RMS LOOP
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function updateRMSLoop() {
     if (!analyser) return;
     analyser.getFloatTimeDomainData(dataArray);
-    let sumSquares = 0.0;
-    for (const amplitude of dataArray) sumSquares += amplitude * amplitude;
-    const rms = Math.sqrt(sumSquares / dataArray.length);
+    let sq = 0;
+    for (const a of dataArray) sq += a*a;
+    const rms = Math.sqrt(sq / dataArray.length);
     if (isListening) {
-        rmsSum += rms;
-        rmsCount++;
+        rmsSum += rms; rmsCount++;
         document.getElementById('rms-disp').innerText = rms.toFixed(4);
     }
     requestAnimationFrame(updateRMSLoop);
 }
 
-// ─── MASTERY ─────────────────────────────────────────────────────────────────
-function loadMastery() {
-    const data = localStorage.getItem(MASTERY_KEY);
-    return data ? JSON.parse(data) : {};
-}
-function saveMastery(data) { localStorage.setItem(MASTERY_KEY, JSON.stringify(data)); }
-function getMasteryFor(h) { const m = loadMastery(); return m[h] || { stars: 0, maxPct: 0 }; }
-function starsStr(count) { return '★'.repeat(count) + '☆'.repeat(3 - count); }
+// ═══════════════════════════════════════════════════════════════════════════════
+// INITIALISATION — chargement parallèle des modèles
+// ═══════════════════════════════════════════════════════════════════════════════
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+async function loadModel(key) {
+    const cfg = MODELS[key];
+    const r = speechCommands.create("BROWSER_FFT", undefined, cfg.url + "model.json", cfg.url + "metadata.json");
+    await r.ensureModelLoaded();
+    return r;
+}
+
 document.getElementById('btn-start').onclick = async () => {
-    const btn = document.getElementById('btn-start');
+    const btn  = document.getElementById('btn-start');
     const name = document.getElementById('username').value.trim();
     if (!name) { alert("Merci d'entrer un nom !"); return; }
 
     btn.disabled = true;
     document.getElementById('loading').classList.remove('hidden');
+    setDot('m1', 'loading');
+    setDot('m2', 'loading');
 
     try {
+        // Micro + audio pipeline
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         } else if (audioContext.state === 'suspended') {
             await audioContext.resume();
         }
-
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const source = audioContext.createMediaStreamSource(stream);
-
         gainNode = audioContext.createGain();
         gainNode.gain.value = document.getElementById('gain-slider').value;
-
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 256;
         dataArray = new Float32Array(analyser.fftSize);
-
         source.connect(gainNode);
         gainNode.connect(analyser);
+        updateRMSLoop();
 
-        if (!recognizer) {
-            recognizer = speechCommands.create("BROWSER_FFT", undefined, URL_MODEL + "model.json", URL_MODEL + "metadata.json");
-            await recognizer.ensureModelLoaded();
-            updateRMSLoop();
-        }
+        // Charger M1 en priorité (bloquant)
+        recognizers.m1 = await loadModel('m1');
+        modelReady.m1  = true;
+        setDot('m1', 'done');
 
+        // Démarrer l'UI sans attendre M2
         document.getElementById('setup-card').classList.add('hidden');
         document.getElementById('loading').classList.add('hidden');
         btn.disabled = false;
@@ -757,36 +674,131 @@ document.getElementById('btn-start').onclick = async () => {
         } else {
             document.getElementById('quiz-card').style.display = 'block';
             document.getElementById('action-card').classList.remove('hidden');
+            // Afficher status M2 dans le quiz
+            document.getElementById('m2-status-bar-quiz').style.display = 'flex';
             quizStopped = false;
-            startContinuousRecognition();
-            setTimeout(nextQuestion, 1000);
+            setTimeout(nextQuestion, 800);
         }
-    } catch (e) {
+
+        // Charger M2 en arrière-plan (non bloquant)
+        loadModel('m2').then(r => {
+            recognizers.m2 = r;
+            modelReady.m2  = true;
+            setDot('m2', 'done');
+            onModel2Ready();
+        }).catch(err => {
+            setDot('m2', 'error');
+            console.warn('Modèle 2 non disponible :', err);
+        });
+
+    } catch(e) {
         alert("Erreur micro ou modèle : " + e);
         btn.disabled = false;
         document.getElementById('loading').classList.add('hidden');
     }
 };
 
-// ─── FREE MODE ────────────────────────────────────────────────────────────────
+function setDot(key, state) {
+    const dot = document.getElementById('dot-' + key);
+    if (dot) { dot.className = 'load-dot ' + state; }
+}
+
+// Appelé quand M2 est prêt
+function onModel2Ready() {
+    // Cacher le status bar dans quiz et free
+    const qBar = document.getElementById('m2-status-bar-quiz');
+    if (qBar) qBar.style.display = 'none';
+
+    const fBar = document.getElementById('m2-status-bar');
+    if (fBar) {
+        const dot = document.getElementById('m2-status-dot');
+        const txt = document.getElementById('m2-status-text');
+        if (dot) { dot.className = ''; dot.style.background = 'var(--green)'; dot.style.animation = 'none'; }
+        if (txt) txt.textContent = 'Modèle 2 prêt — が行 disponibles !';
+        setTimeout(() => { if (fBar) fBar.style.display = 'none'; }, 3000);
+    }
+
+    // Débloquer les boutons が行 dans le sélecteur libre
+    MODELS.m2.syllables.forEach(h => {
+        const btn = document.getElementById('hbtn-' + h);
+        if (btn) btn.classList.remove('pending');
+    });
+
+    // Bannière de notification
+    const banner = document.getElementById('model2-banner');
+    if (banner) {
+        banner.classList.add('visible');
+        setTimeout(() => banner.classList.remove('visible'), 4000);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MASTERY
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function loadMastery()       { const d = localStorage.getItem(MASTERY_KEY); return d ? JSON.parse(d) : {}; }
+function saveMastery(data)   { localStorage.setItem(MASTERY_KEY, JSON.stringify(data)); }
+function getMasteryFor(h)    { return loadMastery()[h] || { stars:0, maxPct:0 }; }
+function starsStr(n)         { return '★'.repeat(n) + '☆'.repeat(3-n); }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RECOGNIZER SWITCH — cœur du multi-modèles
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function switchToRecognizer(key, onResult) {
+    // Arrêter le recognizer actif si différent
+    if (activeModelKey && activeModelKey !== key) {
+        const prev = recognizers[activeModelKey];
+        if (prev && prev.isListening()) {
+            await prev.stopListening();
+        }
+    }
+    activeModelKey = key;
+    const rec = recognizers[key];
+    if (!rec) return false;
+    if (!rec.isListening()) {
+        rec.listen(onResult, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
+    }
+    return true;
+}
+
+async function stopAllRecognition() {
+    isListening   = false;
+    freeListening = false;
+    for (const key of ['m1','m2']) {
+        const r = recognizers[key];
+        if (r && r.isListening()) await r.stopListening();
+    }
+    activeModelKey = null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FREE MODE
+// ═══════════════════════════════════════════════════════════════════════════════
+
 let freeListening = false;
-let freeTarget = null;
-let isStarLocked = false;
+let freeTarget    = null;
+let isStarLocked  = false;
 
 const freeDom = {
-    char:         () => document.getElementById('free-char'),
-    romaji:       () => document.getElementById('free-romaji'),
-    gaugeLabel:   () => document.getElementById('gauge-label'),
-    gaugeFill:    () => document.getElementById('gauge-fill'),
-    gaugePct:     () => document.getElementById('gauge-pct'),
-    maxVal:       () => document.getElementById('free-max-val'),
-    starsDisp:    () => document.getElementById('free-stars-disp'),
-    masteryBanner:() => document.getElementById('mastery-banner'),
+    char:          () => document.getElementById('free-char'),
+    romaji:        () => document.getElementById('free-romaji'),
+    gaugeLabel:    () => document.getElementById('gauge-label'),
+    gaugeFill:     () => document.getElementById('gauge-fill'),
+    gaugePct:      () => document.getElementById('gauge-pct'),
+    maxVal:        () => document.getElementById('free-max-val'),
+    starsDisp:     () => document.getElementById('free-stars-disp'),
+    masteryBanner: () => document.getElementById('mastery-banner'),
+    modelTag:      () => document.getElementById('free-model-tag'),
 };
 
 function startFreeMode() {
     document.getElementById('free-card').style.display = 'block';
     document.getElementById('free-stats-row').style.display = 'flex';
+
+    // Afficher status M2 si pas encore prêt
+    const fBar = document.getElementById('m2-status-bar');
+    if (!modelReady.m2 && fBar) fBar.style.display = 'flex';
 
     document.getElementById('free-scores').innerHTML = `
         <div class="field" style="margin-top:16px">
@@ -798,34 +810,63 @@ function startFreeMode() {
                 <div id="gauge-fill" class="gauge-fill-bar"></div>
             </div>
         </div>
-        <button class="btn btn-outline" style="margin-top:20px; border-color:rgba(255,69,96,0.4); color:var(--muted); font-size:0.8rem" onclick="resetAllMastery()">🗑 Réinitialiser la progression</button>
+        <button class="btn btn-outline" style="margin-top:20px;border-color:rgba(255,69,96,0.4);color:var(--muted);font-size:0.8rem" onclick="resetAllMastery()">🗑 Réinitialiser la progression</button>
     `;
 
     buildHiraSelector();
     autoSelectNext();
     freeListening = true;
-    startFreeRecognition();
+    startFreeListening();
 }
 
 function buildHiraSelector() {
     const sel = document.getElementById('hira-selector');
     sel.innerHTML = '';
     const mastery = loadMastery();
-    SYLLABLES.forEach((h) => {
-        const st = mastery[h] ? mastery[h].stars : 0;
-        const btn = document.createElement('div');
-        btn.className = 'hira-btn' + (st >= 3 ? ' mastered' : '');
-        btn.innerHTML = `<div class="hb-char">${h}</div><div class="hb-rom">${HIRAGANA_MAP[h]}</div><div class="hb-stars">${starsStr(st)}</div>`;
-        btn.id = 'hbtn-' + h;
-        btn.onclick = () => selectFreeTarget(h);
-        sel.appendChild(btn);
+
+    // Groupe 1
+    const lbl1 = document.createElement('div');
+    lbl1.className = 'hira-group-label';
+    lbl1.textContent = '· Modèle 1 — あ行 · か行';
+    sel.appendChild(lbl1);
+
+    MODELS.m1.syllables.forEach(h => {
+        sel.appendChild(makeHiraBtn(h, mastery, false));
     });
+
+    // Groupe 2
+    const lbl2 = document.createElement('div');
+    lbl2.className = 'hira-group-label group2';
+    lbl2.textContent = '· Modèle 2 — が行';
+    sel.appendChild(lbl2);
+
+    MODELS.m2.syllables.forEach(h => {
+        sel.appendChild(makeHiraBtn(h, mastery, !modelReady.m2));
+    });
+}
+
+function makeHiraBtn(h, mastery, isPending) {
+    const st  = mastery[h] ? mastery[h].stars : 0;
+    const btn = document.createElement('div');
+    btn.className = 'hira-btn' + (st >= 3 ? ' mastered' : '') + (isPending ? ' pending' : '');
+    btn.innerHTML = `<div class="hb-char">${h}</div><div class="hb-rom">${HIRAGANA_MAP[h]}</div><div class="hb-stars">${isPending ? '⏳' : starsStr(st)}</div>`;
+    btn.id = 'hbtn-' + h;
+    btn.onclick = () => {
+        if (btn.classList.contains('pending')) return;
+        selectFreeTarget(h);
+    };
+    return btn;
 }
 
 function autoSelectNext() {
     const mastery = loadMastery();
-    let target = SYLLABLES[0];
-    for (let s of SYLLABLES) {
+    // Prioriser M1, puis M2 si prêt
+    const available = ALL_SYLLABLES.filter(s => {
+        if (HIRAGANA_TO_MODEL[s] === 'm2' && !modelReady.m2) return false;
+        return true;
+    });
+    let target = available[0];
+    for (const s of available) {
         if (!mastery[s] || mastery[s].stars < 3) { target = s; break; }
     }
     selectFreeTarget(target);
@@ -837,44 +878,60 @@ function selectFreeTarget(h) {
     document.querySelectorAll('.hira-btn').forEach(b => b.classList.remove('selected'));
     const btn = document.getElementById('hbtn-' + h);
     if (btn) btn.classList.add('selected');
+
     freeDom.char().innerText   = h;
     freeDom.romaji().innerText = HIRAGANA_MAP[h];
     const gaugeLabel = freeDom.gaugeLabel();
     if (gaugeLabel) gaugeLabel.innerText = h;
+
+    // Tag modèle
+    const modelKey = HIRAGANA_TO_MODEL[h];
+    const tag = freeDom.modelTag();
+    if (tag) {
+        tag.className = 'model-tag ' + MODELS[modelKey].cssClass;
+        tag.textContent = MODELS[modelKey].label;
+    }
+
     const m = getMasteryFor(h);
     freeDom.maxVal().innerText    = m.maxPct + '%';
     freeDom.starsDisp().innerHTML = starsStr(m.stars);
     freeDom.masteryBanner().style.display = m.stars >= 3 ? 'block' : 'none';
     if (freeDom.gaugeFill()) freeDom.gaugeFill().style.width = '0%';
     if (freeDom.gaugePct()) freeDom.gaugePct().innerText = '0%';
+
+    // Switcher vers le bon recognizer
+    const modelKey2 = HIRAGANA_TO_MODEL[h];
+    if (modelReady[modelKey2]) {
+        startFreeListening();
+    }
 }
 
-function startFreeRecognition() {
-    recognizer.listen(result => {
+function startFreeListening() {
+    if (!freeTarget) return;
+    const key = HIRAGANA_TO_MODEL[freeTarget];
+    if (!modelReady[key]) return;
+
+    switchToRecognizer(key, result => {
         if (!freeListening || !freeTarget) return;
-        const labels = recognizer.wordLabels();
-        const targetIdx = labels.indexOf(freeTarget);
-        if (targetIdx === -1) return;
-        const score = result.scores[targetIdx];
-        const pctNum = Math.round(score * 100);
+        const labels   = recognizers[key].wordLabels();
+        const idx      = labels.indexOf(freeTarget);
+        if (idx === -1) return;
+        const pctNum   = Math.round(result.scores[idx] * 100);
 
         const gauge = freeDom.gaugeFill();
         const pctEl = freeDom.gaugePct();
         if (gauge) {
-            gauge.style.width = pctNum + '%';
-            gauge.style.background =
-                pctNum > 75 ? 'var(--green)' :
-                pctNum > 50 ? 'var(--yellow)' : 'var(--red)';
+            gauge.style.width      = pctNum + '%';
+            gauge.style.background = pctNum > 75 ? 'var(--green)' : pctNum > 50 ? 'var(--yellow)' : 'var(--red)';
         }
         if (pctEl) pctEl.innerText = pctNum + '%';
-
         if (pctNum >= STAR_THRESHOLD) updateMastery(freeTarget, pctNum);
-    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
+    });
 }
 
 function updateMastery(h, pctNum) {
     const mastery = loadMastery();
-    if (!mastery[h]) mastery[h] = { stars: 0, maxPct: 0 };
+    if (!mastery[h]) mastery[h] = { stars:0, maxPct:0 };
     const entry = mastery[h];
     let changed = false;
 
@@ -886,10 +943,10 @@ function updateMastery(h, pctNum) {
         entry.maxPct = 0;
         changed = true;
 
-        const charDisp = freeDom.char();
-        charDisp.classList.remove('flash-success');
-        void charDisp.offsetWidth;
-        charDisp.classList.add('flash-success');
+        const cd = freeDom.char();
+        cd.classList.remove('flash-success');
+        void cd.offsetWidth;
+        cd.classList.add('flash-success');
         setTimeout(() => { isStarLocked = false; }, 1200);
 
         if (entry.stars === 3) {
@@ -901,7 +958,8 @@ function updateMastery(h, pctNum) {
         saveMastery(mastery);
         const hBtn = document.getElementById('hbtn-' + h);
         if (hBtn) {
-            hBtn.className = 'hira-btn selected' + (entry.stars >= 3 ? ' mastered' : '');
+            const isPending = hBtn.classList.contains('pending');
+            hBtn.className = 'hira-btn selected' + (entry.stars >= 3 ? ' mastered' : '') + (isPending ? ' pending' : '');
             hBtn.querySelector('.hb-stars').innerHTML = starsStr(entry.stars);
         }
         freeDom.maxVal().innerText    = entry.maxPct + '%';
@@ -924,63 +982,29 @@ async function stopFree() {
     document.getElementById('setup-card').classList.remove('hidden');
 }
 
-// ─── QUIZ MODE ────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// QUIZ MODE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function getAvailableSyllables() {
+    return ALL_SYLLABLES.filter(s => modelReady[HIRAGANA_TO_MODEL[s]]);
+}
+
 function getSmartRandomChar() {
-    let lowestScore = 1.0;
-    let candidates = [];
-    for (let s of SYLLABLES) {
-        if (s === lastAsked) continue;
-        let stats = sessionStats[s];
-        let score = stats.asked === 0 ? 0 : (stats.correct / stats.asked);
-        if (score < lowestScore) { lowestScore = score; candidates = [s]; }
+    const pool = getAvailableSyllables().filter(s => s !== lastAsked);
+    if (pool.length === 0) return getAvailableSyllables()[0];
+
+    let lowestScore = 1.0, candidates = [];
+    for (const s of pool) {
+        const st = sessionStats[s];
+        const score = st.asked === 0 ? 0 : (st.correct / st.asked);
+        if (score < lowestScore)       { lowestScore = score; candidates = [s]; }
         else if (score === lowestScore) { candidates.push(s); }
     }
-    if (candidates.length === 0) candidates = SYLLABLES.filter(s => s !== lastAsked);
-    if (Math.random() < 0.25) candidates = SYLLABLES.filter(s => s !== lastAsked);
+    if (Math.random() < 0.25) candidates = pool;
     const chosen = candidates[Math.floor(Math.random() * candidates.length)];
     lastAsked = chosen;
     return chosen;
-}
-
-function startContinuousRecognition() {
-    recognizer.listen(result => {
-        if (!isListening || quizStopped) return;
-        const labels = recognizer.wordLabels();
-        const targetIdx = labels.indexOf(currentTarget);
-        if (targetIdx === -1) return;
-        const score = result.scores[targetIdx];
-        const pctNum = Math.round(score * 100);
-
-        // Update gauge
-        const gauge = document.getElementById('quiz-gauge-fill');
-        const pctEl = document.getElementById('quiz-gauge-pct');
-        if (gauge) {
-            gauge.style.width = pctNum + '%';
-            // Gradient: rouge → orange → vert autour du seuil 50%
-            if (pctNum >= QUIZ_THRESHOLD) {
-                gauge.style.background = `linear-gradient(90deg, var(--green2), var(--green))`;
-            } else if (pctNum > 30) {
-                gauge.style.background = `linear-gradient(90deg, #cc6600, var(--yellow))`;
-            } else {
-                gauge.style.background = `linear-gradient(90deg, #880020, var(--red))`;
-            }
-        }
-        if (pctEl) {
-            pctEl.innerText = pctNum + '%';
-            pctEl.style.color = pctNum >= QUIZ_THRESHOLD ? 'var(--green)' : pctNum > 30 ? 'var(--yellow)' : 'var(--red)';
-        }
-
-        if (score > sessionBest.score) {
-            sessionBest.score = score;
-            sessionBest.label = currentTarget;
-            sessionBest.peakPct = pctNum;
-        }
-
-        if (pctNum >= QUIZ_THRESHOLD) {
-            isListening = false;
-            finishQuestion(true);
-        }
-    }, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
 }
 
 function nextQuestion() {
@@ -989,16 +1013,21 @@ function nextQuestion() {
     document.getElementById('q-count').innerText = questionCount;
 
     currentTarget = getSmartRandomChar();
+    const modelKey = HIRAGANA_TO_MODEL[currentTarget];
     sessionStats[currentTarget].asked++;
 
+    // Badge modèle
+    const badge = document.getElementById('quiz-model-badge');
+    badge.className = MODELS[modelKey].cssClass;
+    badge.textContent = MODELS[modelKey].label;
+
     document.getElementById('quiz-card').className = "card quiz-active";
-    document.getElementById('target-char').innerText  = currentTarget;
+    document.getElementById('target-char').innerText   = currentTarget;
     document.getElementById('target-romaji').innerText = HIRAGANA_MAP[currentTarget];
     document.getElementById('feedback-top1').innerText = "Parlez maintenant…";
-
     document.getElementById('quiz-gauge-fill').style.width = '0%';
-    document.getElementById('quiz-gauge-pct').innerText = '0%';
-    document.getElementById('quiz-gauge-pct').style.color = 'var(--muted)';
+    document.getElementById('quiz-gauge-pct').innerText    = '0%';
+    document.getElementById('quiz-gauge-pct').style.color  = 'var(--muted)';
 
     sessionBest = { label:"Silence", score:0 };
     rmsSum = 0; rmsCount = 0;
@@ -1007,51 +1036,83 @@ function nextQuestion() {
     timerBar.style.transition = 'none'; timerBar.style.width = '100%';
     clearTimeout(quizTimer);
 
-    setTimeout(() => {
-        timerBar.style.transition = 'width 5s linear';
-        timerBar.style.width = '0%';
-        isListening = true;
-    }, 50);
+    // Switcher vers le bon modèle AVANT de démarrer le timer
+    switchToRecognizer(modelKey, quizResultHandler).then(() => {
+        setTimeout(() => {
+            timerBar.style.transition = 'width 5s linear';
+            timerBar.style.width = '0%';
+            isListening = true;
+        }, 50);
+        quizTimer = setTimeout(() => finishQuestion(false), 5050);
+    });
+}
 
-    quizTimer = setTimeout(() => finishQuestion(false), 5050);
+function quizResultHandler(result) {
+    if (!isListening || quizStopped) return;
+    const key    = HIRAGANA_TO_MODEL[currentTarget];
+    const labels = recognizers[key].wordLabels();
+    const idx    = labels.indexOf(currentTarget);
+    if (idx === -1) return;
+
+    const score  = result.scores[idx];
+    const pctNum = Math.round(score * 100);
+
+    const gauge = document.getElementById('quiz-gauge-fill');
+    const pctEl = document.getElementById('quiz-gauge-pct');
+    if (gauge) {
+        gauge.style.width      = pctNum + '%';
+        gauge.style.background = pctNum >= QUIZ_THRESHOLD
+            ? 'linear-gradient(90deg, var(--green2), var(--green))'
+            : pctNum > 30
+                ? 'linear-gradient(90deg, #cc6600, var(--yellow))'
+                : 'linear-gradient(90deg, #880020, var(--red))';
+    }
+    if (pctEl) {
+        pctEl.innerText    = pctNum + '%';
+        pctEl.style.color  = pctNum >= QUIZ_THRESHOLD ? 'var(--green)' : pctNum > 30 ? 'var(--yellow)' : 'var(--red)';
+    }
+
+    if (score > sessionBest.score) {
+        sessionBest.score   = score;
+        sessionBest.label   = currentTarget;
+        sessionBest.peakPct = pctNum;
+    }
+
+    if (pctNum >= QUIZ_THRESHOLD) {
+        isListening = false;
+        finishQuestion(true);
+    }
 }
 
 function finishQuestion(isEarlySuccess = false) {
     isListening = false;
     clearTimeout(quizTimer);
 
-    const sessionAvgRMS = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
+    const avgRMS    = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
     const isCorrect = isEarlySuccess || (sessionBest.score * 100 >= QUIZ_THRESHOLD);
 
-    if (isCorrect) {
-        sessionStats[currentTarget].correct++;
-        playDing();
-    } else {
-        playFail();
-    }
+    if (isCorrect) { sessionStats[currentTarget].correct++; playDing(); }
+    else           { playFail(); }
 
-    // Accumulate peak confidence for stats
     const peakPct = sessionBest.peakPct || 0;
-    sessionStats[currentTarget].confSum += peakPct;
+    sessionStats[currentTarget].confSum   += peakPct;
     sessionStats[currentTarget].confCount++;
 
     logs.push({
         timestamp: new Date().toLocaleString('fr-FR'),
-        expected: currentTarget,
-        top1:     isCorrect ? currentTarget : "Échec",
-        score1:   sessionBest.score.toFixed(4),
-        rms:      sessionAvgRMS.toFixed(6),
-        gain:     gainNode ? gainNode.gain.value.toFixed(2) : "1.0"
+        expected:  currentTarget,
+        model:     HIRAGANA_TO_MODEL[currentTarget],
+        top1:      isCorrect ? currentTarget : "Échec",
+        score1:    sessionBest.score.toFixed(4),
+        rms:       avgRMS.toFixed(6),
+        gain:      gainNode ? gainNode.gain.value.toFixed(2) : "1.0"
     });
 
-    document.getElementById('log-count').innerText = `${logs.length} résultat(s) enregistré(s)`;
-    document.getElementById('quiz-card').className = "card " + (isCorrect ? "quiz-success" : "quiz-fail");
-
-    if (isCorrect) {
-        document.getElementById('feedback-top1').innerHTML = `<span style="color:var(--green);font-weight:700">✅ Parfait !</span>`;
-    } else {
-        document.getElementById('feedback-top1').innerHTML = `<span style="color:var(--red);font-weight:700">❌ Temps écoulé — max: ${(sessionBest.score*100).toFixed(0)}%</span>`;
-    }
+    document.getElementById('log-count').innerText     = `${logs.length} résultat(s) enregistré(s)`;
+    document.getElementById('quiz-card').className     = "card " + (isCorrect ? "quiz-success" : "quiz-fail");
+    document.getElementById('feedback-top1').innerHTML = isCorrect
+        ? `<span style="color:var(--green);font-weight:700">✅ Parfait !</span>`
+        : `<span style="color:var(--red);font-weight:700">❌ Temps écoulé — max: ${(sessionBest.score*100).toFixed(0)}%</span>`;
 
     if (!quizStopped) setTimeout(nextQuestion, 1500);
 }
@@ -1059,28 +1120,29 @@ function finishQuestion(isEarlySuccess = false) {
 async function stopQuiz() {
     quizStopped = true;
     await stopAllRecognition();
-    document.getElementById('quiz-card').style.display  = 'none';
+    document.getElementById('quiz-card').style.display = 'none';
     document.getElementById('action-card').classList.add('hidden');
     document.getElementById('results-page').classList.remove('hidden');
     buildResultsPage();
 }
 
 function restartMenu() {
-    logs = [];
-    questionCount = 0;
-    SYLLABLES.forEach(s => sessionStats[s] = { asked: 0, correct: 0, confSum: 0, confCount: 0 });
+    logs = []; questionCount = 0;
+    ALL_SYLLABLES.forEach(s => sessionStats[s] = { asked:0, correct:0, confSum:0, confCount:0 });
     document.getElementById('results-page').classList.add('hidden');
     document.getElementById('setup-card').classList.remove('hidden');
     document.getElementById('log-count').innerText = "0 résultat enregistré";
 }
 
-// ─── RÉSULTATS ────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// RÉSULTATS
+// ═══════════════════════════════════════════════════════════════════════════════
+
 function buildResultsPage() {
-    const total   = logs.length;
-    const correct = logs.filter(l => l.top1 === l.expected).length;
+    const total    = logs.length;
+    const correct  = logs.filter(l => l.top1 === l.expected).length;
     const accuracy = total > 0 ? (correct / total * 100) : 0;
-    const avgRMS  = total > 0
-        ? (logs.reduce((s, l) => s + parseFloat(l.rms), 0) / total) : 0;
+    const avgRMS   = total > 0 ? (logs.reduce((s,l) => s + parseFloat(l.rms), 0) / total) : 0;
 
     document.getElementById('res-accuracy').innerText        = accuracy.toFixed(1) + '%';
     document.getElementById('res-username-display').innerText = document.getElementById('username').value;
@@ -1096,12 +1158,12 @@ function buildAccuracyBars() {
     const container = document.getElementById('stats-accuracy-bars');
     container.innerHTML = '';
 
-    // Calcul par hiragana avec confiance moyenne
-    const perChar = SYLLABLES.map(h => {
-        const s = sessionStats[h];
+    const perChar = ALL_SYLLABLES.map(h => {
+        const s       = sessionStats[h];
         const pct     = s.asked > 0 ? Math.round(s.correct / s.asked * 100) : null;
         const avgConf = s.confCount > 0 ? Math.round(s.confSum / s.confCount) : 0;
-        return { h, pct, asked: s.asked, correct: s.correct, avgConf };
+        const mKey    = HIRAGANA_TO_MODEL[h];
+        return { h, pct, asked:s.asked, correct:s.correct, avgConf, mKey };
     }).filter(x => x.asked > 0);
 
     if (perChar.length === 0) {
@@ -1109,21 +1171,22 @@ function buildAccuracyBars() {
         return;
     }
 
-    // Tri : % réussite décroissant, puis confiance moyenne décroissante en départage
-    perChar.sort((a, b) => b.pct - a.pct || b.avgConf - a.avgConf);
+    perChar.sort((a,b) => b.pct - a.pct || b.avgConf - a.avgConf);
 
     perChar.forEach((item, i) => {
-        const color = item.pct >= 80 ? 'var(--green)' :
-                      item.pct >= 50 ? 'var(--yellow)' : 'var(--red)';
-        const confColor = item.avgConf >= 70 ? 'var(--green)' :
-                          item.avgConf >= 40 ? 'var(--yellow)' : 'var(--muted)';
-        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+        const color     = item.pct >= 80 ? 'var(--green)' : item.pct >= 50 ? 'var(--yellow)' : 'var(--red)';
+        const confColor = item.avgConf >= 70 ? 'var(--green)' : item.avgConf >= 40 ? 'var(--yellow)' : 'var(--muted)';
+        const medal     = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+        const mColor    = item.mKey === 'm1' ? 'var(--accent)' : 'var(--purple)';
 
         const el = document.createElement('div');
         el.className = 'bar-item';
         el.style.cssText = 'flex-wrap:wrap; row-gap:3px;';
         el.innerHTML = `
-            <div class="bar-char">${item.h}</div>
+            <div class="bar-char" style="position:relative">
+                ${item.h}
+                <div style="position:absolute;bottom:-2px;right:0;width:5px;height:5px;border-radius:50%;background:${mColor}"></div>
+            </div>
             <div class="bar-rom">${HIRAGANA_MAP[item.h]}</div>
             <div class="bar-track">
                 <div class="bar-fill" style="width:0%;background:${color}" data-w="${item.pct}"></div>
@@ -1144,15 +1207,9 @@ function buildAccuracyBars() {
         container.appendChild(el);
     });
 
-    // Animation des barres
     setTimeout(() => {
-        container.querySelectorAll('.bar-fill').forEach(b => {
-            b.style.transition = 'width 0.8s ease';
-            b.style.width = b.dataset.w + '%';
-        });
-        container.querySelectorAll('.bar-fill-conf').forEach(b => {
-            b.style.width = b.dataset.w + '%';
-        });
+        container.querySelectorAll('.bar-fill').forEach(b => { b.style.transition='width 0.8s ease'; b.style.width=b.dataset.w+'%'; });
+        container.querySelectorAll('.bar-fill-conf').forEach(b => { b.style.width=b.dataset.w+'%'; });
     }, 80);
 }
 
@@ -1160,12 +1217,15 @@ function buildPodium() {
     const container = document.getElementById('stats-podium');
     container.innerHTML = '';
 
-    const perChar = SYLLABLES.map(h => {
+    const perChar = ALL_SYLLABLES.map(h => {
         const s = sessionStats[h];
-        const pct     = s.asked > 0 ? Math.round(s.correct / s.asked * 100) : null;
-        const avgConf = s.confCount > 0 ? Math.round(s.confSum / s.confCount) : 0;
-        const fails   = s.asked - s.correct;
-        return { h, pct, asked: s.asked, correct: s.correct, fails, avgConf };
+        return {
+            h, asked:s.asked, correct:s.correct,
+            pct:     s.asked > 0 ? Math.round(s.correct/s.asked*100) : null,
+            avgConf: s.confCount > 0 ? Math.round(s.confSum/s.confCount) : 0,
+            fails:   s.asked - s.correct,
+            mKey:    HIRAGANA_TO_MODEL[h]
+        };
     }).filter(x => x.asked > 0);
 
     if (perChar.length === 0) {
@@ -1173,11 +1233,10 @@ function buildPodium() {
         return;
     }
 
-    // Tri réussite desc, puis confiance moy desc en départage
-    const bySuccess = [...perChar].sort((a, b) => b.pct - a.pct || b.avgConf - a.avgConf);
-    const byFails   = [...perChar].sort((a, b) => b.fails - a.fails || a.pct - b.pct || a.avgConf - b.avgConf);
+    const bySuccess = [...perChar].sort((a,b) => b.pct - a.pct || b.avgConf - a.avgConf);
+    const byFails   = [...perChar].sort((a,b) => b.fails - a.fails || a.pct - b.pct);
 
-    // Section top 3
+    // Top
     const topLabel = document.createElement('div');
     topLabel.style.cssText = 'font-size:0.7rem;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:8px;margin-top:4px';
     topLabel.textContent = '✅ Points forts';
@@ -1185,8 +1244,9 @@ function buildPodium() {
 
     const topGrid = document.createElement('div');
     topGrid.className = 'fail-grid';
-    bySuccess.slice(0, Math.min(5, bySuccess.length)).forEach((item, i) => {
+    bySuccess.slice(0, 5).forEach((item, i) => {
         const medals = ['🥇','🥈','🥉','4e','5e'];
+        const mColor = item.mKey === 'm1' ? 'var(--accent)' : 'var(--purple)';
         const div = document.createElement('div');
         div.className = 'fail-item' + (i === 0 ? ' best-item' : '');
         div.innerHTML = `
@@ -1194,18 +1254,16 @@ function buildPodium() {
             <div class="fail-char">${item.h}</div>
             <div class="fail-rom">${HIRAGANA_MAP[item.h]}</div>
             <div class="fail-count" style="color:var(--green)">${item.pct}%</div>
-            <div style="font-size:0.6rem;color:var(--muted);font-family:var(--font-mono);margin-top:1px">${item.avgConf}% conf</div>
+            <div style="font-size:0.55rem;color:${mColor};font-family:var(--font-mono);margin-top:2px">${MODELS[item.mKey].label}</div>
         `;
         topGrid.appendChild(div);
     });
     container.appendChild(topGrid);
 
-    // Séparateur
     const sep = document.createElement('div');
     sep.style.cssText = 'height:1px;background:var(--border2);margin:16px 0 12px';
     container.appendChild(sep);
 
-    // Section difficultés (uniquement ceux avec au moins 1 échec)
     const withFails = byFails.filter(x => x.fails > 0);
     if (withFails.length > 0) {
         const failLabel = document.createElement('div');
@@ -1215,7 +1273,7 @@ function buildPodium() {
 
         const failGrid = document.createElement('div');
         failGrid.className = 'fail-grid';
-        withFails.slice(0, Math.min(5, withFails.length)).forEach((item, i) => {
+        withFails.slice(0, 5).forEach((item, i) => {
             const div = document.createElement('div');
             div.className = 'fail-item' + (i === 0 ? ' worst-item' : '');
             div.innerHTML = `
