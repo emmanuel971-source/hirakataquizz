@@ -1,1301 +1,483 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Vocal Hiragana</title>
-    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js"></script>
-    <style>
-        :root {
-            --bg:        #080c10;
-            --surface:   #0e1419;
-            --surface2:  #141c24;
-            --border:    #1e2d3d;
-            --border2:   #2a3f55;
-            --text:      #d4e8ff;
-            --muted:     #5a7a99;
-            --accent:    #00c8ff;
-            --accent2:   #0088bb;
-            --green:     #00e57a;
-            --green2:    #00a055;
-            --yellow:    #ffc040;
-            --red:       #ff4560;
-            --purple:    #a78bfa;
-            --radius:    16px;
-            --font-jp:   'Zen Kaku Gothic New', sans-serif;
-            --font-mono: 'Space Mono', monospace;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Labo — Fondateur v5 (Firebase réel)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-top:#d4f4ff; --bg-mid:#d8f7ef; --bg-bot:#fdf6d8;
+  --sky:#00aaee; --text-dark:#1a3050; --text-mid:#2a6080; --text-dim:#5090a8;
+  --purple-hi:#6c63ff; --purple-lo:#5c35c8; --gold-mid:#F4A800;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:'Nunito',sans-serif;background:linear-gradient(160deg,var(--bg-top) 0%,var(--bg-mid) 50%,var(--bg-bot) 100%);overflow:hidden;}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+/* OVERLAY */
+#kanakun-overlay{position:fixed;inset:0;z-index:290;display:flex;flex-direction:column;align-items:center;background:linear-gradient(160deg,var(--bg-top) 0%,var(--bg-mid) 50%,var(--bg-bot) 100%);overflow:hidden;animation:kkIn .45s cubic-bezier(.34,1.3,.64,1) both;}
+@keyframes kkIn{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+#kanakun-overlay::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 55% 40% at 15% 15%,rgba(168,85,247,.18) 0%,transparent 60%),radial-gradient(ellipse 45% 35% at 85% 75%,rgba(0,170,238,.15) 0%,transparent 60%);pointer-events:none;z-index:0;animation:blobDrift 8s ease-in-out infinite alternate;}
+@keyframes blobDrift{from{opacity:.7;}to{opacity:1;}}
 
-        body {
-            font-family: var(--font-jp);
-            background: var(--bg);
-            color: var(--text);
-            padding: 16px 16px 48px;
-            min-height: 100vh;
-            background-image:
-                radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,200,255,0.07) 0%, transparent 70%),
-                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,200,255,0.025) 40px),
-                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,200,255,0.025) 40px);
-        }
+/* HEADER */
+#kanakun-header{flex-shrink:0;width:100%;max-width:480px;padding:clamp(14px,3dvh,22px) 20px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:2;}
+#kanakun-robot{font-size:44px;line-height:1;filter:drop-shadow(0 6px 0 rgba(0,0,0,.15)) drop-shadow(0 8px 12px rgba(0,0,0,.25)) drop-shadow(0 0 16px rgba(168,85,247,.6));animation:bobble 1.6s ease-in-out infinite alternate;}
+@keyframes bobble{from{transform:translateY(0) rotate(-2deg);}to{transform:translateY(-5px) rotate(2deg);}}
+#kanakun-title{font-family:'Fredoka One',cursive;font-size:26px;color:var(--purple-lo);}
+#kanakun-subtitle{font-size:13px;color:#999;font-weight:700;letter-spacing:.5px;}
 
-        .container { max-width: 480px; margin: 0 auto; }
+/* INNER */
+#kanakun-inner{flex:1;width:100%;max-width:480px;overflow-y:auto;padding:10px 20px 20px;display:flex;flex-direction:column;gap:14px;position:relative;z-index:1;scrollbar-width:none;}
+#kanakun-inner::-webkit-scrollbar{display:none;}
 
-        /* ── HEADER ── */
-        .app-header { text-align: center; padding: 28px 0 20px; margin-bottom: 6px; }
-        .app-header .logo-text {
-            font-size: 0.7rem; font-family: var(--font-mono); color: var(--accent);
-            letter-spacing: 6px; text-transform: uppercase; opacity: 0.8; margin-bottom: 6px;
-        }
-        .app-header h1 { font-size: 1.7rem; font-weight: 900; color: var(--text); letter-spacing: -0.5px; }
-        .app-header h1 span { color: var(--accent); }
+/* BACK BTN */
+#kanakun-back-btn{flex-shrink:0;width:100%;max-width:480px;padding:16px 20px;background:transparent;border:none;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--text-dim);cursor:pointer;text-align:center;text-decoration:underline;position:relative;z-index:2;}
+#kanakun-back-btn:hover{color:var(--text-mid);}
 
-        /* ── CARDS ── */
-        .card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 22px 20px; margin-bottom: 12px;
-            position: relative; overflow: hidden;
-        }
-        .card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.3;
-        }
-        .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 3px; display: flex; align-items: center; gap: 8px; color: var(--text); }
-        .card-sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 20px; font-family: var(--font-mono); }
+/* BADGE */
+.kk-badge{width:100%;background:rgba(255,253,235,.65);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1.5px solid rgba(255,255,255,.85);border-radius:24px;padding:20px 22px;display:flex;align-items:center;gap:16px;box-shadow:0 8px 32px rgba(196,120,0,.12),0 2px 8px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.95);position:relative;overflow:hidden;animation:badgePulse 3.5s ease-in-out infinite;}
+@keyframes badgePulse{0%,100%{box-shadow:0 8px 32px rgba(196,120,0,.12),inset 0 1px 0 rgba(255,255,255,.95);}50%{box-shadow:0 12px 40px rgba(196,120,0,.22),inset 0 1px 0 rgba(255,255,255,.95);}}
+.kk-badge::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);background-size:250% 100%;animation:shimmer 4s ease-in-out infinite 1.5s;pointer-events:none;}
+@keyframes shimmer{0%{background-position:-100% 0;}100%{background-position:200% 0;}}
+.kk-badge-icon{font-size:44px;flex-shrink:0;}
+.kk-badge-text{display:flex;flex-direction:column;gap:3px;}
+.kk-badge-label{font-size:11px;font-weight:800;color:var(--gold-mid);letter-spacing:1.8px;text-transform:uppercase;}
+.kk-badge-name{font-family:'Fredoka One',cursive;font-size:clamp(17px,4.5vw,21px);color:#7a4800;line-height:1.1;}
+.kk-badge-sub{font-size:12px;color:#a06020;font-weight:700;}
 
-        .field { margin-bottom: 18px; }
-        .field label {
-            display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 7px;
-            font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px;
-        }
+/* BUBBLES */
+.kk-bubble{background:rgba(255,255,255,.55);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1.5px solid rgba(255,255,255,.85);border-radius:20px;padding:18px 20px;font-size:15px;line-height:1.65;color:var(--text-dark);box-shadow:0 6px 24px rgba(92,53,200,.07),inset 0 1px 0 rgba(255,255,255,.9);}
+.kk-bubble strong{color:var(--purple-lo);font-weight:900;}
+.kk-bubble-info{background:rgba(220,240,255,.7);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1.5px solid rgba(0,170,238,.2);border-radius:20px;padding:18px 20px;font-size:15px;line-height:1.65;color:var(--text-dark);box-shadow:0 4px 20px rgba(0,170,238,.08),inset 0 1px 0 rgba(255,255,255,.9);}
+.kk-bubble-info strong{color:#0077bb;font-weight:900;}
+.kk-bubble-tip{background:rgba(255,255,255,.4);backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,.7);border-radius:16px;padding:14px 18px;font-size:13px;line-height:1.6;color:var(--text-dim);box-shadow:inset 0 1px 0 rgba(255,255,255,.8);}
+.kk-kana{font-family:'Noto Sans JP',sans-serif;font-size:17px;font-weight:900;color:var(--sky);}
 
-        input[type="text"] {
-            width: 100%; padding: 11px 14px; background: var(--bg);
-            border: 1px solid var(--border2); border-radius: 10px; color: var(--text);
-            font-size: 0.95rem; font-family: var(--font-jp); outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,200,255,0.1); }
+/* INPUT */
+.kk-input-wrap{width:100%;position:relative;}
+.kk-input-label{font-size:11px;font-weight:800;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;display:block;}
+.kk-email-field{width:100%;padding:15px 18px 15px 46px;background:rgba(255,255,255,.65);backdrop-filter:blur(12px);border:2px solid rgba(108,99,255,.2);border-radius:16px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:700;color:var(--text-dark);outline:none;transition:border-color .25s,box-shadow .25s,background .25s;box-shadow:inset 0 1px 3px rgba(0,0,0,.04);}
+.kk-email-field::placeholder{color:#b0c8d8;font-weight:700;}
+.kk-email-field:focus{border-color:var(--purple-hi);background:rgba(255,255,255,.85);box-shadow:0 0 0 4px rgba(108,99,255,.10),inset 0 1px 3px rgba(0,0,0,.04);}
+.kk-input-icon{position:absolute;left:15px;bottom:14px;font-size:17px;pointer-events:none;}
+.kk-error{font-size:13px;color:#e0144c;padding:5px 4px 0;display:none;}
 
-        input[type="range"] {
-            -webkit-appearance: none; width: 100%; height: 4px;
-            background: var(--border2); border-radius: 2px; outline: none; margin-top: 8px;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
-            background: var(--accent); cursor: pointer; box-shadow: 0 0 8px rgba(0,200,255,0.5);
-        }
-        .gain-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--muted); }
-        .gain-val { color: var(--accent); font-weight: 700; font-family: var(--font-mono); }
+/* BUTTONS */
+.kk-btn-primary{width:100%;padding:17px 24px;background:linear-gradient(135deg,#7c6dff 0%,var(--purple-lo) 100%);border:none;border-radius:18px;color:#fff;font-family:'Fredoka One',cursive;font-size:17px;cursor:pointer;box-shadow:0 6px 20px rgba(92,53,200,.3),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .15s,box-shadow .15s;}
+.kk-btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(92,53,200,.38);}
+.kk-btn-primary:active{transform:scale(.97);}
+.kk-btn-secondary{width:100%;padding:14px;background:rgba(255,255,255,.5);backdrop-filter:blur(8px);border:1.5px solid rgba(0,0,0,.08);border-radius:16px;color:#888;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s,color .2s;}
+.kk-btn-secondary:hover{background:rgba(255,255,255,.8);color:#555;}
+.kk-trust{display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#b0bec5;text-align:center;padding-bottom:4px;}
 
-        /* ── BUTTONS ── */
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            padding: 13px 20px; font-size: 0.92rem; font-weight: 700;
-            border-radius: 12px; border: none; cursor: pointer; transition: all 0.15s;
-            width: 100%; font-family: var(--font-jp); letter-spacing: 0.3px;
-        }
-        .btn:active { transform: scale(0.97); opacity: 0.85; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .btn-accent { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #050a0e; box-shadow: 0 4px 20px rgba(0,200,255,0.25); }
-        .btn-accent:hover:not(:disabled) { box-shadow: 0 4px 28px rgba(0,200,255,0.45); }
-        .btn-green  { background: linear-gradient(135deg, var(--green), var(--green2)); color: #050a0e; }
-        .btn-red    { background: linear-gradient(135deg, var(--red), #bb2040); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
-        .btn-outline:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+/* SPINNER */
+.kk-spinner{width:48px;height:48px;margin:0 auto;border:4px solid rgba(108,99,255,.15);border-top-color:var(--purple-lo);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-        /* ── LOADING ── */
-        #loading { color: var(--muted); font-size: 0.8rem; margin-top: 10px; font-family: var(--font-mono); }
-        .load-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
-        .load-dot {
-            width: 8px; height: 8px; border-radius: 50%; background: var(--border2);
-            flex-shrink: 0; transition: background 0.3s;
-        }
-        .load-dot.loading { background: var(--yellow); animation: pulse 0.8s ease-in-out infinite; }
-        .load-dot.done    { background: var(--green); }
-        .load-dot.error   { background: var(--red); }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .load-label { font-size: 0.75rem; font-family: var(--font-mono); color: var(--muted); }
-        .load-label b { color: var(--text); }
+/* STATE COMMON */
+.kk-state-icon{font-size:62px;text-align:center;filter:drop-shadow(0 4px 12px rgba(0,0,0,.15));animation:iconPop .6s cubic-bezier(.34,1.56,.64,1) both;}
+.kk-trophy{font-size:72px;text-align:center;filter:drop-shadow(0 0 28px rgba(255,215,0,.75));animation:iconPop .7s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes iconPop{from{transform:scale(0) rotate(-15deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
+.kk-state-title{font-family:'Fredoka One',cursive;font-size:24px;color:var(--purple-lo);text-align:center;}
+.kk-state-sub{font-size:15px;color:var(--text-mid);text-align:center;line-height:1.65;}
+.kk-email-chip{display:inline-block;background:rgba(108,99,255,.1);border-radius:8px;padding:2px 10px;font-weight:900;color:var(--purple-lo);font-size:15px;word-break:break-all;}
 
-        /* ── MODEL 2 BANNER ── */
-        #model2-banner {
-            display: none; align-items: center; gap: 10px;
-            background: rgba(0,229,122,0.07); border: 1px solid var(--green2);
-            border-radius: 12px; padding: 12px 16px; margin-bottom: 12px;
-            font-size: 0.85rem; color: var(--green); font-weight: 700;
-            animation: pop 0.4s ease;
-        }
-        #model2-banner.visible { display: flex; }
+/* PROGRESS */
+.kk-progress-wrap{width:100%;background:rgba(0,0,0,.06);border-radius:99px;height:6px;overflow:hidden;}
+.kk-progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--purple-hi),var(--sky));animation:progressPulse 2s ease-in-out infinite alternate;}
+@keyframes progressPulse{from{width:30%;opacity:.7;}to{width:90%;opacity:1;}}
 
-        /* ── MODEL 2 LOADING INDICATOR (in-quiz) ── */
-        #m2-status-bar {
-            display: none; align-items: center; gap: 8px;
-            background: var(--surface2); border: 1px solid var(--border2);
-            border-radius: 10px; padding: 8px 14px; margin-bottom: 12px;
-            font-size: 0.72rem; font-family: var(--font-mono); color: var(--muted);
-        }
-        #m2-status-bar.visible { display: flex; }
-        #m2-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); animation: pulse 0.8s infinite; flex-shrink: 0; }
-        #m2-status-dot.done { background: var(--green); animation: none; }
+/* STATE ANIM */
+.kk-state{animation:stateIn .4s cubic-bezier(.34,1.3,.64,1) both;}
+@keyframes stateIn{from{opacity:0;transform:translateY(16px) scale(.97);}to{opacity:1;transform:none;}}
 
-        /* ── MODE SELECTOR ── */
-        .mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
-        .mode-btn {
-            padding: 14px 8px; border-radius: 12px; border: 1px solid var(--border2);
-            background: var(--bg); color: var(--muted); font-size: 0.88rem; font-weight: 700;
-            cursor: pointer; text-align: center; transition: all 0.2s; font-family: var(--font-jp);
-        }
-        .mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,200,255,0.07); box-shadow: inset 0 0 20px rgba(0,200,255,0.05); }
-        .mode-btn .mode-icon { font-size: 1.5rem; display: block; margin-bottom: 5px; }
+/* CONFETTIS RECT */
+#confetti-founder{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;}
+.kk-conf{position:absolute;top:-20px;border-radius:3px;animation:confFall linear forwards;}
+@keyframes confFall{to{transform:translateY(110vh) rotate(720deg);}}
 
-        /* ── FREE MODE ── */
-        #free-card { display: none; }
-        .hira-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px; }
-        .hira-btn {
-            background: var(--bg); border: 1px solid var(--border2);
-            border-radius: 12px; padding: 10px 4px 7px;
-            cursor: pointer; text-align: center; transition: all 0.15s;
-        }
-        .hira-btn:hover { border-color: var(--muted); }
-        .hira-btn.selected  { border-color: var(--accent); background: rgba(0,200,255,0.08); }
-        .hira-btn.mastered  { border-color: var(--green) !important; background: rgba(0,229,122,0.08) !important; }
-        .hira-btn.pending   { opacity: 0.4; cursor: not-allowed; border-style: dashed; }
-        .hira-btn .hb-char  { font-size: 1.8rem; line-height: 1.1; color: var(--text); }
-        .hira-btn .hb-rom   { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); }
-        .hira-btn .hb-stars { font-size: 0.65rem; line-height: 1.6; min-height: 14px; }
 
-        /* Group separator in free mode */
-        .hira-group-label {
-            grid-column: 1 / -1; font-size: 0.65rem; font-family: var(--font-mono);
-            text-transform: uppercase; letter-spacing: 2px; color: var(--muted);
-            padding: 4px 0 2px; border-bottom: 1px solid var(--border2); margin-bottom: 2px;
-        }
-        .hira-group-label.group2 { color: var(--purple); border-color: rgba(167,139,250,0.3); }
+/* BULLES ERREUR */
+.kk-bubble-error{background:rgba(255,235,235,.75);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1.5px solid rgba(220,80,80,.2);border-radius:20px;padding:18px 20px;font-size:15px;line-height:1.65;color:var(--text-dark);box-shadow:0 4px 20px rgba(200,0,0,.06),inset 0 1px 0 rgba(255,255,255,.9);text-align:center;}
+.kk-bubble-error strong{color:#c0392b;font-weight:900;}
+.kk-bubble-warn{background:rgba(255,248,225,.75);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1.5px solid rgba(230,150,0,.2);border-radius:20px;padding:18px 20px;font-size:15px;line-height:1.65;color:var(--text-dark);box-shadow:0 4px 20px rgba(200,120,0,.06),inset 0 1px 0 rgba(255,255,255,.9);text-align:center;}
+.kk-bubble-warn strong{color:#b7770d;font-weight:900;}
+/* Animation shake pour les icônes erreur */
+.kk-shake{animation:iconPop .6s cubic-bezier(.34,1.56,.64,1) both,shake .4s ease .6s;}
+@keyframes shake{0%,100%{transform:rotate(0);}25%{transform:rotate(-12deg);}75%{transform:rotate(12deg);}}
 
-        .free-display { text-align: center; padding: 18px 0 10px; }
-        .free-target-char   { font-size: 6rem; font-weight: 900; line-height: 1; }
-        .free-target-romaji { font-size: 1.3rem; color: var(--accent); font-weight: 700; letter-spacing: 6px; text-transform: uppercase; margin-top: 4px; font-family: var(--font-mono); }
+/* CDOT */
+.cdot{position:absolute;border-radius:50%;opacity:0;animation:cdotFloat var(--cd) ease-in-out var(--cdelay) infinite;}
+@keyframes cdotFloat{0%{opacity:0;transform:translateY(0) scale(.5);}30%{opacity:var(--cop);}70%{opacity:var(--cop);}100%{opacity:0;transform:translateY(-40px) scale(1);}}
 
-        .free-stats-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 6px 0 10px; min-height: 36px; }
-        .free-badge {
-            display: flex; flex-direction: column; align-items: center;
-            background: var(--bg); border: 1px solid var(--border2);
-            border-radius: 10px; padding: 8px 16px; font-size: 0.75rem; color: var(--muted);
-            font-family: var(--font-mono);
-        }
-        .free-badge .val   { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-        .free-badge .stars { font-size: 1.2rem; line-height: 1.3; }
-
-        /* Model tag on free display */
-        .model-tag {
-            display: inline-block; font-size: 0.6rem; font-family: var(--font-mono);
-            text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px;
-            border-radius: 4px; margin-bottom: 8px; font-weight: 700;
-        }
-        .model-tag.m1 { background: rgba(0,200,255,0.12); color: var(--accent); border: 1px solid rgba(0,200,255,0.3); }
-        .model-tag.m2 { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
-
-        .mastery-banner {
-            display: none; text-align: center; background: rgba(0,229,122,0.08);
-            border: 1px solid var(--green2); border-radius: 12px; padding: 12px;
-            margin: 10px 0; color: var(--green); font-weight: 700; font-size: 0.95rem;
-            animation: pop 0.3s ease;
-        }
-
-        @keyframes pop { 0% { transform: scale(0.85); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes flash-success {
-            0%   { color: var(--text); transform: scale(1); }
-            30%  { color: var(--green); transform: scale(1.15); text-shadow: 0 0 32px rgba(0,229,122,0.8); }
-            70%  { color: var(--green); transform: scale(1.1); }
-            100% { color: var(--text); transform: scale(1); text-shadow: none; }
-        }
-        .flash-success { animation: flash-success 0.5s ease forwards; }
-
-        /* ── QUIZ CARD ── */
-        #quiz-card {
-            display: none; border: 1px solid var(--border);
-            transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
-        }
-        .quiz-active  { border-color: var(--accent) !important; box-shadow: 0 0 30px rgba(0,200,255,0.1) !important; }
-        .quiz-success { border-color: var(--green) !important; background: rgba(0,229,122,0.04) !important; box-shadow: 0 0 30px rgba(0,229,122,0.12) !important; }
-        .quiz-fail    { border-color: var(--red) !important; background: rgba(255,69,96,0.04) !important; box-shadow: 0 0 30px rgba(255,69,96,0.12) !important; }
-
-        .quiz-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); margin-bottom: 20px; font-family: var(--font-mono); }
-        .quiz-meta span { background: var(--bg); border: 1px solid var(--border2); border-radius: 6px; padding: 4px 10px; }
-        .quiz-meta b { color: var(--text); }
-
-        /* Model indicator badge inside quiz */
-        #quiz-model-badge {
-            display: inline-block; font-size: 0.6rem; font-family: var(--font-mono);
-            text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px;
-            border-radius: 4px; font-weight: 700; margin-bottom: 6px;
-        }
-        #quiz-model-badge.m1 { background: rgba(0,200,255,0.12); color: var(--accent); border: 1px solid rgba(0,200,255,0.3); }
-        #quiz-model-badge.m2 { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
-
-        .hiragana-big {
-            font-size: 8rem; font-weight: 900; color: var(--text); line-height: 1;
-            margin: 4px 0 4px; text-align: center;
-            text-shadow: 0 0 60px rgba(0,200,255,0.15); transition: text-shadow 0.3s;
-        }
-        .quiz-success .hiragana-big { text-shadow: 0 0 60px rgba(0,229,122,0.4); }
-        .quiz-fail    .hiragana-big { text-shadow: 0 0 60px rgba(255,69,96,0.3); }
-
-        .romaji-hint {
-            font-size: 1.4rem; color: var(--accent); text-transform: uppercase;
-            font-weight: 700; letter-spacing: 6px; text-align: center;
-            margin-bottom: 20px; font-family: var(--font-mono);
-        }
-
-        .timer-bar { width: 100%; height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; }
-        .timer-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width linear; border-radius: 2px; }
-
-        .gauge-section { margin-top: 18px; }
-        .gauge-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-        .gauge-label-text { font-size: 0.72rem; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; }
-        .gauge-pct-text { font-size: 1.4rem; font-weight: 700; font-family: var(--font-mono); transition: color 0.2s; }
-
-        .gauge-track {
-            width: 100%; height: 14px; background: var(--bg); border-radius: 7px;
-            border: 1px solid var(--border2); overflow: hidden; position: relative;
-        }
-        .gauge-track::after {
-            content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
-            width: 1px; background: var(--border2); z-index: 2;
-        }
-        .gauge-fill-bar { height: 100%; width: 0%; border-radius: 7px; transition: width 0.1s, background 0.2s; position: relative; }
-
-        .feedback-zone { margin-top: 14px; font-size: 0.9rem; color: var(--muted); min-height: 26px; text-align: center; font-family: var(--font-jp); }
-
-        #action-card { padding: 14px 20px; }
-        .action-row { display: flex; gap: 10px; }
-        .action-row .btn { flex: 1; }
-        #log-count { text-align: center; margin-top: 10px; font-size: 0.7rem; color: var(--muted); font-family: var(--font-mono); }
-
-        .hidden { display: none !important; }
-
-        /* ── RESULTS ── */
-        .res-header {
-            text-align: center; padding: 28px 24px 22px; background: var(--surface);
-            border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px;
-            position: relative; overflow: hidden;
-        }
-        .res-header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--green), var(--accent), transparent); }
-        .res-header .score-label { font-size: 0.7rem; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 2px; }
-        .res-header .big-score { font-size: 4rem; font-weight: 900; line-height: 1; margin: 8px 0 4px; background: linear-gradient(135deg, var(--green), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .res-header .user-name { font-size: 0.82rem; color: var(--muted); margin-top: 6px; font-family: var(--font-mono); }
-
-        .kpi-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 8px; text-align: center; }
-        .kpi-val { font-size: 1.6rem; font-weight: 700; font-family: var(--font-mono); }
-        .kpi-lbl { font-size: 0.65rem; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); }
-
-        .stats-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 18px 14px; margin-bottom: 12px; }
-        .stats-title { font-size: 0.72rem; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-        .stats-title::after { content: ''; flex: 1; height: 1px; background: var(--border2); }
-
-        .bar-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .bar-char { font-size: 1.5rem; font-weight: 700; width: 36px; text-align: center; flex-shrink: 0; }
-        .bar-rom  { font-size: 0.65rem; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; width: 22px; flex-shrink: 0; text-align: center; }
-        .bar-track { flex: 1; height: 10px; background: var(--bg); border-radius: 5px; border: 1px solid var(--border2); overflow: hidden; }
-        .bar-fill  { height: 100%; border-radius: 5px; transition: width 0.8s ease; }
-        .bar-pct   { font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700; width: 36px; text-align: right; flex-shrink: 0; }
-        .bar-asked { font-size: 0.65rem; color: var(--muted); font-family: var(--font-mono); width: 28px; text-align: right; flex-shrink: 0; }
-
-        .fail-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-        .fail-item { background: var(--bg); border-radius: 10px; padding: 10px 6px 8px; text-align: center; border: 1px solid var(--border2); position: relative; }
-        .fail-item.best-item  { border-color: var(--green2); background: rgba(0,229,122,0.06); }
-        .fail-item.worst-item { border-color: var(--red); background: rgba(255,69,96,0.06); }
-        .fail-char  { font-size: 1.7rem; font-weight: 700; }
-        .fail-rom   { font-size: 0.58rem; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; }
-        .fail-count { font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700; margin-top: 3px; }
-        .fail-badge-tag { position: absolute; top: -8px; right: -4px; font-size: 0.58rem; font-family: var(--font-mono); font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-        .res-btns { margin-top: 8px; padding-bottom: 24px; }
-    </style>
+/* BARRE TEST */
+#test-bar{position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(20,20,40,.92);backdrop-filter:blur(8px);padding:10px 12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.tbtn{padding:6px 12px;border-radius:8px;border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+</style>
 </head>
 <body>
 
-<div class="container">
+<div id="confetti-founder"></div>
 
-    <div class="app-header">
-        <div class="logo-text">あいうえお · 声クイズ</div>
-        <h1>Quiz <span>Hiragana</span></h1>
+<div id="kanakun-overlay">
+  <div id="confetti-kanakun" style="position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;"></div>
+
+  <!-- HEADER -->
+  <div id="kanakun-header">
+    <div id="kanakun-robot">🤖</div>
+    <div id="kanakun-title">Kana-kun</div>
+    <div id="kanakun-subtitle">Espace Fondateur</div>
+  </div>
+
+  <!-- INNER -->
+  <div id="kanakun-inner">
+
+    <!-- STATE 1 : INPUT -->
+    <div id="state-input" class="kk-state" style="display:none;flex-direction:column;gap:14px;">
+      <div class="kk-badge">
+        <div class="kk-badge-icon">🏅</div>
+        <div class="kk-badge-text">
+          <div class="kk-badge-label">Statut exclusif</div>
+          <div class="kk-badge-name">Fondateur Légendaire ⭐</div>
+          <div class="kk-badge-sub">Premium à vie • débloqué</div>
+        </div>
+      </div>
+      <div class="kk-bubble">
+        🎌 Tu fais partie des <strong>tout premiers joueurs</strong> de <span class="kk-kana">かなDROP</span> !<br><br>
+        Ton statut <strong>Fondateur Légendaire</strong> t'offre le <strong>Premium à vie</strong>.<br><br>
+        Laisse ton email pour ne jamais le perdre si tu changes de téléphone.
+      </div>
+      <div class="kk-input-wrap">
+        <label class="kk-input-label">Ton email de sauvegarde</label>
+        <div class="kk-input-icon">📧</div>
+        <input type="email" id="kk-email" class="kk-email-field" placeholder="ton@email.com" autocomplete="email" autocorrect="off" autocapitalize="none">
+        <div class="kk-error" id="kk-error">Adresse email invalide.</div>
+      </div>
+      <button class="kk-btn-primary" onclick="kkSubmitEmail()">✓ Sauvegarder mon statut Fondateur</button>
+      <div class="kk-trust">🔒 Uniquement pour sauvegarder ton statut&nbsp;• Aucun spam</div>
     </div>
 
-    <!-- MODEL 2 READY BANNER (affiché pendant le quiz quand M2 se débloque) -->
-    <div id="model2-banner">
-        🎉 Modèle 2 chargé — が行 maintenant disponible !
+    <!-- STATE 2 : SENDING -->
+    <div id="state-sending" class="kk-state" style="display:none;flex-direction:column;align-items:center;gap:20px;padding:30px 0;">
+      <div class="kk-spinner"></div>
+      <div class="kk-state-title">Envoi en cours...</div>
+      <div class="kk-state-sub">On prépare ton email de confirmation,<br>une petite seconde !</div>
     </div>
 
-    <!-- SETUP -->
-    <div class="card" id="setup-card">
-        <div class="card-title">🎙️ Configuration</div>
-        <div class="card-sub">multi-modèles v2.0 — M1: あ〜お · M2: か〜ご</div>
-
-        <div class="field">
-            <label>Nom / Appareil</label>
-            <input type="text" id="username" placeholder="ex: Pierre_Android" value="Testeur_01">
+    <!-- STATE 3 : SENT -->
+    <div id="state-sent" class="kk-state" style="display:none;flex-direction:column;gap:14px;">
+      <div class="kk-badge">
+        <div class="kk-badge-icon">📬</div>
+        <div class="kk-badge-text">
+          <div class="kk-badge-label">En attente de confirmation</div>
+          <div class="kk-badge-name">Fondateur Légendaire ⭐</div>
+          <div class="kk-badge-sub">Premium à vie • confirmation requise</div>
         </div>
-
-        <div class="field">
-            <div class="gain-row">
-                <span>Sensibilité micro</span>
-                <span class="gain-val" id="gain-val">1.0</span>×
-            </div>
-            <input type="range" id="gain-slider" min="0.5" max="5" step="0.1" value="1">
-        </div>
-
-        <div class="field">
-            <label>Mode</label>
-            <div class="mode-row">
-                <div class="mode-btn active" id="mode-quiz" onclick="selectMode('quiz')">
-                    <span class="mode-icon">🎯</span>Quiz chronométré
-                </div>
-                <div class="mode-btn" id="mode-free" onclick="selectMode('free')">
-                    <span class="mode-icon">🎙️</span>Test libre
-                </div>
-            </div>
-        </div>
-
-        <button id="btn-start" class="btn btn-accent">🚀 Initialiser &amp; Démarrer</button>
-
-        <div id="loading" class="hidden" style="margin-top:16px">
-            <div class="load-row">
-                <div class="load-dot loading" id="dot-m1"></div>
-                <div class="load-label">Modèle 1 — <b>あ い う え お </b></div>
-            </div>
-            <div class="load-row">
-                <div class="load-dot loading" id="dot-m2"></div>
-                <div class="load-label">Modèle 2 — <b>か き く け こ · が ぎ ぐ げ ご</b> (arrière-plan)</div>
-            </div>
-        </div>
+      </div>
+      <div class="kk-bubble-info">
+        Un email vient d'être envoyé à<br>
+        <span class="kk-email-chip" id="sent-email-display"></span><br><br>
+        <strong>Clique sur le lien de confirmation</strong> dans cet email pour activer définitivement ton statut Fondateur.<br><br>
+        Tu peux fermer l'app — ton statut sera activé dès que tu auras cliqué. 👌
+      </div>
+      <div class="kk-progress-wrap"><div class="kk-progress-bar"></div></div>
+      <div class="kk-bubble-tip">
+        💡 <strong>Email introuvable ?</strong> Vérifie ton dossier spam. L'email vient de <em>no-reply@kanadrop.app</em>
+      </div>
+      <button class="kk-btn-secondary" onclick="kkResend()">↩ Renvoyer l'email de confirmation</button>
     </div>
 
-    <!-- FREE MODE -->
-    <div class="card" id="free-card">
-        <div class="card-title">🎙️ Test libre</div>
-        <div class="card-sub">Sélectionne un hiragana puis prononce-le</div>
-
-        <!-- Status bar modèle 2 -->
-        <div id="m2-status-bar">
-            <div id="m2-status-dot"></div>
-            <span id="m2-status-text">Modèle 2 en cours de chargement… が行 indisponibles</span>
+    <!-- STATE 4 : CONFIRMED -->
+    <div id="state-confirmed" class="kk-state" style="display:none;flex-direction:column;align-items:center;gap:16px;padding:10px 0;">
+      <div class="kk-trophy">🏆</div>
+      <div class="kk-state-title">Statut confirmé !</div>
+      <div class="kk-badge">
+        <div class="kk-badge-icon">🏅</div>
+        <div class="kk-badge-text">
+          <div class="kk-badge-label">Activé définitivement ✓</div>
+          <div class="kk-badge-name">Fondateur Légendaire ⭐</div>
+          <div class="kk-badge-sub">Premium à vie • confirmé</div>
         </div>
-
-        <div class="hira-selector" id="hira-selector"></div>
-        <div class="free-display">
-            <div id="free-model-tag" class="model-tag m1">modèle 1</div>
-            <div class="free-target-char" id="free-char">—</div>
-            <div class="free-target-romaji" id="free-romaji">choisir</div>
-        </div>
-        <div class="free-stats-row" id="free-stats-row" style="display:none">
-            <div class="free-badge">
-                <div class="val" id="free-max-val">0%</div>
-                <div>max atteint</div>
-            </div>
-            <div class="free-badge">
-                <div class="stars" id="free-stars-disp">☆☆☆</div>
-                <div>étoiles</div>
-            </div>
-        </div>
-        <div class="mastery-banner" id="mastery-banner">🎉 Bravo, prononciation maîtrisée !</div>
-        <div class="scores-list" id="free-scores"></div>
-        <div style="margin-top:16px">
-            <button class="btn btn-outline" onclick="stopFree()">⬅ Retour au menu</button>
-        </div>
+      </div>
+      <div class="kk-bubble" style="text-align:center;">
+        Bienvenue dans la famille <span class="kk-kana" style="font-size:22px;">かなDROP</span> ! 🎌<br><br>
+        Ton Premium à vie est <strong>définitivement sécurisé</strong>.<br>
+        Merci d'être là depuis le début. 🙏
+      </div>
+      <button class="kk-btn-primary" onclick="kkDismiss()">Retourner au jeu →</button>
     </div>
 
-    <!-- QUIZ CARD -->
-    <div class="card" id="quiz-card">
-        <div class="quiz-meta">
-            <span>Question <b id="q-count">0</b></span>
-            <span>RMS <b id="rms-disp">0.0000</b></span>
+    <!-- STATE 5 : ALREADY MEMBER -->
+    <div id="state-already" class="kk-state" style="display:none;flex-direction:column;align-items:center;gap:16px;padding:10px 0;">
+      <div class="kk-state-icon">⭐</div>
+      <div class="kk-state-title">Déjà Fondateur Légendaire !</div>
+      <div class="kk-badge">
+        <div class="kk-badge-icon">🏅</div>
+        <div class="kk-badge-text">
+          <div class="kk-badge-label">Statut actif ✓</div>
+          <div class="kk-badge-name">Fondateur Légendaire ⭐</div>
+          <div class="kk-badge-sub">Premium à vie • confirmé</div>
         </div>
-
-        <div style="text-align:center">
-            <div id="quiz-model-badge" class="m1">modèle 1</div>
-        </div>
-
-        <!-- Status bar M2 pendant quiz -->
-        <div id="m2-status-bar-quiz" style="display:none;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;margin-bottom:10px;font-size:0.68rem;font-family:var(--font-mono);color:var(--muted)">
-            <div id="m2-dot-quiz" style="width:6px;height:6px;border-radius:50%;background:var(--yellow);animation:pulse 0.8s infinite;flex-shrink:0"></div>
-            <span>Modèle 2 en chargement — が行 exclues pour l'instant</span>
-        </div>
-
-        <div class="hiragana-big" id="target-char">?</div>
-        <div class="romaji-hint" id="target-romaji">PRÊT ?</div>
-
-        <div class="timer-bar">
-            <div class="timer-fill" id="timer-fill"></div>
-        </div>
-
-        <div class="gauge-section">
-            <div class="gauge-header">
-                <span class="gauge-label-text">Confiance vocale</span>
-                <span class="gauge-pct-text" id="quiz-gauge-pct" style="color:var(--muted)">0%</span>
-            </div>
-            <div class="gauge-track">
-                <div class="gauge-fill-bar" id="quiz-gauge-fill"></div>
-            </div>
-        </div>
-
-        <div class="feedback-zone" id="feedback-top1">En attente…</div>
+      </div>
+      <div class="kk-bubble" style="text-align:center;">
+        Ton statut est <strong>bien actif</strong> et lié à<br>
+        <span class="kk-email-chip" id="already-email-display"></span><br><br>
+        Tu peux jouer sereinement — ton Premium à vie ne disparaîtra jamais. 🎉
+      </div>
+      <button class="kk-btn-primary" onclick="kkDismiss()">Retourner au jeu →</button>
     </div>
 
-    <!-- ACTION BAR -->
-    <div class="card hidden" id="action-card">
-        <div class="action-row">
-            <button class="btn btn-outline" onclick="nextQuestion()">⏭ Suivant</button>
-            <button class="btn btn-red" onclick="stopQuiz()">⏹ Terminer</button>
-        </div>
-        <div id="log-count">0 résultat enregistré</div>
+
+    <!-- STATE 6 : ERROR NETWORK -->
+    <div id="state-err-network" class="kk-state" style="display:none;flex-direction:column;align-items:center;gap:16px;padding:10px 0;">
+      <div class="kk-state-icon kk-shake">📡</div>
+      <div class="kk-state-title" style="color:#c0392b;">Pas de connexion</div>
+      <div class="kk-bubble-error">
+        On n'a pas pu envoyer ton email de confirmation.<br><br>
+        Vérifie ta connexion Wi-Fi ou données mobiles, puis réessaie. Ton statut Fondateur est <strong>bien enregistré</strong> en local — tu ne perds rien. 👌
+      </div>
+      <button class="kk-btn-primary" onclick="kkRetryNetwork()">↩ Réessayer</button>
+      <button class="kk-btn-secondary" onclick="showState('input')">Modifier mon email</button>
     </div>
 
-    <!-- RESULTS PAGE -->
-    <div id="results-page" class="hidden">
-        <div class="res-header">
-            <div class="score-label">Précision globale de la session</div>
-            <div class="big-score" id="res-accuracy">—</div>
-            <div class="user-name" id="res-username-display"></div>
-        </div>
-        <div class="kpi-row">
-            <div class="kpi-card">
-                <div class="kpi-val" style="color:var(--accent)" id="res-total">—</div>
-                <div class="kpi-lbl">Questions</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-val" style="color:var(--green)" id="res-correct">—</div>
-                <div class="kpi-lbl">Correctes</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-val" style="color:var(--yellow); font-size:1.1rem" id="res-rms">—</div>
-                <div class="kpi-lbl">RMS moy.</div>
-            </div>
-        </div>
-        <div class="stats-section" id="stats-accuracy-section">
-            <div class="stats-title">📊 Réussite par hiragana</div>
-            <div id="stats-accuracy-bars"></div>
-        </div>
-        <div class="stats-section" id="stats-detail-section">
-            <div class="stats-title">🏆 Podium de la session</div>
-            <div id="stats-podium"></div>
-        </div>
-        <div class="res-btns">
-            <button class="btn btn-outline" onclick="restartMenu()">⬅ Retour au menu</button>
-        </div>
+    <!-- STATE 7 : ERROR EMAIL ALREADY USED -->
+    <div id="state-err-used" class="kk-state" style="display:none;flex-direction:column;align-items:center;gap:16px;padding:10px 0;">
+      <div class="kk-state-icon kk-shake">🔒</div>
+      <div class="kk-state-title" style="color:#c0392b;">Email déjà utilisé</div>
+      <div class="kk-bubble-error">
+        L'adresse <span class="kk-email-chip" id="used-email-display"></span><br>
+        est déjà associée à un autre compte Fondateur.<br><br>
+        Utilise une autre adresse email, ou contacte-nous si tu penses qu'il y a une erreur.
+      </div>
+      <button class="kk-btn-primary" onclick="showState('input')">Utiliser un autre email</button>
+      <button class="kk-btn-secondary" onclick="kkContactSupport()">Contacter le support</button>
     </div>
 
+    <!-- STATE 8 : ERROR LINK EXPIRED -->
+    <div id="state-err-expired" class="kk-state" style="display:none;flex-direction:column;align-items:center;gap:16px;padding:10px 0;">
+      <div class="kk-state-icon kk-shake">⏰</div>
+      <div class="kk-state-title" style="color:#e67e22;">Lien expiré</div>
+      <div class="kk-bubble-warn">
+        Le lien de confirmation a expiré — ils sont valables <strong>24h</strong> pour des raisons de sécurité.<br><br>
+        Pas d'inquiétude, ton statut Fondateur est toujours réservé. On peut t'envoyer un nouveau lien immédiatement.
+      </div>
+      <button class="kk-btn-primary" onclick="kkResendExpired()">📬 Renvoyer un nouveau lien</button>
+      <button class="kk-btn-secondary" onclick="showState('input')">Changer d'adresse email</button>
+    </div>
+
+    <!-- STATE 9 : ERROR QUOTA FULL -->
+    <div id="state-err-quota" class="kk-state" style="display:none;flex-direction:column;align-items:center;gap:16px;padding:10px 0;">
+      <div class="kk-state-icon">😢</div>
+      <div class="kk-state-title" style="color:var(--text-mid);">Les 250 places sont prises</div>
+      <div class="kk-bubble" style="text-align:center;">
+        La promotion Fondateur Légendaire est <strong>complète</strong>.<br><br>
+        On est vraiment désolés — tu es arrivé juste après la 250ème inscription. Chaque fondateur compte énormément pour nous. 🙏
+      </div>
+      <div class="kk-bubble-tip" style="text-align:center;">
+        💌 Laisse quand même ton email — on te préviendra en priorité pour les prochaines offres exclusives de <span class="kk-kana">かなDROP</span>.
+      </div>
+      <div class="kk-input-wrap" style="width:100%;">
+        <div class="kk-input-icon">📧</div>
+        <input type="email" id="kk-email-quota" class="kk-email-field" placeholder="ton@email.com" autocomplete="email" autocorrect="off" autocapitalize="none">
+      </div>
+      <button class="kk-btn-secondary" onclick="kkQuotaNotify()">Me prévenir pour les prochaines offres</button>
+      <button class="kk-btn-primary" onclick="kkDismiss()">Retourner au jeu →</button>
+    </div>
+
+  </div><!-- /inner -->
+
+  <button id="kanakun-back-btn" onclick="kkDismiss()">Plus tard — je prends le risque</button>
 </div>
 
-<script>
-// ═══════════════════════════════════════════════════════════════════════════════
-// CONFIGURATION MULTI-MODÈLES
-// ═══════════════════════════════════════════════════════════════════════════════
+<!-- BARRE TEST (labo uniquement) -->
+<div id="test-bar">
+  <span style="color:#888;font-size:11px;font-weight:700;align-self:center;font-family:monospace;">TEST →</span>
+  <button class="tbtn" style="background:#5c35c8;" onclick="showState('input')">1. INPUT</button>
+  <button class="tbtn" style="background:#2a6080;" onclick="showState('sending')">2. SENDING</button>
+  <button class="tbtn" style="background:#0077bb;" onclick="showState('sent')">3. SENT</button>
+  <button class="tbtn" style="background:#2a9d40;" onclick="showState('confirmed')">4. CONFIRMED 🎊</button>
+  <button class="tbtn" style="background:#a06020;" onclick="showState('already')">5. ALREADY ⭐</button>
+  <span style="color:#555;font-size:11px;align-self:center;">✕</span>
+  <button class="tbtn" style="background:#922b21;" onclick="showState('err-network')">6. NO WIFI 📡</button>
+  <button class="tbtn" style="background:#922b21;" onclick="showState('err-used')">7. USED 🔒</button>
+  <button class="tbtn" style="background:#935116;" onclick="showState('err-expired')">8. EXPIRED ⏰</button>
+  <button class="tbtn" style="background:#555;" onclick="showState('err-quota')">9. QUOTA 😢</button>
+</div>
 
-const MODELS = {
-    m1: {
-        url: "https://teachablemachine.withgoogle.com/models/FHpuy1ng6/",
-        syllables: ['あ','い','う','え','お'],
-        label: "Modèle 1",
-        color: "var(--accent)",
-        cssClass: "m1"
-    },
-    m2: {
-        url: "https://teachablemachine.withgoogle.com/models/-0uKdNRdX/",
-        syllables: ['か','き','く','け','こ','が','ぎ','ぐ','げ','ご'],
-        label: "Modèle 2",
-        color: "var(--purple)",
-        cssClass: "m2"
+<script type="module">
+/* ── Import du vrai service Firebase ── */
+import {
+  registerFounder,
+  resendConfirmationEmail,
+  checkFounderStatus,
+  listenForConfirmation,
+  isOnline
+} from './founder-service.js';
+
+/* ── Bulles limonade ── */
+(function(){
+  const cols=['#00c8e8','#5cb85c','#e8833a','#c4a8ff','#72e8b8','#ffaa7a'];
+  const el=document.getElementById('confetti-kanakun');
+  if(!el)return;
+  for(let i=0;i<40;i++){
+    const d=document.createElement('div');d.className='cdot';
+    const sz=Math.random()*18+9;
+    d.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;background:${cols[i%cols.length]};--cd:${(Math.random()*5+3).toFixed(1)}s;--cdelay:${(Math.random()*4).toFixed(1)}s;--cop:.28;`;
+    el.appendChild(d);
+  }
+})();
+
+/* ── Listener actif (pour détecter la confirmation en temps réel) ── */
+let unsubscribeListener = null;
+
+/* ── Vérif au démarrage (si email déjà sauvé) ── */
+(async () => {
+  const savedEmail = localStorage.getItem('kk_founder_email');
+  if (!savedEmail) return;
+  currentEmail = savedEmail;
+  const result = await checkFounderStatus(savedEmail);
+  if (result.status === 'already') {
+    showState('already');
+  } else if (result.status === 'sent') {
+    showState('sent');
+    /* Relance l'écoute temps réel */
+    startListening(savedEmail);
+  } else if (result.status === 'err-expired') {
+    showState('err-expired');
+  }
+})();
+
+/* ── Écoute temps réel ── */
+async function startListening(email) {
+  if (unsubscribeListener) unsubscribeListener();
+  unsubscribeListener = await listenForConfirmation(email, (result) => {
+    if (result.status === 'confirmed') {
+      if (unsubscribeListener) { unsubscribeListener(); unsubscribeListener = null; }
+      showState('confirmed');
     }
-};
-
-const HIRAGANA_MAP = {
-    'あ':'a', 'い':'i', 'う':'u', 'え':'e', 'お':'o',
-    'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko',
-    'が':'ga','ぎ':'gi','ぐ':'gu','げ':'ge','ご':'go'
-};
-
-// Lookup rapide : quel modèle pour quel hiragana ?
-const HIRAGANA_TO_MODEL = {};
-for (const [key, cfg] of Object.entries(MODELS)) {
-    cfg.syllables.forEach(s => HIRAGANA_TO_MODEL[s] = key);
+  });
 }
 
-const ALL_SYLLABLES  = [...MODELS.m1.syllables, ...MODELS.m2.syllables];
-const MASTERY_KEY    = 'hiragana_mastery_v2';
-const STAR_THRESHOLD = 75;
-const QUIZ_THRESHOLD = 50;
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════════════════════════
-
-let recognizers   = { m1: null, m2: null };
-let modelReady    = { m1: false, m2: false };
-let audioContext, gainNode, analyser, dataArray;
-let isListening   = false;
-let quizStopped   = false;
-let currentTarget = "";
-let activeModelKey = null;   // clé du recognizer actuellement en écoute
-let logs          = [];
-let questionCount = 0;
-let sessionBest   = { label:"", score:0 };
-let rmsSum = 0, rmsCount = 0;
-let selectedMode  = 'quiz';
-let lastAsked     = "";
-let quizTimer;
-let sessionStats  = {};
-ALL_SYLLABLES.forEach(s => sessionStats[s] = { asked:0, correct:0, confSum:0, confCount:0 });
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// AUDIO FEEDBACK
-// ═══════════════════════════════════════════════════════════════════════════════
-
-let sfxContext;
-function getSfxCtx() {
-    if (!sfxContext) sfxContext = new (window.AudioContext || window.webkitAudioContext)();
-    return sfxContext;
-}
-function playDing() {
-    try {
-        const ctx = getSfxCtx(), t = ctx.currentTime;
-        const o1=ctx.createOscillator(), g1=ctx.createGain();
-        o1.connect(g1); g1.connect(ctx.destination);
-        o1.frequency.setValueAtTime(880,t); o1.frequency.exponentialRampToValueAtTime(1320,t+0.08);
-        g1.gain.setValueAtTime(0.25,t); g1.gain.exponentialRampToValueAtTime(0.001,t+0.35);
-        o1.start(t); o1.stop(t+0.35);
-        const o2=ctx.createOscillator(), g2=ctx.createGain();
-        o2.connect(g2); g2.connect(ctx.destination);
-        o2.frequency.setValueAtTime(1320,t+0.1); o2.frequency.exponentialRampToValueAtTime(1760,t+0.2);
-        g2.gain.setValueAtTime(0.15,t+0.1); g2.gain.exponentialRampToValueAtTime(0.001,t+0.5);
-        o2.start(t+0.1); o2.stop(t+0.5);
-    } catch(e){}
-}
-function playFail() {
-    try {
-        const ctx = getSfxCtx(), t = ctx.currentTime;
-        const o=ctx.createOscillator(), g=ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.type='sawtooth';
-        o.frequency.setValueAtTime(280,t); o.frequency.exponentialRampToValueAtTime(140,t+0.25);
-        g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
-        o.start(t); o.stop(t+0.3);
-    } catch(e){}
+/* ── Confettis rect ── */
+const CONF_COLORS=['#6c63ff','#00aaee','#ffbe0b','#2ed8a0','#ff6b9d','#5c35c8'];
+function launchConfetti(n=55){
+  const layer=document.getElementById('confetti-founder');
+  for(let i=0;i<n;i++){
+    const c=document.createElement('div');c.className='kk-conf';
+    const w=6+Math.random()*10,h=10+Math.random()*14;
+    c.style.cssText=`left:${Math.random()*100}%;width:${w}px;height:${h}px;background:${CONF_COLORS[Math.floor(Math.random()*CONF_COLORS.length)]};animation-duration:${1.2+Math.random()*1.6}s;animation-delay:${Math.random()*.5}s;transform:rotate(${Math.random()*360}deg);opacity:${.7+Math.random()*.3};`;
+    layer.appendChild(c);
+    setTimeout(()=>c.remove(),3500);
+  }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SLIDER & MODE
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ── Machine d'états ── */
+const STATES=['input','sending','sent','confirmed','already','err-network','err-used','err-expired','err-quota'];
+let currentEmail='test@exemple.com';
 
-document.getElementById('gain-slider').oninput = (e) => {
-    document.getElementById('gain-val').innerText = e.target.value;
-    if (gainNode) gainNode.gain.value = e.target.value;
-};
+function showState(name){
+  STATES.forEach(s=>{
+    const el=document.getElementById('state-'+s);
+    if(el)el.style.display='none';
+  });
+  const target=document.getElementById('state-'+name);
+  if(!target)return;
+  target.style.display='flex';
+  target.style.flexDirection='column';
+  // reset animation
+  target.style.animation='none';
+  void target.offsetWidth;
+  target.style.animation='';
+  document.getElementById('kanakun-inner').scrollTop=0;
 
-function selectMode(mode) {
-    selectedMode = mode;
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('mode-' + mode).classList.add('active');
+  // Bouton bas
+  const btn=document.getElementById('kanakun-back-btn');
+  if(name==='confirmed'||name==='already'||name==='err-quota'){
+    btn.style.display='none';
+  } else {
+    btn.style.display='block';
+    btn.textContent=name==='sent'?'Je confirmerai plus tard':'Plus tard — je prends le risque';
+  }
+
+  // Données dynamiques
+  if(name==='sent') document.getElementById('sent-email-display').textContent=currentEmail;
+  if(name==='err-used'){ const el=document.getElementById('used-email-display'); if(el) el.textContent=currentEmail; }
+  if(name==='already') document.getElementById('already-email-display').textContent=currentEmail;
+  if(name==='confirmed'){
+    launchConfetti(60);
+    setTimeout(()=>launchConfetti(40),600);
+    setTimeout(()=>launchConfetti(25),1300);
+  }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// RMS LOOP
-// ═══════════════════════════════════════════════════════════════════════════════
+async function kkSubmitEmail(){
+  const val=document.getElementById('kk-email').value.trim();
+  const err=document.getElementById('kk-error');
+  if(!val||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){
+    err.style.display='block';
+    document.getElementById('kk-email').style.borderColor='#e0144c';
+    return;
+  }
+  err.style.display='none';
+  currentEmail=val;
+  showState('sending');
 
-function updateRMSLoop() {
-    if (!analyser) return;
-    analyser.getFloatTimeDomainData(dataArray);
-    let sq = 0;
-    for (const a of dataArray) sq += a*a;
-    const rms = Math.sqrt(sq / dataArray.length);
-    if (isListening) {
-        rmsSum += rms; rmsCount++;
-        document.getElementById('rms-disp').innerText = rms.toFixed(4);
-    }
-    requestAnimationFrame(updateRMSLoop);
+  const result = await registerFounder(val);
+  showState(result.status);
+
+  /* Si envoi ok → sauve email + écoute temps réel */
+  if(result.status==='sent'){
+    localStorage.setItem('kk_founder_email', val);
+    startListening(val);
+  }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// INITIALISATION — chargement parallèle des modèles
-// ═══════════════════════════════════════════════════════════════════════════════
-
-async function loadModel(key) {
-    const cfg = MODELS[key];
-    const r = speechCommands.create("BROWSER_FFT", undefined, cfg.url + "model.json", cfg.url + "metadata.json");
-    await r.ensureModelLoaded();
-    return r;
+async function kkResend(){
+  showState('sending');
+  const result = await resendConfirmationEmail(currentEmail);
+  showState(result.status==='sent' ? 'sent' : result.status);
 }
 
-document.getElementById('btn-start').onclick = async () => {
-    const btn  = document.getElementById('btn-start');
-    const name = document.getElementById('username').value.trim();
-    if (!name) { alert("Merci d'entrer un nom !"); return; }
 
-    btn.disabled = true;
-    document.getElementById('loading').classList.remove('hidden');
-    setDot('m1', 'loading');
-    setDot('m2', 'loading');
-
-    try {
-        // Micro + audio pipeline
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        } else if (audioContext.state === 'suspended') {
-            await audioContext.resume();
-        }
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const source = audioContext.createMediaStreamSource(stream);
-        gainNode = audioContext.createGain();
-        gainNode.gain.value = document.getElementById('gain-slider').value;
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        dataArray = new Float32Array(analyser.fftSize);
-        source.connect(gainNode);
-        gainNode.connect(analyser);
-        updateRMSLoop();
-
-        // Charger M1 en priorité (bloquant)
-        recognizers.m1 = await loadModel('m1');
-        modelReady.m1  = true;
-        setDot('m1', 'done');
-
-        // Démarrer l'UI sans attendre M2
-        document.getElementById('setup-card').classList.add('hidden');
-        document.getElementById('loading').classList.add('hidden');
-        btn.disabled = false;
-
-        if (selectedMode === 'free') {
-            startFreeMode();
-        } else {
-            document.getElementById('quiz-card').style.display = 'block';
-            document.getElementById('action-card').classList.remove('hidden');
-            // Afficher status M2 dans le quiz
-            document.getElementById('m2-status-bar-quiz').style.display = 'flex';
-            quizStopped = false;
-            setTimeout(nextQuestion, 800);
-        }
-
-        // Charger M2 en arrière-plan (non bloquant)
-        loadModel('m2').then(r => {
-            recognizers.m2 = r;
-            modelReady.m2  = true;
-            setDot('m2', 'done');
-            onModel2Ready();
-        }).catch(err => {
-            setDot('m2', 'error');
-            console.warn('Modèle 2 non disponible :', err);
-        });
-
-    } catch(e) {
-        alert("Erreur micro ou modèle : " + e);
-        btn.disabled = false;
-        document.getElementById('loading').classList.add('hidden');
-    }
-};
-
-function setDot(key, state) {
-    const dot = document.getElementById('dot-' + key);
-    if (dot) { dot.className = 'load-dot ' + state; }
+async function kkRetryNetwork(){
+  if(!isOnline()){ showState('err-network'); return; }
+  showState('sending');
+  const result = await registerFounder(currentEmail);
+  showState(result.status);
+  if(result.status==='sent'){
+    localStorage.setItem('kk_founder_email', currentEmail);
+    startListening(currentEmail);
+  }
 }
 
-// Appelé quand M2 est prêt
-function onModel2Ready() {
-    // Cacher le status bar dans quiz et free
-    const qBar = document.getElementById('m2-status-bar-quiz');
-    if (qBar) qBar.style.display = 'none';
-
-    const fBar = document.getElementById('m2-status-bar');
-    if (fBar) {
-        const dot = document.getElementById('m2-status-dot');
-        const txt = document.getElementById('m2-status-text');
-        if (dot) { dot.className = ''; dot.style.background = 'var(--green)'; dot.style.animation = 'none'; }
-        if (txt) txt.textContent = 'Modèle 2 prêt — が行 disponibles !';
-        setTimeout(() => { if (fBar) fBar.style.display = 'none'; }, 3000);
-    }
-
-    // Débloquer les boutons が行 dans le sélecteur libre
-    MODELS.m2.syllables.forEach(h => {
-        const btn = document.getElementById('hbtn-' + h);
-        if (btn) btn.classList.remove('pending');
-    });
-
-    // Bannière de notification
-    const banner = document.getElementById('model2-banner');
-    if (banner) {
-        banner.classList.add('visible');
-        setTimeout(() => banner.classList.remove('visible'), 4000);
-    }
+async function kkResendExpired(){
+  showState('sending');
+  const result = await resendConfirmationEmail(currentEmail);
+  showState(result.status==='sent' ? 'sent' : result.status);
+  if(result.status==='sent') startListening(currentEmail);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MASTERY
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function loadMastery()       { const d = localStorage.getItem(MASTERY_KEY); return d ? JSON.parse(d) : {}; }
-function saveMastery(data)   { localStorage.setItem(MASTERY_KEY, JSON.stringify(data)); }
-function getMasteryFor(h)    { return loadMastery()[h] || { stars:0, maxPct:0 }; }
-function starsStr(n)         { return '★'.repeat(n) + '☆'.repeat(3-n); }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// RECOGNIZER SWITCH — cœur du multi-modèles
-// ═══════════════════════════════════════════════════════════════════════════════
-
-async function switchToRecognizer(key, onResult) {
-    // Arrêter le recognizer actif si différent
-    if (activeModelKey && activeModelKey !== key) {
-        const prev = recognizers[activeModelKey];
-        if (prev && prev.isListening()) {
-            await prev.stopListening();
-        }
-    }
-    activeModelKey = key;
-    const rec = recognizers[key];
-    if (!rec) return false;
-    if (!rec.isListening()) {
-        rec.listen(onResult, { probabilityThreshold: 0.05, overlapFactor: 0.5 });
-    }
-    return true;
+function kkContactSupport(){
+  alert('Ouvre un email vers support@kanadrop.app');
 }
 
-async function stopAllRecognition() {
-    isListening   = false;
-    freeListening = false;
-    for (const key of ['m1','m2']) {
-        const r = recognizers[key];
-        if (r && r.isListening()) await r.stopListening();
-    }
-    activeModelKey = null;
+function kkQuotaNotify(){
+  const val=document.getElementById('kk-email-quota').value.trim();
+  if(!val||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){
+    document.getElementById('kk-email-quota').style.borderColor='#e0144c';
+    return;
+  }
+  document.getElementById('kk-email-quota').style.borderColor='';
+  // Simule enregistrement
+  alert('Email noté ! On te préviendra en priorité. 🙏');
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// FREE MODE
-// ═══════════════════════════════════════════════════════════════════════════════
-
-let freeListening = false;
-let freeTarget    = null;
-let isStarLocked  = false;
-
-const freeDom = {
-    char:          () => document.getElementById('free-char'),
-    romaji:        () => document.getElementById('free-romaji'),
-    gaugeLabel:    () => document.getElementById('gauge-label'),
-    gaugeFill:     () => document.getElementById('gauge-fill'),
-    gaugePct:      () => document.getElementById('gauge-pct'),
-    maxVal:        () => document.getElementById('free-max-val'),
-    starsDisp:     () => document.getElementById('free-stars-disp'),
-    masteryBanner: () => document.getElementById('mastery-banner'),
-    modelTag:      () => document.getElementById('free-model-tag'),
-};
-
-function startFreeMode() {
-    document.getElementById('free-card').style.display = 'block';
-    document.getElementById('free-stats-row').style.display = 'flex';
-
-    // Afficher status M2 si pas encore prêt
-    const fBar = document.getElementById('m2-status-bar');
-    if (!modelReady.m2 && fBar) fBar.style.display = 'flex';
-
-    document.getElementById('free-scores').innerHTML = `
-        <div class="field" style="margin-top:16px">
-            <div class="gain-row">
-                <span style="font-family:var(--font-mono);font-size:0.72rem;text-transform:uppercase;letter-spacing:1px">Confiance pour <b id="gauge-label">?</b></span>
-                <span id="gauge-pct" class="gain-val">0%</span>
-            </div>
-            <div class="gauge-track" style="height:14px;margin-top:10px">
-                <div id="gauge-fill" class="gauge-fill-bar"></div>
-            </div>
-        </div>
-        <button class="btn btn-outline" style="margin-top:20px;border-color:rgba(255,69,96,0.4);color:var(--muted);font-size:0.8rem" onclick="resetAllMastery()">🗑 Réinitialiser la progression</button>
-    `;
-
-    buildHiraSelector();
-    autoSelectNext();
-    freeListening = true;
-    startFreeListening();
+function kkDismiss(){
+  alert('index.html → hideKanakunPage()');
 }
 
-function buildHiraSelector() {
-    const sel = document.getElementById('hira-selector');
-    sel.innerHTML = '';
-    const mastery = loadMastery();
-
-    // Groupe 1
-    const lbl1 = document.createElement('div');
-    lbl1.className = 'hira-group-label';
-    lbl1.textContent = '· Modèle 1 — あ行 · か行';
-    sel.appendChild(lbl1);
-
-    MODELS.m1.syllables.forEach(h => {
-        sel.appendChild(makeHiraBtn(h, mastery, false));
-    });
-
-    // Groupe 2
-    const lbl2 = document.createElement('div');
-    lbl2.className = 'hira-group-label group2';
-    lbl2.textContent = '· Modèle 2 — が行';
-    sel.appendChild(lbl2);
-
-    MODELS.m2.syllables.forEach(h => {
-        sel.appendChild(makeHiraBtn(h, mastery, !modelReady.m2));
-    });
-}
-
-function makeHiraBtn(h, mastery, isPending) {
-    const st  = mastery[h] ? mastery[h].stars : 0;
-    const btn = document.createElement('div');
-    btn.className = 'hira-btn' + (st >= 3 ? ' mastered' : '') + (isPending ? ' pending' : '');
-    btn.innerHTML = `<div class="hb-char">${h}</div><div class="hb-rom">${HIRAGANA_MAP[h]}</div><div class="hb-stars">${isPending ? '⏳' : starsStr(st)}</div>`;
-    btn.id = 'hbtn-' + h;
-    btn.onclick = () => {
-        if (btn.classList.contains('pending')) return;
-        selectFreeTarget(h);
-    };
-    return btn;
-}
-
-function autoSelectNext() {
-    const mastery = loadMastery();
-    // Prioriser M1, puis M2 si prêt
-    const available = ALL_SYLLABLES.filter(s => {
-        if (HIRAGANA_TO_MODEL[s] === 'm2' && !modelReady.m2) return false;
-        return true;
-    });
-    let target = available[0];
-    for (const s of available) {
-        if (!mastery[s] || mastery[s].stars < 3) { target = s; break; }
-    }
-    selectFreeTarget(target);
-}
-
-function selectFreeTarget(h) {
-    if (freeTarget === h) return;
-    freeTarget = h;
-    document.querySelectorAll('.hira-btn').forEach(b => b.classList.remove('selected'));
-    const btn = document.getElementById('hbtn-' + h);
-    if (btn) btn.classList.add('selected');
-
-    freeDom.char().innerText   = h;
-    freeDom.romaji().innerText = HIRAGANA_MAP[h];
-    const gaugeLabel = freeDom.gaugeLabel();
-    if (gaugeLabel) gaugeLabel.innerText = h;
-
-    // Tag modèle
-    const modelKey = HIRAGANA_TO_MODEL[h];
-    const tag = freeDom.modelTag();
-    if (tag) {
-        tag.className = 'model-tag ' + MODELS[modelKey].cssClass;
-        tag.textContent = MODELS[modelKey].label;
-    }
-
-    const m = getMasteryFor(h);
-    freeDom.maxVal().innerText    = m.maxPct + '%';
-    freeDom.starsDisp().innerHTML = starsStr(m.stars);
-    freeDom.masteryBanner().style.display = m.stars >= 3 ? 'block' : 'none';
-    if (freeDom.gaugeFill()) freeDom.gaugeFill().style.width = '0%';
-    if (freeDom.gaugePct()) freeDom.gaugePct().innerText = '0%';
-
-    // Switcher vers le bon recognizer
-    const modelKey2 = HIRAGANA_TO_MODEL[h];
-    if (modelReady[modelKey2]) {
-        startFreeListening();
-    }
-}
-
-function startFreeListening() {
-    if (!freeTarget) return;
-    const key = HIRAGANA_TO_MODEL[freeTarget];
-    if (!modelReady[key]) return;
-
-    switchToRecognizer(key, result => {
-        if (!freeListening || !freeTarget) return;
-        const labels   = recognizers[key].wordLabels();
-        const idx      = labels.indexOf(freeTarget);
-        if (idx === -1) return;
-        const pctNum   = Math.round(result.scores[idx] * 100);
-
-        const gauge = freeDom.gaugeFill();
-        const pctEl = freeDom.gaugePct();
-        if (gauge) {
-            gauge.style.width      = pctNum + '%';
-            gauge.style.background = pctNum > 75 ? 'var(--green)' : pctNum > 50 ? 'var(--yellow)' : 'var(--red)';
-        }
-        if (pctEl) pctEl.innerText = pctNum + '%';
-        if (pctNum >= STAR_THRESHOLD) updateMastery(freeTarget, pctNum);
-    });
-}
-
-function updateMastery(h, pctNum) {
-    const mastery = loadMastery();
-    if (!mastery[h]) mastery[h] = { stars:0, maxPct:0 };
-    const entry = mastery[h];
-    let changed = false;
-
-    if (pctNum > entry.maxPct) { entry.maxPct = pctNum; changed = true; }
-
-    if (pctNum >= STAR_THRESHOLD && entry.stars < 3 && !isStarLocked) {
-        isStarLocked = true;
-        entry.stars++;
-        entry.maxPct = 0;
-        changed = true;
-
-        const cd = freeDom.char();
-        cd.classList.remove('flash-success');
-        void cd.offsetWidth;
-        cd.classList.add('flash-success');
-        setTimeout(() => { isStarLocked = false; }, 1200);
-
-        if (entry.stars === 3) {
-            setTimeout(() => { if (freeListening) autoSelectNext(); }, 1500);
-        }
-    }
-
-    if (changed) {
-        saveMastery(mastery);
-        const hBtn = document.getElementById('hbtn-' + h);
-        if (hBtn) {
-            const isPending = hBtn.classList.contains('pending');
-            hBtn.className = 'hira-btn selected' + (entry.stars >= 3 ? ' mastered' : '') + (isPending ? ' pending' : '');
-            hBtn.querySelector('.hb-stars').innerHTML = starsStr(entry.stars);
-        }
-        freeDom.maxVal().innerText    = entry.maxPct + '%';
-        freeDom.starsDisp().innerHTML = starsStr(entry.stars);
-        freeDom.masteryBanner().style.display = entry.stars >= 3 ? 'block' : 'none';
-    }
-}
-
-function resetAllMastery() {
-    if (confirm("Effacer toute la progression ?")) {
-        localStorage.removeItem(MASTERY_KEY);
-        buildHiraSelector();
-        autoSelectNext();
-    }
-}
-
-async function stopFree() {
-    await stopAllRecognition();
-    document.getElementById('free-card').style.display = 'none';
-    document.getElementById('setup-card').classList.remove('hidden');
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// QUIZ MODE
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function getAvailableSyllables() {
-    return ALL_SYLLABLES.filter(s => modelReady[HIRAGANA_TO_MODEL[s]]);
-}
-
-function getSmartRandomChar() {
-    const pool = getAvailableSyllables().filter(s => s !== lastAsked);
-    if (pool.length === 0) return getAvailableSyllables()[0];
-
-    let lowestScore = 1.0, candidates = [];
-    for (const s of pool) {
-        const st = sessionStats[s];
-        const score = st.asked === 0 ? 0 : (st.correct / st.asked);
-        if (score < lowestScore)       { lowestScore = score; candidates = [s]; }
-        else if (score === lowestScore) { candidates.push(s); }
-    }
-    if (Math.random() < 0.25) candidates = pool;
-    const chosen = candidates[Math.floor(Math.random() * candidates.length)];
-    lastAsked = chosen;
-    return chosen;
-}
-
-function nextQuestion() {
-    if (quizStopped) return;
-    questionCount++;
-    document.getElementById('q-count').innerText = questionCount;
-
-    currentTarget = getSmartRandomChar();
-    const modelKey = HIRAGANA_TO_MODEL[currentTarget];
-    sessionStats[currentTarget].asked++;
-
-    // Badge modèle
-    const badge = document.getElementById('quiz-model-badge');
-    badge.className = MODELS[modelKey].cssClass;
-    badge.textContent = MODELS[modelKey].label;
-
-    document.getElementById('quiz-card').className = "card quiz-active";
-    document.getElementById('target-char').innerText   = currentTarget;
-    document.getElementById('target-romaji').innerText = HIRAGANA_MAP[currentTarget];
-    document.getElementById('feedback-top1').innerText = "Parlez maintenant…";
-    document.getElementById('quiz-gauge-fill').style.width = '0%';
-    document.getElementById('quiz-gauge-pct').innerText    = '0%';
-    document.getElementById('quiz-gauge-pct').style.color  = 'var(--muted)';
-
-    sessionBest = { label:"Silence", score:0 };
-    rmsSum = 0; rmsCount = 0;
-
-    const timerBar = document.getElementById('timer-fill');
-    timerBar.style.transition = 'none'; timerBar.style.width = '100%';
-    clearTimeout(quizTimer);
-
-    // Switcher vers le bon modèle AVANT de démarrer le timer
-    switchToRecognizer(modelKey, quizResultHandler).then(() => {
-        setTimeout(() => {
-            timerBar.style.transition = 'width 5s linear';
-            timerBar.style.width = '0%';
-            isListening = true;
-        }, 50);
-        quizTimer = setTimeout(() => finishQuestion(false), 5050);
-    });
-}
-
-function quizResultHandler(result) {
-    if (!isListening || quizStopped) return;
-    const key    = HIRAGANA_TO_MODEL[currentTarget];
-    const labels = recognizers[key].wordLabels();
-    const idx    = labels.indexOf(currentTarget);
-    if (idx === -1) return;
-
-    const score  = result.scores[idx];
-    const pctNum = Math.round(score * 100);
-
-    const gauge = document.getElementById('quiz-gauge-fill');
-    const pctEl = document.getElementById('quiz-gauge-pct');
-    if (gauge) {
-        gauge.style.width      = pctNum + '%';
-        gauge.style.background = pctNum >= QUIZ_THRESHOLD
-            ? 'linear-gradient(90deg, var(--green2), var(--green))'
-            : pctNum > 30
-                ? 'linear-gradient(90deg, #cc6600, var(--yellow))'
-                : 'linear-gradient(90deg, #880020, var(--red))';
-    }
-    if (pctEl) {
-        pctEl.innerText    = pctNum + '%';
-        pctEl.style.color  = pctNum >= QUIZ_THRESHOLD ? 'var(--green)' : pctNum > 30 ? 'var(--yellow)' : 'var(--red)';
-    }
-
-    if (score > sessionBest.score) {
-        sessionBest.score   = score;
-        sessionBest.label   = currentTarget;
-        sessionBest.peakPct = pctNum;
-    }
-
-    if (pctNum >= QUIZ_THRESHOLD) {
-        isListening = false;
-        finishQuestion(true);
-    }
-}
-
-function finishQuestion(isEarlySuccess = false) {
-    isListening = false;
-    clearTimeout(quizTimer);
-
-    const avgRMS    = rmsCount > 0 ? (rmsSum / rmsCount) : 0;
-    const isCorrect = isEarlySuccess || (sessionBest.score * 100 >= QUIZ_THRESHOLD);
-
-    if (isCorrect) { sessionStats[currentTarget].correct++; playDing(); }
-    else           { playFail(); }
-
-    const peakPct = sessionBest.peakPct || 0;
-    sessionStats[currentTarget].confSum   += peakPct;
-    sessionStats[currentTarget].confCount++;
-
-    logs.push({
-        timestamp: new Date().toLocaleString('fr-FR'),
-        expected:  currentTarget,
-        model:     HIRAGANA_TO_MODEL[currentTarget],
-        top1:      isCorrect ? currentTarget : "Échec",
-        score1:    sessionBest.score.toFixed(4),
-        rms:       avgRMS.toFixed(6),
-        gain:      gainNode ? gainNode.gain.value.toFixed(2) : "1.0"
-    });
-
-    document.getElementById('log-count').innerText     = `${logs.length} résultat(s) enregistré(s)`;
-    document.getElementById('quiz-card').className     = "card " + (isCorrect ? "quiz-success" : "quiz-fail");
-    document.getElementById('feedback-top1').innerHTML = isCorrect
-        ? `<span style="color:var(--green);font-weight:700">✅ Parfait !</span>`
-        : `<span style="color:var(--red);font-weight:700">❌ Temps écoulé — max: ${(sessionBest.score*100).toFixed(0)}%</span>`;
-
-    if (!quizStopped) setTimeout(nextQuestion, 1500);
-}
-
-async function stopQuiz() {
-    quizStopped = true;
-    await stopAllRecognition();
-    document.getElementById('quiz-card').style.display = 'none';
-    document.getElementById('action-card').classList.add('hidden');
-    document.getElementById('results-page').classList.remove('hidden');
-    buildResultsPage();
-}
-
-function restartMenu() {
-    logs = []; questionCount = 0;
-    ALL_SYLLABLES.forEach(s => sessionStats[s] = { asked:0, correct:0, confSum:0, confCount:0 });
-    document.getElementById('results-page').classList.add('hidden');
-    document.getElementById('setup-card').classList.remove('hidden');
-    document.getElementById('log-count').innerText = "0 résultat enregistré";
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// RÉSULTATS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function buildResultsPage() {
-    const total    = logs.length;
-    const correct  = logs.filter(l => l.top1 === l.expected).length;
-    const accuracy = total > 0 ? (correct / total * 100) : 0;
-    const avgRMS   = total > 0 ? (logs.reduce((s,l) => s + parseFloat(l.rms), 0) / total) : 0;
-
-    document.getElementById('res-accuracy').innerText        = accuracy.toFixed(1) + '%';
-    document.getElementById('res-username-display').innerText = document.getElementById('username').value;
-    document.getElementById('res-total').innerText   = total;
-    document.getElementById('res-correct').innerText = correct;
-    document.getElementById('res-rms').innerText     = avgRMS.toFixed(4);
-
-    buildAccuracyBars();
-    buildPodium();
-}
-
-function buildAccuracyBars() {
-    const container = document.getElementById('stats-accuracy-bars');
-    container.innerHTML = '';
-
-    const perChar = ALL_SYLLABLES.map(h => {
-        const s       = sessionStats[h];
-        const pct     = s.asked > 0 ? Math.round(s.correct / s.asked * 100) : null;
-        const avgConf = s.confCount > 0 ? Math.round(s.confSum / s.confCount) : 0;
-        const mKey    = HIRAGANA_TO_MODEL[h];
-        return { h, pct, asked:s.asked, correct:s.correct, avgConf, mKey };
-    }).filter(x => x.asked > 0);
-
-    if (perChar.length === 0) {
-        container.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:10px">Aucune donnée</div>';
-        return;
-    }
-
-    perChar.sort((a,b) => b.pct - a.pct || b.avgConf - a.avgConf);
-
-    perChar.forEach((item, i) => {
-        const color     = item.pct >= 80 ? 'var(--green)' : item.pct >= 50 ? 'var(--yellow)' : 'var(--red)';
-        const confColor = item.avgConf >= 70 ? 'var(--green)' : item.avgConf >= 40 ? 'var(--yellow)' : 'var(--muted)';
-        const medal     = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
-        const mColor    = item.mKey === 'm1' ? 'var(--accent)' : 'var(--purple)';
-
-        const el = document.createElement('div');
-        el.className = 'bar-item';
-        el.style.cssText = 'flex-wrap:wrap; row-gap:3px;';
-        el.innerHTML = `
-            <div class="bar-char" style="position:relative">
-                ${item.h}
-                <div style="position:absolute;bottom:-2px;right:0;width:5px;height:5px;border-radius:50%;background:${mColor}"></div>
-            </div>
-            <div class="bar-rom">${HIRAGANA_MAP[item.h]}</div>
-            <div class="bar-track">
-                <div class="bar-fill" style="width:0%;background:${color}" data-w="${item.pct}"></div>
-            </div>
-            <div class="bar-pct" style="color:${color}">${item.pct}%</div>
-            <div class="bar-asked" title="${item.correct}/${item.asked}">${item.asked}×</div>
-            <div style="width:18px;text-align:center;font-size:0.85rem">${medal}</div>
-            <div style="width:36px"></div>
-            <div style="width:22px"></div>
-            <div style="flex:1;display:flex;align-items:center;gap:6px">
-                <div style="flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden">
-                    <div class="bar-fill-conf" style="width:0%;height:100%;background:${confColor};border-radius:2px;transition:width 1s ease 0.3s" data-w="${item.avgConf}"></div>
-                </div>
-            </div>
-            <div style="width:36px;text-align:right;font-size:0.7rem;font-family:var(--font-mono);font-weight:700;color:${confColor}">${item.avgConf}%</div>
-            <div style="width:18px;text-align:center;font-size:0.65rem;color:var(--muted)">conf</div>
-        `;
-        container.appendChild(el);
-    });
-
-    setTimeout(() => {
-        container.querySelectorAll('.bar-fill').forEach(b => { b.style.transition='width 0.8s ease'; b.style.width=b.dataset.w+'%'; });
-        container.querySelectorAll('.bar-fill-conf').forEach(b => { b.style.width=b.dataset.w+'%'; });
-    }, 80);
-}
-
-function buildPodium() {
-    const container = document.getElementById('stats-podium');
-    container.innerHTML = '';
-
-    const perChar = ALL_SYLLABLES.map(h => {
-        const s = sessionStats[h];
-        return {
-            h, asked:s.asked, correct:s.correct,
-            pct:     s.asked > 0 ? Math.round(s.correct/s.asked*100) : null,
-            avgConf: s.confCount > 0 ? Math.round(s.confSum/s.confCount) : 0,
-            fails:   s.asked - s.correct,
-            mKey:    HIRAGANA_TO_MODEL[h]
-        };
-    }).filter(x => x.asked > 0);
-
-    if (perChar.length === 0) {
-        container.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:10px">Aucune donnée</div>';
-        return;
-    }
-
-    const bySuccess = [...perChar].sort((a,b) => b.pct - a.pct || b.avgConf - a.avgConf);
-    const byFails   = [...perChar].sort((a,b) => b.fails - a.fails || a.pct - b.pct);
-
-    // Top
-    const topLabel = document.createElement('div');
-    topLabel.style.cssText = 'font-size:0.7rem;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:8px;margin-top:4px';
-    topLabel.textContent = '✅ Points forts';
-    container.appendChild(topLabel);
-
-    const topGrid = document.createElement('div');
-    topGrid.className = 'fail-grid';
-    bySuccess.slice(0, 5).forEach((item, i) => {
-        const medals = ['🥇','🥈','🥉','4e','5e'];
-        const mColor = item.mKey === 'm1' ? 'var(--accent)' : 'var(--purple)';
-        const div = document.createElement('div');
-        div.className = 'fail-item' + (i === 0 ? ' best-item' : '');
-        div.innerHTML = `
-            <div class="fail-badge-tag" style="background:rgba(0,229,122,0.15);color:var(--green)">${medals[i]}</div>
-            <div class="fail-char">${item.h}</div>
-            <div class="fail-rom">${HIRAGANA_MAP[item.h]}</div>
-            <div class="fail-count" style="color:var(--green)">${item.pct}%</div>
-            <div style="font-size:0.55rem;color:${mColor};font-family:var(--font-mono);margin-top:2px">${MODELS[item.mKey].label}</div>
-        `;
-        topGrid.appendChild(div);
-    });
-    container.appendChild(topGrid);
-
-    const sep = document.createElement('div');
-    sep.style.cssText = 'height:1px;background:var(--border2);margin:16px 0 12px';
-    container.appendChild(sep);
-
-    const withFails = byFails.filter(x => x.fails > 0);
-    if (withFails.length > 0) {
-        const failLabel = document.createElement('div');
-        failLabel.style.cssText = 'font-size:0.7rem;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;color:var(--red);margin-bottom:8px';
-        failLabel.textContent = '❌ À retravailler';
-        container.appendChild(failLabel);
-
-        const failGrid = document.createElement('div');
-        failGrid.className = 'fail-grid';
-        withFails.slice(0, 5).forEach((item, i) => {
-            const div = document.createElement('div');
-            div.className = 'fail-item' + (i === 0 ? ' worst-item' : '');
-            div.innerHTML = `
-                ${i === 0 ? `<div class="fail-badge-tag" style="background:rgba(255,69,96,0.15);color:var(--red)">⚠️</div>` : ''}
-                <div class="fail-char">${item.h}</div>
-                <div class="fail-rom">${HIRAGANA_MAP[item.h]}</div>
-                <div class="fail-count" style="color:var(--red)">-${item.fails} ✗</div>
-            `;
-            failGrid.appendChild(div);
-        });
-        container.appendChild(failGrid);
-    } else {
-        const perfect = document.createElement('div');
-        perfect.style.cssText = 'text-align:center;color:var(--green);font-size:0.9rem;padding:12px;font-weight:700';
-        perfect.innerHTML = '🏆 Aucun échec — session parfaite !';
-        container.appendChild(perfect);
-    }
-}
+showState('input');
 </script>
 </body>
 </html>
-
-
-
-
