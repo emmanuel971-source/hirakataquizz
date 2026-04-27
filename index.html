@@ -306,14 +306,129 @@ html,body{height:100%;font-family:'Nunito',sans-serif;background:linear-gradient
 </div>
 
 <script type="module">
-/* ── Import du vrai service Firebase ── */
-import {
-  registerFounder,
-  resendConfirmationEmail,
-  checkFounderStatus,
-  listenForConfirmation,
-  isOnline
-} from './founder-service.js';
+/* ══ Firebase SDK via CDN (modules ES6) ══ */
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc,
+         onSnapshot, runTransaction, serverTimestamp,
+         collection, query, where, getDocs }
+  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyCnS30baBDKa1bmxqU9-IoigwiALdp16ds",
+  authDomain:        "kanadrop-app.firebaseapp.com",
+  projectId:         "kanadrop-app",
+  storageBucket:     "kanadrop-app.firebasestorage.app",
+  messagingSenderId: "484586523436",
+  appId:             "1:484586523436:web:6e550138ae9f054524ba89"
+};
+const _app = initializeApp(firebaseConfig);
+const db   = getFirestore(_app);
+
+/* ── Utilitaires ── */
+function isOnline(){ return navigator.onLine; }
+
+function generateToken(){
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+    const r=Math.random()*16|0;
+    return(c==='x'?r:(r&0x3|0x8)).toString(16);
+  });
+}
+
+async function hashEmail(email){
+  const normalized=email.toLowerCase().trim();
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(normalized));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ── registerFounder ── */
+async function registerFounder(email){
+  if(!isOnline()) return {status:'err-network'};
+  try{
+    const emailHash=await hashEmail(email);
+    const founderRef=doc(db,'founders',emailHash);
+    const metaRef=doc(db,'meta','quota');
+    const token=generateToken();
+    const expiry=new Date(Date.now()+24*60*60*1000);
+    let resultStatus='sent';
+
+    await runTransaction(db,async(tx)=>{
+      const founderSnap=await tx.get(founderRef);
+      const metaSnap=await tx.get(metaRef);
+      const count=metaSnap.exists()?metaSnap.data().count:0;
+      const max=metaSnap.exists()?metaSnap.data().max:250;
+      if(count>=max){resultStatus='err-quota';return;}
+      if(founderSnap.exists()){
+        const data=founderSnap.data();
+        if(data.confirmed){resultStatus='already';}
+        else{resultStatus='sent';tx.update(founderRef,{token,tokenExpiry:expiry,lastSentAt:serverTimestamp()});}
+        return;
+      }
+      tx.set(founderRef,{email,registeredAt:serverTimestamp(),confirmed:false,confirmedAt:null,token,tokenExpiry:expiry,lastSentAt:serverTimestamp()});
+      if(metaSnap.exists()){tx.update(metaRef,{count:count+1});}
+      else{tx.set(metaRef,{count:1,max:250});}
+    });
+
+    if(resultStatus==='sent'){
+      /* Cloud Function pas encore déployée — log le lien en console */
+      const confirmLink=`https://emmanuel971-source.github.io/hirakataquizz/confirm.html?token=${token}`;
+      console.log('%c[FounderService] ✅ Firestore OK — lien de confirmation (DEV):','color:green;font-weight:bold');
+      console.log(confirmLink);
+    }
+    return {status:resultStatus,email};
+  }catch(err){
+    console.error('[FounderService] registerFounder:',err);
+    if(!isOnline()) return {status:'err-network'};
+    return {status:'err-unknown',error:err.message};
+  }
+}
+
+/* ── resendConfirmationEmail ── */
+async function resendConfirmationEmail(email){
+  if(!isOnline()) return {status:'err-network'};
+  try{
+    const emailHash=await hashEmail(email);
+    const founderRef=doc(db,'founders',emailHash);
+    const token=generateToken();
+    const expiry=new Date(Date.now()+24*60*60*1000);
+    await updateDoc(founderRef,{token,tokenExpiry:expiry,lastSentAt:serverTimestamp()});
+    const confirmLink=`https://emmanuel971-source.github.io/hirakataquizz/confirm.html?token=${token}`;
+    console.log('%c[FounderService] ↩ Renvoi — lien (DEV):','color:orange;font-weight:bold',confirmLink);
+    return {status:'sent',email};
+  }catch(err){
+    console.error('[FounderService] resend:',err);
+    return {status:'err-unknown',error:err.message};
+  }
+}
+
+/* ── listenForConfirmation ── */
+async function listenForConfirmation(email,callback){
+  const emailHash=await hashEmail(email);
+  const founderRef=doc(db,'founders',emailHash);
+  return onSnapshot(founderRef,(snap)=>{
+    if(!snap.exists())return;
+    if(snap.data().confirmed===true) callback({status:'confirmed',email});
+  },(err)=>console.error('[FounderService] listen:',err));
+}
+
+/* ── checkFounderStatus ── */
+async function checkFounderStatus(email){
+  if(!email) return {status:'none'};
+  if(!isOnline()) return {status:'err-network'};
+  try{
+    const emailHash=await hashEmail(email);
+    const snap=await getDoc(doc(db,'founders',emailHash));
+    if(!snap.exists()) return {status:'none'};
+    const data=snap.data();
+    if(data.confirmed) return {status:'already',email};
+    const expiry=data.tokenExpiry?.toDate?.()|| new Date(0);
+    if(expiry<new Date()) return {status:'err-expired',email};
+    return {status:'sent',email};
+  }catch(err){
+    return {status:'err-unknown',error:err.message};
+  }
+}
+
 
 /* ── Bulles limonade ── */
 (function(){
@@ -478,6 +593,16 @@ function kkDismiss(){
 }
 
 showState('input');
+
+/* ── Exposition globale des fonctions (nécessaire avec type="module") ── */
+window.showState        = showState;
+window.kkSubmitEmail    = kkSubmitEmail;
+window.kkResend         = kkResend;
+window.kkRetryNetwork   = kkRetryNetwork;
+window.kkResendExpired  = kkResendExpired;
+window.kkContactSupport = kkContactSupport;
+window.kkQuotaNotify    = kkQuotaNotify;
+window.kkDismiss        = kkDismiss;
 </script>
 </body>
 </html>
